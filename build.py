@@ -18,7 +18,7 @@ def build_tracker():
     
     out.write("})()")
   
-  # os.system("java -jar yui/yuicompressor-2.4.8.jar --charset utf-8 -o \"{0}\" \"{0}\"".format(output_file))
+  os.system("java -jar yui/yuicompressor-2.4.8.jar --charset utf-8 -o \"{0}\" \"{0}\"".format(output_file))
   
 
 def build_renderer():
