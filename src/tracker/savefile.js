@@ -65,14 +65,25 @@
  * }
  */
 
-var SAVEFILE = function(){
-  this.meta = {};
-  this.meta.users = {};
-  this.meta.userindex = [];
-  this.meta.servers = [];
-  this.meta.channels = {};
-  
-  this.data = {};
+var SAVEFILE = function(parsedObj){
+  if (parsedObj){
+    this.meta = parsedObj.meta;
+    this.meta.users = this.meta.users || {};
+    this.meta.userindex = this.meta.userindex || [];
+    this.meta.servers = this.meta.servers || [];
+    this.meta.channels = this.meta.channels || {};
+    
+    this.data = parsedObj.data;
+  }
+  else{
+    this.meta = {};
+    this.meta.users = {};
+    this.meta.userindex = [];
+    this.meta.servers = [];
+    this.meta.channels = {};
+
+    this.data = {};
+  }
   
   this.tmp = {};
   this.tmp.userlookup = {};
@@ -86,6 +97,9 @@ SAVEFILE.prototype.findOrRegisterUser = function(userId, userName){
     
     this.meta.userindex.push(userId);
     return this.tmp.userlookup[userId] = this.meta.userindex.length-1;
+  }
+  else if (!(userId in this.tmp.userlookup)){
+    return this.tmp.userlookup[userId] = this.meta.userindex.findIndex(id => id == userId);
   }
   else{
     return this.tmp.userlookup[userId];
@@ -186,6 +200,24 @@ SAVEFILE.prototype.addMessagesFromDiscord = function(channelId, discordMessageAr
   }
   
   return wasUpdated;
+};
+
+SAVEFILE.prototype.combineWith = function(obj){
+  for(var userId in obj.meta.users){
+    this.findOrRegisterUser(userId, obj.meta.users[userId].name);
+  }
+  
+  for(var channelId in obj.meta.channels){
+    var oldServer = obj.meta.servers[obj.meta.channels[channelId].server];
+    var serverIndex = this.findOrRegisterServer(oldServer.name, oldServer.type);
+    this.tryRegisterChannel(serverIndex, channelId, obj.meta.channels[channelId].name);
+  }
+  
+  for(var channelId in obj.data){
+    for(var messageId in obj.data[channelId]){
+      this.addMessage(channelId, messageId, obj.data[channelId][messageId]);
+    }
+  }
 };
 
 SAVEFILE.prototype.toJson = function(){
