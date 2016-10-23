@@ -169,24 +169,16 @@ SAVEFILE.prototype.convertToMessageObject = function(discordMessage){
   }
   
   if (discordMessage.embeds.length > 0){
-    obj.e = [];
-    
-    for(var embed of discordMessage.embeds){
-      obj.e.push({
-        url: embed.url,
-        type: embed.type
-      });
-    }
+    obj.e = discordMessage.embeds.map(embed => ({
+      url: embed.url,
+      type: embed.type
+    }));
   }
   
   if (discordMessage.attachments.length > 0){
-    obj.a = [];
-    
-    for(var attachment of discordMessage.attachments){
-      obj.a.push({
-        url: attachment.url
-      });
-    }
+    obj.a = discordMessage.attachments.map(attachment => ({
+      url: attachment.url
+    }));
   }
   
   return obj;
