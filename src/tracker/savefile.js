@@ -16,7 +16,7 @@
  *       <discord user id>, ...
  *     ],
  *
- *     server: [
+ *     servers: [
  *       {
  *         name: <server name>,
  *         type: <"SERVER"|"DM">
@@ -25,7 +25,7 @@
  *
  *     channels: {
  *       <discord channel id>: {
- *         server: <server index in the metadata.server array>,
+ *         server: <server index in the meta.servers array>,
  *         name: <channel name>
  *       }, ...
  *     }
@@ -53,14 +53,35 @@
  *     }, ...
  *   }
  * }
+ *
+ *
+ * TEMPORARY OBJECT STRUCTURE
+ * ==========================
+ *
+ * {
+ *   userlookup: {
+ *     <discord user id>: <user index in the meta.userindex array>
+ *   }
+ * }
  */
 
 var SAVEFILE = function(){
-  this.db = {};
-  this.db.meta = {};
-  this.db.data = {};
+  this.meta = {};
+  this.meta.users = {};
+  this.meta.userindex = [];
+  this.meta.servers = [];
+  this.meta.channels = {};
+  
+  this.data = {};
+  
+  this.tmp = {};
+  this.tmp.userlookup = {};
+};
 };
 
 SAVEFILE.prototype.toJson = function(){
-  return JSON.stringify(this.db);
+  return JSON.stringify({
+    meta: this.meta,
+    data: this.data
+  });
 };
