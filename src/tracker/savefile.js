@@ -125,6 +125,69 @@ SAVEFILE.prototype.tryRegisterChannel = function(serverIndex, channelId, channel
   }
 };
 
+SAVEFILE.prototype.addMessage = function(channelId, messageId, messageObject){
+  var container = this.data[channelId] || (this.data[channelId] = {});
+  var wasUpdated = messageId in container;
+  
+  container[messageId] = messageObject;
+  return wasUpdated;
+};
+
+SAVEFILE.prototype.convertToMessageObject = function(discordMessage){
+  var obj = {
+    u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username),
+    t: +Date.parse(discordMessage.timestamp),
+    m: discordMessage.content
+  };
+  
+  var flags = 0;
+  
+  if (discordMessage.edited_timestamp !== null){
+    flags |= 1;
+  }
+  
+  if (discordMessage.mentions.length > 0){
+    flags |= 2;
+  }
+  
+  if (flags !== 0){
+    obj.f = flags;
+  }
+  
+  if (discordMessage.embeds.length > 0){
+    obj.e = [];
+    
+    for(var embed of discordMessage.embeds){
+      obj.e.push({
+        url: embed.url,
+        type: embed.type
+      });
+    }
+  }
+  
+  if (discordMessage.attachments.length > 0){
+    obj.a = [];
+    
+    for(var attachment of discordMessage.attachments){
+      obj.a.push({
+        url: attachment.url
+      });
+    }
+  }
+  
+  return obj;
+};
+
+SAVEFILE.prototype.addMessagesFromDiscord = function(channelId, discordMessageArray){
+  var wasUpdated = false;
+  
+  for(var discordMessage of discordMessageArray){
+    wasUpdated |= this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage));
+  }
+  
+  return wasUpdated;
+};
+
 SAVEFILE.prototype.toJson = function(){
   return JSON.stringify({
     meta: this.meta,
