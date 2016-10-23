@@ -46,18 +46,35 @@ var DOM = (function(){
     },
     
     /*
-     * Creates a new style element with the specified CSS contents, and returns a function that deletes the element.
+     * Creates an element, adds it to the DOM, and returns it.
      */
-    createStyle: function(style){
+    createElement: function(tag, parent){
+      var ele = document.createElement(tag);
+      parent.appendChild(ele);
+      return ele;
+    },
+    
+    /*
+     * Removes an element from the DOM.
+     */
+    removeElement: function(ele){
+      ele.parentNode.removeChild(ele);
+    },
+    
+    /*
+     * Creates a new style element with the specified CSS contents and returns it.
+     */
+    createStyle: function(styles){
       var ele = document.createElement("style");
       ele.setAttribute("type", "text/css");
       
       document.head.appendChild(ele);
-      ele.sheet.insertRule(style, 0);
       
-      return function(){
-        document.head.removeChild(ele);
-      };
+      styles.forEach(function(style){
+        ele.sheet.insertRule(style, 0);
+      });
+      
+      return ele;
     },
     
     /*
