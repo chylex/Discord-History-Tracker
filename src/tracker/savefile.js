@@ -66,7 +66,7 @@
  */
 
 var SAVEFILE = function(parsedObj){
-  if (parsedObj){
+  if (SAVEFILE.isValid(parsedObj)){
     this.meta = parsedObj.meta;
     this.meta.users = this.meta.users || {};
     this.meta.userindex = this.meta.userindex || [];
@@ -87,6 +87,10 @@ var SAVEFILE = function(parsedObj){
   
   this.tmp = {};
   this.tmp.userlookup = {};
+};
+
+SAVEFILE.isValid = function(parsedObj){
+  return parsedObj && typeof parsedObj.meta === "object" && typeof parsedObj.data === "object";
 };
 
 SAVEFILE.prototype.findOrRegisterUser = function(userId, userName){
