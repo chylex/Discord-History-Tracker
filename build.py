@@ -25,7 +25,7 @@ def build_tracker():
     out.write("javascript:(function(){")
     
     with open(output_file_tmp, "r") as minified:
-      out.write(minified.read().replace("\n", "").replace("\r", ""))
+      out.write(minified.read().replace("\n", " ").replace("\r", ""))
     
     out.write("})()")
     
