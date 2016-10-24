@@ -19,7 +19,7 @@
  *     servers: [
  *       {
  *         name: <server name>,
- *         type: <"SERVER"|"DM">
+ *         type: <"SERVER"|"GROUP"|DM">
  *       }, ...
  *     ],
  *
