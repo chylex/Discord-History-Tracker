@@ -1,9 +1,9 @@
 var STATE = (function(){
   var stateChangedEvents = [];
   
-  var triggerStateChanged = function(){
+  var triggerStateChanged = function(changeType, changeDetail){
     for(var callback of stateChangedEvents){
-      callback();
+      callback(changeType, changeDetail);
     }
   };
   
@@ -20,7 +20,7 @@ var STATE = (function(){
   CLS.prototype.resetState = function(){
     this._savefile = null;
     this._isTracking = false;
-    triggerStateChanged();
+    triggerStateChanged("data", "reset");
   };
   
   /*
@@ -53,7 +53,7 @@ var STATE = (function(){
    */
   CLS.prototype.toggleTracking = function(){
     this._isTracking = !this._isTracking;
-    triggerStateChanged();
+    triggerStateChanged("tracking", this._isTracking);
   };
   
   /*
@@ -61,7 +61,7 @@ var STATE = (function(){
    */
   CLS.prototype.uploadSavefile = function(readFile){
     this.getSavefile().combineWith(readFile);
-    triggerStateChanged();
+    triggerStateChanged("data", "upload");
   };
   
   /*
@@ -80,7 +80,7 @@ var STATE = (function(){
     var serverIndex = this.getSavefile().findOrRegisterServer(serverName, serverType);
     
     if (this.getSavefile().tryRegisterChannel(serverIndex, channelId, channelName) === true){
-      triggerStateChanged();
+      triggerStateChanged("data", "channel");
     }
   };
   
@@ -89,12 +89,13 @@ var STATE = (function(){
    */
   CLS.prototype.addDiscordMessages = function(channelId, discordMessageArray){
     if (this.getSavefile().addMessagesFromDiscord(channelId, discordMessageArray)){
-      triggerStateChanged();
+      triggerStateChanged("data", "messages");
     }
   };
   
   /*
    * Adds a listener that is called whenever the state changes. If trigger is true, the callback is ran after adding it to the listener list.
+   * The callback is a function that takes subject (generic type) and detail (specific type or data).
    */
   CLS.prototype.onStateChanged = function(callback, trigger){
     stateChangedEvents.push(callback);
