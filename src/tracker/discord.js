@@ -21,13 +21,16 @@ var DISCORD = (function(){
     /*
      * Returns an object containing the selected server name, selected channel name and ID, and the object type.
      * For types DM and GROUP, the server and channel names are identical.
+     * For SERVER type, the channel has to be in view, otherwise Discord unloads it.
      */
     getSelectedChannel: function(){
       var obj;
-      var channelListEle = DOM.cls("private-channels");
       
-      if (channelListEle.length !== 0){
-        var channel = DOM.cls("selected", channelListEle[0])[0];
+      var channelListEle = DOM.cls("private-channels")[0];
+      var channel;
+      
+      if (channelListEle){
+        channel = DOM.cls("selected", channelListEle)[0];
         
         if (!channel || !channel.classList.contains("private")){
           return null;
@@ -45,18 +48,18 @@ var DISCORD = (function(){
         }
       }
       else{
-        channelListEle = DOM.cls("guild-channels");
+        channelListEle = DOM.cls("guild-channels")[0];
+        channel = channelListEle && DOM.cls("selected", channelListEle)[0];
         
-        if (channelListEle.length === 0){
+        if (!channel){
           return null;
         }
         else{
           var linkSplit = DOM.tag("a", channel)[0].getAttribute("href").split("/");
-          var name = DOM.tag("span", DOM.cls("guild-header")[0]).innerHTML;
 
           obj = {
             server: DOM.tag("span", DOM.cls("guild-header")[0])[0].innerHTML,
-            channel: DOM.cls("channel-name", DOM.cls("selected", channelListEle[0])[0])[0].innerHTML,
+            channel: DOM.cls("channel-name", DOM.cls("selected", channelListEle)[0])[0].innerHTML,
             id: linkSplit[linkSplit.length-1],
             type: "SERVER"
           };
