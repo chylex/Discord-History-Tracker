@@ -88,10 +88,14 @@ var GUI = (function(){
         controller.ui.inputUpload.value = null;
       });
       
-      STATE.onStateChanged(() => {
+      STATE.onStateChanged((type, detail) => {
         if (controller){
-          controller.ui.btnDownload.disabled = controller.ui.btnReset.disabled = !STATE.hasSavedData();
-          controller.ui.btnToggleTracking.innerHTML = STATE.isTracking() ? "Pause Tracking" : "Start Tracking";
+          if (type === "data"){
+            controller.ui.btnDownload.disabled = controller.ui.btnReset.disabled = !STATE.hasSavedData();
+          }
+          else if (type === "tracking"){
+            controller.ui.btnToggleTracking.innerHTML = detail ? "Pause Tracking" : "Start Tracking";
+          }
         }
       }, true);
     },
