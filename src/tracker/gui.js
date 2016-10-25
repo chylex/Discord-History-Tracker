@@ -16,8 +16,21 @@ var GUI = (function(){
       }
     }
     
-    if (settings && type === "gui" && detail === "settings"){
-      settings.ui.cbAutoscroll.checked = STATE.settings.autoscroll;
+    if (settings){
+      var force = type === "gui" && detail === "settings";
+      
+      if (force){
+        settings.ui.cbAutoscroll.checked = STATE.settings.autoscroll;
+        settings.ui.optsAfterFirstMsg[STATE.settings.afterFirstMsg].checked = true;
+        settings.ui.optsAfterSavedMsg[STATE.settings.afterSavedMsg].checked = true;
+      }
+      
+      if (type === "setting" || force){
+        var autoscrollRev = !STATE.settings.autoscroll;
+
+        Object.values(settings.ui.optsAfterFirstMsg).forEach(ele => ele.disabled = autoscrollRev);
+        Object.values(settings.ui.optsAfterSavedMsg).forEach(ele => ele.disabled = autoscrollRev);
+      }
     }
   };
   
@@ -161,19 +174,47 @@ var GUI = (function(){
       settings.ele.id = "dht-cfg";
       
       settings.ele.innerHTML = [
-        "<label><input id='dht-cfg-autoscroll' type='checkbox'> Autoscroll</label>"
+        "<label><input id='dht-cfg-autoscroll' type='checkbox'> Autoscroll</label><br>",
+        "<br>",
+        "<label>After reaching the first message in channel...</label><br>",
+        "<label><input id='dht-cfg-afm-nothing' name='dht-afm' type='radio'> Do Nothing</label><br>",
+        "<label><input id='dht-cfg-afm-pause' name='dht-afm' type='radio'> Pause Tracking</label><br>",
+        "<br>",
+        "<label>After reaching a previously saved message...</label><br>",
+        "<label><input id='dht-cfg-asm-nothing' name='dht-asm' type='radio'> Do Nothing</label><br>",
+        "<label><input id='dht-cfg-asm-pause' name='dht-asm' type='radio'> Pause Tracking</label><br>",
       ].join("");
       
       // elements
       
       settings.ui = {
-        cbAutoscroll: DOM.id("dht-cfg-autoscroll")
+        cbAutoscroll: DOM.id("dht-cfg-autoscroll"),
+        optsAfterFirstMsg: {},
+        optsAfterSavedMsg: {}
       };
+      
+      settings.ui.optsAfterFirstMsg[CONSTANTS.AUTOSCROLL_ACTION_NOTHING] = DOM.id("dht-cfg-afm-nothing");
+      settings.ui.optsAfterFirstMsg[CONSTANTS.AUTOSCROLL_ACTION_PAUSE] = DOM.id("dht-cfg-afm-pause");
+      
+      settings.ui.optsAfterSavedMsg[CONSTANTS.AUTOSCROLL_ACTION_NOTHING] = DOM.id("dht-cfg-asm-nothing");
+      settings.ui.optsAfterSavedMsg[CONSTANTS.AUTOSCROLL_ACTION_PAUSE] = DOM.id("dht-cfg-asm-pause");
       
       // events
       
       settings.ui.cbAutoscroll.addEventListener("change", () => {
         STATE.settings.autoscroll = settings.ui.cbAutoscroll.checked;
+      });
+      
+      Object.keys(settings.ui.optsAfterFirstMsg).forEach(key => {
+        settings.ui.optsAfterFirstMsg[key].addEventListener("click", () => {
+          STATE.settings.afterFirstMsg = key;
+        });
+      });
+      
+      Object.keys(settings.ui.optsAfterSavedMsg).forEach(key => {
+        settings.ui.optsAfterSavedMsg[key].addEventListener("click", () => {
+          STATE.settings.afterSavedMsg = key;
+        });
       });
       
       setupStateChanged("settings");

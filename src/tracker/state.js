@@ -1,3 +1,8 @@
+var CONSTANTS = {
+  AUTOSCROLL_ACTION_NOTHING: "optNothing",
+  AUTOSCROLL_ACTION_PAUSE: "optPause",
+};
+
 var STATE = (function(){
   var stateChangedEvents = [];
   
@@ -33,8 +38,8 @@ var STATE = (function(){
    */
   SETTINGS.prototype._reset = function(){
     this._autoscroll = true;
-    this._afterFirstMsg = "optPause";
-    this._afterSavedMsg = "optPause";
+    this._afterFirstMsg = CONSTANTS.AUTOSCROLL_ACTION_PAUSE;
+    this._afterSavedMsg = CONSTANTS.AUTOSCROLL_ACTION_PAUSE;
   };
   
   /*

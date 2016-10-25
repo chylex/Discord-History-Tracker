@@ -4,10 +4,26 @@ DISCORD.setupMessageRequestHook((channel, messages) => {
     
     if (info.id == channel){ // Discord has a bug where the message request may be sent without switching channels
       STATE.addDiscordChannel(info.server, info.type, channel, info.channel);
-      STATE.addDiscordMessages(channel, messages);
+      var hasUpdatedFile = STATE.addDiscordMessages(channel, messages);
       
       if (STATE.settings.autoscroll){
-        DOM.setTimer(() => DISCORD.loadOlderMessages(), 0);
+        DOM.setTimer(() => {
+          var action = CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
+          
+          if (!hasUpdatedFile){
+            action = STATE.settings.afterSavedMsg;
+          }
+          else if (!DISCORD.hasMoreMessages()){
+            action = STATE.settings.afterFirstMsg;
+          }
+          
+          if (action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
+            STATE.toggleTracking();
+          }
+          else{
+            DISCORD.loadOlderMessages();
+          }
+        }, 0);
       }
     }
   }
@@ -15,7 +31,12 @@ DISCORD.setupMessageRequestHook((channel, messages) => {
 
 STATE.onStateChanged((type, detail) => {
   if (type === "tracking" && detail && STATE.settings.autoscroll){
-    DISCORD.loadOlderMessages();
+    if (DISCORD.hasMoreMessages()){
+      DISCORD.loadOlderMessages();
+    }
+    else if (STATE.settings.afterFirstMsg === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
+      DOM.setTimer(() => STATE.toggleTracking(), 200); // give the user visual feedback after clicking the button before switching off
+    }
   }
 });
 
