@@ -7,10 +7,36 @@ var STATE = (function(){
     }
   };
   
+  var defineTriggeringProperty = function(obj, type, property){
+    var name = "_"+property;
+    
+    Object.defineProperty(obj, property, {
+      get: (() => obj[name]),
+      set: (value => {
+        obj[name] = value;
+        triggerStateChanged(type, property);
+      })
+    });
+  };
+  
+  /*
+   * Internal settings class constructor.
+   */
+  var SETTINGS = function(){
+  };
+  
+  /*
+   * Resets settings without triggering state changed event.
+   */
+  SETTINGS.prototype._reset = function(){
+    this._autoscroll = true;
+  };
+  
   /*
    * Internal class constructor.
    */
   var CLS = function(){
+    this.settings = new SETTINGS();
     this.resetState();
   };
   
@@ -20,6 +46,7 @@ var STATE = (function(){
   CLS.prototype.resetState = function(){
     this._savefile = null;
     this._isTracking = false;
+    this.settings._reset();
     triggerStateChanged("data", "reset");
   };
   
