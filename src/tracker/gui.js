@@ -117,7 +117,7 @@ var GUI = (function(){
             var obj = {};
 
             try{
-              obj = JSON.parse(reader.result); // TODO check content validity
+              obj = JSON.parse(reader.result);
             }catch(e){
               alert("Could not parse '"+file.name+"', see console for details.");
               console.error(e);
