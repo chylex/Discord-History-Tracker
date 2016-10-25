@@ -23,6 +23,7 @@ var STATE = (function(){
    * Internal settings class constructor.
    */
   var SETTINGS = function(){
+    defineTriggeringProperty(this, "setting", "autoscroll");
   };
   
   /*

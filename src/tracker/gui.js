@@ -14,6 +14,10 @@ var GUI = (function(){
         controller.ui.btnToggleTracking.innerHTML = STATE.isTracking() ? "Pause Tracking" : "Start Tracking";
       }
     }
+    
+    if (settings && type === "gui" && detail === "settings"){
+      settings.ui.cbAutoscroll.checked = STATE.settings.autoscroll;
+    }
   };
   
   var registeredEvent = false;
@@ -155,9 +159,23 @@ var GUI = (function(){
       settings.ele = DOM.createElement("div", document.body);
       settings.ele.id = "dht-cfg";
       
+      settings.ele.innerHTML = [
+        "<label><input id='dht-cfg-autoscroll' type='checkbox'> Autoscroll</label>"
+      ].join("");
+      
+      // elements
+      
+      settings.ui = {
+        cbAutoscroll: DOM.id("dht-cfg-autoscroll")
+      };
+      
       // events
       
-      stateChangedEvent("gui", "settings");
+      settings.ui.cbAutoscroll.addEventListener("change", () => {
+        STATE.settings.autoscroll = settings.ui.cbAutoscroll.checked;
+      });
+      
+      setupStateChanged("settings");
     },
     
     hideSettings: function(){
