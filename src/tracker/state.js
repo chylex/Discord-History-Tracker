@@ -121,12 +121,10 @@ var STATE = (function(){
   };
   
   /*
-   * Adds a listener that is called whenever the state changes. If trigger is true, the callback is ran after adding it to the listener list.
-   * The callback is a function that takes subject (generic type) and detail (specific type or data).
+   * Adds a listener that is called whenever the state changes. The callback is a function that takes subject (generic type) and detail (specific type or data).
    */
-  CLS.prototype.onStateChanged = function(callback, trigger){
+  CLS.prototype.onStateChanged = function(callback){
     stateChangedEvents.push(callback);
-    trigger && callback();
   };
   
   return new CLS();
