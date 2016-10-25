@@ -1,5 +1,6 @@
 var GUI = (function(){
   var controller;
+  var settings;
   
   var stateChangedEvent = (type, detail) => {
     var force = type === "gui";
@@ -39,6 +40,7 @@ var GUI = (function(){
       
       controller.ele.innerHTML = [
         "<button id='dht-ctrl-upload'>Upload Previous File</button>",
+        "<button id='dht-ctrl-settings'>Settings</button>",
         "<button id='dht-ctrl-track'></button>",
         "<button id='dht-ctrl-download'>Download</button>",
         "<button id='dht-ctrl-reset'>Reset</button>",
@@ -50,6 +52,7 @@ var GUI = (function(){
       
       controller.ui = {
         btnUpload: DOM.id("dht-ctrl-upload"),
+        btnSettings: DOM.id("dht-ctrl-settings"),
         btnToggleTracking: DOM.id("dht-ctrl-track"),
         btnDownload: DOM.id("dht-ctrl-download"),
         btnReset: DOM.id("dht-ctrl-reset"),
@@ -61,6 +64,10 @@ var GUI = (function(){
       
       controller.ui.btnUpload.addEventListener("click", () => {
         controller.ui.inputUpload.click();
+      });
+      
+      controller.ui.btnSettings.addEventListener("click", () => {
+        root.showSettings();
       });
       
       controller.ui.btnToggleTracking.addEventListener("click", () => {
@@ -112,6 +119,44 @@ var GUI = (function(){
         DOM.removeElement(controller.ele);
         DOM.removeElement(controller.styles);
         controller = null;
+      }
+    },
+    
+    showSettings: function(){
+      settings = {};
+      
+      // styles
+      
+      settings.styles = DOM.createStyle([
+        "#dht-cfg-overlay { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #000; opacity: 0.5; display: block; z-index: 1000; }",
+        "#dht-cfg { position: absolute; left: 50%; top: 50%; width: 500px; height: 300px; margin-left: -250px; margin-top: -174px; padding: 8px; background-color: #fff; z-index: 1001; }"
+      ]);
+      
+      // overlay
+      
+      settings.overlay = DOM.createElement("div", document.body);
+      settings.overlay.id = "dht-cfg-overlay";
+      
+      settings.overlay.addEventListener("click", () => {
+        root.hideSettings();
+      });
+      
+      // main
+      
+      settings.ele = DOM.createElement("div", document.body);
+      settings.ele.id = "dht-cfg";
+      
+      // events
+      
+      stateChangedEvent("gui", "settings");
+    },
+    
+    hideSettings: function(){
+      if (settings){
+        DOM.removeElement(settings.overlay);
+        DOM.removeElement(settings.ele);
+        DOM.removeElement(settings.styles);
+        settings = null;
       }
     }
   };
