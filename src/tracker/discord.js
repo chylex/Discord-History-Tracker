@@ -81,6 +81,22 @@ var DISCORD = (function(){
      */
     loadOlderMessages: function(){
       DOM.cls("messages")[0].scrollTop = 0;
+    },
+    
+    /*
+     * Selects the next text channel and returns true, otherwise returns false if there are no more channels.
+     */
+    selectNextTextChannel: function(){
+      var nextChannel = DOM.cls("selected", DOM.cls("channels-wrap")[0])[0].nextElementSibling;
+      var classes = nextChannel && nextChannel.classList;
+      
+      if (nextChannel === null || !classes.contains("channel") || !(classes.contains("private") || classes.contains("channel-text"))){
+        return false;
+      }
+      else{
+        DOM.tag("a", nextChannel)[0].click();
+        return true;
+      }
     }
   };
 })();
