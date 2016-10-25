@@ -70,6 +70,13 @@ var DISCORD = (function(){
     },
     
     /*
+     * Returns true if the message column is visible.
+     */
+    isInMessageView: function(){
+      return DOM.cls("messages").length > 0;
+    },
+    
+    /*
      * Returns true if there are more messages available.
      */
     hasMoreMessages: function(){

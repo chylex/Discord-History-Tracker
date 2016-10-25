@@ -30,7 +30,7 @@ DISCORD.setupMessageRequestHook((channel, messages) => {
 });
 
 STATE.onStateChanged((type, detail) => {
-  if (type === "tracking" && detail && STATE.settings.autoscroll){
+  if (type === "tracking" && detail && STATE.settings.autoscroll && DISCORD.isInMessageView()){
     if (DISCORD.hasMoreMessages()){
       DISCORD.loadOlderMessages();
     }
