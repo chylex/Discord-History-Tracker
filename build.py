@@ -67,5 +67,3 @@ print("Building tracker...")
 build_tracker()
 print("Building renderer...")
 build_renderer()
-
-input("Press Enter to exit...")
