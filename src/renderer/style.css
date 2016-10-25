@@ -1,1 +1,112 @@
-/* style.css */
+body {
+  font-family: Whitney, "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+}
+
+#menu {
+  width: 240px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background-color: #1C1E22;
+}
+
+#menu > div {
+  flex: 0 0 auto;
+}
+
+#menu > button {
+  flex: 0 0 auto;
+  font-size: 18px;
+  height: 32px;
+  margin: 8px;
+  padding: 0 12px;
+  background-color: #AADDFF;
+  border: 0;
+  cursor: pointer;
+}
+
+#channels > div {
+  cursor: pointer;
+  color: #eee;
+  padding: 8px;
+  text-align: center;
+}
+
+#channels > div:hover, #channels > div.active {
+  background-color: #282B30;
+}
+
+#messages {
+  flex: 1 1 0;
+  height: 100vh;
+  overflow-y: auto;
+  background-color: #36393E;
+}
+
+#messages > div {
+  margin: 0 20px;
+  padding: 8px 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+#messages h2 {
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+
+#messages .username {
+  color: #FFF;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+#messages .time {
+  margin-left: 10px;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+#messages .comment {
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 15px;
+  line-height: 1.1em;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+#messages .comment .link {
+  color: #7289DA;
+  background-color: rgba(115, 139, 215, 0.1);
+}
+
+#messages .comment a {
+  color: #0096CF;
+  text-decoration: none;
+}
+
+#messages .comment a:hover {
+  text-decoration: underline;
+}
+
+#messages .comment img {
+  margin-top: 4px;
+  max-height: 320px;
+  max-width: calc(100vw - 299px);
+  border-radius: 3px;
+}
