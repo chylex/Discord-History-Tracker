@@ -67,6 +67,13 @@ var DISCORD = (function(){
       }
       
       return obj.channel.length === 0 ? null : obj;
+    },
+    
+    /*
+     * Forces the message column to scroll all the way up to load older messages.
+     */
+    loadOlderMessages: function(){
+      DOM.cls("messages")[0].scrollTop = 0;
     }
   };
 })();
