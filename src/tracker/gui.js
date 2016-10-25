@@ -11,6 +11,7 @@ var GUI = (function(){
       }
       
       if (type === "tracking" || force){
+        controller.ui.btnUpload.disabled = controller.ui.btnSettings.disabled = STATE.isTracking();
         controller.ui.btnToggleTracking.innerHTML = STATE.isTracking() ? "Pause Tracking" : "Start Tracking";
       }
     }
