@@ -3,9 +3,9 @@ var GUI = (function(){
   var settings;
   
   var stateChangedEvent = (type, detail) => {
-    var force = type === "gui";
-    
     if (controller){
+      var force = type === "gui" && detail === "controller";
+      
       if (type === "data" || force){
         controller.ui.btnDownload.disabled = controller.ui.btnReset.disabled = !STATE.hasSavedData();
       }
@@ -16,7 +16,16 @@ var GUI = (function(){
     }
   };
   
-  STATE.onStateChanged(stateChangedEvent);
+  var registeredEvent = false;
+  
+  var setupStateChanged = function(detail){
+    if (!registeredEvent){
+      STATE.onStateChanged(stateChangedEvent);
+      registeredEvent = true;
+    }
+    
+    stateChangedEvent("gui", detail);
+  };
   
   var root = {
     showController: function(){
@@ -111,7 +120,7 @@ var GUI = (function(){
         controller.ui.inputUpload.value = null;
       });
       
-      stateChangedEvent("gui", "controller");
+      setupStateChanged("controller");
     },
     
     hideController: function(){
