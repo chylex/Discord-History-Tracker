@@ -13,7 +13,9 @@ body {
 }
 
 #menu {
-  width: 240px;
+  width: 16vw;
+  min-width: 225px;
+  max-width: 350px;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -47,6 +49,10 @@ body {
   background-color: #282B30;
 }
 
+#channels br {
+  margin-bottom: 4px;
+}
+
 #messages {
   flex: 1 1 0;
   height: 100vh;
@@ -55,7 +61,7 @@ body {
 }
 
 #messages > div {
-  margin: 0 20px;
+  margin: 0 24px;
   padding: 8px 0 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
@@ -81,7 +87,7 @@ body {
   letter-spacing: 0;
 }
 
-#messages .comment {
+#messages .message {
   margin-top: 6px;
   color: rgba(255, 255, 255, 0.7);
   font-size: 15px;
@@ -90,21 +96,21 @@ body {
   word-wrap: break-word;
 }
 
-#messages .comment .link {
+#messages .message .link {
   color: #7289DA;
   background-color: rgba(115, 139, 215, 0.1);
 }
 
-#messages .comment a {
+#messages .message a {
   color: #0096CF;
   text-decoration: none;
 }
 
-#messages .comment a:hover {
+#messages .message a:hover {
   text-decoration: underline;
 }
 
-#messages .comment img {
+#messages .message img {
   margin-top: 4px;
   max-height: 320px;
   max-width: calc(100vw - 299px);
