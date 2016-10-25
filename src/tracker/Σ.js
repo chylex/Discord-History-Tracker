@@ -17,7 +17,7 @@ DISCORD.setupMessageRequestHook((channel, messages) => {
             action = STATE.settings.afterFirstMsg;
           }
           
-          if (action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
+          if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
             STATE.toggleTracking();
           }
           else{
@@ -34,8 +34,12 @@ STATE.onStateChanged((type, detail) => {
     if (DISCORD.hasMoreMessages()){
       DISCORD.loadOlderMessages();
     }
-    else if (STATE.settings.afterFirstMsg === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
-      DOM.setTimer(() => STATE.toggleTracking(), 200); // give the user visual feedback after clicking the button before switching off
+    else{
+      var action = STATE.settings.afterFirstMsg;
+      
+      if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
+        DOM.setTimer(() => STATE.toggleTracking(), 200); // give the user visual feedback after clicking the button before switching off
+      }
     }
   }
 });

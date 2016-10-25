@@ -1,6 +1,7 @@
 var CONSTANTS = {
   AUTOSCROLL_ACTION_NOTHING: "optNothing",
   AUTOSCROLL_ACTION_PAUSE: "optPause",
+  AUTOSCROLL_ACTION_SWITCH: "optSwitch"
 };
 
 var STATE = (function(){

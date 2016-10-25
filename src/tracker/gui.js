@@ -179,10 +179,12 @@ var GUI = (function(){
         "<label>After reaching the first message in channel...</label><br>",
         "<label><input id='dht-cfg-afm-nothing' name='dht-afm' type='radio'> Do Nothing</label><br>",
         "<label><input id='dht-cfg-afm-pause' name='dht-afm' type='radio'> Pause Tracking</label><br>",
+        "<label><input id='dht-cfg-afm-switch' name='dht-afm' type='radio'> Switch to Next Channel</label><br>",
         "<br>",
         "<label>After reaching a previously saved message...</label><br>",
         "<label><input id='dht-cfg-asm-nothing' name='dht-asm' type='radio'> Do Nothing</label><br>",
         "<label><input id='dht-cfg-asm-pause' name='dht-asm' type='radio'> Pause Tracking</label><br>",
+        "<label><input id='dht-cfg-asm-switch' name='dht-asm' type='radio'> Switch to Next Channel</label><br>"
       ].join("");
       
       // elements
@@ -195,9 +197,11 @@ var GUI = (function(){
       
       settings.ui.optsAfterFirstMsg[CONSTANTS.AUTOSCROLL_ACTION_NOTHING] = DOM.id("dht-cfg-afm-nothing");
       settings.ui.optsAfterFirstMsg[CONSTANTS.AUTOSCROLL_ACTION_PAUSE] = DOM.id("dht-cfg-afm-pause");
+      settings.ui.optsAfterFirstMsg[CONSTANTS.AUTOSCROLL_ACTION_SWITCH] = DOM.id("dht-cfg-afm-switch");
       
       settings.ui.optsAfterSavedMsg[CONSTANTS.AUTOSCROLL_ACTION_NOTHING] = DOM.id("dht-cfg-asm-nothing");
       settings.ui.optsAfterSavedMsg[CONSTANTS.AUTOSCROLL_ACTION_PAUSE] = DOM.id("dht-cfg-asm-pause");
+      settings.ui.optsAfterSavedMsg[CONSTANTS.AUTOSCROLL_ACTION_SWITCH] = DOM.id("dht-cfg-asm-switch");
       
       // events
       
