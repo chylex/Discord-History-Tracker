@@ -70,6 +70,13 @@ var DISCORD = (function(){
     },
     
     /*
+     * Returns true if there are more messages available.
+     */
+    hasMoreMessages: function(){
+      return DOM.cls("messages")[0].children[0].classList.contains("has-more");
+    },
+    
+    /*
      * Forces the message column to scroll all the way up to load older messages.
      */
     loadOlderMessages: function(){
