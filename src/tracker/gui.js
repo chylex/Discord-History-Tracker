@@ -11,7 +11,7 @@ var GUI = (function(){
       }
       
       if (type === "tracking" || force){
-        controller.ui.btnToggleTracking.innerHTML = detail ? "Pause Tracking" : "Start Tracking";
+        controller.ui.btnToggleTracking.innerHTML = STATE.isTracking() ? "Pause Tracking" : "Start Tracking";
       }
     }
   };
