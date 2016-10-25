@@ -1,6 +1,22 @@
 var GUI = (function(){
   var controller;
   
+  var stateChangedEvent = (type, detail) => {
+    var force = type === "gui";
+    
+    if (controller){
+      if (type === "data" || force){
+        controller.ui.btnDownload.disabled = controller.ui.btnReset.disabled = !STATE.hasSavedData();
+      }
+      
+      if (type === "tracking" || force){
+        controller.ui.btnToggleTracking.innerHTML = detail ? "Pause Tracking" : "Start Tracking";
+      }
+    }
+  };
+  
+  STATE.onStateChanged(stateChangedEvent);
+  
   var root = {
     showController: function(){
       controller = {};
@@ -23,7 +39,7 @@ var GUI = (function(){
       
       controller.ele.innerHTML = [
         "<button id='dht-ctrl-upload'>Upload Previous File</button>",
-        "<button id='dht-ctrl-track'>Start Tracking</button>",
+        "<button id='dht-ctrl-track'></button>",
         "<button id='dht-ctrl-download'>Download</button>",
         "<button id='dht-ctrl-reset'>Reset</button>",
         "<p id='dht-ctrl-status'></p>",
@@ -88,16 +104,7 @@ var GUI = (function(){
         controller.ui.inputUpload.value = null;
       });
       
-      STATE.onStateChanged((type, detail) => {
-        if (controller){
-          if (type === "data"){
-            controller.ui.btnDownload.disabled = controller.ui.btnReset.disabled = !STATE.hasSavedData();
-          }
-          else if (type === "tracking"){
-            controller.ui.btnToggleTracking.innerHTML = detail ? "Pause Tracking" : "Start Tracking";
-          }
-        }
-      }, true);
+      stateChangedEvent("gui", "controller");
     },
     
     hideController: function(){
