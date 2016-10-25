@@ -24,6 +24,8 @@ var STATE = (function(){
    */
   var SETTINGS = function(){
     defineTriggeringProperty(this, "setting", "autoscroll");
+    defineTriggeringProperty(this, "setting", "afterFirstMsg");
+    defineTriggeringProperty(this, "setting", "afterSavedMsg");
   };
   
   /*
@@ -31,6 +33,8 @@ var STATE = (function(){
    */
   SETTINGS.prototype._reset = function(){
     this._autoscroll = true;
+    this._afterFirstMsg = "optPause";
+    this._afterSavedMsg = "optPause";
   };
   
   /*
@@ -113,11 +117,15 @@ var STATE = (function(){
   };
   
   /*
-   * Adds all messages from the array to the specified channel.
+   * Adds all messages from the array to the specified channel. Returns true if the savefile was updated.
    */
   CLS.prototype.addDiscordMessages = function(channelId, discordMessageArray){
     if (this.getSavefile().addMessagesFromDiscord(channelId, discordMessageArray)){
       triggerStateChanged("data", "messages");
+      return true;
+    }
+    else{
+      return false;
     }
   };
   
