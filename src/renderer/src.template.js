@@ -10,9 +10,9 @@ TEMPLATE.prototype.apply = function(obj, processor){
     
     if (processor){
       var updated = processor(match, value);
-      return typeof updated === "undefined" ? value : updated;
+      return typeof updated === "undefined" ? DOM.escapeHTML(value) : updated;
     }
     
-    return value;
+    return DOM.escapeHTML(value);
   });
 };
