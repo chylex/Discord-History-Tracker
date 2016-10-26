@@ -1,4 +1,15 @@
 var DOM = (function(){
+  var entityMap = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': '&quot;',
+    "'": '&#39;',
+    "/": '&#x2F;'
+  };
+  
+  var entityRegex = /[&<>"'\/]/g;
+  
   return {
     /*
      * Returns a child element by its ID. Parent defaults to the entire document.
@@ -35,6 +46,13 @@ var DOM = (function(){
      */
     removeElement: function(ele){
       ele.parentNode.removeChild(ele);
+    },
+    
+    /*
+     * Converts characters to their HTML entity form.
+     */
+    escapeHTML: function(html){
+      return html.replace(entityRegex, s => entityMap[s]);
     }
   };
 })();
