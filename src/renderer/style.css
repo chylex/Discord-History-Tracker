@@ -50,7 +50,11 @@ body {
 }
 
 #channels br {
-  margin-bottom: 4px;
+  margin-bottom: 3px;
+}
+
+#channels .server {
+  font-size: 14px;
 }
 
 #messages {
