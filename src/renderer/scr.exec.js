@@ -1,8 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   DISCORD.setup();
   
-  var CURRENTFILE;
-  
   var btnUploadFile = DOM.id("upload-file");
   var inputUploadedFile = DOM.id("uploaded-file");
   
@@ -26,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         if (SAVEFILE.isValid(obj)){
-          CURRENTFILE = new SAVEFILE(obj);
+          STATE.uploadFile(new SAVEFILE(obj));
           reset();
         }
         else{
@@ -44,12 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
     var eleChannels = DOM.id("channels");
     var eleMessages = DOM.id("messages");
     
-    eleChannels.innerHTML = "";
+    eleChannels.innerHTML = STATE.getChannelList().map(channel => DISCORD.getChannelHTML(channel)).join("");
     eleMessages.innerHTML = "";
-    
-    CURRENTFILE.getChannelList().forEach(channel => {
-      eleChannels.innerHTML += DISCORD.getChannelHTML(channel);
-    });
     
     Array.prototype.forEach.call(eleChannels.children, ele => {
       ele.addEventListener("click", e => {
@@ -62,14 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
         
         ele.classList.add("active");
         
-        var html = [];
-        var messages = CURRENTFILE.getChannelMessageObject(ele.getAttribute("data-channel"));
-        
-        for(var key of Object.keys(messages).sort()){
-          html.push(DISCORD.getMessageHTML(CURRENTFILE.getMessage(messages[key])));
-        }
-        
-        eleMessages.innerHTML = html.join("");
+        STATE.selectChannel(ele.getAttribute("data-channel"));
+        eleMessages.innerHTML = STATE.getMessageList(0).map(message => DISCORD.getMessageHTML(message)).join("");
       });
     });
   };

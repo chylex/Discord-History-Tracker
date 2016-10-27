@@ -19,27 +19,18 @@ SAVEFILE.prototype.getServer = function(index){
   };
 };
 
-SAVEFILE.prototype.getChannelList = function(){
-  return Object.keys(this.meta.channels).map(key => ({
-    id: key,
-    name: this.meta.channels[key].name,
-    server: this.getServer(this.meta.channels[key].server),
-    msgcount: Object.keys(this.data[key]).length || 0
-  }));
+SAVEFILE.prototype.getChannels = function(){
+  return this.meta.channels || {};
 };
 
 SAVEFILE.prototype.getUser = function(index){
   return this.meta.users[this.meta.userindex[index]] || { name: "&lt;unknown&gt;" };
 };
 
-SAVEFILE.prototype.getChannelMessageObject = function(channel){
-  return this.data[channel] || [];
+SAVEFILE.prototype.getMessageCount = function(channel){
+  return Object.keys(this.data[channel]).length || 0;
 };
 
-SAVEFILE.prototype.getMessage = function(message){
-  return {
-    user: this.getUser(message.u),
-    timestamp: message.t,
-    contents: message.m
-  };
+SAVEFILE.prototype.getMessages = function(channel){
+  return this.data[channel] || [];
 };
