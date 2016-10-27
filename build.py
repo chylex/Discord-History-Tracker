@@ -27,9 +27,13 @@ def build_tracker():
   input_pattern = "src/tracker/*.js"
   
   with open(output_file, "w") as out:
-    out.write("(function(){\n")
+    if not USE_UGLIFYJS:
+      out.write("(function(){\n")
+    
     combine_files(input_pattern, out)
-    out.write("})()")
+    
+    if not USE_UGLIFYJS:
+      out.write("})()")
   
   if USE_UGLIFYJS:
     os.system(EXEC_UGLIFYJS.format(output_file, output_file_tmp))
