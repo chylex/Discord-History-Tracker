@@ -114,7 +114,7 @@ SAVEFILE.prototype.findOrRegisterServer = function(serverName, serverType){
   var index = this.meta.servers.findIndex(server => server.name === serverName && server.type === serverType);
   
   if (index === -1){
-    this.meta.servers.push({
+    this.meta.servers.push({ // reserve.txt
       name: serverName,
       type: serverType
     });
@@ -134,7 +134,7 @@ SAVEFILE.prototype.tryRegisterChannel = function(serverIndex, channelId, channel
     return false;
   }
   else{
-    this.meta.channels[channelId] = {
+    this.meta.channels[channelId] = { // reserve.txt
       server: serverIndex,
       name: channelName
     };
@@ -151,7 +151,7 @@ SAVEFILE.prototype.addMessage = function(channelId, messageId, messageObject){
   return wasUpdated;
 };
 
-SAVEFILE.prototype.convertToMessageObject = function(discordMessage){
+SAVEFILE.prototype.convertToMessageObject = function(discordMessage){ // reserve.txt
   var obj = {
     u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username),
     t: +Date.parse(discordMessage.timestamp),
@@ -221,7 +221,7 @@ SAVEFILE.prototype.combineWith = function(obj){
 };
 
 SAVEFILE.prototype.toJson = function(){
-  return JSON.stringify({
+  return JSON.stringify({ // reserve.txt
     meta: this.meta,
     data: this.data
   });

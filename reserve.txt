@@ -1,0 +1,31 @@
+{
+  "vars": [],
+  "props": [
+    "autoscroll",
+    "_autoscroll",
+    "afterFirstMsg",
+    "_afterFirstMsg",
+    "afterSavedMsg",
+    "_afterSavedMsg",
+    "meta",
+    "data",
+    "users",
+    "userindex",
+    "servers",
+    "channels",
+    "name",
+    "type",
+    "server",
+    "u",
+    "t",
+    "m",
+    "f",
+    "e",
+    "a",
+    "id",
+    "user",
+    "msgcount",
+    "timestamp",
+    "contents"
+  ]
+}

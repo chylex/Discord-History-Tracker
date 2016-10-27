@@ -13,7 +13,7 @@ var STATE = (function(){
     getChannelList: function(){
       var channels = FILE.getChannels();
       
-      return Object.keys(channels).map(key => ({
+      return Object.keys(channels).map(key => ({ // reserve.txt
         id: key,
         name: channels[key].name,
         server: FILE.getServer(channels[key].server),
@@ -44,7 +44,7 @@ var STATE = (function(){
       return MSGS.slice(startIndex, !count ? undefined : startIndex+count).map(key => {
         var message = messages[key];
         
-        return {
+        return { // reserve.txt
           user: FILE.getUser(message.u),
           timestamp: message.t,
           contents: message.m

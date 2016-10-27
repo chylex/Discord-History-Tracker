@@ -39,7 +39,7 @@ var DISCORD = (function(){
           var linkSplit = DOM.tag("a", channel)[0].getAttribute("href").split("/");
           var name = [].find.call(DOM.cls("channel-name", channel)[0].childNodes, node => node.nodeType === Node.TEXT_NODE).nodeValue;
           
-          obj = {
+          obj = { // reserve.txt
             server: name,
             channel: name,
             id: linkSplit[linkSplit.length-1],

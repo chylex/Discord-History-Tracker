@@ -28,7 +28,7 @@ var STATE = (function(){
   /*
    * Internal settings class constructor.
    */
-  var SETTINGS = function(){
+  var SETTINGS = function(){ // reserve.txt
     defineTriggeringProperty(this, "setting", "autoscroll");
     defineTriggeringProperty(this, "setting", "afterFirstMsg");
     defineTriggeringProperty(this, "setting", "afterSavedMsg");
