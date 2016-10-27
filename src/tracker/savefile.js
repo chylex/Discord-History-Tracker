@@ -87,6 +87,8 @@ var SAVEFILE = function(parsedObj){
   
   this.tmp = {};
   this.tmp.userlookup = {};
+  this.tmp.channelkeys = new Set();
+  this.tmp.messagekeys = new Set();
 };
 
 SAVEFILE.isValid = function(parsedObj){
@@ -139,6 +141,7 @@ SAVEFILE.prototype.tryRegisterChannel = function(serverIndex, channelId, channel
       name: channelName
     };
     
+    this.tmp.channelkeys.add(channelId);
     return true;
   }
 };
@@ -148,6 +151,7 @@ SAVEFILE.prototype.addMessage = function(channelId, messageId, messageObject){
   var wasPresent = messageId in container;
   
   container[messageId] = messageObject;
+  this.tmp.messagekeys.add(messageId);
   return !wasPresent;
 };
 
@@ -200,6 +204,14 @@ SAVEFILE.prototype.addMessagesFromDiscord = function(channelId, discordMessageAr
   }
   
   return hasNewMessages;
+};
+
+SAVEFILE.prototype.countChannels = function(){
+  return this.tmp.channelkeys.size;
+};
+
+SAVEFILE.prototype.countMessages = function(){
+  return this.tmp.messagekeys.size;
 };
 
 SAVEFILE.prototype.combineWith = function(obj){

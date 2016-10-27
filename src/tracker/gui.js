@@ -14,6 +14,22 @@ var GUI = (function(){
         controller.ui.btnUpload.disabled = controller.ui.btnSettings.disabled = STATE.isTracking();
         controller.ui.btnToggleTracking.innerHTML = STATE.isTracking() ? "Pause Tracking" : "Start Tracking";
       }
+      
+      if (type === "data" || force){
+        var messageCount = 0;
+        var channelCount = 0;
+        
+        if (STATE.hasSavedData()){
+          messageCount = STATE.getSavefile().countMessages();
+          channelCount = STATE.getSavefile().countChannels();
+        }
+        
+        controller.ui.textStatus.innerHTML = [
+          messageCount, " message", (messageCount === 1 ? "" : "s"),
+          " from ",
+          channelCount, " channel", (channelCount === 1 ? "" : "s")
+        ].join("");
+      }
     }
     
     if (settings){
