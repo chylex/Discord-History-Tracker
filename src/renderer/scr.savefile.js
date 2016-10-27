@@ -20,11 +20,19 @@ SAVEFILE.prototype.getServer = function(index){
 };
 
 SAVEFILE.prototype.getChannels = function(){
-  return this.meta.channels || {};
+  return this.meta.channels;
+};
+
+SAVEFILE.prototype.getChannelById = function(channel){
+  return this.meta.channels[channel] || { id: channel, name: channel };
 };
 
 SAVEFILE.prototype.getUser = function(index){
   return this.meta.users[this.meta.userindex[index]] || { name: "&lt;unknown&gt;" };
+};
+
+SAVEFILE.prototype.getUserById = function(user){
+  return this.meta.users[user] || { name: user };
 };
 
 SAVEFILE.prototype.getMessageCount = function(channel){

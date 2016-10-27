@@ -21,6 +21,14 @@ var STATE = (function(){
       }));
     },
     
+    getChannelName: function(channel){
+      return FILE.getChannelById(channel).name;
+    },
+    
+    getUserName: function(user){
+      return FILE.getUserById(user).name;
+    },
+    
     selectChannel: function(channel){
       selectedChannel = channel;
       MSGS = Object.keys(FILE.getMessages(channel)).sort();
