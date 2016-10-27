@@ -1,4 +1,16 @@
 var DISCORD = (function(){
+  var REGEX = {
+    formatBold: /\*\*([\s\S]+?)\*\*(?!\*)/g,
+    formatItalic: /\/\/([\s\S]+?)\/\/(?!\/)/g,
+    formatUnderline: /__([\s\S]+?)__(?!_)/g,
+    formatStrike: /~~([\s\S]+?)~~(?!~)/g,
+    formatCodeInline: /(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/g,
+    formatCodeBlock: /```(([A-z0-9\-]+?)\n+)?\n*([^]+?)\n*```/g,
+    metionRole: /<@&(\d+?)>/g,
+    metionUser: /<@!?(\d+?)>/g,
+    mentionChannel: /<#(\d+?)>/g
+  };
+  
   var templateChannelServer;
   var templateChannelPrivate;
   var templateMessage;
