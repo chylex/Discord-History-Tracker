@@ -52,7 +52,7 @@ var DOM = (function(){
      * Converts characters to their HTML entity form.
      */
     escapeHTML: function(html){
-      return html.replace(entityRegex, s => entityMap[s]);
+      return String(html).replace(entityRegex, s => entityMap[s]);
     }
   };
 })();
