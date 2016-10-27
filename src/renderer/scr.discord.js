@@ -7,9 +7,9 @@ var DISCORD = (function(){
     formatCodeInline: /`+\s*([\s\S]*?[^`])\s*\1(?!`)/g,
     formatCodeBlock: /```(?:([A-z0-9\-]+?)\n+)?\n*([^]+?)\n*```/g,
     formatUrl: /<?(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])>?/ig,
-    mentionRole: /<@&(\d+?)>/g,
-    mentionUser: /<@!?(\d+?)>/g,
-    mentionChannel: /<#(\d+?)>/g
+    mentionRole: /&lt;@&(\d+?)&gt;/g,
+    mentionUser: /&lt;@!?(\d+?)&gt;/g,
+    mentionChannel: /&lt;#(\d+?)&gt;/g
   };
   
   var templateChannelServer;
@@ -59,7 +59,7 @@ var DISCORD = (function(){
           return date.toLocaleDateString()+", "+date.toLocaleTimeString();
         }
         else if (property === "contents"){
-          var processed = value // TODO handle escaping
+          var processed = DOM.escapeHTML(value)
             .replace(REGEX.formatBold, "<b>$1</b>")
             .replace(REGEX.formatItalic, "<i>$1</i>")
             .replace(REGEX.formatUnderline, "<u>$1</u>")
