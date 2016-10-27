@@ -7,7 +7,7 @@ var DOM = (function(){
     "'": '&#39;'
   };
   
-  var entityRegex = /[&<>"'\/]/g;
+  var entityRegex = /[&<>"']/g;
   
   return {
     /*
