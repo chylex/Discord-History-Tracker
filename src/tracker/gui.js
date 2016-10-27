@@ -156,7 +156,7 @@ var GUI = (function(){
       
       settings.styles = DOM.createStyle([
         "#dht-cfg-overlay { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #000; opacity: 0.5; display: block; z-index: 1000; }",
-        "#dht-cfg { position: absolute; left: 50%; top: 50%; width: 500px; height: 300px; margin-left: -250px; margin-top: -174px; padding: 8px; background-color: #fff; z-index: 1001; }"
+        "#dht-cfg { position: absolute; left: 50%; top: 50%; width: 800px; height: 336px; margin-left: -400px; margin-top: -192px; padding: 8px; background-color: #fff; z-index: 1001; }"
       ]);
       
       // overlay
@@ -184,7 +184,16 @@ var GUI = (function(){
         "<label>After reaching a previously saved message...</label><br>",
         "<label><input id='dht-cfg-asm-nothing' name='dht-asm' type='radio'> Do Nothing</label><br>",
         "<label><input id='dht-cfg-asm-pause' name='dht-asm' type='radio'> Pause Tracking</label><br>",
-        "<label><input id='dht-cfg-asm-switch' name='dht-asm' type='radio'> Switch to Next Channel</label><br>"
+        "<label><input id='dht-cfg-asm-switch' name='dht-asm' type='radio'> Switch to Next Channel</label><br>",
+        "<p id='dht-cfg-note'>",
+        "Tracking will only trigger when Discord loads new messages. ",
+        "This may cause strange behavior if you don't refresh the website before using the script, ",
+        "and it also means that the most recent 50 messages will not be saved if you select the server before clicking Start Tracking.",
+        "<br><br>",
+        "Discord History Tracker will not save newly received messages, it is specifically made to load and save the server/group/DM history.",
+        "<br><br>",
+        "It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.",
+        "</p>"
       ].join("");
       
       // elements
