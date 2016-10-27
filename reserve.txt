@@ -26,6 +26,11 @@
     "user",
     "msgcount",
     "timestamp",
-    "contents"
+    "contents",
+    "&",
+    "<",
+    ">",
+    "'",
+    "\""
   ]
 }
