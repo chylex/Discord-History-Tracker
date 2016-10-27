@@ -7,8 +7,8 @@ var DISCORD = (function(){
     formatCodeInline: /`+\s*([\s\S]*?[^`])\s*\1(?!`)/g,
     formatCodeBlock: /```(?:([A-z0-9\-]+?)\n+)?\n*([^]+?)\n*```/g,
     formatUrl: /<?(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])>?/ig,
-    metionRole: /<@&(\d+?)>/g,
-    metionUser: /<@!?(\d+?)>/g,
+    mentionRole: /<@&(\d+?)>/g,
+    mentionUser: /<@!?(\d+?)>/g,
     mentionChannel: /<#(\d+?)>/g
   };
   
@@ -59,7 +59,7 @@ var DISCORD = (function(){
           return date.toLocaleDateString()+", "+date.toLocaleTimeString();
         }
         else if (property === "contents"){
-          var processed = value
+          var processed = value // TODO handle escaping
             .replace(REGEX.formatBold, "<b>$1</b>")
             .replace(REGEX.formatItalic, "<i>$1</i>")
             .replace(REGEX.formatUnderline, "<u>$1</u>")
@@ -67,6 +67,8 @@ var DISCORD = (function(){
             .replace(REGEX.formatCodeBlock, "<code style='display:block'>$2</code>")
             .replace(REGEX.formatCodeInline, "<code>$1</code>")
             .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
+            .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
+            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>");
           
           return processed;
         }
