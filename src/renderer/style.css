@@ -13,9 +13,9 @@ body {
 }
 
 #menu {
-  width: 16vw;
-  min-width: 225px;
-  max-width: 350px;
+  width: 15vw;
+  min-width: 215px;
+  max-width: 300px;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -41,20 +41,35 @@ body {
 #channels > div {
   cursor: pointer;
   color: #eee;
-  padding: 8px;
-  text-align: center;
+  padding: 10px 12px;
+  font-size: 15px;
 }
 
 #channels > div:hover, #channels > div.active {
   background-color: #282B30;
 }
 
-#channels br {
-  margin-bottom: 3px;
+#channels .info {
+  display: flex;
+  height: 16px;
+  margin-bottom: 4px;
 }
 
-#channels .server {
-  font-size: 14px;
+#channels .name {
+  flex-grow: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#channels .msgcount {
+  flex-shrink: 1;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  margin-left: 4px;
+  margin-top: 1px;
+  padding: 2px 5px;
+  font-size: 11px;
 }
 
 #messages {

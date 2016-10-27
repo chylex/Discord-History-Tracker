@@ -5,9 +5,26 @@ var DISCORD = (function(){
   
   return {
     setup: function(){
-      templateChannelServer = new TEMPLATE("<div data-channel='{id}'><strong class='name'>{name}</strong> <span class='msgcount'>({msgcount})</span><br><span class='server'>{server.name} ({server.type})</span></div>");
-      templateChannelPrivate = new TEMPLATE("<div data-channel='{id}'><strong class='name'>{name}</strong> <span class='msgcount'>({msgcount})</span><br><span class='server'>({server.type})</span></div>");
-      templateMessage = new TEMPLATE("<div><h2><strong class='username'>{user.name}</strong><span class='time'>{timestamp}</span></h2><div class='message'>{contents}</div></div>");
+      templateChannelServer = new TEMPLATE([
+        "<div data-channel='{id}'>",
+        "<div class='info'><strong class='name'>#{name}</strong><span class='msgcount'>{msgcount}</span></div>",
+        "<span class='server'>{server.name} ({server.type})</span>",
+        "</div>"
+      ].join(""));
+      
+      templateChannelPrivate = new TEMPLATE([
+        "<div data-channel='{id}'>",
+        "<div class='info'><strong class='name'>{name}</strong><span class='msgcount'>{msgcount}</span></div>",
+        "<span class='server'>({server.type})</span>",
+        "</div>"
+      ].join(""));
+      
+      templateMessage = new TEMPLATE([
+        "<div>",
+        "<h2><strong class='username'>{user.name}</strong><span class='time'>{timestamp}</span></h2>",
+        "<div class='message'>{contents}</div>",
+        "</div>"
+      ].join(""));
     },
     
     getChannelHTML: function(channel){
@@ -16,6 +33,7 @@ var DISCORD = (function(){
           switch(value){
             case "SERVER": return "server";
             case "GROUP": return "group";
+            case "DM": return "user";
           }
         }
       });
