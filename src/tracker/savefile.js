@@ -166,6 +166,10 @@ SAVEFILE.prototype.convertToMessageObject = function(discordMessage){
   
   if (discordMessage.mentions.length > 0){
     flags |= 2;
+    
+    for(var user of discordMessage.mentions){
+      this.findOrRegisterUser(user.id, user.username);
+    }
   }
   
   if (flags !== 0){
