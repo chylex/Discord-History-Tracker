@@ -2,7 +2,16 @@
 
 import fileinput
 import glob
+import shutil
+import sys
 import os
+
+
+EXEC_UGLIFYJS = "uglifyjs --compress --mangle --screw-ie8 --output \"{1}\" \"{0}\""
+EXEC_CLOSURECOMPILER = "java -jar lib/closure-compiler-v20160911.jar --js \"{0}\" --js_output_file \"{1}\""
+EXEC_YUI = "java -jar lib/yuicompressor-2.4.8.jar --charset utf-8 --line-break 160 --type css -o \"{1}\" \"{0}\""
+
+USE_UGLIFYJS = shutil.which("uglifyjs") != None and not "--closure" in sys.argv
 
 
 def combine_files(input_pattern, output_file):
@@ -21,7 +30,10 @@ def build_tracker():
     combine_files(input_pattern, out)
     out.write("})()")
   
-  os.system("java -jar lib/closure-compiler-v20160911.jar --js \"{0}\" --js_output_file=\"{1}\"".format(output_file, output_file_tmp))
+  if USE_UGLIFYJS:
+    os.system(EXEC_UGLIFYJS.format(output_file, output_file_tmp))
+  else:
+    os.system(EXEC_CLOSURECOMPILER.format(output_file, output_file_tmp))
   
   with open(output_file, "w") as out:
     out.write("javascript:(function(){")
@@ -32,7 +44,7 @@ def build_tracker():
     out.write("})()")
     
   os.remove(output_file_tmp)
-  
+
 
 def build_renderer():
   output_file = "bld/render.html"
@@ -45,7 +57,7 @@ def build_renderer():
   with open(tmp_css_file_combined, "w") as out:
     combine_files(input_css_pattern, out)
   
-  os.system("java -jar lib/yuicompressor-2.4.8.jar --charset utf-8 --line-break 160 --type css -o \"{1}\" \"{0}\"".format(tmp_css_file_combined, tmp_css_file_minified))
+  os.system(EXEC_YUI.format(tmp_css_file_combined, tmp_css_file_minified))
   os.remove(tmp_css_file_combined)
   
   input_js_pattern = "src/renderer/*.js"
@@ -55,7 +67,11 @@ def build_renderer():
   with open(tmp_js_file_combined, "w") as out:
     combine_files(input_js_pattern, out)
   
-  os.system("java -jar lib/closure-compiler-v20160911.jar --js \"{0}\" --js_output_file=\"{1}\"".format(tmp_js_file_combined, tmp_js_file_minified))
+  if USE_UGLIFYJS:
+    os.system(EXEC_UGLIFYJS.format(tmp_js_file_combined, tmp_js_file_minified))
+  else:
+    os.system(EXEC_CLOSURECOMPILER.format(tmp_js_file_combined, tmp_js_file_minified))
+  
   os.remove(tmp_js_file_combined)
   
   tokens = {
