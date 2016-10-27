@@ -1,11 +1,12 @@
 var DISCORD = (function(){
   var REGEX = {
     formatBold: /\*\*([\s\S]+?)\*\*(?!\*)/g,
-    formatItalic: /\/\/([\s\S]+?)\/\/(?!\/)/g,
+    formatItalic: /\*([\s\S]+?)\*(?!\*)/g,
     formatUnderline: /__([\s\S]+?)__(?!_)/g,
     formatStrike: /~~([\s\S]+?)~~(?!~)/g,
-    formatCodeInline: /(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/g,
-    formatCodeBlock: /```(([A-z0-9\-]+?)\n+)?\n*([^]+?)\n*```/g,
+    formatCodeInline: /`+\s*([\s\S]*?[^`])\s*\1(?!`)/g,
+    formatCodeBlock: /```(?:([A-z0-9\-]+?)\n+)?\n*([^]+?)\n*```/g,
+    formatUrl: /<?(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])>?/ig,
     metionRole: /<@&(\d+?)>/g,
     metionUser: /<@!?(\d+?)>/g,
     mentionChannel: /<#(\d+?)>/g
@@ -56,6 +57,18 @@ var DISCORD = (function(){
         if (property === "timestamp"){
           var date = new Date(value);
           return date.toLocaleDateString()+", "+date.toLocaleTimeString();
+        }
+        else if (property === "contents"){
+          var processed = value
+            .replace(REGEX.formatBold, "<b>$1</b>")
+            .replace(REGEX.formatItalic, "<i>$1</i>")
+            .replace(REGEX.formatUnderline, "<u>$1</u>")
+            .replace(REGEX.formatStrike, "<s>$1</s>")
+            .replace(REGEX.formatCodeBlock, "<code style='display:block'>$2</code>")
+            .replace(REGEX.formatCodeInline, "<code>$1</code>")
+            .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
+          
+          return processed;
         }
       });
     }
