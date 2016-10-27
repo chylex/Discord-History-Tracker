@@ -66,7 +66,7 @@ var GUI = (function(){
       controller.ele.id = "dht-ctrl";
       
       controller.ele.innerHTML = [
-        "<button id='dht-ctrl-upload'>Upload Previous File</button>",
+        "<button id='dht-ctrl-upload'>Upload &amp; Combine</button>",
         "<button id='dht-ctrl-settings'>Settings</button>",
         "<button id='dht-ctrl-track'></button>",
         "<button id='dht-ctrl-download'>Download</button>",
