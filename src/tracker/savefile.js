@@ -145,10 +145,10 @@ SAVEFILE.prototype.tryRegisterChannel = function(serverIndex, channelId, channel
 
 SAVEFILE.prototype.addMessage = function(channelId, messageId, messageObject){
   var container = this.data[channelId] || (this.data[channelId] = {});
-  var wasUpdated = messageId in container;
+  var wasPresent = messageId in container;
   
   container[messageId] = messageObject;
-  return wasUpdated;
+  return !wasPresent;
 };
 
 SAVEFILE.prototype.convertToMessageObject = function(discordMessage){ // reserve.txt
@@ -193,13 +193,13 @@ SAVEFILE.prototype.convertToMessageObject = function(discordMessage){ // reserve
 };
 
 SAVEFILE.prototype.addMessagesFromDiscord = function(channelId, discordMessageArray){
-  var wasUpdated = false;
+  var hasNewMessages = false;
   
   for(var discordMessage of discordMessageArray){
-    wasUpdated |= this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage));
+    hasNewMessages |= this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage));
   }
   
-  return wasUpdated;
+  return hasNewMessages;
 };
 
 SAVEFILE.prototype.combineWith = function(obj){
