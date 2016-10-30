@@ -175,28 +175,31 @@ body {
   word-wrap: break-word;
 }
 
-#messages .message .link {
+.message .link {
   color: #7289DA;
   background-color: rgba(115, 139, 215, 0.1);
 }
 
-#messages .message a {
+.message a {
   color: #0096CF;
   text-decoration: none;
 }
 
-#messages .message a:hover {
+.message a:hover {
   text-decoration: underline;
 }
 
-#messages .message img {
-  margin-top: 4px;
+.message p {
+  margin: 0;
+}
+
+.message img {
   max-height: 320px;
   max-width: calc(100vw - 299px);
   border-radius: 3px;
 }
 
-#messages .message code {
+.message code {
   background-color: #2E3136;
   border: 2px solid #282B30;
   border-radius: 5px;

@@ -59,6 +59,10 @@ var DISCORD = (function(){
           return date.toLocaleDateString()+", "+date.toLocaleTimeString();
         }
         else if (property === "contents"){
+          if (value.length === 0){
+            return "";
+          }
+          
           var processed = DOM.escapeHTML(value)
             .replace(REGEX.formatBold, "<b>$1</b>")
             .replace(REGEX.formatItalic, "<i>$1</i>")
@@ -70,7 +74,7 @@ var DISCORD = (function(){
             .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
             .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>");
           
-          return processed;
+          return "<p>"+processed+"</p>";
         }
       });
     }
