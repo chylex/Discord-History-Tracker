@@ -204,7 +204,7 @@ var GUI = (function(){
         "<label><input id='dht-cfg-asm-switch' name='dht-asm' type='radio'> Switch to Next Channel</label><br>",
         "<p id='dht-cfg-note'>",
         "Tracking will only trigger when Discord loads new messages. ",
-        "To ensure that all messages are saved, go to your Friends list to avoid loading any messages, refresh the website, and run the script.",
+        "To ensure that all messages are saved, go to your Friends list to avoid loading any messages, refresh the website, and run the script again.",
         "<br><br>",
         "Discord History Tracker will not save newly received messages, it is specifically made to load and save the server/group/DM history.",
         "<br><br>",
