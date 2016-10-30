@@ -1,15 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   DISCORD.setup();
+  GUI.setup();
   
-  var btnUploadFile = DOM.id("upload-file");
-  var inputUploadedFile = DOM.id("uploaded-file");
-  
-  btnUploadFile.addEventListener("click", () => {
-    inputUploadedFile.click();
-  });
-  
-  inputUploadedFile.addEventListener("change", () => {
-    if (inputUploadedFile.files.length === 1){
+  GUI.onFileUploaded(files => {
+    if (files.length === 1){
       var reader = new FileReader();
       
       reader.onload = function(){
@@ -23,42 +17,34 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         
-        if (SAVEFILE.isValid(obj)){
-          STATE.uploadFile(new SAVEFILE(obj));
-          reset();
-        }
-        else{
+        if (!SAVEFILE.isValid(obj)){
           alert("File '"+file.name+"' has an invalid format.");
+          return;
         }
+        
+        STATE.uploadFile(new SAVEFILE(obj));
+        updateChannelList();
       };
       
-      reader.readAsText(inputUploadedFile.files[0], "UTF-8");
+      reader.readAsText(files[0], "UTF-8");
     }
-
-    inputUploadedFile.value = null;
+    else{
+      alert("Please, select only one file.");
+    }
+    
+    return true;
   });
   
-  var reset = function(){
-    var eleChannels = DOM.id("channels");
-    var eleMessages = DOM.id("messages");
-    
-    eleChannels.innerHTML = STATE.getChannelList().map(channel => DISCORD.getChannelHTML(channel)).join("");
-    eleMessages.innerHTML = "";
-    
-    Array.prototype.forEach.call(eleChannels.children, ele => {
-      ele.addEventListener("click", e => {
-        var currentChannel = DOM.cls("active", eleChannels)[0];
-        
-        if (currentChannel){
-          currentChannel.classList.remove("active");
-          eleMessages.innerHTML = "";
-        }
-        
-        ele.classList.add("active");
-        
-        STATE.selectChannel(ele.getAttribute("data-channel"));
-        eleMessages.innerHTML = STATE.getMessageList(0).map(message => DISCORD.getMessageHTML(message)).join("");
-      });
+  var updateChannelList = function(){
+    GUI.updateChannelList(STATE.getChannelList(), channel => {
+      STATE.selectChannel(channel);
+      updateMessageList();
     });
+    
+    updateMessageList(null);
+  };
+  
+  var updateMessageList = function(){
+    GUI.updateMessageList(STATE.getMessageList(0));
   };
 });
