@@ -42,7 +42,7 @@ var DISCORD = (function(){
       ].join(""));
       
       templateEmbedImage = new TEMPLATE([
-        "<a href='{url}' class='embed thumbnail'><img src='{url}' title='(image attachment not found)'></a><br>"
+        "<a href='{url}' class='embed thumbnail'><img src='{url}' alt='(image attachment not found)'></a><br>"
       ].join(""));
       
       templateEmbedDownload = new TEMPLATE([
