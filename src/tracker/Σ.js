@@ -5,6 +5,9 @@ if (window.DHT_LOADED){
 
 window.DHT_LOADED = true;
 
+if (DISCORD.getSelectedChannel()){
+  alert("You ran the script while in a channel, please go to your Friends list, refresh the page, and run the script again to ensure all messages are saved properly.");
+}
 
 // Execution
 
