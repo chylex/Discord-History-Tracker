@@ -56,7 +56,7 @@ DISCORD.setupMessageRequestHook((channel, messages) => {
 STATE.onStateChanged((type, detail) => {
   if (type === "tracking" && detail){
     var info = DISCORD.getSelectedChannel();
-    var isCachedRequestValid = cachedRequest && cachedRequest.channel == info.id;
+    var isCachedRequestValid = cachedRequest && info && cachedRequest.channel == info.id;
     
     if (untrackedRequests > 1 || (untrackedRequests === 1 && !isCachedRequestValid)){
       if (!confirm("You have "+untrackedRequests+" untracked request"+(untrackedRequests === 1 ? "" : "s")+", some messages may not be saved until you refresh the page. Do you want to proceed anyway?")){
