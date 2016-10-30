@@ -37,7 +37,7 @@
  *         u: <user index of the sender>,
  *         t: <message timestamp>,
  *         m: <message content>,
- *         f: <message flags>, // bit 1 = edited, bit 2 = has user mentions (omit for no flags),
+ *         f: <message flags>, // bit 1 = edited (omit for no flags),
  *         e: [ // omit for no embeds
  *           {
  *             url: <embed url>,
@@ -169,8 +169,6 @@ SAVEFILE.prototype.convertToMessageObject = function(discordMessage){ // reserve
   }
   
   if (discordMessage.mentions.length > 0){
-    flags |= 2;
-    
     for(var user of discordMessage.mentions){
       this.findOrRegisterUser(user.id, user.username);
     }
