@@ -103,7 +103,7 @@ var DISCORD = (function(){
           return value.map(attachment => {
             var ext = attachment.url.slice(-4).toLowerCase();
 
-            if (ext === ".png" || ext === ".gif" || ext === ".jpg"){
+            if (ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg"){
               return templateEmbedImage.apply(attachment);
             }
             else{
