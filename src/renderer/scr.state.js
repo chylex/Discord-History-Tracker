@@ -56,6 +56,7 @@ var STATE = (function(){
           user: FILE.getUser(message.u),
           timestamp: message.t,
           contents: message.m,
+          embeds: message.e,
           attachments: message.a
         };
       });

@@ -37,7 +37,7 @@ var DISCORD = (function(){
       templateMessage = new TEMPLATE([
         "<div>",
         "<h2><strong class='username'>{user.name}</strong><span class='time'>{timestamp}</span></h2>",
-        "<div class='message'>{contents}{attachments}</div>",
+        "<div class='message'>{contents}{embeds}{attachments}</div>",
         "</div>"
       ].join(""));
       
@@ -85,6 +85,15 @@ var DISCORD = (function(){
             .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>");
           
           return "<p>"+processed+"</p>";
+        }
+        else if (property === "embeds"){
+          if (!value){
+            return "";
+          }
+          
+          return value.map(embed => {
+            return embed.type === "image" ? templateEmbedImage.apply(embed) : "";
+          }).join("");
         }
         else if (property === "attachments"){
           if (!value){
