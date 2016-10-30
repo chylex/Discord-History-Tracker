@@ -42,6 +42,15 @@ body {
   cursor: pointer;
 }
 
+
+#menu .nav {
+  display: flex;
+  flex-direction: row;
+}
+
+#menu .nav > button, #menu .nav > p {
+  margin: 8px 1px;
+}
 /*******
  * APP *
  *******/

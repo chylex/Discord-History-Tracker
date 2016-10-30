@@ -50,6 +50,10 @@ var STATE = (function(){
           contents: message.m
         };
       });
+    },
+    
+    getMessageCount: function(){
+      return MSGS ? MSGS.length : 0;
     }
   };
 })();

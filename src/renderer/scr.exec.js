@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         STATE.uploadFile(new SAVEFILE(obj));
         updateChannelList();
+        updateNavigation(true);
       };
       
       reader.readAsText(files[0], "UTF-8");
@@ -35,9 +36,27 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   });
   
+  GUI.onOptionMessagesPerPageChanged(amount => {
+    updateMessageList();
+  });
+  
+  GUI.onNavigationButtonClicked(action => {
+    switch(action){
+      case "first": currentPage = 1; break;
+      case "prev": currentPage = Math.max(1, currentPage-1); break;
+      case "next": currentPage = Math.min(getTotalPageCount(), currentPage+1); break;
+      case "last": currentPage = getTotalPageCount(); break;
+    }
+    
+    updateMessageList();
+  });
+  
+  var currentPage = 1;
+  
   var updateChannelList = function(){
     GUI.updateChannelList(STATE.getChannelList(), channel => {
       STATE.selectChannel(channel);
+      currentPage = 1;
       updateMessageList();
     });
     
@@ -45,6 +64,27 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   
   var updateMessageList = function(){
-    GUI.updateMessageList(STATE.getMessageList(0));
+    var mpp = GUI.getOptionMessagesPerPage();
+    
+    GUI.updateMessageList(STATE.getMessageList(mpp*(currentPage-1), mpp));
+    GUI.scrollMessagesToTop();
+    updateNavigation(false);
+  };
+  
+  var updateNavigation = function(reset){
+    var total = getTotalPageCount();
+    
+    if (reset){
+      currentPage = 1;
+    }
+    else if (currentPage > total && total > 0){
+      currentPage = total;
+    }
+    
+    GUI.updateNavigation(currentPage, total);
+  };
+  
+  var getTotalPageCount = function(){
+    return Math.ceil(STATE.getMessageCount()/GUI.getOptionMessagesPerPage());
   };
 });

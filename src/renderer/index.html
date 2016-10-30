@@ -19,6 +19,23 @@
       
       <div class="separator"></div>
       
+      <div> <!-- needed to stop the select from messing up -->
+        <select id="opt-messages-per-page">
+          <option value="50">50 messages per page&nbsp;</option>
+          <option value="100">100 messages per page&nbsp;</option>
+          <option value="250">250 messages per page&nbsp;</option>
+          <option value="500">500 messages per page&nbsp;</option>
+          <option value="1000">1000 messages per page&nbsp;</option>
+        </select>
+      </div>
+      
+      <div class="nav">
+        <button id="nav-first" data-nav="first">&laquo;</button>
+        <button id="nav-prev" data-nav="prev">&lsaquo;</button>
+        <p>Page <span id="nav-page-current">1</span>/<span id="nav-page-total">?</span></p>
+        <button id="nav-next" data-nav="next">&rsaquo;</button>
+        <button id="nav-last" data-nav="last">&raquo;</button>
+      </div>
     </div>
     <div id="app">
       <div id="channels"></div>
