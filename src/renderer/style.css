@@ -30,6 +30,11 @@ body {
   background-color: #5D626B;
 }
 
+#menu :disabled {
+  background-color: #C2C2C2;
+  cursor: default;
+}
+
 #menu button, #menu select {
   margin: 8px;
   background-color: #AADDFF;
@@ -42,6 +47,17 @@ body {
   cursor: pointer;
 }
 
+#menu select {
+  font-size: 14px;
+  padding: 7px;
+  border: 0;
+}
+
+#menu p {
+  font-size: 16px;
+  padding: 8px;
+  background-color: #F8F8F8;
+}
 
 #menu .nav {
   display: flex;
@@ -51,6 +67,7 @@ body {
 #menu .nav > button, #menu .nav > p {
   margin: 8px 1px;
 }
+
 /*******
  * APP *
  *******/
