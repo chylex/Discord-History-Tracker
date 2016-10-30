@@ -55,7 +55,8 @@ var STATE = (function(){
         return { // reserve.txt
           user: FILE.getUser(message.u),
           timestamp: message.t,
-          contents: message.m
+          contents: message.m,
+          attachments: message.a
         };
       });
     },

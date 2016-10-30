@@ -37,7 +37,7 @@ var DISCORD = (function(){
       templateMessage = new TEMPLATE([
         "<div>",
         "<h2><strong class='username'>{user.name}</strong><span class='time'>{timestamp}</span></h2>",
-        "<div class='message'>{contents}</div>",
+        "<div class='message'>{contents}{attachments}</div>",
         "</div>"
       ].join(""));
       
@@ -85,6 +85,27 @@ var DISCORD = (function(){
             .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>");
           
           return "<p>"+processed+"</p>";
+        }
+        else if (property === "attachments"){
+          if (!value){
+            return "";
+          }
+          
+          return value.map(attachment => {
+            var ext = attachment.url.slice(-4).toLowerCase();
+
+            if (ext === ".png" || ext === ".gif" || ext === ".jpg"){
+              return templateEmbedImage.apply(attachment);
+            }
+            else{
+              var sliced = attachment.url.split("/");
+
+              return templateEmbedDownload.apply({
+                url: attachment.url,
+                filename: sliced[sliced.length-1]
+              });
+            }
+          }).join("");
         }
       });
     }
