@@ -7,7 +7,7 @@ import sys
 import os
 
 
-EXEC_UGLIFYJS = "uglifyjs --compress --mangle --mangle-props --reserve-domprops --reserved-file reserve.txt --screw-ie8 --output \"{1}\" \"{0}\""
+EXEC_UGLIFYJS = "uglifyjs --bare-returns --compress --mangle --mangle-props --reserve-domprops --reserved-file reserve.txt --screw-ie8 --output \"{1}\" \"{0}\""
 EXEC_CLOSURECOMPILER = "java -jar lib/closure-compiler-v20160911.jar --js \"{0}\" --js_output_file \"{1}\""
 EXEC_YUI = "java -jar lib/yuicompressor-2.4.8.jar --charset utf-8 --line-break 160 --type css -o \"{1}\" \"{0}\""
 

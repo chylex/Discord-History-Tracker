@@ -1,3 +1,10 @@
+if (window.DHT_LOADED){
+  alert("Discord History Tracker is already loaded.");
+  return;
+}
+
+window.DHT_LOADED = true;
+
 DISCORD.setupMessageRequestHook((channel, messages) => {
   if (STATE.isTracking()){
     var info = DISCORD.getSelectedChannel();
