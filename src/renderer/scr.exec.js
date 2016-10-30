@@ -66,9 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
   var updateMessageList = function(){
     var mpp = GUI.getOptionMessagesPerPage();
     
+    updateNavigation(false);
     GUI.updateMessageList(STATE.getMessageList(mpp*(currentPage-1), mpp));
     GUI.scrollMessagesToTop();
-    updateNavigation(false);
   };
   
   var updateNavigation = function(reset){
