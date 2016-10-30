@@ -54,6 +54,7 @@ body {
   padding: 10px 12px;
   color: #eee;
   font-size: 15px;
+  border-bottom: 1px solid #333333;
 }
 
 #channels > div:hover, #channels > div.active {
