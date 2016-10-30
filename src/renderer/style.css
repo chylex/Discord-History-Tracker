@@ -194,18 +194,17 @@ body {
 }
 
 .message .embed {
-  display: block;
+  display: inline-block;
   margin-top: 8px;
 }
 
-.message img {
+.message .thumbnail img {
   max-height: 320px;
   max-width: calc(100vw - 299px);
   border-radius: 3px;
 }
 
 .message .download {
-  display: inline-block;
   margin-right: 8px;
   padding: 8px 9px;
   border: 1px solid rgba(255, 255, 255, 0.5);
