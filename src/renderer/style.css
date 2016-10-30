@@ -96,7 +96,7 @@ body {
 
 #messages > div {
   margin: 0 24px;
-  padding: 8px 0 12px;
+  padding: 4px 0 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
@@ -108,7 +108,7 @@ body {
 
 #messages .username {
   color: #FFF;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0;
 }
