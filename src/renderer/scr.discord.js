@@ -15,6 +15,8 @@ var DISCORD = (function(){
   var templateChannelServer;
   var templateChannelPrivate;
   var templateMessage;
+  var templateEmbedImage;
+  var templateEmbedDownload;
   
   return {
     setup: function(){
@@ -37,6 +39,14 @@ var DISCORD = (function(){
         "<h2><strong class='username'>{user.name}</strong><span class='time'>{timestamp}</span></h2>",
         "<div class='message'>{contents}</div>",
         "</div>"
+      ].join(""));
+      
+      templateEmbedImage = new TEMPLATE([
+        "<a href='{url}' class='embed'><img src='{url}' title='(image attachment not found)'></a>"
+      ].join(""));
+      
+      templateEmbedDownload = new TEMPLATE([
+        "<a href='{url}' class='embed download'>Download {filename}</a>"
       ].join(""));
     },
     

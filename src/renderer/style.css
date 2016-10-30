@@ -166,7 +166,7 @@ body {
  * MESSAGE CONTENT *
  *******************/
 
-#messages .message {
+.message {
   margin-top: 6px;
   color: rgba(255, 255, 255, 0.7);
   font-size: 15px;
@@ -193,10 +193,27 @@ body {
   margin: 0;
 }
 
+.message .embed {
+  display: block;
+  margin-top: 8px;
+}
+
 .message img {
   max-height: 320px;
   max-width: calc(100vw - 299px);
   border-radius: 3px;
+}
+
+.message .download {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 8px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+}
+
+.message .embed:first-child, .message .download + .download {
+  margin-top: 0;
 }
 
 .message code {
