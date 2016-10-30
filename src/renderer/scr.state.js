@@ -57,7 +57,8 @@ var STATE = (function(){
           timestamp: message.t,
           contents: message.m,
           embeds: message.e,
-          attachments: message.a
+          attachments: message.a,
+          edited: (message.f&1) === 1
         };
       });
     },

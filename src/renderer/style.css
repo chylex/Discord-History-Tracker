@@ -154,12 +154,19 @@ body {
   letter-spacing: 0;
 }
 
-#messages .time {
-  margin-left: 10px;
+#messages .info {
   color: rgba(255, 255, 255, 0.2);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0;
+}
+
+#messages .time {
+  margin-left: 10px;
+}
+
+#messages .edited {
+  margin-left: 5px;
 }
 
 /*******************

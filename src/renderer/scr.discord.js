@@ -36,7 +36,7 @@ var DISCORD = (function(){
       
       templateMessage = new TEMPLATE([
         "<div>",
-        "<h2><strong class='username'>{user.name}</strong><span class='time'>{timestamp}</span></h2>",
+        "<h2><strong class='username'>{user.name}</strong><span class='info time'>{timestamp}</span>{edited}</h2>",
         "<div class='message'>{contents}{embeds}{attachments}</div>",
         "</div>"
       ].join(""));
@@ -115,6 +115,9 @@ var DISCORD = (function(){
               });
             }
           }).join("");
+        }
+        else if (property === "edited"){
+          return value ? "<span class='info edited'>(edited)</span>" : "";
         }
       });
     }
