@@ -24,7 +24,13 @@ body {
   -ms-user-select: none;
 }
 
-#menu > * {
+#menu .separator {
+  width: 1px;
+  margin: 9px 0;
+  background-color: #5D626B;
+}
+
+#menu button, #menu select {
   margin: 8px;
   background-color: #AADDFF;
 }
