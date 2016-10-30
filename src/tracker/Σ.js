@@ -5,6 +5,12 @@ if (window.DHT_LOADED){
 
 window.DHT_LOADED = true;
 
+
+// Execution
+
+var cachedRequest;
+var untrackedRequests = 0;
+
 DISCORD.setupMessageRequestHook((channel, messages) => {
   if (STATE.isTracking()){
     var info = DISCORD.getSelectedChannel();
@@ -34,18 +40,45 @@ DISCORD.setupMessageRequestHook((channel, messages) => {
       }
     }
   }
+  else{
+    ++untrackedRequests;
+    
+    cachedRequest = {
+      channel: channel,
+      messages: messages
+    };
+  }
 });
 
 STATE.onStateChanged((type, detail) => {
-  if (type === "tracking" && detail && STATE.settings.autoscroll && DISCORD.isInMessageView()){
-    if (DISCORD.hasMoreMessages()){
-      DISCORD.loadOlderMessages();
+  if (type === "tracking" && detail){
+    var info = DISCORD.getSelectedChannel();
+    var isCachedRequestValid = cachedRequest && cachedRequest.channel == info.id;
+    
+    if (untrackedRequests > 1 || (untrackedRequests === 1 && !isCachedRequestValid)){
+      if (!confirm("You have "+untrackedRequests+" untracked request"+(untrackedRequests === 1 ? "" : "s")+", some messages may not be saved until you refresh the page. Do you want to proceed anyway?")){
+        STATE.toggleTracking();
+        return;
+      }
     }
-    else{
-      var action = STATE.settings.afterFirstMsg;
-      
-      if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
-        DOM.setTimer(() => STATE.toggleTracking(), 200); // give the user visual feedback after clicking the button before switching off
+    
+    if (isCachedRequestValid){
+      STATE.addDiscordChannel(info.server, info.type, cachedRequest.channel, info.channel);
+      STATE.addDiscordMessages(cachedRequest.channel, cachedRequest.messages);
+      cachedRequest = null;
+      --untrackedRequests;
+    }
+    
+    if (STATE.settings.autoscroll && DISCORD.isInMessageView()){
+      if (DISCORD.hasMoreMessages()){
+        DISCORD.loadOlderMessages();
+      }
+      else{
+        var action = STATE.settings.afterFirstMsg;
+
+        if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
+          DOM.setTimer(() => STATE.toggleTracking(), 200); // give the user visual feedback after clicking the button before switching off
+        }
       }
     }
   }
