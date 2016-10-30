@@ -15,14 +15,23 @@ body {
   height: 48px;
   background-color: #17181C;
   border-bottom: 1px dotted #5D626B;
+  display: flex;
+  flex-direction: row;
+  
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+#menu > * {
+  margin: 8px;
+  background-color: #AADDFF;
 }
 
 #menu button {
   font-size: 18px;
-  height: 32px;
-  margin: 8px;
   padding: 0 12px;
-  background-color: #AADDFF;
   border: 0;
   cursor: pointer;
 }
