@@ -42,6 +42,14 @@ var STATE = (function(){
       });
     },
     
+    getSelectedChannel: function(){
+      return selectedChannel;
+    },
+    
+    getRawMessages: function(channel){
+      return channel ? Object.values(FILE.getMessages(channel)) : FILE.getAllMessages();
+    },
+    
     getMessageList: function(startIndex, count){
       if (!MSGS){
         return [];
