@@ -26,7 +26,7 @@ It is possible to disable minification completely using the `--nominify` flag, o
 
 Once you install `npm`, use the following command to download UglifyJS with ES6 support and add it to your system path:
 ```
-npm install uglify-js-harmony
+npm install uglify-js-harmony -g
 ```
 
 ### UglifyJS vs Google Closure Compiler
