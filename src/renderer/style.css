@@ -62,6 +62,7 @@ body {
 #menu .nav {
   display: flex;
   flex-direction: row;
+  margin: 0 8px;
 }
 
 #menu .nav > button, #menu .nav > p {

@@ -11,7 +11,7 @@ var GUI = (function(){
       var inputUploadedFile = DOM.id("uploaded-file");
       var optMessagesPerPage = DOM.id("opt-messages-per-page");
 
-      DOM.id("upload-file").addEventListener("click", () => {
+      DOM.id("btn-upload-file").addEventListener("click", () => {
         inputUploadedFile.click();
       });
       
