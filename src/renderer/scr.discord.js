@@ -1,7 +1,7 @@
 var DISCORD = (function(){
   var REGEX = {
     formatBold: /\*\*([\s\S]+?)\*\*(?!\*)/g,
-    formatItalic: /\*([\s\S]+?)\*(?!\*)/g,
+    formatItalic: /(.)?\*([\s\S]+?)\*(?!\*)/g,
     formatUnderline: /__([\s\S]+?)__(?!_)/g,
     formatStrike: /~~([\s\S]+?)~~(?!~)/g,
     formatCodeInline: /`+\s*([\s\S]*?[^`])\s*\1(?!`)/g,
@@ -76,7 +76,7 @@ var DISCORD = (function(){
           
           var processed = DOM.escapeHTML(value)
             .replace(REGEX.formatBold, "<b>$1</b>")
-            .replace(REGEX.formatItalic, "<i>$1</i>")
+            .replace(REGEX.formatItalic, (full, pre, match) => pre === '\\' ? full : pre+"<i>"+match+"</i>")
             .replace(REGEX.formatUnderline, "<u>$1</u>")
             .replace(REGEX.formatStrike, "<s>$1</s>")
             .replace(REGEX.formatCodeBlock, "<code style='display:block'>$2</code>")
