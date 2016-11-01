@@ -24,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
         
         STATE.uploadFile(new SAVEFILE(obj));
         updateChannelList();
-        updateNavigation(true);
       };
       
       reader.readAsText(files[0], "UTF-8");
@@ -36,27 +35,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   });
   
-  GUI.onOptionMessagesPerPageChanged(amount => {
+  GUI.onOptionMessagesPerPageChanged(() => {
+    STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
     updateMessageList();
   });
+  
+  STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
   
   GUI.onNavigationButtonClicked(action => {
-    switch(action){
-      case "first": currentPage = 1; break;
-      case "prev": currentPage = Math.max(1, currentPage-1); break;
-      case "next": currentPage = Math.min(getTotalPageCount(), currentPage+1); break;
-      case "last": currentPage = getTotalPageCount(); break;
-    }
-    
+    STATE.updateCurrentPage(action);
     updateMessageList();
   });
-  
-  var currentPage = 1;
   
   var updateChannelList = function(){
     GUI.updateChannelList(STATE.getChannelList(), channel => {
       STATE.selectChannel(channel);
-      currentPage = 1;
       updateMessageList();
     });
     
@@ -64,28 +57,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   
   var updateMessageList = function(){
-    var mpp = GUI.getOptionMessagesPerPage();
-    
-    updateNavigation(false);
-    GUI.updateMessageList(STATE.getMessageList(mpp*(currentPage-1), mpp));
+    GUI.updateNavigation(STATE.getCurrentPage(), STATE.getPageCount());
+    GUI.updateMessageList(STATE.getMessageList());
     GUI.scrollMessagesToTop();
-  };
-  
-  var updateNavigation = function(reset){
-    var total = getTotalPageCount();
-    
-    if (reset){
-      currentPage = 1;
-    }
-    else if (currentPage > total && total > 0){
-      currentPage = total;
-    }
-    
-    GUI.updateNavigation(currentPage, total);
-  };
-  
-  var getTotalPageCount = function(){
-    var mpp = GUI.getOptionMessagesPerPage();
-    return mpp ? Math.ceil(STATE.getMessageCount()/mpp) : 1;
   };
 });

@@ -3,11 +3,18 @@ var STATE = (function(){
   var MSGS;
   
   var selectedChannel;
+  var currentPage;
+  var messagesPerPage;
+  
+  var getPageCount = function(){
+    return !MSGS ? 0 : (!messagesPerPage ? 1 : Math.ceil(MSGS.length/messagesPerPage));
+  };
   
   return {
     uploadFile: function(file){
       FILE = file;
       MSGS = null;
+      currentPage = 1;
     },
     
     getChannelList: function(){
@@ -31,6 +38,7 @@ var STATE = (function(){
     
     selectChannel: function(channel){
       selectedChannel = channel;
+      currentPage = 1;
       
       MSGS = Object.keys(FILE.getMessages(channel)).sort((key1, key2) => {
         if (key1.length === key2.length){
@@ -50,14 +58,28 @@ var STATE = (function(){
       return channel ? FILE.getMessages(channel) : FILE.getAllMessages();
     },
     
-    getMessageList: function(startIndex, count){
+    setMessagesPerPage: function(amount){
+      messagesPerPage = amount;
+    },
+    
+    updateCurrentPage: function(action){
+      switch(action){
+        case "first": currentPage = 1; break;
+        case "prev": currentPage = Math.max(1, currentPage-1); break;
+        case "next": currentPage = Math.min(STATE.getPageCount(), currentPage+1); break;
+        case "last": currentPage = STATE.getPageCount(); break;
+      }
+    },
+    
+    getMessageList: function(){
       if (!MSGS){
         return [];
       }
       
       var messages = FILE.getMessages(selectedChannel);
+      var startIndex = messagesPerPage*(currentPage-1);
       
-      return MSGS.slice(startIndex, !count ? undefined : startIndex+count).map(key => {
+      return MSGS.slice(startIndex, !messagesPerPage ? undefined : startIndex+messagesPerPage).map(key => {
         var message = messages[key];
         
         return { // reserve.txt
@@ -71,8 +93,18 @@ var STATE = (function(){
       });
     },
     
-    getMessageCount: function(){
-      return MSGS ? MSGS.length : 0;
+    getCurrentPage: function(){
+      var total = getPageCount();
+      
+      if (currentPage > total && total > 0){
+        currentPage = total;
+      }
+      
+      return currentPage;
+    },
+    
+    getPageCount: function(){
+      return getPageCount();
     }
   };
 })();
