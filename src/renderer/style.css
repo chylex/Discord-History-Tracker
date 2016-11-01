@@ -65,6 +65,11 @@ body {
   margin: 0 8px;
 }
 
+#menu .nav > button {
+  font-family: Lucida Console, monospace;
+  padding: 0 8px;
+}
+
 #menu .nav > button, #menu .nav > p {
   margin: 8px 1px;
 }
