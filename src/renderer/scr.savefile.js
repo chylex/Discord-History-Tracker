@@ -40,7 +40,15 @@ SAVEFILE.prototype.getMessageCount = function(channel){
 };
 
 SAVEFILE.prototype.getAllMessages = function(){
-  return Array.prototype.concat.apply([], Object.values(this.data).map(messageList => Object.values(messageList)));
+  var messages = {};
+  
+  for(var channelKey of Object.keys(this.data)){
+    for(var messageKey of Object.keys(this.data[channelKey])){
+      messages[messageKey] = this.data[channelKey][messageKey];
+    }
+  }
+  
+  return messages;
 };
 
 SAVEFILE.prototype.getMessages = function(channel){

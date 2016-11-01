@@ -47,7 +47,7 @@ var STATE = (function(){
     },
     
     getRawMessages: function(channel){
-      return channel ? Object.values(FILE.getMessages(channel)) : FILE.getAllMessages();
+      return channel ? FILE.getMessages(channel) : FILE.getAllMessages();
     },
     
     getMessageList: function(startIndex, count){
