@@ -6,7 +6,9 @@ if (window.DHT_LOADED){
 window.DHT_LOADED = true;
 
 if (DISCORD.getSelectedChannel()){
-  alert("You ran the script while in a channel, please go to your Friends list, refresh the page, and run the script again to ensure all messages are saved properly.");
+  if (confirm("You ran the script while in a channel, some messages may not be saved correctly. Do you want to go to your Friends list and refresh the page?")){
+    window.location = "https://discordapp.com/channels/@me";
+  }
 }
 
 // Execution
