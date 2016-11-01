@@ -43,7 +43,8 @@ var GUI = (function(){
       
       if (type === "setting" || force){
         var autoscrollRev = !STATE.settings.autoscroll;
-
+        
+        // discord polyfills Object.values
         Object.values(settings.ui.optsAfterFirstMsg).forEach(ele => ele.disabled = autoscrollRev);
         Object.values(settings.ui.optsAfterSavedMsg).forEach(ele => ele.disabled = autoscrollRev);
       }
