@@ -7,6 +7,7 @@ var DISCORD = (function(){
     formatCodeInline: /`+\s*([\s\S]*?[^`])\s*\1(?!`)/g,
     formatCodeBlock: /```(?:([A-z0-9\-]+?)\n+)?\n*([^]+?)\n*```/g,
     formatUrl: /<?(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])>?/ig,
+    formatEscaped: /\\([*_~\\])/g,
     mentionRole: /&lt;@&(\d+?)&gt;/g,
     mentionUser: /&lt;@!?(\d+?)&gt;/g,
     mentionChannel: /&lt;#(\d+?)&gt;/g
@@ -81,6 +82,7 @@ var DISCORD = (function(){
             .replace(REGEX.formatCodeBlock, "<code style='display:block'>$2</code>")
             .replace(REGEX.formatCodeInline, "<code>$1</code>")
             .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
+            .replace(REGEX.formatEscaped, "$1")
             .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
             .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>");
           
