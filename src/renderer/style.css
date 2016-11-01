@@ -235,10 +235,19 @@ body {
 
 .message code {
   background-color: #2E3136;
-  border: 2px solid #282B30;
   border-radius: 5px;
+  font-family: Menlo, Consolas, Monaco, monospace;
+  font-size: 14px;
+}
+
+.message code.inline {
+  display: inline;
+  padding: 2px;
+}
+
+.message code.block {
+  display: block;
+  border: 2px solid #282B30;
   margin-top: 6px;
   padding: 7px;
-  font-size: 14px;
-  font-family: Menlo, Consolas, Monaco, monospace;
 }
