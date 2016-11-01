@@ -85,6 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   
   var getTotalPageCount = function(){
-    return Math.ceil(STATE.getMessageCount()/GUI.getOptionMessagesPerPage());
+    var mpp = GUI.getOptionMessagesPerPage();
+    return mpp ? Math.ceil(STATE.getMessageCount()/mpp) : 1;
   };
 });
