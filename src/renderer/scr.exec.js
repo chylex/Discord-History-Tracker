@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
       UTILS.readJsonFile(files[0], (obj, file) => {
         if (SAVEFILE.isValid(obj)){
           STATE.uploadFile(new SAVEFILE(obj));
-          updateChannelList();
         }
         else{
           alert((obj ? "File '{}' has an invalid format." : "Could not parse '{}', see console for details.").replace("{}", file.name));
@@ -23,28 +22,21 @@ document.addEventListener("DOMContentLoaded", () => {
   
   GUI.onOptionMessagesPerPageChanged(() => {
     STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
-    updateMessageList();
   });
   
   STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
   
   GUI.onNavigationButtonClicked(action => {
     STATE.updateCurrentPage(action);
-    updateMessageList();
   });
   
-  var updateChannelList = function(){
-    updateMessageList(null);
-    
-    GUI.updateChannelList(STATE.getChannelList(), channel => {
-      STATE.selectChannel(channel);
-      updateMessageList();
-    });
-  };
+  STATE.onChannelsRefreshed(channels => {
+    GUI.updateChannelList(channels, STATE.selectChannel);
+  });
   
-  var updateMessageList = function(){
+  STATE.onMessagesRefreshed(messages => {
     GUI.updateNavigation(STATE.getCurrentPage(), STATE.getPageCount());
-    GUI.updateMessageList(STATE.getMessageList());
+    GUI.updateMessageList(messages);
     GUI.scrollMessagesToTop();
-  };
+  });
 });
