@@ -3,6 +3,19 @@ var GUI = (function(){
   var eventOnOptMessagesPerPageChanged;
   var eventOnNavButtonClicked;
   
+  var showModal = function(width, height, html){
+    var dialog = DOM.id("dialog");
+    dialog.innerHTML = html;
+    
+    dialog.style.width = width+"px";
+    dialog.style.height = height+"px";
+    dialog.style.marginLeft = (-width/2)+"px";
+    dialog.style.marginTop = (-height/2)+"px";
+    
+    DOM.id("modal").classList.add("visible");
+    return dialog;
+  };
+  
   return {
     // ---------
     // GUI setup
@@ -34,6 +47,11 @@ var GUI = (function(){
         button.addEventListener("click", () => {
           eventOnNavButtonClicked && eventOnNavButtonClicked(button.getAttribute("data-nav"));
         });
+      });
+      
+      DOM.id("overlay").addEventListener("click", () => {
+        DOM.id("modal").classList.remove("visible");
+        DOM.id("dialog").innerHTML = "";
       });
     },
     
