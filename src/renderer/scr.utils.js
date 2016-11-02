@@ -20,5 +20,32 @@ var UTILS = {
     };
 
     reader.readAsText(file, "UTF-8");
+  },
+
+  /*
+   * Runs the callback with a key and value for each entry in an object.
+   */
+  forEachEntry: function(object, callback){
+    for(var key of Object.keys(object)){
+      callback(key, object[key]);
+    }
+  },
+
+  /*
+   * Runs the callback for each value in an object.
+   */
+  forEachValue: function(object, callback){
+    for(var key of Object.keys(object)){
+      callback(object[key]);
+    }
+  },
+
+  /*
+   * Adds all entries from the source object to the target object.
+   */
+  combineObjects: function(target, source){
+    for(var key of Object.keys(source)){
+      target[key] = source[key];
+    }
   }
 };
