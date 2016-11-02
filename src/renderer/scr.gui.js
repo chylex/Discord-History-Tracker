@@ -22,7 +22,17 @@ var GUI = (function(){
   
   var showSettingsModal = function(){
     showModal(560, 256, [
+      "<label><input id='dht-cfg-imgpreviews' type='checkbox'> Image Previews</label>"
     ].join(""));
+    
+    // image previews
+    var checkImagePreviews = DOM.id("dht-cfg-imgpreviews");
+    
+    checkImagePreviews.checked = STATE.settings.enableImagePreviews;
+    
+    checkImagePreviews.addEventListener("change", () => {
+      STATE.settings.enableImagePreviews = checkImagePreviews.checked;
+    });
   };
   
   var showInfoModal = function(){

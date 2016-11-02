@@ -166,6 +166,10 @@ var STATE = (function(){
     
     ROOT.settings[name] = defaultValue;
   }
+  
+  // reserve.txt
+  defineSettingProperty("enableImagePreviews", true);
+  
   // End
   return ROOT;
 })();

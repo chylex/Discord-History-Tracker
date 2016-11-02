@@ -95,7 +95,7 @@ var DISCORD = (function(){
           }
           
           return value.map(embed => {
-            return embed.type === "image" ? templateEmbedImage.apply(embed) : "";
+            return embed.type === "image" && STATE.settings.enableImagePreviews ? templateEmbedImage.apply(embed) : "";
           }).join("");
         }
         else if (property === "attachments"){
@@ -106,7 +106,7 @@ var DISCORD = (function(){
           return value.map(attachment => {
             var ext = attachment.url.slice(-4).toLowerCase();
 
-            if (ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg"){
+            if ((ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg") && STATE.settings.enableImagePreviews){
               return templateEmbedImage.apply(attachment);
             }
             else{

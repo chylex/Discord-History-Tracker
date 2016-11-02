@@ -7,6 +7,8 @@
     "_afterFirstMsg",
     "afterSavedMsg",
     "_afterSavedMsg",
+    "enableImagePreviews",
+    "_enableImagePreviews",
     "meta",
     "data",
     "users",
