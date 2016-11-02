@@ -1,15 +1,18 @@
 var GUI = (function(){
   var eventOnFileUploaded;
-  var eventOnOptionMessagesPerPageChanged;
-  var eventOnNavigationButtonClicked;
+  var eventOnOptMessagesPerPageChanged;
+  var eventOnNavButtonClicked;
   
   return {
+    // ---------
+    // GUI setup
+    // ---------
+    
     /*
      * Hooks all event listeners into the DOM.
      */
     setup: function(){
       var inputUploadedFile = DOM.id("uploaded-file");
-      var optMessagesPerPage = DOM.id("opt-messages-per-page");
 
       DOM.id("btn-upload-file").addEventListener("click", () => {
         inputUploadedFile.click();
@@ -21,18 +24,22 @@ var GUI = (function(){
         }
       });
       
-      optMessagesPerPage.addEventListener("change", () => {
-        eventOnOptionMessagesPerPageChanged && eventOnOptionMessagesPerPageChanged();
+      DOM.id("opt-messages-per-page").addEventListener("change", () => {
+        eventOnOptMessagesPerPageChanged && eventOnOptMessagesPerPageChanged();
       });
       
       Array.prototype.forEach.call(DOM.tag("button", DOM.cls("nav")[0]), button => {
         button.disabled = true;
         
         button.addEventListener("click", () => {
-          eventOnNavigationButtonClicked && eventOnNavigationButtonClicked(button.getAttribute("data-nav"));
+          eventOnNavButtonClicked && eventOnNavButtonClicked(button.getAttribute("data-nav"));
         });
       });
     },
+    
+    // -----------------
+    // Event registering
+    // -----------------
     
     /*
      * Sets a callback for when a file is uploaded. The callback takes a single argument, which is the file object array, and should return true to reset the input.
@@ -45,15 +52,43 @@ var GUI = (function(){
      * Sets a callback for when the user changes the messages per page option. The callback is not passed any arguments.
      */
     onOptionMessagesPerPageChanged: function(callback){
-      eventOnOptionMessagesPerPageChanged = callback;
+      eventOnOptMessagesPerPageChanged = callback;
     },
     
     /*
      * Sets a callback for when the user clicks a navigation button. The callback is passed one of the following strings: first, prev, next, last.
      */
     onNavigationButtonClicked: function(callback){
-      eventOnNavigationButtonClicked = callback;
+      eventOnNavButtonClicked = callback;
     },
+    
+    // ----------------------
+    // Options and navigation
+    // ----------------------
+    
+    /*
+     * Returns the selected amount of messages per page.
+     */
+    getOptionMessagesPerPage: function(){
+      return parseInt(DOM.id("opt-messages-per-page").value, 10);
+    },
+    
+    /*
+     * Updates the navigation text and buttons.
+     */
+    updateNavigation: function(currentPage, totalPages){
+      DOM.id("nav-page-current").innerHTML = currentPage;
+      DOM.id("nav-page-total").innerHTML = totalPages || "?";
+      
+      DOM.id("nav-first").disabled = currentPage === 1;
+      DOM.id("nav-prev").disabled = currentPage === 1;
+      DOM.id("nav-next").disabled = currentPage === (totalPages || 1);
+      DOM.id("nav-last").disabled = currentPage === (totalPages || 1);
+    },
+    
+    // ------------
+    // Channel list
+    // ------------
     
     /*
      * Updates the channel list and sets up their click events. The callback is triggered whenever a channel is selected, and takes the channel ID as its argument.
@@ -82,6 +117,10 @@ var GUI = (function(){
       }
     },
     
+    // ------------
+    // Message list
+    // ------------
+    
     /*
      * Updates the message list.
      */
@@ -90,30 +129,10 @@ var GUI = (function(){
     },
     
     /*
-     * Updates the navigation text and buttons.
-     */
-    updateNavigation: function(currentPage, totalPages){
-      DOM.id("nav-page-current").innerHTML = currentPage;
-      DOM.id("nav-page-total").innerHTML = totalPages || "?";
-      
-      DOM.id("nav-first").disabled = currentPage === 1;
-      DOM.id("nav-prev").disabled = currentPage === 1;
-      DOM.id("nav-next").disabled = currentPage === (totalPages || 1);
-      DOM.id("nav-last").disabled = currentPage === (totalPages || 1);
-    },
-    
-    /*
      * Scrolls the message div to the top.
      */
     scrollMessagesToTop: function(){
       DOM.id("messages").scrollTop = 0;
-    },
-    
-    /*
-     * Returns the selected amount of messages per page.
-     */
-    getOptionMessagesPerPage: function(){
-      return parseInt(DOM.id("opt-messages-per-page").value, 10);
     }
   };
 })();
