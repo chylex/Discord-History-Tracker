@@ -4,29 +4,15 @@ document.addEventListener("DOMContentLoaded", () => {
   
   GUI.onFileUploaded(files => {
     if (files.length === 1){
-      var reader = new FileReader();
-      
-      reader.onload = function(){
-        var obj = {};
-        
-        try{
-          obj = JSON.parse(reader.result);
-        }catch(e){
-          alert("Could not parse '"+file.name+"', see console for details.");
-          console.error(e);
-          return;
+      UTILS.readJsonFile(files[0], (obj, file) => {
+        if (SAVEFILE.isValid(obj)){
+          STATE.uploadFile(new SAVEFILE(obj));
+          updateChannelList();
         }
-        
-        if (!SAVEFILE.isValid(obj)){
-          alert("File '"+file.name+"' has an invalid format.");
-          return;
+        else{
+          alert((obj ? "File '{}' has an invalid format." : "Could not parse '{}', see console for details.").replace("{}", file.name));
         }
-        
-        STATE.uploadFile(new SAVEFILE(obj));
-        updateChannelList();
-      };
-      
-      reader.readAsText(files[0], "UTF-8");
+      });
     }
     else{
       alert("Please, select only one file.");
@@ -48,12 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   
   var updateChannelList = function(){
+    updateMessageList(null);
+    
     GUI.updateChannelList(STATE.getChannelList(), channel => {
       STATE.selectChannel(channel);
       updateMessageList();
     });
-    
-    updateMessageList(null);
   };
   
   var updateMessageList = function(){
