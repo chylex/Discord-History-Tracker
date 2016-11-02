@@ -25,14 +25,13 @@ var GUI = (function(){
       "<label><input id='dht-cfg-imgpreviews' type='checkbox'> Image Previews</label>"
     ].join(""));
     
-    // image previews
-    var checkImagePreviews = DOM.id("dht-cfg-imgpreviews");
+    var setupCheckBox = function(id, settingName){
+      var ele = DOM.id(id);
+      ele.checked = STATE.settings[settingName];
+      ele.addEventListener("change", () => STATE.settings[settingName] = ele.checked);
+    };
     
-    checkImagePreviews.checked = STATE.settings.enableImagePreviews;
-    
-    checkImagePreviews.addEventListener("change", () => {
-      STATE.settings.enableImagePreviews = checkImagePreviews.checked;
-    });
+    setupCheckBox("dht-cfg-imgpreviews", "enableImagePreviews");
   };
   
   var showInfoModal = function(){
