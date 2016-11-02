@@ -12,19 +12,6 @@ var STATE = (function(){
   var currentPage;
   var messagesPerPage;
   
-  // -----------------
-  // Utility functions
-  // -----------------
-  
-  var messageKeySorter = (key1, key2) => {
-    if (key1.length === key2.length){
-      return key1 > key2 ? 1 : key1 < key2 ? -1 : 0;
-    }
-    else{
-      return key1.length > key2.length ? 1 : -1;
-    }
-  };
-  
   // ----------------------------------
   // Channel and message refresh events
   // ----------------------------------
@@ -91,7 +78,7 @@ var STATE = (function(){
   ROOT.selectChannel = function(channel){
     currentPage = 1;
     selectedChannel = channel;
-    MSGS = Object.keys(FILE.getMessages(channel)).sort(messageKeySorter);
+    MSGS = Object.keys(FILE.getMessages(channel)).sort(PROCESSOR.SORTER.oldestToNewest);
 
     triggerMessagesRefreshed();
   };
