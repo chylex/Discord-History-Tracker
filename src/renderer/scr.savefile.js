@@ -13,10 +13,7 @@ SAVEFILE.isValid = function(parsedObj){
 };
 
 SAVEFILE.prototype.getServer = function(index){
-  return this.meta.servers[index] || {
-    name: "&lt;unknown&gt;",
-    type: "ERROR"
-  };
+  return this.meta.servers[index] || { name: "&lt;unknown&gt;", type: "ERROR" };
 };
 
 SAVEFILE.prototype.getChannels = function(){
@@ -42,11 +39,9 @@ SAVEFILE.prototype.getMessageCount = function(channel){
 SAVEFILE.prototype.getAllMessages = function(){
   var messages = {};
   
-  for(var channelKey of Object.keys(this.data)){
-    for(var messageKey of Object.keys(this.data[channelKey])){
-      messages[messageKey] = this.data[channelKey][messageKey];
-    }
-  }
+  UTILS.forEachValue(this.data, messageObject => {
+    UTILS.combineObjects(messages, messageObject);
+  });
   
   return messages;
 };
