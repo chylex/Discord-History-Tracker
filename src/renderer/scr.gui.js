@@ -16,6 +16,24 @@ var GUI = (function(){
     return dialog;
   };
   
+  // -------------
+  // Modal dialogs
+  // -------------
+  
+  var showInfoModal = function(){
+    var linkGH = "https://github.com/chylex/Discord-History-Tracker";
+    
+    var dialog = showModal(560, 128, [
+      "<p>Discord History Tracker is developed by <a href='https://chylex.com'>chylex</a> as an <a href='"+linkGH+"/blob/master/LICENSE.md'>open source</a> project.</p>",
+      "<p>Please, report any issues and suggestions to the <a href='"+linkGH+"/issues'>tracker</a>. If you want to support the development, please spread the word and consider <a href='https://www.patreon.com/chylex'>becoming a patron</a>. Any support is appreciated!</p>",
+      "<p>",
+      "<a href='"+linkGH+"/issues'>Issue Tracker</a> &nbsp;&mdash;&nbsp; ",
+      "<a href='"+linkGH+"'>GitHub Repository</a> &nbsp;&mdash;&nbsp; ",
+      "<a href='https://twitter.com/chylexmc'>Developer's Twitter</a>",
+      "</p>"
+    ].join(""));
+  };
+  
   return {
     // ---------
     // GUI setup
@@ -47,6 +65,10 @@ var GUI = (function(){
         button.addEventListener("click", () => {
           eventOnNavButtonClicked && eventOnNavButtonClicked(button.getAttribute("data-nav"));
         });
+      });
+      
+      DOM.id("btn-about").addEventListener("click", () => {
+        showInfoModal();
       });
       
       DOM.id("overlay").addEventListener("click", () => {
