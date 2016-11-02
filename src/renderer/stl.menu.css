@@ -1,0 +1,58 @@
+#menu {
+  background-color: #17181C;
+  border-bottom: 1px dotted #5D626B;
+}
+
+#menu .splitter {
+  width: 1px;
+  margin: 9px 4px;
+  background-color: #5D626B;
+}
+
+#menu .separator {
+  flex: 1 1 0;
+}
+
+#menu :disabled {
+  background-color: #C2C2C2;
+  cursor: default;
+}
+
+#menu button, #menu select {
+  margin: 8px;
+  background-color: #AADDFF;
+}
+
+#menu button {
+  font-size: 18px;
+  padding: 0 12px;
+  border: 0;
+  cursor: pointer;
+}
+
+#menu select {
+  font-size: 14px;
+  padding: 7px;
+  border: 0;
+}
+
+#menu p {
+  font-size: 16px;
+  padding: 8px;
+  background-color: #F8F8F8;
+}
+
+#menu .nav {
+  display: flex;
+  flex-direction: row;
+  margin: 0 8px;
+}
+
+#menu .nav > button {
+  font-family: Lucida Console, monospace;
+  padding: 0 8px;
+}
+
+#menu .nav > button, #menu .nav > p {
+  margin: 8px 1px;
+}
