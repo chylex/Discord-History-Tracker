@@ -75,17 +75,26 @@ var DISCORD = (function(){
             return "";
           }
           
-          var processed = DOM.escapeHTML(value)
-            .replace(REGEX.formatCodeBlock, (full, ignore, match) => "<code class='block'>"+match.replace(REGEX.specialUnescaped, "\\$1")+"</code>")
-            .replace(REGEX.formatCodeInline, (full, ignore, match) => "<code class='inline'>"+match.replace(REGEX.specialUnescaped, "\\$1")+"</code>")
-            .replace(REGEX.formatBold, "<b>$1</b>")
-            .replace(REGEX.formatItalic, (full, pre, match) => pre === '\\' ? full : pre+"<i>"+match+"</i>")
-            .replace(REGEX.formatUnderline, "<u>$1</u>")
-            .replace(REGEX.formatStrike, "<s>$1</s>")
+          var processed = DOM.escapeHTML(value);
+          
+          if (STATE.settings.enableFormatting){
+            processed = processed
+              .replace(REGEX.formatCodeBlock, (full, ignore, match) => "<code class='block'>"+match.replace(REGEX.specialUnescaped, "\\$1")+"</code>")
+              .replace(REGEX.formatCodeInline, (full, ignore, match) => "<code class='inline'>"+match.replace(REGEX.specialUnescaped, "\\$1")+"</code>")
+              .replace(REGEX.formatBold, "<b>$1</b>")
+              .replace(REGEX.formatItalic, (full, pre, match) => pre === '\\' ? full : pre+"<i>"+match+"</i>")
+              .replace(REGEX.formatUnderline, "<u>$1</u>")
+              .replace(REGEX.formatStrike, "<s>$1</s>");
+          }
+          
+          processed = processed
             .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
             .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
-            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>")
-            .replace(REGEX.specialEscaped, "$1");
+            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>");
+          
+          if (STATE.settings.enableFormatting){
+            processed = processed.replace(REGEX.specialEscaped, "$1");
+          }
           
           return "<p>"+processed+"</p>";
         }

@@ -22,7 +22,8 @@ var GUI = (function(){
   
   var showSettingsModal = function(){
     showModal(560, 256, [
-      "<label><input id='dht-cfg-imgpreviews' type='checkbox'> Image Previews</label>"
+      "<label><input id='dht-cfg-imgpreviews' type='checkbox'> Image Previews</label><br>",
+      "<label><input id='dht-cfg-formatting' type='checkbox'> Message Formatting</label><br>"
     ].join(""));
     
     var setupCheckBox = function(id, settingName){
@@ -32,6 +33,7 @@ var GUI = (function(){
     };
     
     setupCheckBox("dht-cfg-imgpreviews", "enableImagePreviews");
+    setupCheckBox("dht-cfg-formatting", "enableFormatting");
   };
   
   var showInfoModal = function(){

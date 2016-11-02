@@ -169,6 +169,7 @@ var STATE = (function(){
   
   // reserve.txt
   defineSettingProperty("enableImagePreviews", true);
+  defineSettingProperty("enableFormatting", true);
   
   // End
   return ROOT;
