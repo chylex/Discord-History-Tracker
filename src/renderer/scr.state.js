@@ -140,13 +140,32 @@ var STATE = (function(){
       currentPage = total;
     }
 
-    return currentPage;
+    return currentPage || 1;
   };
 
   ROOT.getPageCount = function(){
     return !MSGS ? 0 : (!messagesPerPage ? 1 : Math.ceil(MSGS.length/messagesPerPage));
   };
   
+  // --------
+  // Settings
+  // --------
+  
+  ROOT.settings = {};
+  
+  var defineSettingProperty = (property, defaultValue) => {
+    var name = "_"+property;
+    
+    Object.defineProperty(ROOT.settings, property, {
+      get: (() => ROOT.settings[name]),
+      set: (value => {
+        ROOT.settings[name] = value;
+        triggerMessagesRefreshed();
+      })
+    });
+    
+    ROOT.settings[name] = defaultValue;
+  }
   // End
   return ROOT;
 })();
