@@ -9,6 +9,8 @@
     "_afterSavedMsg",
     "enableImagePreviews",
     "_enableImagePreviews",
+    "enableFormatting",
+    "_enableFormatting",
     "meta",
     "data",
     "users",
