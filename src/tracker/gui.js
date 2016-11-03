@@ -124,6 +124,7 @@ var GUI = (function(){
       
       controller.ui.btnReset.addEventListener("click", () => {
         STATE.resetState();
+        root.showSettings();
       });
       
       controller.ui.inputUpload.addEventListener("change", () => {
