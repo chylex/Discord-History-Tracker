@@ -22,11 +22,13 @@ def combine_files(input_pattern, output_file):
 
 
 def build_tracker():
-  output_file = "bld/track.js"
+  output_file_raw = "bld/track.js"
+  output_file_bookmark = "bld/track.html"
+  
   output_file_tmp = "bld/track.tmp.js"
   input_pattern = "src/tracker/*.js"
   
-  with open(output_file, "w") as out:
+  with open(output_file_raw, "w") as out:
     if not USE_UGLIFYJS:
       out.write("(function(){\n")
     
@@ -36,13 +38,13 @@ def build_tracker():
       out.write("})()")
   
   if USE_UGLIFYJS:
-    os.system(EXEC_UGLIFYJS.format(output_file, output_file_tmp))
+    os.system(EXEC_UGLIFYJS.format(output_file_raw, output_file_tmp))
   elif USE_JAVA:
-    os.system(EXEC_CLOSURECOMPILER.format(output_file, output_file_tmp))
+    os.system(EXEC_CLOSURECOMPILER.format(output_file_raw, output_file_tmp))
   else:
     return
   
-  with open(output_file, "w") as out:
+  with open(output_file_raw, "w") as out:
     out.write("javascript:(function(){")
     
     with open(output_file_tmp, "r") as minified:
@@ -51,6 +53,14 @@ def build_tracker():
     out.write("})()")
     
   os.remove(output_file_tmp)
+  
+  with open(output_file_bookmark, "w") as out:
+    out.write("<a href='")
+    
+    with open(output_file_raw, "r") as raw:
+      out.write(raw.read().replace("&", "&amp;").replace('"', "&quot;").replace("'", "&#x27;").replace("<", "&lt;").replace(">", "&gt;"))
+    
+    out.write("'>Add Bookmark</a>")
 
 
 def build_renderer():
