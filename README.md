@@ -1,6 +1,6 @@
 # Usage
 
-TODO
+Visit the [official website](https://dht.chylex.com) to add Discord History Tracker (beta) to your bookmarks and download the renderer.
 
 # Building
 
