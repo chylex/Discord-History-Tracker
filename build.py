@@ -55,7 +55,7 @@ def build_tracker():
   os.remove(output_file_tmp)
   
   with open(output_file_bookmark, "w") as out:
-    out.write("<a href='")
+    out.write("<a rel='sidebar' title='Discord History Tracker' href='")
     
     with open(output_file_raw, "r") as raw:
       out.write(raw.read().replace("&", "&amp;").replace('"', "&quot;").replace("'", "&#x27;").replace("<", "&lt;").replace(">", "&gt;"))
