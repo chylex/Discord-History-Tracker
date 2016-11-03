@@ -1,3 +1,9 @@
+if (window.location.href.indexOf("discordapp.com/") === -1){
+  if (!confirm("Could not detect Discord in the URL, do you want to run the script anyway?")){
+    return;
+  }
+}
+
 if (window.DHT_LOADED){
   alert("Discord History Tracker is already loaded.");
   return;
