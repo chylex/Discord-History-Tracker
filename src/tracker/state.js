@@ -57,6 +57,7 @@ var STATE = (function(){
   CLS.prototype.resetState = function(){
     this._savefile = null;
     this._isTracking = false;
+    this._lastFileName = null;
     this.settings._reset();
     triggerStateChanged("data", "reset");
   };
@@ -97,8 +98,9 @@ var STATE = (function(){
   /*
    * Combines current savefile with the provided one.
    */
-  CLS.prototype.uploadSavefile = function(readFile){
-    this.getSavefile().combineWith(readFile);
+  CLS.prototype.uploadSavefile = function(fileName, fileObject){
+    this._lastFileName = fileName;
+    this.getSavefile().combineWith(fileObject);
     triggerStateChanged("data", "upload");
   };
   
@@ -107,7 +109,7 @@ var STATE = (function(){
    */
   CLS.prototype.downloadSavefile = function(){
     if (this.hasSavedData()){
-      DOM.downloadTextFile("dht.txt", this._savefile.toJson());
+      DOM.downloadTextFile(this._lastFileName || "dht.txt", this._savefile.toJson());
     }
   };
   

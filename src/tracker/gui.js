@@ -143,7 +143,7 @@ var GUI = (function(){
             }
             
             if (SAVEFILE.isValid(obj)){
-              STATE.uploadSavefile(new SAVEFILE(obj));
+              STATE.uploadSavefile(file.name, new SAVEFILE(obj));
             }
             else{
               alert("File '"+file.name+"' has an invalid format.");
