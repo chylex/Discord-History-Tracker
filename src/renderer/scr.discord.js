@@ -8,8 +8,9 @@ var DISCORD = (function(){
     formatCodeBlock: /```(?:([A-z0-9\-]+?)\n+)?\n*([^]+?)\n*```/g,
     formatUrl: /(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,
     formatUrlNoEmbed: /<(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])>/ig,
-    specialEscaped: /\\([*_~`\\])/g,
-    specialUnescaped: /([*_~`\\])/g,
+    specialEscapedBacktick: /\\`/g,
+    specialEscapedOther: /\\([*_~\\])/g,
+    specialUnescaped: /([*_~\\])/g,
     mentionRole: /&lt;@&(\d+?)&gt;/g,
     mentionUser: /&lt;@!?(\d+?)&gt;/g,
     mentionChannel: /&lt;#(\d+?)&gt;/g
@@ -79,9 +80,13 @@ var DISCORD = (function(){
           var processed = DOM.escapeHTML(value.replace(REGEX.formatUrlNoEmbed, "$1"));
           
           if (STATE.settings.enableFormatting){
+            var escapeHtmlMatch = (full, match) => "&#"+match.charCodeAt(0)+";";
+            
             processed = processed
-              .replace(REGEX.formatCodeBlock, (full, ignore, match) => "<code class='block'>"+match.replace(REGEX.specialUnescaped, "\\$1")+"</code>")
-              .replace(REGEX.formatCodeInline, (full, ignore, match) => "<code class='inline'>"+match.replace(REGEX.specialUnescaped, "\\$1")+"</code>")
+              .replace(REGEX.specialEscapedBacktick, "&#96;")
+              .replace(REGEX.formatCodeBlock, (full, ignore, match) => "<code class='block'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
+              .replace(REGEX.formatCodeInline, (full, ignore, match) => "<code class='inline'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
+              .replace(REGEX.specialEscapedOther, escapeHtmlMatch)
               .replace(REGEX.formatBold, "<b>$1</b>")
               .replace(REGEX.formatItalic, (full, pre, match) => pre === '\\' ? full : pre+"<i>"+match+"</i>")
               .replace(REGEX.formatUnderline, "<u>$1</u>")
@@ -92,10 +97,6 @@ var DISCORD = (function(){
             .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
             .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
             .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>");
-          
-          if (STATE.settings.enableFormatting){
-            processed = processed.replace(REGEX.specialEscaped, "$1");
-          }
           
           return "<p>"+processed+"</p>";
         }
