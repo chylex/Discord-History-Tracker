@@ -9,7 +9,8 @@ var DISCORD = (function(){
     formatUrl: /(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,
     formatUrlNoEmbed: /<(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])>/ig,
     specialEscapedBacktick: /\\`/g,
-    specialEscapedOther: /\\([*_~\\])/g,
+    specialEscapedSingle: /\\([*\\])/g,
+    specialEscapedDouble: /\\__|_\\_|\\_\\_|\\~~|~\\~|\\~\\~/g,
     specialUnescaped: /([*_~\\])/g,
     mentionRole: /&lt;@&(\d+?)&gt;/g,
     mentionUser: /&lt;@!?(\d+?)&gt;/g,
@@ -86,7 +87,8 @@ var DISCORD = (function(){
               .replace(REGEX.specialEscapedBacktick, "&#96;")
               .replace(REGEX.formatCodeBlock, (full, ignore, match) => "<code class='block'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
               .replace(REGEX.formatCodeInline, (full, ignore, match) => "<code class='inline'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
-              .replace(REGEX.specialEscapedOther, escapeHtmlMatch)
+              .replace(REGEX.specialEscapedSingle, escapeHtmlMatch)
+              .replace(REGEX.specialEscapedDouble, full => full.replace(/\\/g, "").replace(/(.)/g, escapeHtmlMatch))
               .replace(REGEX.formatBold, "<b>$1</b>")
               .replace(REGEX.formatItalic, (full, pre, match) => pre === '\\' ? full : pre+"<i>"+match+"</i>")
               .replace(REGEX.formatUnderline, "<u>$1</u>")
