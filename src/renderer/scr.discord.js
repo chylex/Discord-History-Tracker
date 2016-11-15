@@ -6,7 +6,8 @@ var DISCORD = (function(){
     formatStrike: /~~([\s\S]+?)~~(?!~)/g,
     formatCodeInline: /(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/g,
     formatCodeBlock: /```(?:([A-z0-9\-]+?)\n+)?\n*([^]+?)\n*```/g,
-    formatUrl: /(?:&lt;)?(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])(?:&gt;)?/ig,
+    formatUrl: /(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,
+    formatUrlNoEmbed: /<(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])>/ig,
     specialEscaped: /\\([*_~`\\])/g,
     specialUnescaped: /([*_~`\\])/g,
     mentionRole: /&lt;@&(\d+?)&gt;/g,
@@ -75,7 +76,7 @@ var DISCORD = (function(){
             return "";
           }
           
-          var processed = DOM.escapeHTML(value);
+          var processed = DOM.escapeHTML(value.replace(REGEX.formatUrlNoEmbed, "$1"));
           
           if (STATE.settings.enableFormatting){
             processed = processed
