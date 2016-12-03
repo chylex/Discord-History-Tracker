@@ -19,12 +19,12 @@ It is possible to disable minification completely using the `--nominify` flag, o
 ### Requirements
 
 - **Java 7+** (YUI, Closure Compiler)
-- **npm** (UglifyJS)
+- **Node.js** (UglifyJS)
 - **uglify-js-harmony** (UglifyJS)
 
 ### Setting Up UglifyJS
 
-Once you install `npm`, use the following command to download UglifyJS with ES6 support and add it to your system path:
+Once you install `Node.js` which contains `npm`, use the following command to download UglifyJS with ES6 support and add it to your system path:
 ```
 npm install uglify-js-harmony -g
 ```
