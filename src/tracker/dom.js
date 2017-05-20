@@ -95,14 +95,15 @@ var DOM = (function(){
      * Triggers a UTF-8 text file download.
      */
     downloadTextFile: function(fileName, fileContents){
-      var ele = document.createElement("a");
-      ele.setAttribute("href", "data:text/plain;charset=utf-8,"+encodeURIComponent(fileContents));
-      ele.setAttribute("download", fileName);
-      ele.style.display = "none";
-
-      document.body.appendChild(ele);
-      ele.click();
-      document.body.removeChild(ele);
+      var a = document.createElement("a");
+      document.body.appendChild(a);
+      a.style = "display: none";
+      var blob = new Blob([fileContents], {type: "octet/stream"}),
+          url = window.URL.createObjectURL(blob);
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      window.URL.revokeObjectURL(url);
     }
   };
 })();
