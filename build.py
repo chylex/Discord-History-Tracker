@@ -7,12 +7,13 @@ import sys
 import os
 
 
-EXEC_UGLIFYJS = "uglifyjs --bare-returns --compress --mangle --mangle-props --reserve-domprops --reserved-file reserve.txt --screw-ie8 --output \"{1}\" \"{0}\""
+# TODO readd mangle: --mangle --mangle-props --reserve-domprops --reserved-file reserve.txt
+EXEC_UGLIFYJS = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --output \"{1}\" \"{0}\""
 EXEC_CLOSURECOMPILER = "java -jar lib/closure-compiler-v20160911.jar --js \"{0}\" --js_output_file \"{1}\""
 EXEC_YUI = "java -jar lib/yuicompressor-2.4.8.jar --charset utf-8 --line-break 160 --type css -o \"{1}\" \"{0}\""
 
-USE_UGLIFYJS = shutil.which("uglifyjs") != None and not "--closure" in sys.argv and not "--nominify" in sys.argv
-USE_JAVA = shutil.which("java") != None and not "--nominify" in sys.argv
+USE_UGLIFYJS = "--closure" not in sys.argv and "--nominify" not in sys.argv
+USE_JAVA = shutil.which("java") is not None and "--nominify" not in sys.argv
 
 
 def combine_files(input_pattern, output_file):
@@ -38,7 +39,7 @@ def build_tracker():
       out.write("})()")
   
   if USE_UGLIFYJS:
-    os.system(EXEC_UGLIFYJS.format(output_file_raw, output_file_tmp))
+    os.system(EXEC_UGLIFYJS.format(output_file_raw, output_file_tmp, os.getcwd()))
   elif USE_JAVA:
     os.system(EXEC_CLOSURECOMPILER.format(output_file_raw, output_file_tmp))
   else:
@@ -89,7 +90,7 @@ def build_renderer():
     combine_files(input_js_pattern, out)
   
   if USE_UGLIFYJS:
-    os.system(EXEC_UGLIFYJS.format(tmp_js_file_combined, tmp_js_file_minified))
+    os.system(EXEC_UGLIFYJS.format(tmp_js_file_combined, tmp_js_file_minified, os.getcwd()))
   elif USE_JAVA:
     os.system(EXEC_CLOSURECOMPILER.format(tmp_js_file_combined, tmp_js_file_minified))
   else:
