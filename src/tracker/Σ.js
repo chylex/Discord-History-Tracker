@@ -12,7 +12,7 @@ if (window.DHT_LOADED){
 window.DHT_LOADED = true;
 
 if (DISCORD.getSelectedChannel()){
-  if (confirm("You ran the script while in a channel, some messages may not be saved correctly. Do you want to go to your Friends list and refresh the page?")){
+  if (confirm("You ran the script while in a channel, some messages may not be saved correctly. Do you want to go to your Friends list and reload Discord? You will need to re-run the script afterwards.")){
     window.location = "https://discordapp.com/channels/@me";
     return;
   }
