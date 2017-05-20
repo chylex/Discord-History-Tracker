@@ -66,8 +66,6 @@ var DOM = (function(){
      */
     createStyle: function(styles){
       var ele = document.createElement("style");
-      ele.setAttribute("type", "text/css");
-      
       document.head.appendChild(ele);
       
       styles.forEach(function(style){
@@ -95,14 +93,18 @@ var DOM = (function(){
      * Triggers a UTF-8 text file download.
      */
     downloadTextFile: function(fileName, fileContents){
-      var a = document.createElement("a");
-      document.body.appendChild(a);
-      a.style = "display: none";
-      var blob = new Blob([fileContents], {type: "octet/stream"}),
-          url = window.URL.createObjectURL(blob);
-      a.href = url;
-      a.download = fileName;
-      a.click();
+      var blob = new Blob([fileContents], { type: "octet/stream" });
+      var url = window.URL.createObjectURL(blob);
+      
+      var ele = document.createElement("a");
+      ele.href = url;
+      ele.download = fileName;
+      ele.style.display = "none";
+      
+      document.body.appendChild(ele);
+      ele.click();
+      
+      document.body.removeChild(ele);
       window.URL.revokeObjectURL(url);
     }
   };
