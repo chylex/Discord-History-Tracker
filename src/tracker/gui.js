@@ -73,6 +73,7 @@ var GUI = (function(){
         "#dht-ctrl { position: absolute; bottom: 0; width: 100%; height: 48px; background-color: #fff; }",
         "#dht-ctrl button { height: 32px; margin: 8px 0 8px 8px; font-size: 18px; padding: 0 12px; background-color: #adf; }",
         "#dht-ctrl button:disabled { background-color: #d0d0d0; cursor: default; }",
+        "#dht-ctrl-close { margin: 8px 8px 8px 0 !important; float: right; }",
         "#dht-ctrl p { display: inline-block; margin: 14px 12px; }",
         "#dht-ctrl input { display: none; }"
       ]);
@@ -89,7 +90,8 @@ var GUI = (function(){
         "<button id='dht-ctrl-download'>Download</button>",
         "<button id='dht-ctrl-reset'>Reset</button>",
         "<p id='dht-ctrl-status'></p>",
-        "<input id='dht-ctrl-upload-input' type='file' multiple>"
+        "<input id='dht-ctrl-upload-input' type='file' multiple>",
+        "<button id='dht-ctrl-close'>X</button>"
       ].join("");
       
       // elements
@@ -100,6 +102,7 @@ var GUI = (function(){
         btnToggleTracking: DOM.id("dht-ctrl-track"),
         btnDownload: DOM.id("dht-ctrl-download"),
         btnReset: DOM.id("dht-ctrl-reset"),
+        btnClose: DOM.id("dht-ctrl-close"),
         textStatus: DOM.id("dht-ctrl-status"),
         inputUpload: DOM.id("dht-ctrl-upload-input")
       };
@@ -125,6 +128,11 @@ var GUI = (function(){
       controller.ui.btnReset.addEventListener("click", () => {
         STATE.resetState();
         root.showSettings();
+      });
+      
+      controller.ui.btnClose.addEventListener("click", () => {
+        root.hideController();
+        window.DHT_LOADED = false;
       });
       
       controller.ui.inputUpload.addEventListener("change", () => {
