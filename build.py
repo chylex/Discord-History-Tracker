@@ -9,10 +9,9 @@ import os
 
 # TODO readd mangle: --mangle --mangle-props --reserve-domprops --reserved-file reserve.txt
 EXEC_UGLIFYJS = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --output \"{1}\" \"{0}\""
-EXEC_CLOSURECOMPILER = "java -jar lib/closure-compiler-v20160911.jar --js \"{0}\" --js_output_file \"{1}\""
 EXEC_YUI = "java -jar lib/yuicompressor-2.4.8.jar --charset utf-8 --line-break 160 --type css -o \"{1}\" \"{0}\""
 
-USE_UGLIFYJS = "--closure" not in sys.argv and "--nominify" not in sys.argv
+USE_UGLIFYJS = "--nominify" not in sys.argv
 USE_JAVA = shutil.which("java") is not None and "--nominify" not in sys.argv
 
 
@@ -40,8 +39,6 @@ def build_tracker():
   
   if USE_UGLIFYJS:
     os.system(EXEC_UGLIFYJS.format(output_file_raw, output_file_tmp, os.getcwd()))
-  elif USE_JAVA:
-    os.system(EXEC_CLOSURECOMPILER.format(output_file_raw, output_file_tmp))
   else:
     return
   
@@ -91,8 +88,6 @@ def build_renderer():
   
   if USE_UGLIFYJS:
     os.system(EXEC_UGLIFYJS.format(tmp_js_file_combined, tmp_js_file_minified, os.getcwd()))
-  elif USE_JAVA:
-    os.system(EXEC_CLOSURECOMPILER.format(tmp_js_file_combined, tmp_js_file_minified))
   else:
     shutil.copyfile(tmp_js_file_combined, tmp_js_file_minified)
   
