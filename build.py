@@ -39,18 +39,16 @@ def build_tracker():
   
   if USE_UGLIFYJS:
     os.system(EXEC_UGLIFYJS.format(output_file_raw, output_file_tmp, os.getcwd()))
-  else:
-    return
-  
-  with open(output_file_raw, "w") as out:
-    out.write("javascript:(function(){")
     
-    with open(output_file_tmp, "r") as minified:
-      out.write(minified.read().replace("\n", " ").replace("\r", ""))
+    with open(output_file_raw, "w") as out:
+      out.write("javascript:(function(){")
+      
+      with open(output_file_tmp, "r") as minified:
+        out.write(minified.read().replace("\n", " ").replace("\r", ""))
+      
+      out.write("})()")
     
-    out.write("})()")
-    
-  os.remove(output_file_tmp)
+    os.remove(output_file_tmp)
   
   with open(output_file_bookmark, "w") as out:
     out.write("<a rel='sidebar' title='Discord History Tracker' href='")
