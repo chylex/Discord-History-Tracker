@@ -66,29 +66,31 @@
  */
 
 var SAVEFILE = function(parsedObj){
+  var me = this;
+  
   if (SAVEFILE.isValid(parsedObj)){
-    this.meta = parsedObj.meta;
-    this.meta.users = this.meta.users || {};
-    this.meta.userindex = this.meta.userindex || [];
-    this.meta.servers = this.meta.servers || [];
-    this.meta.channels = this.meta.channels || {};
+    me.meta = parsedObj.meta;
+    me.meta.users = me.meta.users || {};
+    me.meta.userindex = me.meta.userindex || [];
+    me.meta.servers = me.meta.servers || [];
+    me.meta.channels = me.meta.channels || {};
     
-    this.data = parsedObj.data;
+    me.data = parsedObj.data;
   }
   else{
-    this.meta = {};
-    this.meta.users = {};
-    this.meta.userindex = [];
-    this.meta.servers = [];
-    this.meta.channels = {};
-
-    this.data = {};
+    me.meta = {};
+    me.meta.users = {};
+    me.meta.userindex = [];
+    me.meta.servers = [];
+    me.meta.channels = {};
+    
+    me.data = {};
   }
   
-  this.tmp = {};
-  this.tmp.userlookup = {};
-  this.tmp.channelkeys = new Set();
-  this.tmp.messagekeys = new Set();
+  me.tmp = {};
+  me.tmp.userlookup = {};
+  me.tmp.channelkeys = new Set();
+  me.tmp.messagekeys = new Set();
 };
 
 SAVEFILE.isValid = function(parsedObj){

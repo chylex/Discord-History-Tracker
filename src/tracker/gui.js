@@ -80,18 +80,20 @@ var GUI = (function(){
       
       // main
       
+      var btn = (id, title) => "<button id='dht-ctrl-"+id+"'>"+title+"</button>";
+      
       controller.ele = DOM.createElement("div", document.body);
       controller.ele.id = "dht-ctrl";
       
       controller.ele.innerHTML = [
-        "<button id='dht-ctrl-upload'>Upload &amp; Combine</button>",
-        "<button id='dht-ctrl-settings'>Settings</button>",
-        "<button id='dht-ctrl-track'></button>",
-        "<button id='dht-ctrl-download'>Download</button>",
-        "<button id='dht-ctrl-reset'>Reset</button>",
+        btn("upload", "Upload &amp; Combine"),
+        btn("settings", "Settings"),
+        btn("track", ""),
+        btn("download", "Download"),
+        btn("reset", "Reset"),
         "<p id='dht-ctrl-status'></p>",
         "<input id='dht-ctrl-upload-input' type='file' multiple>",
-        "<button id='dht-ctrl-close'>X</button>"
+        btn("close", "X")
       ].join("");
       
       // elements
@@ -109,33 +111,33 @@ var GUI = (function(){
       
       // events
       
-      controller.ui.btnUpload.addEventListener("click", () => {
+      DOM.listen(controller.ui.btnUpload, "click", () => {
         controller.ui.inputUpload.click();
       });
       
-      controller.ui.btnSettings.addEventListener("click", () => {
+      DOM.listen(controller.ui.btnSettings, "click", () => {
         root.showSettings();
       });
       
-      controller.ui.btnToggleTracking.addEventListener("click", () => {
+      DOM.listen(controller.ui.btnToggleTracking, "click", () => {
         STATE.toggleTracking();
       });
       
-      controller.ui.btnDownload.addEventListener("click", () => {
+      DOM.listen(controller.ui.btnDownload, "click", () => {
         STATE.downloadSavefile();
       });
       
-      controller.ui.btnReset.addEventListener("click", () => {
+      DOM.listen(controller.ui.btnReset, "click", () => {
         STATE.resetState();
         root.showSettings();
       });
       
-      controller.ui.btnClose.addEventListener("click", () => {
+      DOM.listen(controller.ui.btnClose, "click", () => {
         root.hideController();
         window.DHT_LOADED = false;
       });
       
-      controller.ui.inputUpload.addEventListener("change", () => {
+      DOM.listen(controller.ui.inputUpload, "change", () => {
         for(var file of controller.ui.inputUpload.files){
           var reader = new FileReader();
           
@@ -191,7 +193,7 @@ var GUI = (function(){
       settings.overlay = DOM.createElement("div", document.body);
       settings.overlay.id = "dht-cfg-overlay";
       
-      settings.overlay.addEventListener("click", () => {
+      DOM.listen(settings.overlay, "click", () => {
         root.hideSettings();
       });
       
@@ -200,18 +202,20 @@ var GUI = (function(){
       settings.ele = DOM.createElement("div", document.body);
       settings.ele.id = "dht-cfg";
       
+      var radio = (type, id, label) => "<label><input id='dht-cfg-"+type+"-"+id+"' name='dht-"+type+"' type='radio'> "+label+"</label><br>";
+      
       settings.ele.innerHTML = [
         "<label><input id='dht-cfg-autoscroll' type='checkbox'> Autoscroll</label><br>",
         "<br>",
         "<label>After reaching the first message in channel...</label><br>",
-        "<label><input id='dht-cfg-afm-nothing' name='dht-afm' type='radio'> Do Nothing</label><br>",
-        "<label><input id='dht-cfg-afm-pause' name='dht-afm' type='radio'> Pause Tracking</label><br>",
-        "<label><input id='dht-cfg-afm-switch' name='dht-afm' type='radio'> Switch to Next Channel</label><br>",
+        radio("afm", "nothing", "Do Nothing"),
+        radio("afm", "pause", "Pause Tracking"),
+        radio("afm", "switch", "Switch to Next Channel"),
         "<br>",
         "<label>After reaching a previously saved message...</label><br>",
-        "<label><input id='dht-cfg-asm-nothing' name='dht-asm' type='radio'> Do Nothing</label><br>",
-        "<label><input id='dht-cfg-asm-pause' name='dht-asm' type='radio'> Pause Tracking</label><br>",
-        "<label><input id='dht-cfg-asm-switch' name='dht-asm' type='radio'> Switch to Next Channel</label><br>",
+        radio("asm", "nothing", "Do Nothing"),
+        radio("asm", "pause", "Pause Tracking"),
+        radio("asm", "switch", "Switch to Next Channel"),
         "<p id='dht-cfg-note'>",
         "Tracking will only trigger when Discord loads new messages. ",
         "To ensure that all messages are saved, go to your Friends list to avoid loading any messages, refresh the website, and run the script again.",
@@ -245,13 +249,13 @@ var GUI = (function(){
       });
       
       Object.keys(settings.ui.optsAfterFirstMsg).forEach(key => {
-        settings.ui.optsAfterFirstMsg[key].addEventListener("click", () => {
+        DOM.listen(settings.ui.optsAfterFirstMsg[key], "click", () => {
           STATE.settings.afterFirstMsg = key;
         });
       });
       
       Object.keys(settings.ui.optsAfterSavedMsg).forEach(key => {
-        settings.ui.optsAfterSavedMsg[key].addEventListener("click", () => {
+        DOM.listen(settings.ui.optsAfterSavedMsg[key], "click", () => {
           STATE.settings.afterSavedMsg = key;
         });
       });

@@ -21,3 +21,12 @@ m
 f
 e
 a
+author
+id
+username
+timestamp
+content
+edited_timestamp
+mentions
+embeds
+attachments

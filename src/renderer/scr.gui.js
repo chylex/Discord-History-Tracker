@@ -75,7 +75,7 @@ var GUI = (function(){
         eventOnOptMessagesPerPageChanged && eventOnOptMessagesPerPageChanged();
       });
       
-      Array.prototype.forEach.call(DOM.tag("button", DOM.cls("nav")[0]), button => {
+      DOM.tag("button", DOM.fcls("nav")).forEach(button => {
         button.disabled = true;
         
         button.addEventListener("click", () => {
@@ -164,7 +164,7 @@ var GUI = (function(){
         
         Array.prototype.forEach.call(eleChannels.children, ele => {
           ele.addEventListener("click", e => {
-            var currentChannel = DOM.cls("active", eleChannels)[0];
+            var currentChannel = DOM.fcls("active", eleChannels);
 
             if (currentChannel){
               currentChannel.classList.remove("active");

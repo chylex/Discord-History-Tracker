@@ -6,7 +6,7 @@ var DISCORD = (function(){
      * Sets up a callback hook to trigger whenever a message request returns a response (the callback is given the channel ID and message array).
      */
     setupMessageRequestHook: function(callback){
-      HOOKS.onAjaxResponse(function(args, req){
+      HOOKS.onAjaxResponse((args, req) => {
         var match = args[1].match(regexMessageRequest);
         
         if (match){
@@ -26,18 +26,18 @@ var DISCORD = (function(){
     getSelectedChannel: function(){
       var obj;
       
-      var channelListEle = DOM.cls("private-channels")[0];
+      var channelListEle = DOM.fcls("private-channels");
       var channel;
       
       if (channelListEle){
-        channel = DOM.cls("selected", channelListEle)[0];
+        channel = DOM.fcls("selected", channelListEle);
         
         if (!channel || !channel.classList.contains("private")){
           return null;
         }
         else{
-          var linkSplit = DOM.tag("a", channel)[0].getAttribute("href").split("/");
-          var name = [].find.call(DOM.cls("channel-name", channel)[0].childNodes, node => node.nodeType === Node.TEXT_NODE).nodeValue;
+          var linkSplit = DOM.ftag("a", channel).href.split("/");
+          var name = [].find.call(DOM.fcls("channel-name", channel).childNodes, node => node.nodeType === Node.TEXT_NODE).nodeValue;
           
           obj = {
             "server": name,
@@ -48,18 +48,18 @@ var DISCORD = (function(){
         }
       }
       else{
-        channelListEle = DOM.cls("guild-channels")[0];
-        channel = channelListEle && DOM.cls("selected", channelListEle)[0];
+        channelListEle = DOM.fcls("guild-channels");
+        channel = channelListEle && DOM.fcls("selected", channelListEle);
         
         if (!channel){
           return null;
         }
         else{
-          var linkSplit = DOM.tag("a", channel)[0].getAttribute("href").split("/");
+          var linkSplit = DOM.ftag("a", channel).href.split("/");
 
           obj = {
-            "server": DOM.tag("span", DOM.cls("guild-header")[0])[0].innerHTML,
-            "channel": DOM.cls("channel-name", DOM.cls("selected", channelListEle)[0])[0].innerHTML,
+            "server": DOM.ftag("span", DOM.fcls("guild-header")).innerHTML,
+            "channel": DOM.fcls("channel-name", DOM.fcls("selected", channelListEle)).innerHTML,
             "id": linkSplit[linkSplit.length-1],
             "type": "SERVER"
           };
@@ -72,36 +72,30 @@ var DISCORD = (function(){
     /*
      * Returns true if the message column is visible.
      */
-    isInMessageView: function(){
-      return DOM.cls("messages").length > 0;
-    },
+    isInMessageView: (_) => DOM.cls("messages").length > 0,
     
     /*
      * Returns true if there are more messages available.
      */
-    hasMoreMessages: function(){
-      return DOM.cls("messages")[0].children[0].classList.contains("has-more");
-    },
+    hasMoreMessages: (_) => DOM.fcls("messages").children[0].classList.contains("has-more"),
     
     /*
      * Forces the message column to scroll all the way up to load older messages.
      */
-    loadOlderMessages: function(){
-      DOM.cls("messages")[0].scrollTop = 0;
-    },
+    loadOlderMessages: (_) => DOM.fcls("messages").scrollTop = 0,
     
     /*
      * Selects the next text channel and returns true, otherwise returns false if there are no more channels.
      */
     selectNextTextChannel: function(){
-      var nextChannel = DOM.cls("selected", DOM.cls("channels-wrap")[0])[0].nextElementSibling;
+      var nextChannel = DOM.fcls("selected", DOM.fcls("channels-wrap")).nextElementSibling;
       var classes = nextChannel && nextChannel.classList;
       
       if (nextChannel === null || !classes.contains("channel") || !(classes.contains("private") || classes.contains("channel-text"))){
         return false;
       }
       else{
-        DOM.tag("a", nextChannel)[0].click();
+        DOM.ftag("a", nextChannel).click();
         return true;
       }
     }

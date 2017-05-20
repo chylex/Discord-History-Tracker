@@ -1,11 +1,13 @@
 var SAVEFILE = function(parsedObj){
-  this.meta = parsedObj.meta;
-  this.meta.users = this.meta.users || {};
-  this.meta.userindex = this.meta.userindex || [];
-  this.meta.servers = this.meta.servers || [];
-  this.meta.channels = this.meta.channels || {};
+  var me = this;
   
-  this.data = parsedObj.data;
+  me.meta = parsedObj.meta;
+  me.meta.users = me.meta.users || {};
+  me.meta.userindex = me.meta.userindex || [];
+  me.meta.servers = me.meta.servers || [];
+  me.meta.channels = me.meta.channels || {};
+  
+  me.data = parsedObj.data;
 };
 
 SAVEFILE.isValid = function(parsedObj){
