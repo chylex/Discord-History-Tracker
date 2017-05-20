@@ -6,29 +6,14 @@ Visit the [official website](https://dht.chylex.com) to add Discord History Trac
 
 The build script requires **Python 3**. For automatic build, run `python build.py`, and a `bld` folder with the track script and renderer will be created.
 
-The `track.js` script is ready to be added as a bookmark in a browser, or ran in a browser console.
+The `track.js` script is ready to be added as a bookmark in a browser, or ran in a browser console. The `track.html` contains a bookmarkable link you can easily include on a website.
 
 ## Minification
 
-The build process has support for JS and CSS minification.
+The build process automatically minifies the generated files. **YUI Compressor** is used for CSS and **UglifyJS** is used for JavaScript.
 
-If possible, it uses **YUI Compressor** for CSS, and **UglifyJS** for JavaScript (falls back to **Google Closure Compiler** if **UglifyJS** is not available). If the required programs are not found on the system path, minification will be disabled without warnings.
+**YUI** requires **Java 7+** on the PATH. If Java is not available, CSS compression will be skipped.
 
-It is possible to disable minification completely using the `--nominify` flag, or to force **Google Closure Compiler** to be used using the `--closure` flag.
+**UglifyJS** is executed using the included **Node** runner with all packages already installed in the repository.
 
-### Requirements
-
-- **Java 7+** (YUI, Closure Compiler)
-- **Node.js** (UglifyJS)
-- **uglify-js-harmony** (UglifyJS)
-
-### Setting Up UglifyJS
-
-Once you install `Node.js` which contains `npm`, use the following command to download UglifyJS with ES6 support and add it to your system path:
-```
-npm install uglify-js-harmony -g
-```
-
-### UglifyJS vs Google Closure Compiler
-
-Closure Compiler compiles into ES5, which adds support for older browsers that don't have some of the used ES6 functionality, however it is at the expense of several additional kilobytes to the file size.
+To disable minification, use the `--nominify` flag.
