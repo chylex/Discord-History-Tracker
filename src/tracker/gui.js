@@ -36,13 +36,13 @@ var GUI = (function(){
       var force = type === "gui" && detail === "settings";
       
       if (force){
-        settings.ui.cbAutoscroll.checked = STATE.settings.autoscroll;
-        settings.ui.optsAfterFirstMsg[STATE.settings.afterFirstMsg].checked = true;
-        settings.ui.optsAfterSavedMsg[STATE.settings.afterSavedMsg].checked = true;
+        settings.ui.cbAutoscroll.checked = SETTINGS.autoscroll;
+        settings.ui.optsAfterFirstMsg[SETTINGS.afterFirstMsg].checked = true;
+        settings.ui.optsAfterSavedMsg[SETTINGS.afterSavedMsg].checked = true;
       }
       
       if (type === "setting" || force){
-        var autoscrollRev = !STATE.settings.autoscroll;
+        var autoscrollRev = !SETTINGS.autoscroll;
         
         // discord polyfills Object.values
         Object.values(settings.ui.optsAfterFirstMsg).forEach(ele => ele.disabled = autoscrollRev);
@@ -56,6 +56,7 @@ var GUI = (function(){
   var setupStateChanged = function(detail){
     if (!registeredEvent){
       STATE.onStateChanged(stateChangedEvent);
+      SETTINGS.onSettingsChanged(stateChangedEvent);
       registeredEvent = true;
     }
     
@@ -245,18 +246,18 @@ var GUI = (function(){
       // events
       
       settings.ui.cbAutoscroll.addEventListener("change", () => {
-        STATE.settings.autoscroll = settings.ui.cbAutoscroll.checked;
+        SETTINGS.autoscroll = settings.ui.cbAutoscroll.checked;
       });
       
       Object.keys(settings.ui.optsAfterFirstMsg).forEach(key => {
         DOM.listen(settings.ui.optsAfterFirstMsg[key], "click", () => {
-          STATE.settings.afterFirstMsg = key;
+          SETTINGS.afterFirstMsg = key;
         });
       });
       
       Object.keys(settings.ui.optsAfterSavedMsg).forEach(key => {
         DOM.listen(settings.ui.optsAfterSavedMsg[key], "click", () => {
-          STATE.settings.afterSavedMsg = key;
+          SETTINGS.afterSavedMsg = key;
         });
       });
       

@@ -85,6 +85,22 @@ var DOM = (function(){
     listen: (ele, event, callback) => ele.addEventListener(event, callback),
     
     /*
+     * Utility function to save an object into a cookie.
+     */
+    saveToCookie: (name, obj, expiresInSeconds) => {
+      var expires = new Date(Date.now()+1000*expiresInSeconds).toUTCString();
+      document.cookie = name+"="+encodeURIComponent(JSON.stringify(obj))+";path=/;expires="+expires;
+    },
+    
+    /*
+     * Utility function to load an object from a cookie.
+     */
+    loadFromCookie: (name) => {
+      var value = document.cookie.replace(new RegExp("(?:(?:^|.*;\\s*)"+name+"\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1");
+      return value.length ? JSON.parse(decodeURIComponent(value)) : null;
+    },
+    
+    /*
      * Triggers a UTF-8 text file download.
      */
     downloadTextFile: (fileName, fileContents) => {

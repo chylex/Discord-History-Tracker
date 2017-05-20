@@ -31,15 +31,15 @@ DISCORD.setupMessageRequestHook((channel, messages) => {
       STATE.addDiscordChannel(info.server, info.type, channel, info.channel);
       var hasUpdatedFile = STATE.addDiscordMessages(channel, messages);
       
-      if (STATE.settings.autoscroll){
+      if (SETTINGS.autoscroll){
         DOM.setTimer(() => {
           var action = CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
           
           if (!hasUpdatedFile){
-            action = STATE.settings.afterSavedMsg;
+            action = SETTINGS.afterSavedMsg;
           }
           else if (!DISCORD.hasMoreMessages()){
-            action = STATE.settings.afterFirstMsg;
+            action = SETTINGS.afterFirstMsg;
           }
           
           if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
@@ -81,12 +81,12 @@ STATE.onStateChanged((type, detail) => {
       --untrackedRequests;
     }
     
-    if (STATE.settings.autoscroll && DISCORD.isInMessageView()){
+    if (SETTINGS.autoscroll && DISCORD.isInMessageView()){
       if (DISCORD.hasMoreMessages()){
         DISCORD.loadOlderMessages();
       }
       else{
-        var action = STATE.settings.afterFirstMsg;
+        var action = SETTINGS.afterFirstMsg;
 
         if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
           DOM.setTimer(() => STATE.toggleTracking(), 200); // give the user visual feedback after clicking the button before switching off

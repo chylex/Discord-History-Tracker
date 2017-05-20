@@ -1,9 +1,3 @@
-var CONSTANTS = {
-  AUTOSCROLL_ACTION_NOTHING: "optNothing",
-  AUTOSCROLL_ACTION_PAUSE: "optPause",
-  AUTOSCROLL_ACTION_SWITCH: "optSwitch"
-};
-
 var STATE = (function(){
   var stateChangedEvents = [];
   
@@ -13,41 +7,10 @@ var STATE = (function(){
     }
   };
   
-  var defineTriggeringProperty = function(obj, type, property){
-    var name = "_"+property;
-    
-    Object.defineProperty(obj, property, {
-      get: (() => obj[name]),
-      set: (value => {
-        obj[name] = value;
-        triggerStateChanged(type, property);
-      })
-    });
-  };
-  
-  /*
-   * Internal settings class constructor.
-   */
-  var SETTINGS = function(){
-    defineTriggeringProperty(this, "setting", "autoscroll");
-    defineTriggeringProperty(this, "setting", "afterFirstMsg");
-    defineTriggeringProperty(this, "setting", "afterSavedMsg");
-  };
-  
-  /*
-   * Resets settings without triggering state changed event.
-   */
-  SETTINGS.prototype._reset = function(){
-    this._autoscroll = true;
-    this._afterFirstMsg = CONSTANTS.AUTOSCROLL_ACTION_PAUSE;
-    this._afterSavedMsg = CONSTANTS.AUTOSCROLL_ACTION_PAUSE;
-  };
-  
   /*
    * Internal class constructor.
    */
   var CLS = function(){
-    this.settings = new SETTINGS();
     this.resetState();
   };
   
@@ -58,7 +21,6 @@ var STATE = (function(){
     this._savefile = null;
     this._isTracking = false;
     this._lastFileName = null;
-    this.settings._reset();
     triggerStateChanged("data", "reset");
   };
   
