@@ -93,7 +93,7 @@ var DOM = (function(){
      * Triggers a UTF-8 text file download.
      */
     downloadTextFile: function(fileName, fileContents){
-      var blob = new Blob([fileContents], { type: "octet/stream" });
+      var blob = new Blob([fileContents], { "type": "octet/stream" });
       var url = window.URL.createObjectURL(blob);
       
       var ele = document.createElement("a");

@@ -13,7 +13,7 @@ SAVEFILE.isValid = function(parsedObj){
 };
 
 SAVEFILE.prototype.getServer = function(index){
-  return this.meta.servers[index] || { name: "&lt;unknown&gt;", type: "ERROR" };
+  return this.meta.servers[index] || { "name": "&lt;unknown&gt;", "type": "ERROR" };
 };
 
 SAVEFILE.prototype.getChannels = function(){
@@ -21,15 +21,15 @@ SAVEFILE.prototype.getChannels = function(){
 };
 
 SAVEFILE.prototype.getChannelById = function(channel){
-  return this.meta.channels[channel] || { id: channel, name: channel };
+  return this.meta.channels[channel] || { "id": channel, "name": channel };
 };
 
 SAVEFILE.prototype.getUser = function(index){
-  return this.meta.users[this.meta.userindex[index]] || { name: "&lt;unknown&gt;" };
+  return this.meta.users[this.meta.userindex[index]] || { "name": "&lt;unknown&gt;" };
 };
 
 SAVEFILE.prototype.getUserById = function(user){
-  return this.meta.users[user] || { name: user };
+  return this.meta.users[user] || { "name": user };
 };
 
 SAVEFILE.prototype.getMessageCount = function(channel){

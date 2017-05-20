@@ -67,11 +67,11 @@ var STATE = (function(){
   ROOT.getChannelList = function(){
     var channels = FILE.getChannels();
 
-    return Object.keys(channels).map(key => ({ // reserve.txt
-      id: key,
-      name: channels[key].name,
-      server: FILE.getServer(channels[key].server),
-      msgcount: FILE.getMessageCount(key)
+    return Object.keys(channels).map(key => ({
+      "id": key,
+      "name": channels[key].name,
+      "server": FILE.getServer(channels[key].server),
+      "msgcount": FILE.getMessageCount(key)
     }));
   };
 
@@ -102,13 +102,13 @@ var STATE = (function(){
     return MSGS.slice(startIndex, !messagesPerPage ? undefined : startIndex+messagesPerPage).map(key => {
       var message = messages[key];
 
-      return { // reserve.txt
-        user: FILE.getUser(message.u),
-        timestamp: message.t,
-        contents: message.m,
-        embeds: message.e,
-        attachments: message.a,
-        edited: (message.f&1) === 1
+      return {
+        "user": FILE.getUser(message.u),
+        "timestamp": message.t,
+        "contents": message.m,
+        "embeds": message.e,
+        "attachments": message.a,
+        "edited": (message.f&1) === 1
       };
     });
   };
@@ -167,7 +167,6 @@ var STATE = (function(){
     ROOT.settings[name] = defaultValue;
   }
   
-  // reserve.txt
   defineSettingProperty("enableImagePreviews", true);
   defineSettingProperty("enableFormatting", true);
   

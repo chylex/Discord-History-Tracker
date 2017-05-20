@@ -1,40 +1,23 @@
-{
-  "vars": [],
-  "props": [
-    "autoscroll",
-    "_autoscroll",
-    "afterFirstMsg",
-    "_afterFirstMsg",
-    "afterSavedMsg",
-    "_afterSavedMsg",
-    "enableImagePreviews",
-    "_enableImagePreviews",
-    "enableFormatting",
-    "_enableFormatting",
-    "meta",
-    "data",
-    "users",
-    "userindex",
-    "servers",
-    "channels",
-    "name",
-    "type",
-    "server",
-    "u",
-    "t",
-    "m",
-    "f",
-    "e",
-    "a",
-    "id",
-    "user",
-    "msgcount",
-    "timestamp",
-    "contents",
-    "&",
-    "<",
-    ">",
-    "'",
-    "\""
-  ]
-}
+autoscroll
+_autoscroll
+afterFirstMsg
+_afterFirstMsg
+afterSavedMsg
+_afterSavedMsg
+enableImagePreviews
+_enableImagePreviews
+enableFormatting
+_enableFormatting
+DHT_LOADED
+meta
+data
+users
+userindex
+servers
+channels
+u
+t
+m
+f
+e
+a

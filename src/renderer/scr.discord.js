@@ -126,8 +126,8 @@ var DISCORD = (function(){
               var sliced = attachment.url.split("/");
 
               return templateEmbedDownload.apply({
-                url: attachment.url,
-                filename: sliced[sliced.length-1]
+                "url": attachment.url,
+                "filename": sliced[sliced.length-1]
               });
             }
           }).join("");

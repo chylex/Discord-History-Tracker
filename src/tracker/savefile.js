@@ -98,7 +98,7 @@ SAVEFILE.isValid = function(parsedObj){
 SAVEFILE.prototype.findOrRegisterUser = function(userId, userName){
   if (!(userId in this.meta.users)){
     this.meta.users[userId] = {
-      name: userName
+      "name": userName
     };
     
     this.meta.userindex.push(userId);
@@ -116,9 +116,9 @@ SAVEFILE.prototype.findOrRegisterServer = function(serverName, serverType){
   var index = this.meta.servers.findIndex(server => server.name === serverName && server.type === serverType);
   
   if (index === -1){
-    this.meta.servers.push({ // reserve.txt
-      name: serverName,
-      type: serverType
+    this.meta.servers.push({
+      "name": serverName,
+      "type": serverType
     });
     
     return this.meta.servers.length-1;
@@ -136,9 +136,9 @@ SAVEFILE.prototype.tryRegisterChannel = function(serverIndex, channelId, channel
     return false;
   }
   else{
-    this.meta.channels[channelId] = { // reserve.txt
-      server: serverIndex,
-      name: channelName
+    this.meta.channels[channelId] = {
+      "server": serverIndex,
+      "name": channelName
     };
     
     this.tmp.channelkeys.add(channelId);
@@ -155,7 +155,7 @@ SAVEFILE.prototype.addMessage = function(channelId, messageId, messageObject){
   return !wasPresent;
 };
 
-SAVEFILE.prototype.convertToMessageObject = function(discordMessage){ // reserve.txt
+SAVEFILE.prototype.convertToMessageObject = function(discordMessage){
   var obj = {
     u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username),
     t: +Date.parse(discordMessage.timestamp),
@@ -180,14 +180,14 @@ SAVEFILE.prototype.convertToMessageObject = function(discordMessage){ // reserve
   
   if (discordMessage.embeds.length > 0){
     obj.e = discordMessage.embeds.map(embed => ({
-      url: embed.url,
-      type: embed.type
+      "url": embed.url,
+      "type": embed.type
     }));
   }
   
   if (discordMessage.attachments.length > 0){
     obj.a = discordMessage.attachments.map(attachment => ({
-      url: attachment.url
+      "url": attachment.url
     }));
   }
   
@@ -231,8 +231,8 @@ SAVEFILE.prototype.combineWith = function(obj){
 };
 
 SAVEFILE.prototype.toJson = function(){
-  return JSON.stringify({ // reserve.txt
-    meta: this.meta,
-    data: this.data
+  return JSON.stringify({
+    "meta": this.meta,
+    "data": this.data
   });
 };

@@ -56,8 +56,8 @@ DISCORD.setupMessageRequestHook((channel, messages) => {
     ++untrackedRequests;
     
     cachedRequest = {
-      channel: channel,
-      messages: messages
+      "channel": channel,
+      "messages": messages
     };
   }
 });

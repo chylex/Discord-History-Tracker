@@ -7,12 +7,16 @@ import sys
 import os
 
 
-# TODO readd mangle: --mangle --mangle-props --reserve-domprops --reserved-file reserve.txt
-EXEC_UGLIFYJS = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --output \"{1}\" \"{0}\""
+EXEC_UGLIFYJS = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
 EXEC_YUI = "java -jar lib/yuicompressor-2.4.8.jar --charset utf-8 --line-break 160 --type css -o \"{1}\" \"{0}\""
 
 USE_UGLIFYJS = "--nominify" not in sys.argv
 USE_JAVA = shutil.which("java") is not None and "--nominify" not in sys.argv
+
+WORKING_DIR = os.getcwd()
+
+with open("reserve.txt", "r") as reserved:
+  RESERVED_PROPS = ",".join(line.strip() for line in reserved.readlines())
 
 
 def combine_files(input_pattern, output_file):
@@ -38,7 +42,7 @@ def build_tracker():
       out.write("})()")
   
   if USE_UGLIFYJS:
-    os.system(EXEC_UGLIFYJS.format(output_file_raw, output_file_tmp, os.getcwd()))
+    os.system(EXEC_UGLIFYJS.format(output_file_raw, output_file_tmp, WORKING_DIR, RESERVED_PROPS))
     
     with open(output_file_raw, "w") as out:
       out.write("javascript:(function(){")
@@ -85,7 +89,7 @@ def build_renderer():
     combine_files(input_js_pattern, out)
   
   if USE_UGLIFYJS:
-    os.system(EXEC_UGLIFYJS.format(tmp_js_file_combined, tmp_js_file_minified, os.getcwd()))
+    os.system(EXEC_UGLIFYJS.format(tmp_js_file_combined, tmp_js_file_minified, WORKING_DIR, RESERVED_PROPS))
   else:
     shutil.copyfile(tmp_js_file_combined, tmp_js_file_minified)
   

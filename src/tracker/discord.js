@@ -39,11 +39,11 @@ var DISCORD = (function(){
           var linkSplit = DOM.tag("a", channel)[0].getAttribute("href").split("/");
           var name = [].find.call(DOM.cls("channel-name", channel)[0].childNodes, node => node.nodeType === Node.TEXT_NODE).nodeValue;
           
-          obj = { // reserve.txt
-            server: name,
-            channel: name,
-            id: linkSplit[linkSplit.length-1],
-            type: DOM.cls("status", channel).length ? "DM" : "GROUP"
+          obj = {
+            "server": name,
+            "channel": name,
+            "id": linkSplit[linkSplit.length-1],
+            "type": DOM.cls("status", channel).length ? "DM" : "GROUP"
           };
         }
       }
@@ -58,10 +58,10 @@ var DISCORD = (function(){
           var linkSplit = DOM.tag("a", channel)[0].getAttribute("href").split("/");
 
           obj = {
-            server: DOM.tag("span", DOM.cls("guild-header")[0])[0].innerHTML,
-            channel: DOM.cls("channel-name", DOM.cls("selected", channelListEle)[0])[0].innerHTML,
-            id: linkSplit[linkSplit.length-1],
-            type: "SERVER"
+            "server": DOM.tag("span", DOM.cls("guild-header")[0])[0].innerHTML,
+            "channel": DOM.cls("channel-name", DOM.cls("selected", channelListEle)[0])[0].innerHTML,
+            "id": linkSplit[linkSplit.length-1],
+            "type": "SERVER"
           };
         }
       }
