@@ -7,14 +7,31 @@ import sys
 import os
 
 
-EXEC_UGLIFYJS = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
+EXEC_UGLIFYJS_WIN = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
+EXEC_UGLIFYJS_AUTO = "uglifyjs --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
 EXEC_YUI = "java -jar lib/yuicompressor-2.4.8.jar --charset utf-8 --line-break 160 --type css -o \"{1}\" \"{0}\""
 
 USE_UGLIFYJS = "--nominify" not in sys.argv
-USE_JAVA = shutil.which("java") is not None and "--nominify" not in sys.argv
+USE_JAVA = "--nominify" not in sys.argv
 
 WORKING_DIR = os.getcwd()
 
+    
+if USE_JAVA and shutil.which("java") is None:
+  USE_JAVA = False
+  print("Could not find 'java', CSS minification will be disabled")
+
+
+if os.name == "nt":
+  EXEC_UGLIFYJS = EXEC_UGLIFYJS_WIN
+else:
+  EXEC_UGLIFYJS = EXEC_UGLIFYJS_AUTO
+  
+  if USE_UGLIFYJS and shutil.which("uglifyjs") is None:
+    USE_UGLIFYJS = False
+    print("Could not find 'uglifyjs', JS minification will be disabled")
+
+  
 with open("reserve.txt", "r") as reserved:
   RESERVED_PROPS = ",".join(line.strip() for line in reserved.readlines())
 
