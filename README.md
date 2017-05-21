@@ -14,4 +14,4 @@ The build process automatically minifies the generated files. **YUI Compressor**
 
 **YUI** requires **Java 7+** on the PATH. If Java is not available, CSS compression will be skipped.
 
-**UglifyJS** is executed using the included **Node** runner with all packages already installed in the repository. The included runner requires 64-bit Windows. To run builds with JS minification on a different system, you can either add `uglify-es` into the global namespace, or download the appropriate [Node binaries](https://nodejs.org/en/download/) and modify the build script.
+**UglifyJS** is executed using the included **Node** runner with all packages already installed in the repository. The runner requires 64-bit Windows; to run builds with JS minification on a different system, either add `uglify-es` into the global namespace via `npm install uglify-es -g`, or download the appropriate [Node binaries](https://nodejs.org/en/download/) and modify the build script.
