@@ -10,10 +10,7 @@ var DISCORD = (function(){
         var match = args[1].match(regexMessageRequest);
         
         if (match){
-          var channel = match[1];
-          var messages = JSON.parse(req.response);
-          
-          callback(channel, messages);
+          callback(match[1], JSON.parse(req.response));
         }
       });
     },

@@ -221,8 +221,7 @@ SAVEFILE.prototype.combineWith = function(obj){
   
   for(var channelId in obj.meta.channels){
     var oldServer = obj.meta.servers[obj.meta.channels[channelId].server];
-    var serverIndex = this.findOrRegisterServer(oldServer.name, oldServer.type);
-    this.tryRegisterChannel(serverIndex, channelId, obj.meta.channels[channelId].name);
+    this.tryRegisterChannel(this.findOrRegisterServer(oldServer.name, oldServer.type), channelId, obj.meta.channels[channelId].name);
   }
   
   for(var channelId in obj.data){

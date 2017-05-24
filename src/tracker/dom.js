@@ -1,28 +1,4 @@
 var DOM = (function(){
-  var setupTimerFunction = function(setFunc, clearFunc, callback, time){
-    var obj = {
-      cancel: function(){
-        if (this.isActive){
-          clearFunc(this.id);
-          this.isActive = false;
-        }
-      },
-      
-      start: function(){
-        if (!this.isActive){
-          this.id = setFunc(this._callback.bind(obj), this._time);
-          this.isActive = true;
-        }
-      },
-      
-      _callback: callback,
-      _time: time
-    };
-    
-    obj.start();
-    return obj;
-  };
-  
   var createElement = (tag, parent) => {
     var ele = document.createElement(tag);
     parent.appendChild(ele);
@@ -75,9 +51,9 @@ var DOM = (function(){
     },
     
     /*
-     * Runs a callback function after a set amount of time. Returns an object which contains several functions and properties for easy management.
+     * Convenience setTimeout function to save space after minification.
      */
-    setTimer: (callback, timeout) => setupTimerFunction(window.setTimeout, window.clearTimeout, callback, timeout),
+    setTimer: (callback, timeout) => window.setTimeout(callback, timeout),
     
     /*
      * Convenience addEventListener function to save space after minification.
@@ -104,15 +80,13 @@ var DOM = (function(){
      * Triggers a UTF-8 text file download.
      */
     downloadTextFile: (fileName, fileContents) => {
-      var blob = new Blob([fileContents], { "type": "octet/stream" });
-      var url = window.URL.createObjectURL(blob);
+      var url = window.URL.createObjectURL(new Blob([fileContents], { "type": "octet/stream" }));
       
-      var ele = document.createElement("a");
+      var ele = createElement("a", document.body);
       ele.href = url;
       ele.download = fileName;
       ele.style.display = "none";
       
-      document.body.appendChild(ele);
       ele.click();
       
       document.body.removeChild(ele);
