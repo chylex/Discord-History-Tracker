@@ -97,4 +97,7 @@ STATE.onStateChanged((type, detail) => {
 });
 
 GUI.showController();
-GUI.showSettings();
+
+if (IS_FIRST_RUN){
+  GUI.showSettings();
+}

@@ -130,7 +130,6 @@ var GUI = (function(){
       
       DOM.listen(controller.ui.btnReset, "click", () => {
         STATE.resetState();
-        root.showSettings();
       });
       
       DOM.listen(controller.ui.btnClose, "click", () => {

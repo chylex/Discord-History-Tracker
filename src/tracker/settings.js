@@ -4,16 +4,22 @@ var CONSTANTS = {
   AUTOSCROLL_ACTION_SWITCH: "optSwitch"
 };
 
+var IS_FIRST_RUN = false;
+
 var SETTINGS = (function(){
   var root = {};
   var settingsChangedEvents = [];
+  
+  var saveSettings = function(){
+    DOM.saveToCookie("DHT_SETTINGS", root, 60*60*24*365*5);
+  };
   
   var triggerSettingsChanged = function(changeType, changeDetail){
     for(var callback of settingsChangedEvents){
       callback(changeType, changeDetail);
     }
     
-    DOM.saveToCookie("DHT_SETTINGS", root, 60*60*24*365*5);
+    saveSettings();
   };
   
   var defineTriggeringProperty = function(obj, property, value){
@@ -30,11 +36,17 @@ var SETTINGS = (function(){
     obj[name] = value;
   };
   
-  var loaded = DOM.loadFromCookie("DHT_SETTINGS") || {
-    "_autoscroll": true,
-    "_afterFirstMsg": CONSTANTS.AUTOSCROLL_ACTION_PAUSE,
-    "_afterSavedMsg": CONSTANTS.AUTOSCROLL_ACTION_PAUSE
-  };
+  var loaded = DOM.loadFromCookie("DHT_SETTINGS");
+  
+  if (!loaded){
+    loaded = {
+      "_autoscroll": true,
+      "_afterFirstMsg": CONSTANTS.AUTOSCROLL_ACTION_PAUSE,
+      "_afterSavedMsg": CONSTANTS.AUTOSCROLL_ACTION_PAUSE
+    };
+    
+    IS_FIRST_RUN = true;
+  }
   
   defineTriggeringProperty(root, "autoscroll", loaded._autoscroll);
   defineTriggeringProperty(root, "afterFirstMsg", loaded._afterFirstMsg);
@@ -43,6 +55,10 @@ var SETTINGS = (function(){
   root.onSettingsChanged = function(callback){
     settingsChangedEvents.push(callback);
   };
+  
+  if (IS_FIRST_RUN){
+    saveSettings();
+  }
   
   return root;
 })();
