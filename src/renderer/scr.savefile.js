@@ -35,7 +35,7 @@ SAVEFILE.prototype.getUserById = function(user){
 };
 
 SAVEFILE.prototype.getMessageCount = function(channel){
-  return Object.keys(this.data[channel]).length || 0;
+  return Object.keys(this.getMessages(channel)).length;
 };
 
 SAVEFILE.prototype.getAllMessages = function(){
@@ -49,5 +49,5 @@ SAVEFILE.prototype.getAllMessages = function(){
 };
 
 SAVEFILE.prototype.getMessages = function(channel){
-  return this.data[channel] || [];
+  return this.data[channel] || {};
 };
