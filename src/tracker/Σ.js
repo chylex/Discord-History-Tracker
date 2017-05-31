@@ -48,7 +48,7 @@ DISCORD.setupMessageRequestHook((channel, messages) => {
           else{
             DISCORD.loadOlderMessages();
           }
-        }, 0);
+        }, 50);
       }
     }
   }
