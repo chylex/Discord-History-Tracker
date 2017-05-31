@@ -81,12 +81,12 @@ def build_tracker():
 
 
 def build_renderer():
-  output_file = "bld/render.html"
+  output_file = "bld/viewer.html"
   input_html = "src/renderer/index.html"
   
   input_css_pattern = "src/renderer/*.css"
-  tmp_css_file_combined = "bld/render.tmp.css"
-  tmp_css_file_minified = "bld/render.min.css"
+  tmp_css_file_combined = "bld/viewer.tmp.css"
+  tmp_css_file_minified = "bld/viewer.min.css"
   
   with open(tmp_css_file_combined, "w") as out:
     combine_files(input_css_pattern, out)
@@ -99,8 +99,8 @@ def build_renderer():
   os.remove(tmp_css_file_combined)
   
   input_js_pattern = "src/renderer/*.js"
-  tmp_js_file_combined = "bld/render.tmp.js"
-  tmp_js_file_minified = "bld/render.min.js"
+  tmp_js_file_combined = "bld/viewer.tmp.js"
+  tmp_js_file_minified = "bld/viewer.min.js"
   
   with open(tmp_js_file_combined, "w") as out:
     combine_files(input_js_pattern, out)

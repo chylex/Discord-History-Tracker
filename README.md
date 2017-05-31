@@ -1,10 +1,10 @@
 # Usage
 
-Visit the [official website](https://dht.chylex.com) to add Discord History Tracker (beta) to your bookmarks and download the renderer.
+Visit the [official website](https://dht.chylex.com) to add Discord History Tracker (beta) to your bookmarks and download the viewer.
 
 # Building
 
-The build script requires **Python 3**. For automatic build, run `python build.py`, and a `bld` folder with the track script and renderer will be created.
+The build script requires **Python 3**. For automatic build, run `python build.py`, and a `bld` folder with the track script and viewer will be created.
 
 The `track.js` script is ready to be added as a bookmark in a browser, or ran in a browser console. The `track.html` contains a bookmarkable link you can easily include on a website.
 
