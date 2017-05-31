@@ -13,7 +13,7 @@
   </head>
   <body>
     <div class="inner">
-      <h1>Discord History Tracker <span>BETA&nbsp;v.1</span></h1>
+      <h1>Discord History Tracker <span>BETA&nbsp;v.2</span></h1>
       <p>Discord History Tracker is a browser script that lets you locally save chat history in your servers, groups, and private conversations.</p>
       <p>When the script is active, it will automatically load history of the selected text channel up to the first message, and let you download it for offline viewing in your browser.</p>
       
@@ -26,7 +26,7 @@
       <p>Once you have configured everything, click <strong>Start Tracking</strong>, let it run in the background, and download the file when done.</p>
       
       <h2>How to View History</h2>
-      <p>To browse the saved text channels, open the <a href="build/viewer.html">Renderer</a> and upload the file. It is recommended to download the renderer and place it next to your saved files, that way you can view your history offline.</p>
+      <p>To browse the saved text channels, open the <a href="build/viewer.html">Viewer</a> and upload the file. It is recommended to download the viewer and place it next to your saved files, that way you can view your history offline.</p>
       
       <h2>External Links</h2>
       <p class="links">
@@ -44,7 +44,7 @@
       </ul>
       
       <h2>Disclaimer</h2>
-      <p>Discord History Tracker and the renderer are fully client-side and do not communicate with any servers. If you close your browser while the script is running, all unsaved progress will be lost.</p>
+      <p>Discord History Tracker and the viewer are fully client-side and do not communicate with any servers. If you close your browser while the script is running, all unsaved progress will be lost.</p>
       <p>Please, do not use this script for large or public servers. The script was made as a convenient way of keeping a local copy of private and group chats, as Discord is currently lacking this functionality.</p>
       <p>Make sure you are using an up-to-date browser. Internet Explorer and old versions of good browsers are not supported.</p>
     </div>
