@@ -5,6 +5,7 @@ import glob
 import shutil
 import sys
 import os
+import distutils.dir_util
 
 
 EXEC_UGLIFYJS_WIN = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
@@ -13,6 +14,7 @@ EXEC_YUI = "java -jar lib/yuicompressor-2.4.8.jar --charset utf-8 --line-break 1
 
 USE_UGLIFYJS = "--nominify" not in sys.argv
 USE_JAVA = "--nominify" not in sys.argv
+BUILD_WEBSITE = "--website" in sys.argv
 
 WORKING_DIR = os.getcwd()
 
@@ -133,9 +135,29 @@ def build_renderer():
           out.write(line)
 
 
+def build_website():
+  tracker_file = "bld/track.html"
+  viewer_file = "bld/viewer.html"
+  web_style_file = "bld/web/style.css"
+  
+  distutils.dir_util.copy_tree("web", "bld/web")
+  
+  os.makedirs("bld/web/build", exist_ok = True)
+  shutil.copyfile(tracker_file, "bld/web/build/track.html")
+  shutil.copyfile(viewer_file, "bld/web/build/viewer.html")
+  
+  if USE_JAVA:
+    os.system(EXEC_YUI.format(web_style_file, web_style_file))
+
+
 os.makedirs("bld", exist_ok = True)
 
 print("Building tracker...")
 build_tracker()
+
 print("Building renderer...")
 build_renderer()
+
+if BUILD_WEBSITE:
+  print("Building website...")
+  build_website()
