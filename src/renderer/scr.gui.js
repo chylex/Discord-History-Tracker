@@ -3,14 +3,11 @@ var GUI = (function(){
   var eventOnOptMessagesPerPageChanged;
   var eventOnNavButtonClicked;
   
-  var showModal = function(width, height, html){
+  var showModal = function(width, html){
     var dialog = DOM.id("dialog");
     dialog.innerHTML = html;
-    
     dialog.style.width = width+"px";
-    dialog.style.height = height+"px";
     dialog.style.marginLeft = (-width/2)+"px";
-    dialog.style.marginTop = (-height/2)+"px";
     
     DOM.id("modal").classList.add("visible");
     return dialog;
@@ -21,7 +18,7 @@ var GUI = (function(){
   // -------------
   
   var showSettingsModal = function(){
-    showModal(560, 256, [
+    showModal(560, [
       "<label><input id='dht-cfg-imgpreviews' type='checkbox'> Image Previews</label><br>",
       "<label><input id='dht-cfg-formatting' type='checkbox'> Message Formatting</label><br>"
     ].join(""));
@@ -39,7 +36,7 @@ var GUI = (function(){
   var showInfoModal = function(){
     var linkGH = "https://github.com/chylex/Discord-History-Tracker";
     
-    showModal(560, 128, [
+    showModal(560, [
       "<p>Discord History Tracker is developed by <a href='https://chylex.com'>chylex</a> as an <a href='"+linkGH+"/blob/master/LICENSE.md'>open source</a> project.</p>",
       "<p>Please, report any issues and suggestions to the <a href='"+linkGH+"/issues'>tracker</a>. If you want to support the development, please spread the word and consider <a href='https://www.patreon.com/chylex'>becoming a patron</a>. Any support is appreciated!</p>",
       "<p>",
