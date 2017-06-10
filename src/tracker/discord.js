@@ -45,19 +45,25 @@ var DISCORD = (function(){
         }
       }
       else{
-        channelListEle = DOM.fcls("guild-channels");
-        channel = channelListEle && DOM.fcls("selected", channelListEle);
+        channelListEle = DOM.fcls("channels-wrap");
+        channel = channelListEle.querySelector("[class|='wrapperSelectedText']").parentElement;
         
         if (!channel){
           return null;
         }
         else{
-          var linkSplit = DOM.ftag("a", channel).href.split("/");
+          var key = Object.keys(channel).find(key => key.startsWith("__reactInternalInstance"));
+          
+          if (!key){
+            return null;
+          }
+          
+          var channelObj = channel[key]._currentElement.props.children.props.channel;
 
           obj = {
-            "server": DOM.ftag("span", DOM.fcls("guild-header")).innerHTML,
-            "channel": DOM.fcls("channel-name", DOM.fcls("selected", channelListEle)).innerHTML,
-            "id": linkSplit[linkSplit.length-1],
+            "server": channelListEle.querySelector("header > span").innerHTML,
+            "channel": channelObj.name,
+            "id": channelObj.id,
             "type": "SERVER"
           };
         }
@@ -85,15 +91,42 @@ var DISCORD = (function(){
      * Selects the next text channel and returns true, otherwise returns false if there are no more channels.
      */
     selectNextTextChannel: function(){
-      var nextChannel = DOM.fcls("selected", DOM.fcls("channels-wrap")).nextElementSibling;
-      var classes = nextChannel && nextChannel.classList;
+      var wrap = DOM.fcls("channels-wrap");
       
-      if (nextChannel === null || !classes.contains("channel") || !(classes.contains("private") || classes.contains("channel-text"))){
-        return false;
+      if (wrap.children[0].classList.contains("private-channels")){
+        var nextChannel = DOM.fcls("selected", wrap).nextElementSibling;
+        var classes = nextChannel && nextChannel.classList;
+
+        if (nextChannel === null || !classes.contains("channel") || !classes.contains("private")){
+          return false;
+        }
+        else{
+          DOM.ftag("a", nextChannel).click();
+          return true;
+        }
       }
       else{
-        DOM.ftag("a", nextChannel).click();
-        return true;
+        var allChannels = wrap.querySelectorAll("[class|='containerDefault']");
+        var nextChannel = null;
+        
+        for(var index = 0; index < allChannels.length-1; index++){
+          if (allChannels[index].children[0].className.includes("wrapperSelectedText")){
+            var next = allChannels[index+1];
+            
+            if (next.childElementCount > 0 && /wrapper([a-zA-Z]+?)Text/.test(next.children[0].className)){
+              nextChannel = allChannels[index+1];
+              break;
+            }
+          }
+        }
+        
+        if (nextChannel === null){
+          return false;
+        }
+        else{
+          nextChannel.children[0].click();
+          return true;
+        }
       }
     }
   };

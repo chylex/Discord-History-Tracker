@@ -30,3 +30,7 @@ edited_timestamp
 mentions
 embeds
 attachments
+_currentElement
+props
+children
+channel
