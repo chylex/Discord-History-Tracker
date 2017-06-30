@@ -11,31 +11,21 @@ if (window.DHT_LOADED){
 
 window.DHT_LOADED = true;
 
-if (DISCORD.getSelectedChannel()){
-  if (confirm("You ran the script while in a channel, some messages may not be saved correctly. Do you want to go to your Friends list and reload Discord? You will need to re-run the script afterwards.")){
-    window.location = "https://discordapp.com/channels/@me";
-    return;
-  }
-}
-
 // Execution
-
-var cachedRequest;
-var untrackedRequests = 0;
 
 DISCORD.setupMessageRequestHook(channel => {
   if (STATE.isTracking()){
     var info = DISCORD.getSelectedChannel();
     
     if (info.id == channel){ // Discord has a bug where the message request may be sent without switching channels
-      STATE.addDiscordChannel(info.server, info.type, channel, info.channel);
-      var hasUpdatedFile = STATE.addDiscordMessages(channel, DISCORD.getMessages());
+      STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
+      var hasUpdatedFile = STATE.addDiscordMessages(info.id, DISCORD.getMessages());
       
       if (SETTINGS.autoscroll){
         DOM.setTimer(() => {
           var action = CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
           
-          if (!hasUpdatedFile){
+          if (!hasUpdatedFile){ // TODO detection is not perfect after changing the loading system
             action = SETTINGS.afterSavedMsg;
           }
           else if (!DISCORD.hasMoreMessages()){
@@ -52,33 +42,15 @@ DISCORD.setupMessageRequestHook(channel => {
       }
     }
   }
-  else{
-    ++untrackedRequests;
-    
-    cachedRequest = {
-      "channel": channel,
-      "messages": DISCORD.getMessages()
-    };
-  }
 });
 
-STATE.onStateChanged((type, detail) => {
-  if (type === "tracking" && detail){
+STATE.onStateChanged((type, enabled) => {
+  if (type === "tracking" && enabled){
     var info = DISCORD.getSelectedChannel();
-    var isCachedRequestValid = cachedRequest && info && cachedRequest.channel == info.id;
     
-    if (untrackedRequests > 1 || (untrackedRequests === 1 && !isCachedRequestValid)){
-      if (!confirm("You have "+untrackedRequests+" untracked request"+(untrackedRequests === 1 ? "" : "s")+", some messages may not be saved until you refresh the page. Do you want to proceed anyway?")){
-        STATE.toggleTracking();
-        return;
-      }
-    }
-    
-    if (isCachedRequestValid){
-      STATE.addDiscordChannel(info.server, info.type, cachedRequest.channel, info.channel);
-      STATE.addDiscordMessages(cachedRequest.channel, cachedRequest.messages);
-      cachedRequest = null;
-      --untrackedRequests;
+    if (info){
+      STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
+      STATE.addDiscordMessages(info.id, DISCORD.getMessages());
     }
     
     if (SETTINGS.autoscroll && DISCORD.isInMessageView()){
