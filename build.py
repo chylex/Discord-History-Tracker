@@ -46,7 +46,8 @@ def combine_files(input_pattern, output_file):
 
 def build_tracker():
   output_file_raw = "bld/track.js"
-  output_file_bookmark = "bld/track.html"
+  output_file_bookmark = "bld/track_bookmark.html"
+  output_file_copyable = "bld/track_copyable.html"
   
   output_file_tmp = "bld/track.tmp.js"
   input_pattern = "src/tracker/*.js"
@@ -73,13 +74,18 @@ def build_tracker():
     
     os.remove(output_file_tmp)
   
+  with open(output_file_raw, "r") as raw:
+    script_contents = raw.read().replace("&", "&amp;").replace('"', "&quot;").replace("'", "&#x27;").replace("<", "&lt;").replace(">", "&gt;")
+  
   with open(output_file_bookmark, "w") as out:
     out.write("<a rel='sidebar' title='Discord History Tracker' href='")
-    
-    with open(output_file_raw, "r") as raw:
-      out.write(raw.read().replace("&", "&amp;").replace('"', "&quot;").replace("'", "&#x27;").replace("<", "&lt;").replace(">", "&gt;"))
-    
+    out.write(script_contents)
     out.write("'>Add Bookmark</a>")
+  
+  with open(output_file_copyable, "w") as out:
+    out.write("<a href='javascript:' id='tracker-copy'>Copy to Clipboard</a><textarea id='tracker-copy-contents'>")
+    out.write(script_contents)
+    out.write("</textarea>")
 
 
 def build_renderer():
@@ -136,14 +142,16 @@ def build_renderer():
 
 
 def build_website():
-  tracker_file = "bld/track.html"
+  tracker_file_bookmark = "bld/track_bookmark.html"
+  tracker_file_copyable = "bld/track_copyable.html"
   viewer_file = "bld/viewer.html"
   web_style_file = "bld/web/style.css"
   
   distutils.dir_util.copy_tree("web", "bld/web")
   
   os.makedirs("bld/web/build", exist_ok = True)
-  shutil.copyfile(tracker_file, "bld/web/build/track.html")
+  shutil.copyfile(tracker_file_bookmark, "bld/web/build/track_bookmark.html")
+  shutil.copyfile(tracker_file_copyable, "bld/web/build/track_copyable.html")
   shutil.copyfile(viewer_file, "bld/web/build/viewer.html")
   
   if USE_JAVA:

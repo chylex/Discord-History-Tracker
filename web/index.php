@@ -20,8 +20,15 @@
       <img src="img/tracker.png" width="851" class="dht">
       
       <h2>How to Save History</h2>
-      <p>Add the following script as a bookmark, or run it in your browser console: <?php include "./build/track.html"; ?></p>
-      <p>Open your <a href="https://discordapp.com/channels/@me">Discord Friends list</a> in a new tab (do not use an already opened one), click the bookmark, and read the additional instructions that explain the limitations and recommendations.</p>
+      <h3>...in your browser</h3>
+      <p>Add the script as a browser bookmark by clicking <?php include "./build/track_bookmark.html"; ?>. Then open your <a href="https://discordapp.com/channels/@me">Discord Friends list</a> in a new tab (do not use an already opened one), and click the bookmark.</p>
+      
+      <h3>...in Discord app</h3>
+      <p>Click <?php include "./build/track_copyable.html"; ?> to copy the script. Then press <strong>Ctrl+Shift+I</strong> in the Discord app, select <strong>Console</strong>, paste the script into the text box on the bottom and press <strong>Enter</strong> to run it.</p>
+      <p>The script may ask you to reload Discord, simply paste and run the script again after the reload (the console stays open).</p>
+      
+      <h3>What next?</h3>
+      <p>When running for the first time, you will see a <strong>Settings</strong> dialog with additional instructions that explain the limitations and recommendations. Please, read them carefully.</p>
       <p>Upload your previously saved file if you have any. By default, Discord History Tracker is set to pause tracking after it reaches a previously saved message to avoid unnecessary history loading. You may also set it to load all channels in the server or your friends list by checking <strong>Switch to Next Channel</strong>.</p>
       <p>Once you have configured everything, click <strong>Start Tracking</strong>, let it run in the background, and download the file when done.</p>
       
@@ -53,6 +60,14 @@
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
       ga('create','UA-48632978-5','auto');ga('send','pageview');
+      
+      document.getElementById("tracker-copy").addEventListener("click", function(){
+        var ele = document.getElementById("tracker-copy-contents");
+        ele.style.display = "block";
+        ele.select();
+        document.execCommand("copy");
+        ele.style.display = "none";
+      });
     </script>
   </body>
 </html>
