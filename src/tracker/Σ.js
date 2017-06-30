@@ -23,13 +23,13 @@ if (DISCORD.getSelectedChannel()){
 var cachedRequest;
 var untrackedRequests = 0;
 
-DISCORD.setupMessageRequestHook((channel, messages) => {
+DISCORD.setupMessageRequestHook(channel => {
   if (STATE.isTracking()){
     var info = DISCORD.getSelectedChannel();
     
     if (info.id == channel){ // Discord has a bug where the message request may be sent without switching channels
       STATE.addDiscordChannel(info.server, info.type, channel, info.channel);
-      var hasUpdatedFile = STATE.addDiscordMessages(channel, messages);
+      var hasUpdatedFile = STATE.addDiscordMessages(channel, DISCORD.getMessages());
       
       if (SETTINGS.autoscroll){
         DOM.setTimer(() => {
@@ -57,7 +57,7 @@ DISCORD.setupMessageRequestHook((channel, messages) => {
     
     cachedRequest = {
       "channel": channel,
-      "messages": messages
+      "messages": DISCORD.getMessages()
     };
   }
 });

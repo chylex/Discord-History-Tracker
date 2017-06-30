@@ -160,24 +160,12 @@ SAVEFILE.prototype.addMessage = function(channelId, messageId, messageObject){
 SAVEFILE.prototype.convertToMessageObject = function(discordMessage){
   var obj = {
     u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username),
-    t: +Date.parse(discordMessage.timestamp),
+    t: +discordMessage.timestamp.toDate(),
     m: discordMessage.content
   };
   
-  var flags = 0;
-  
-  if (discordMessage.edited_timestamp !== null){
-    flags |= 1;
-  }
-  
-  if (discordMessage.mentions.length > 0){
-    for(var user of discordMessage.mentions){
-      this.findOrRegisterUser(user.id, user.username);
-    }
-  }
-  
-  if (flags !== 0){
-    obj.f = flags;
+  if (discordMessage.editedTimestamp !== null){
+    obj.f = 1; // rewrite as bit flag if needed later
   }
   
   if (discordMessage.embeds.length > 0){

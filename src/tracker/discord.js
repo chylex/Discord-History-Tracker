@@ -10,7 +10,7 @@ var DISCORD = (function(){
         var match = args[1].match(regexMessageRequest);
         
         if (match){
-          callback(match[1], JSON.parse(req.response));
+          callback(match[1]);
         }
       });
     },
@@ -78,6 +78,25 @@ var DISCORD = (function(){
       }
       
       return obj.channel.length === 0 ? null : obj;
+    },
+    
+    /*
+     * Returns an array containing currently loaded messages.
+     */
+    getMessages: function(){
+      var props = DISCORD.getReactProps(DOM.fcls("messages"));
+      var array = props && props.children.find(ele => ele && ele.length);
+      var messages = [];
+      
+      if (array){
+        for(let obj of array){
+          if (obj.props.messages){
+            Array.prototype.push.apply(messages, obj.props.messages);
+          }
+        }
+      }
+      
+      return messages;
     },
     
     /*
