@@ -16,6 +16,14 @@ var DISCORD = (function(){
     },
     
     /*
+     * Returns internal React state object of an element.
+     */
+    getReactProps: function(ele){
+      var key = Object.keys(ele || {}).find(key => key.startsWith("__reactInternalInstance"));
+      return key ? ele[key]._currentElement.props : null;
+    },
+    
+    /*
      * Returns an object containing the selected server name, selected channel name and ID, and the object type.
      * For types DM and GROUP, the server and channel names are identical.
      * For SERVER type, the channel has to be in view, otherwise Discord unloads it.
@@ -52,13 +60,13 @@ var DISCORD = (function(){
           return null;
         }
         else{
-          var key = Object.keys(channel).find(key => key.startsWith("__reactInternalInstance"));
+          var props = DISCORD.getReactProps(channel);
           
-          if (!key){
+          if (!props){
             return null;
           }
           
-          var channelObj = channel[key]._currentElement.props.children.props.channel;
+          var channelObj = props.children.props.channel;
 
           obj = {
             "server": channelListEle.querySelector("header > span").innerHTML,
