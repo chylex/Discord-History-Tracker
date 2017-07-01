@@ -134,6 +134,7 @@ var GUI = (function(){
       
       DOM.listen(controller.ui.btnClose, "click", () => {
         root.hideController();
+        window.DHT_ON_UNLOAD.forEach(f => f());
         window.DHT_LOADED = false;
       });
       

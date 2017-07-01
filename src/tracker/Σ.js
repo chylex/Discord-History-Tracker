@@ -10,36 +10,35 @@ if (window.DHT_LOADED){
 }
 
 window.DHT_LOADED = true;
+window.DHT_ON_UNLOAD = [];
 
 // Execution
 
-DISCORD.setupMessageRequestHook(channel => {
+DISCORD.setupMessageUpdateCallback(channel => {
   if (STATE.isTracking()){
     var info = DISCORD.getSelectedChannel();
+    STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
     
-    if (info.id == channel){ // Discord has a bug where the message request may be sent without switching channels
-      STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
-      var hasUpdatedFile = STATE.addDiscordMessages(info.id, DISCORD.getMessages());
-      
-      if (SETTINGS.autoscroll){
-        DOM.setTimer(() => {
-          var action = CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
-          
-          if (!hasUpdatedFile){ // TODO detection is not perfect after changing the loading system
-            action = SETTINGS.afterSavedMsg;
-          }
-          else if (!DISCORD.hasMoreMessages()){
-            action = SETTINGS.afterFirstMsg;
-          }
-          
-          if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
-            STATE.toggleTracking();
-          }
-          else{
-            DISCORD.loadOlderMessages();
-          }
-        }, 50);
-      }
+    var hasUpdatedFile = STATE.addDiscordMessages(info.id, DISCORD.getMessages());
+
+    if (SETTINGS.autoscroll){
+      DOM.setTimer(() => {
+        var action = CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
+
+        if (!hasUpdatedFile){
+          action = SETTINGS.afterSavedMsg;
+        }
+        else if (!DISCORD.hasMoreMessages()){
+          action = SETTINGS.afterFirstMsg;
+        }
+
+        if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
+          STATE.toggleTracking();
+        }
+        else{
+          DISCORD.loadOlderMessages();
+        }
+      }, 50);
     }
   }
 });

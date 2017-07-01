@@ -3,16 +3,23 @@ var DISCORD = (function(){
   
   return {
     /*
-     * Sets up a callback hook to trigger whenever a message request returns a response (the callback is given the channel ID and message array).
+     * Sets up a callback hook to trigger whenever the list of messages is updated.
      */
-    setupMessageRequestHook: function(callback){
-      HOOKS.onAjaxResponse((args, req) => {
-        var match = args[1].match(regexMessageRequest);
+    setupMessageUpdateCallback: function(callback){
+      var observerInterval = window.setInterval(function(){
+        var messageListEle = DOM.fcls("messages");
         
-        if (match){
-          callback(match[1]);
+        if (messageListEle){
+          var first = messageListEle.children[0];
+          
+          if (!first.hasAttribute("data-dht-trg") && !first.classList.contains("loading-more")){
+            first.setAttribute("data-dht-trg", "");
+            callback();
+          }
         }
-      });
+      }, 100);
+      
+      window.DHT_ON_UNLOAD.push(() => window.clearInterval(observerInterval));
     },
     
     /*
