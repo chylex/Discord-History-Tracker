@@ -26,11 +26,13 @@ id
 username
 timestamp
 content
-edited_timestamp
+editedTimestamp
 mentions
 embeds
 attachments
+toDate
 _currentElement
 props
 children
 channel
+messages
