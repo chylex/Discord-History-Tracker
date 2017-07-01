@@ -38,7 +38,7 @@ DISCORD.setupMessageUpdateCallback(channel => {
         else{
           DISCORD.loadOlderMessages();
         }
-      }, 50);
+      }, 25);
     }
   }
 });
