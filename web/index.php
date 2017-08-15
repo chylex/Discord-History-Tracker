@@ -21,11 +21,10 @@
       
       <h2>How to Save History</h2>
       <h3>...in your browser</h3>
-      <p>Add the script as a browser bookmark by clicking <?php include "./build/track_bookmark.html"; ?>. Then open your <a href="https://discordapp.com/channels/@me">Discord Friends list</a> in a new tab (do not use an already opened one), and click the bookmark.</p>
+      <p>Add the script as a browser bookmark by clicking <?php include "./build/track_bookmark.html"; ?>. Then open <a href="https://discordapp.com/channels/@me">Discord</a> and click the bookmark.</p>
       
       <h3>...in Discord app</h3>
-      <p>Click <?php include "./build/track_copyable.html"; ?> to copy the script. Then press <strong>Ctrl+Shift+I</strong> in the Discord app, select <strong>Console</strong>, paste the script into the text box on the bottom and press <strong>Enter</strong> to run it.</p>
-      <p>The script may ask you to reload Discord, simply paste and run the script again after the reload (the console stays open).</p>
+      <p>Click <?php include "./build/track_copyable.html"; ?> to copy the script. Then press <strong>Ctrl+Shift+I</strong> in the Discord app, select <strong>Console</strong>, paste the script into the text box at the bottom and press <strong>Enter</strong> to run it. You can then close the console and continue using the script.</p>
       
       <h3>What next?</h3>
       <p>When running for the first time, you will see a <strong>Settings</strong> dialog with additional instructions that explain the limitations and recommendations. Please, read them carefully.</p>
