@@ -21,10 +21,11 @@
       
       <h2>How to Save History</h2>
       <h3>...in your browser</h3>
-      <p>Add the script as a browser bookmark by clicking <?php include "./build/track_bookmark.html"; ?>. Then open <a href="https://discordapp.com/channels/@me">Discord</a> and click the bookmark.</p>
+      <p>Add the script as a browser bookmark by clicking <a rel="sidebar" title="Discord History Tracker" href="<?php include "./build/track.html"; ?>">Add Bookmark</a>. Then open <a href="https://discordapp.com/channels/@me">Discord</a> and click the bookmark.</p>
+      <p>In Firefox, make sure to uncheck &laquo;Load this bookmark in the sidebar&raquo; after clicking <strong>Add Bookmark</strong>.</p>
       
       <h3>...in Discord app</h3>
-      <p>Click <?php include "./build/track_copyable.html"; ?> to copy the script. Then press <strong>Ctrl+Shift+I</strong> in the Discord app, select <strong>Console</strong>, paste the script into the text box at the bottom and press <strong>Enter</strong> to run it. You can then close the console and continue using the script.</p>
+      <p>Click <a href="javascript:" id="tracker-copy">Copy to Clipboard</a><textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea> to copy the script. Then press <strong>Ctrl+Shift+I</strong> in the Discord app, select <strong>Console</strong>, paste the script into the text box at the bottom and press <strong>Enter</strong> to run it. You can then close the console and continue using the script.</p>
       
       <h3>What next?</h3>
       <p>When running for the first time, you will see a <strong>Settings</strong> dialog with additional instructions that explain the limitations and recommendations. Please, read them carefully.</p>
