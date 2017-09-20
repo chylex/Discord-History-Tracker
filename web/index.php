@@ -26,7 +26,7 @@
       <p>After adding the script to your bookmarks, open <a href="https://discordapp.com/channels/@me">Discord</a> and click the bookmark to run the script. If you run into any issues, please make sure your browser is up-to-date.</p>
       
       <h3>...using the Discord app</h3>
-      <p>Click <a href="javascript:" id="tracker-copy">Copy to Clipboard</a><textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea> to copy the script. Then press <strong>Ctrl+Shift+I</strong> in the Discord app, select <strong>Console</strong>, paste the script into the text box at the bottom and press <strong>Enter</strong> to run it. You can then close the console and continue using the script.</p>
+      <p>Click <a href="javascript:" id="tracker-copy">Copy to Clipboard</a><textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea> to copy the script<noscript> (requires JavaScript)</noscript>. Then press <strong>Ctrl+Shift+I</strong> in the Discord app, select <strong>Console</strong>, paste the script into the text box at the bottom and press <strong>Enter</strong> to run it. You can then close the console and continue using the script.</p>
       
       <h3>What next?</h3>
       <p>When running for the first time, you will see a <strong>Settings</strong> dialog where you can configure the script's behavior. These settings will be remembered as long as you don't delete cookies in your browser.</p>
@@ -65,7 +65,15 @@
         var ele = document.getElementById("tracker-copy-contents");
         ele.style.display = "block";
         ele.select();
-        document.execCommand("copy");
+        
+        try{
+          if (!document.execCommand("copy")){
+            throw null;
+          }
+        }catch(e){
+          prompt("Press CTRL+C to copy the script:", ele.value);
+        }
+        
         ele.style.display = "none";
       });
     </script>
