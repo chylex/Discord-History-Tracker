@@ -71,9 +71,9 @@ var GUI = (function(){
       
       controller.styles = DOM.createStyle([
         ".app, .connecting { bottom: 48px !important; }",
-        "#dht-ctrl { position: absolute; bottom: 0; width: 100%; height: 48px; background-color: #fff; }",
-        "#dht-ctrl button { height: 32px; margin: 8px 0 8px 8px; font-size: 18px; padding: 0 12px; background-color: #adf; }",
-        "#dht-ctrl button:disabled { background-color: #d0d0d0; cursor: default; }",
+        "#dht-ctrl { position: absolute; bottom: 0; width: 100%; height: 48px; background-color: #FFF; }",
+        "#dht-ctrl button { height: 32px; margin: 8px 0 8px 8px; font-size: 16px; padding: 0 12px; background-color: #7289DA; color: #FFF; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.75); }",
+        "#dht-ctrl button:disabled { background-color: #7A7A7A; cursor: default; }",
         "#dht-ctrl-close { margin: 8px 8px 8px 0 !important; float: right; }",
         "#dht-ctrl p { display: inline-block; margin: 14px 12px; }",
         "#dht-ctrl input { display: none; }"
