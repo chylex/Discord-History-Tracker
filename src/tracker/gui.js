@@ -2,16 +2,29 @@ var GUI = (function(){
   var controller;
   var settings;
   
+  var updateButtonState = () => {
+    if (STATE.isTracking()){
+      controller.ui.btnUpload.disabled = true;
+      controller.ui.btnSettings.disabled = true;
+      controller.ui.btnReset.disabled = true;
+    }
+    else{
+      controller.ui.btnUpload.disabled = false;
+      controller.ui.btnSettings.disabled = false;
+      controller.ui.btnDownload.disabled = controller.ui.btnReset.disabled = !STATE.hasSavedData();
+    }
+  };
+  
   var stateChangedEvent = (type, detail) => {
     if (controller){
       var force = type === "gui" && detail === "controller";
       
       if (type === "data" || force){
-        controller.ui.btnDownload.disabled = controller.ui.btnReset.disabled = !STATE.hasSavedData();
+        updateButtonState();
       }
       
       if (type === "tracking" || force){
-        controller.ui.btnUpload.disabled = controller.ui.btnSettings.disabled = STATE.isTracking();
+        updateButtonState();
         controller.ui.btnToggleTracking.innerHTML = STATE.isTracking() ? "Pause Tracking" : "Start Tracking";
       }
       
