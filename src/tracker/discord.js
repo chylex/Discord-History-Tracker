@@ -27,7 +27,7 @@ var DISCORD = (function(){
      */
     getReactProps: function(ele){
       var key = Object.keys(ele || {}).find(key => key.startsWith("__reactInternalInstance"));
-      return key ? ele[key]._currentElement.props : null;
+      return key ? ele[key].memoizedProps : null;
     },
     
     /*
