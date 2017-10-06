@@ -1,5 +1,21 @@
 var DISCORD = (function(){
   var regexMessageRequest = /\/channels\/(\d+)\/messages[^a-z]/;
+  var lastLoadedMessage = null;
+  
+  var getFirstMessage = function(){
+    var props = DISCORD.getReactProps(DOM.fcls("messages"));
+    var array = props && props.children.find(ele => ele && ele.length);
+
+    if (array){
+      for(let obj of array){
+        if (obj.props.messages && obj.props.messages.length > 0){
+          return obj.props.messages[0];
+        }
+      }
+    }
+
+    return null;
+  };
   
   return {
     /*
@@ -7,15 +23,13 @@ var DISCORD = (function(){
      */
     setupMessageUpdateCallback: function(callback){
       var observerInterval = window.setInterval(function(){
-        var messageListEle = DOM.fcls("messages");
-        
-        if (messageListEle){
-          var first = messageListEle.children[0];
-          
-          if (!first.hasAttribute("data-dht-trg") && !first.classList.contains("loading-more")){
-            first.setAttribute("data-dht-trg", "");
-            callback();
-          }
+        var firstMsg = getFirstMessage();
+
+        if (firstMsg === null){
+          lastLoadedMessage = null;
+        }
+        else if (lastLoadedMessage === null || (lastLoadedMessage !== null && lastLoadedMessage !== firstMsg.id)){
+          callback();
         }
       }, 100);
       
@@ -101,6 +115,8 @@ var DISCORD = (function(){
             Array.prototype.push.apply(messages, obj.props.messages);
           }
         }
+        
+        lastLoadedMessage = messages.length === 0 ? null : messages[0].id;
       }
       
       return messages;
