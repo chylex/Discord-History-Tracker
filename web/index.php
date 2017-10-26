@@ -13,7 +13,7 @@
   </head>
   <body>
     <div class="inner">
-      <h1>Discord History Tracker <span>BETA&nbsp;v.4</span></h1>
+      <h1>Discord History Tracker <span class="version">BETA&nbsp;v.5</span>&nbsp;<span class="bar">|</span>&nbsp;<span class="notes"><a href="https://github.com/chylex/Discord-History-Tracker/wiki/Release-Notes">Release&nbsp;Notes</a></span></h1>
       <p>Discord History Tracker is a browser script that lets you locally save chat history in your servers, groups, and private conversations.</p>
       <p>When the script is active, it will automatically load history of the selected text channel up to the first message, and let you download it for offline viewing in your browser.</p>
       

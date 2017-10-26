@@ -234,7 +234,7 @@ var GUI = (function(){
         "<p id='dht-cfg-note'>",
         "Discord History Tracker will not save newly received messages, it is specifically made to load and save the server/group/DM history.<br><br>",
         "It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>",
-        "<sub>BETA v.4, released 5 Oct 2017</sub>",
+        "<sub>BETA v.5, released 27 Oct 2017</sub>",
         "</p>"
       ].join("");
       

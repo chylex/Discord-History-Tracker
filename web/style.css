@@ -39,7 +39,20 @@ h1 {
 
 h1 span {
   font-size: 22px;
+}
+
+h1 span.version {
   color: rgba(255, 255, 255, 0.35);
+}
+
+h1 span.bar {
+  font-size: 20px;
+  vertical-align: 10%;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+h1 span.notes {
+  opacity: 0.85;
 }
 
 h2 {
