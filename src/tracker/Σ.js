@@ -19,6 +19,12 @@ let ignoreMessageCallback = false;
 DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
   if (STATE.isTracking() && !ignoreMessageCallback){
     let info = DISCORD.getSelectedChannel();
+    
+    if (!info){
+      STATE.toggleTracking();
+      return;
+    }
+    
     STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
     
     let messages = DISCORD.getMessages();

@@ -95,7 +95,7 @@ var DISCORD = (function(){
         }
       }
       else{
-        channelListEle = DOM.fcls("channels-wrap");
+        channelListEle = document.querySelector("[class|='channels']");
         channel = channelListEle.querySelector("[class|='wrapperSelectedText']").parentElement;
         
         if (!channel){
@@ -167,10 +167,10 @@ var DISCORD = (function(){
      * Selects the next text channel and returns true, otherwise returns false if there are no more channels.
      */
     selectNextTextChannel: function(){
-      var wrap = DOM.fcls("channels-wrap");
+      var dms = DOM.fcls("private-channels");
       
-      if (wrap.children[0].classList.contains("private-channels")){
-        var nextChannel = DOM.fcls("selected", wrap).nextElementSibling;
+      if (dms){
+        var nextChannel = DOM.fcls("selected", dms).nextElementSibling;
         var classes = nextChannel && nextChannel.classList;
 
         if (nextChannel === null || !classes.contains("channel") || !classes.contains("private")){
@@ -182,7 +182,7 @@ var DISCORD = (function(){
         }
       }
       else{
-        var allChannels = wrap.querySelectorAll("[class|='containerDefault']");
+        var allChannels = document.querySelector("[class|='channels']").querySelectorAll("[class|='containerDefault']");
         var nextChannel = null;
         
         for(var index = 0; index < allChannels.length-1; index++){
