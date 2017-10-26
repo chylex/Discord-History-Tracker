@@ -14,38 +14,39 @@ window.DHT_ON_UNLOAD = [];
 
 // Execution
 
-DISCORD.setupMessageUpdateCallback(channel => {
-  if (STATE.isTracking()){
-    var info = DISCORD.getSelectedChannel();
+let ignoreMessageCallback = false;
+
+DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
+  if (STATE.isTracking() && !ignoreMessageCallback){
+    let info = DISCORD.getSelectedChannel();
     STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
     
-    var hasUpdatedFile = STATE.addDiscordMessages(info.id, DISCORD.getMessages());
+    let messages = DISCORD.getMessages();
+    let hasUpdatedFile = STATE.addDiscordMessages(info.id, messages);
 
     if (SETTINGS.autoscroll){
-      DOM.setTimer(() => {
-        var action = CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
+      let action = CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
+      
+      if (!hasUpdatedFile && !(messages.length && STATE.isMessageFresh(messages[0].id))){
+        action = SETTINGS.afterSavedMsg;
+      }
+      else if (!hasMoreMessages){
+        action = SETTINGS.afterFirstMsg;
+      }
 
-        if (!hasUpdatedFile){
-          action = SETTINGS.afterSavedMsg;
-        }
-        else if (!DISCORD.hasMoreMessages()){
-          action = SETTINGS.afterFirstMsg;
-        }
-
-        if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
-          STATE.toggleTracking();
-        }
-        else{
-          DISCORD.loadOlderMessages();
-        }
-      }, 25);
+      if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
+        STATE.toggleTracking();
+      }
+      else{
+        DISCORD.loadOlderMessages();
+      }
     }
   }
 });
 
 STATE.onStateChanged((type, enabled) => {
   if (type === "tracking" && enabled){
-    var info = DISCORD.getSelectedChannel();
+    let info = DISCORD.getSelectedChannel();
     
     if (info){
       STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
@@ -57,10 +58,15 @@ STATE.onStateChanged((type, enabled) => {
         DISCORD.loadOlderMessages();
       }
       else{
-        var action = SETTINGS.afterFirstMsg;
+        let action = SETTINGS.afterFirstMsg;
 
         if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
-          DOM.setTimer(() => STATE.toggleTracking(), 200); // give the user visual feedback after clicking the button before switching off
+          ignoreMessageCallback = true;
+          
+          DOM.setTimer(() => {
+            STATE.toggleTracking();
+            ignoreMessageCallback = false;
+          }, 200); // give the user visual feedback after clicking the button before switching off
         }
       }
     }

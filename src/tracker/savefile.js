@@ -91,6 +91,7 @@ var SAVEFILE = function(parsedObj){
   me.tmp.userlookup = {};
   me.tmp.channelkeys = new Set();
   me.tmp.messagekeys = new Set();
+  me.tmp.freshmsgs = new Set();
 };
 
 SAVEFILE.isValid = function(parsedObj){
@@ -184,11 +185,18 @@ SAVEFILE.prototype.convertToMessageObject = function(discordMessage){
   return obj;
 };
 
+SAVEFILE.prototype.isMessageFresh = function(id){
+  return this.tmp.freshmsgs.has(id);
+};
+
 SAVEFILE.prototype.addMessagesFromDiscord = function(channelId, discordMessageArray){
   var hasNewMessages = false;
   
   for(var discordMessage of discordMessageArray){
-    hasNewMessages |= this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage));
+    if (this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage))){
+      this.tmp.freshmsgs.add(discordMessage.id);
+      hasNewMessages = true;
+    }
   }
   
   return hasNewMessages;

@@ -58,6 +58,14 @@ var STATE = (function(){
   };
   
   /*
+   * Toggles the tracking state.
+   */
+  CLS.prototype.toggleTracking = function(){
+    this._isTracking = !this._isTracking;
+    triggerStateChanged("tracking", this._isTracking);
+  };
+  
+  /*
    * Combines current savefile with the provided one.
    */
   CLS.prototype.uploadSavefile = function(fileName, fileObject){
@@ -97,6 +105,13 @@ var STATE = (function(){
     else{
       return false;
     }
+  };
+  
+  /*
+   * Returns true if the message was added during this session.
+   */
+  CLS.prototype.isMessageFresh = function(id){
+    return this.getSavefile().isMessageFresh(id);
   };
   
   /*

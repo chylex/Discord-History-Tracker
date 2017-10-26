@@ -1,39 +1,60 @@
 var DISCORD = (function(){
   var regexMessageRequest = /\/channels\/(\d+)\/messages[^a-z]/;
-  var lastLoadedMessage = null;
   
-  var getFirstMessage = function(){
-    var props = DISCORD.getReactProps(DOM.fcls("messages"));
-    var array = props && props.children.find(ele => ele && ele.length);
-
-    if (array){
-      for(let obj of array){
-        if (obj.props.messages && obj.props.messages.length > 0){
-          return obj.props.messages[0];
-        }
-      }
-    }
-
-    return null;
+  var getTopMessageViewElement = function(){
+    let view = DOM.fcls("messages");
+    return view && view.children.length && view.children[0];
   };
+  
+  var observerTimer = 0, waitingForCleanup = 0;
   
   return {
     /*
-     * Sets up a callback hook to trigger whenever the list of messages is updated.
+     * Sets up a callback hook to trigger whenever the list of messages is updated. The callback is given a boolean value that is true if there are more messages to load.
      */
     setupMessageUpdateCallback: function(callback){
-      var observerInterval = window.setInterval(function(){
-        var firstMsg = getFirstMessage();
-
-        if (firstMsg === null){
-          lastLoadedMessage = null;
+      var onTimerFinished = function(){
+        let topEle = getTopMessageViewElement();
+        
+        if (!topEle){
+          restartTimer(500);
         }
-        else if (lastLoadedMessage === null || (lastLoadedMessage !== null && lastLoadedMessage !== firstMsg.id)){
-          callback();
+        else if (!topEle.classList.contains("loading-more")){
+          let messages = DOM.fcls("messages").children.length;
+          
+          if (messages < 100){
+            waitingForCleanup = 0;
+          }
+          
+          if (waitingForCleanup > 0){
+            --waitingForCleanup;
+            restartTimer(750);
+          }
+          else{
+            if (messages > 300){
+              waitingForCleanup = 6;
+              
+              DOM.setTimer(() => {
+                let view = DOM.fcls("messages");
+                view.scrollTop = view.scrollHeight/2;
+              }, 1);
+            }
+            
+            callback(topEle.classList.contains("has-more"));
+            restartTimer(200);
+          }
         }
-      }, 100);
+        else{
+          restartTimer(25);
+        }
+      };
       
-      window.DHT_ON_UNLOAD.push(() => window.clearInterval(observerInterval));
+      var restartTimer = function(delay){
+        observerTimer = DOM.setTimer(onTimerFinished, delay);
+      };
+      
+      onTimerFinished();
+      window.DHT_ON_UNLOAD.push(() => window.clearInterval(observerTimer));
     },
     
     /*
@@ -115,27 +136,32 @@ var DISCORD = (function(){
             Array.prototype.push.apply(messages, obj.props.messages);
           }
         }
-        
-        lastLoadedMessage = messages.length === 0 ? null : messages[0].id;
       }
       
       return messages;
     },
     
     /*
-     * Returns true if the message column is visible.
+     * Returns true if the message view is visible.
      */
-    isInMessageView: (_) => DOM.cls("messages").length > 0,
+    isInMessageView: () => DOM.cls("messages").length > 0,
     
     /*
-     * Returns true if there are more messages available.
+     * Returns true if there are more messages available or if they're still loading.
      */
-    hasMoreMessages: (_) => DOM.fcls("messages").children[0].classList.contains("has-more"),
+    hasMoreMessages: function(){
+      let classes = getTopMessageViewElement().classList;
+      return classes.contains("has-more") || classes.contains("loading-more");
+    },
     
     /*
-     * Forces the message column to scroll all the way up to load older messages.
+     * Forces the message view to load older messages by scrolling all the way up.
      */
-    loadOlderMessages: (_) => DOM.fcls("messages").scrollTop = 0,
+    loadOlderMessages: function(){
+      let view = DOM.fcls("messages");
+      view.scrollTop = view.scrollHeight/2;
+      view.scrollTop = 0;
+    },
     
     /*
      * Selects the next text channel and returns true, otherwise returns false if there are no more channels.
