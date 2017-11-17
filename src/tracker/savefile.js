@@ -168,11 +168,13 @@ SAVEFILE.prototype.convertToMessageObject = function(discordMessage){
   if (discordMessage.editedTimestamp !== null){
     obj.f = 1; // rewrite as bit flag if needed later
   }
-  
+  // Added description and title to embed array - Useful for archviing PokeHuntr bot messages.
   if (discordMessage.embeds.length > 0){
     obj.e = discordMessage.embeds.map(embed => ({
       "url": embed.url,
-      "type": embed.type
+      "type": embed.type,
+      "description":embed.description,
+      "title":embed.title
     }));
   }
   
