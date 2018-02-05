@@ -233,7 +233,7 @@ var GUI = (function(){
         radio("asm", "switch", "Switch to Next Channel"),
         "<p id='dht-cfg-note'>",
         "It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>",
-        "<sub>BETA v.5, released 27 Oct 2017</sub>",
+        "<sub>BETA v.6, released 5 Feb 2018</sub>",
         "</p>"
       ].join("");
       
