@@ -198,7 +198,7 @@ var GUI = (function(){
       
       settings.styles = DOM.createStyle([
         "#dht-cfg-overlay { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #000; opacity: 0.5; display: block; z-index: 1000; }",
-        "#dht-cfg { position: absolute; left: 50%; top: 50%; width: 800px; height: 308px; margin-left: -400px; margin-top: -154px; padding: 8px; background-color: #fff; z-index: 1001; }",
+        "#dht-cfg { position: absolute; left: 50%; top: 50%; width: 800px; height: 262px; margin-left: -400px; margin-top: -131px; padding: 8px; background-color: #fff; z-index: 1001; }",
         "#dht-cfg-note { margin-top: 22px; }",
         "#dht-cfg sub { color: #666; font-size: 13px; }"
       ]);
@@ -232,7 +232,6 @@ var GUI = (function(){
         radio("asm", "pause", "Pause Tracking"),
         radio("asm", "switch", "Switch to Next Channel"),
         "<p id='dht-cfg-note'>",
-        "Discord History Tracker will not save newly received messages, it is specifically made to load and save the server/group/DM history.<br><br>",
         "It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>",
         "<sub>BETA v.5, released 27 Oct 2017</sub>",
         "</p>"
