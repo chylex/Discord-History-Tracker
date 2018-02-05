@@ -152,7 +152,7 @@ var GUI = (function(){
       });
       
       DOM.listen(controller.ui.inputUpload, "change", () => {
-        for(var file of controller.ui.inputUpload.files){
+        [].forEach.call(controller.ui.inputUpload.files, file => {
           var reader = new FileReader();
           
           reader.onload = function(){
@@ -175,7 +175,7 @@ var GUI = (function(){
           };
           
           reader.readAsText(file, "UTF-8");
-        }
+        });
 
         controller.ui.inputUpload.value = null;
       });
