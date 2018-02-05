@@ -70,6 +70,12 @@
   margin-top: 8px;
 }
 
+.message .embed .title {
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
 .message .thumbnail {
   max-width: calc(100% - 20px);
   max-height: 320px;

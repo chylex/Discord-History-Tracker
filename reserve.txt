@@ -21,6 +21,8 @@ m
 f
 e
 a
+t
+d
 author
 id
 username
@@ -30,6 +32,8 @@ editedTimestamp
 mentions
 embeds
 attachments
+title
+description
 toDate
 memoizedProps
 props

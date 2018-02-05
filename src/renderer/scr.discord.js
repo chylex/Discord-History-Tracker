@@ -21,6 +21,8 @@ var DISCORD = (function(){
   var templateChannelPrivate;
   var templateMessage;
   var templateEmbedImage;
+  var templateEmbedRich;
+  var templateEmbedRichUnsupported;
   var templateEmbedDownload;
   
   return {
@@ -48,6 +50,14 @@ var DISCORD = (function(){
       
       templateEmbedImage = new TEMPLATE([
         "<a href='{url}' class='embed thumbnail'><img src='{url}' alt='(image attachment not found)'></a><br>"
+      ].join(""));
+      
+      templateEmbedRich = new TEMPLATE([
+        "<div class='embed download'><a href='{url}' class='title'>{t}</a><p>{d}</p></div>"
+      ].join(""));
+      
+      templateEmbedRichUnsupported = new TEMPLATE([
+        "<div class='embed download'><p>(Formatted embeds are currently not supported)</p></div>"
       ].join(""));
       
       templateEmbedDownload = new TEMPLATE([
@@ -108,7 +118,13 @@ var DISCORD = (function(){
           }
           
           return value.map(embed => {
-            return embed.type === "image" && STATE.settings.enableImagePreviews ? templateEmbedImage.apply(embed) : "";
+            switch(embed.type){
+              case "image":
+                return STATE.settings.enableImagePreviews ? templateEmbedImage.apply(embed) : "";
+                
+              case "rich":
+                return (embed.t ? templateEmbedRich : templateEmbedRichUnsupported).apply(embed);
+            }
           }).join("");
         }
         else if (property === "attachments"){
