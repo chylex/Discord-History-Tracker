@@ -16,12 +16,25 @@ window.DHT_ON_UNLOAD = [];
 
 let ignoreMessageCallback = false;
 
+let stopTrackingDelayed = function(callback){
+  ignoreMessageCallback = true;
+  
+  DOM.setTimer(() => {
+    STATE.toggleTracking();
+    ignoreMessageCallback = false;
+    
+    if (callback){
+      callback();
+    }
+  }, 200); // give the user visual feedback after clicking the button before switching off
+};
+
 DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
   if (STATE.isTracking() && !ignoreMessageCallback){
     let info = DISCORD.getSelectedChannel();
     
     if (!info){
-      STATE.toggleTracking();
+      stopTrackingDelayed();
       return;
     }
     
@@ -58,6 +71,10 @@ STATE.onStateChanged((type, enabled) => {
       STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
       STATE.addDiscordMessages(info.id, DISCORD.getMessages());
     }
+    else{
+      stopTrackingDelayed(() => alert("The selected channel is not visible in the channel list."));
+      return;
+    }
     
     if (SETTINGS.autoscroll && DISCORD.isInMessageView()){
       if (DISCORD.hasMoreMessages()){
@@ -67,12 +84,7 @@ STATE.onStateChanged((type, enabled) => {
         let action = SETTINGS.afterFirstMsg;
 
         if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
-          ignoreMessageCallback = true;
-          
-          DOM.setTimer(() => {
-            STATE.toggleTracking();
-            ignoreMessageCallback = false;
-          }, 200); // give the user visual feedback after clicking the button before switching off
+          stopTrackingDelayed();
         }
       }
     }

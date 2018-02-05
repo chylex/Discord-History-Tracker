@@ -71,21 +71,26 @@ var DISCORD = (function(){
      * For SERVER type, the channel has to be in view, otherwise Discord unloads it.
      */
     getSelectedChannel: function(){
-      var obj;
-      
-      var channelListEle = DOM.fcls("private-channels");
-      var channel;
-      
-      if (channelListEle){
-        channel = DOM.fcls("selected", channelListEle);
-        
-        if (!channel || !channel.classList.contains("private")){
-          return null;
-        }
-        else{
+      try{
+        var obj;
+
+        var channelListEle = DOM.fcls("private-channels");
+        var channel;
+
+        if (channelListEle){
+          channel = DOM.fcls("selected", channelListEle);
+
+          if (!channel.classList.contains("private")){
+            return null;
+          }
+          
           var linkSplit = DOM.ftag("a", channel).href.split("/");
           var name = [].find.call(DOM.fcls("channel-name", channel).childNodes, node => node.nodeType === Node.TEXT_NODE).nodeValue;
           
+          if (!name){
+            return null;
+          }
+
           obj = {
             "server": name,
             "channel": name,
@@ -93,22 +98,21 @@ var DISCORD = (function(){
             "type": DOM.cls("status", channel).length ? "DM" : "GROUP"
           };
         }
-      }
-      else{
-        channelListEle = document.querySelector("[class|='channels']");
-        channel = channelListEle.querySelector("[class|='wrapperSelectedText']").parentElement;
-        
-        if (!channel){
-          return null;
-        }
         else{
-          var props = DISCORD.getReactProps(channel);
+          channelListEle = document.querySelector("[class|='channels']");
+          channel = channelListEle.querySelector("[class|='wrapperSelectedText']").parentElement;
           
+          var props = DISCORD.getReactProps(channel);
+
           if (!props){
             return null;
           }
-          
+
           var channelObj = props.children.props.channel;
+          
+          if (!channelObj){
+            return null;
+          }
 
           obj = {
             "server": channelListEle.querySelector("header > span").innerHTML,
@@ -117,9 +121,11 @@ var DISCORD = (function(){
             "type": "SERVER"
           };
         }
+
+        return obj.channel.length === 0 ? null : obj;
+      }catch(e){
+        return null;
       }
-      
-      return obj.channel.length === 0 ? null : obj;
     },
     
     /*
