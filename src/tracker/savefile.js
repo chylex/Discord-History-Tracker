@@ -211,8 +211,10 @@ SAVEFILE.prototype.countMessages = function(){
 };
 
 SAVEFILE.prototype.combineWith = function(obj){
+  var userMap = {};
+  
   for(var userId in obj.meta.users){
-    this.findOrRegisterUser(userId, obj.meta.users[userId].name);
+    userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, obj.meta.users[userId].name);
   }
   
   for(var channelId in obj.meta.channels){
@@ -221,8 +223,14 @@ SAVEFILE.prototype.combineWith = function(obj){
   }
   
   for(var channelId in obj.data){
-    for(var messageId in obj.data[channelId]){
-      this.addMessage(channelId, messageId, obj.data[channelId][messageId]);
+    var oldChannel = obj.data[channelId];
+    
+    for(var messageId in oldChannel){
+      var oldMessage = oldChannel[messageId];
+      var oldUser = oldMessage.u;
+      
+      oldMessage.u = userMap[oldUser] || oldUser;
+      this.addMessage(channelId, messageId, oldMessage);
     }
   }
 };
