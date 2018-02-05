@@ -41,12 +41,18 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
     STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
     
     let messages = DISCORD.getMessages();
+    
+    if (!messages.length){
+      DISCORD.loadOlderMessages();
+      return;
+    }
+    
     let hasUpdatedFile = STATE.addDiscordMessages(info.id, messages);
 
     if (SETTINGS.autoscroll){
       let action = CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
       
-      if (!hasUpdatedFile && !(messages.length && STATE.isMessageFresh(messages[0].id))){
+      if (!hasUpdatedFile && !STATE.isMessageFresh(messages[0].id)){
         action = SETTINGS.afterSavedMsg;
       }
       else if (!hasMoreMessages){
