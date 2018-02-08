@@ -22,6 +22,7 @@ var DISCORD = (function(){
   var templateMessage;
   var templateEmbedImage;
   var templateEmbedRich;
+  var templateEmbedRichNoDescription;
   var templateEmbedRichUnsupported;
   var templateEmbedDownload;
   
@@ -53,7 +54,11 @@ var DISCORD = (function(){
       ].join(""));
       
       templateEmbedRich = new TEMPLATE([
-        "<div class='embed download'><a href='{url}' class='title'>{t}</a><p>{d}</p></div>"
+        "<div class='embed download'><a href='{url}' class='title'>{t}</a><p class='desc'>{d}</p></div>"
+      ].join(""));
+      
+      templateEmbedRichNoDescription = new TEMPLATE([
+        "<div class='embed download'><a href='{url}' class='title'>{t}</a></div>"
       ].join(""));
       
       templateEmbedRichUnsupported = new TEMPLATE([
@@ -123,7 +128,7 @@ var DISCORD = (function(){
                 return STATE.settings.enableImagePreviews ? templateEmbedImage.apply(embed) : "";
                 
               case "rich":
-                return (embed.t ? templateEmbedRich : templateEmbedRichUnsupported).apply(embed);
+                return (embed.t ? (embed.d ? templateEmbedRich : templateEmbedRichNoDescription) : templateEmbedRichUnsupported).apply(embed);
             }
           }).join("");
         }

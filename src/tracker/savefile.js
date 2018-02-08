@@ -179,7 +179,10 @@ SAVEFILE.prototype.convertToMessageObject = function(discordMessage){
       if (embed.type === "rich"){
         if (Array.isArray(embed.title) && embed.title.length === 1){
           conv.t = embed.title[0];
-          conv.d = embed.description[0];
+          
+          if (Array.isArray(embed.description) && embed.description.length === 1){
+            conv.d = embed.description[0];
+          }
         }
         else{
           conv.t = "";

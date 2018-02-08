@@ -73,7 +73,10 @@
 .message .embed .title {
   font-weight: bold;
   display: inline-block;
-  margin-bottom: 4px;
+}
+
+.message .embed .desc {
+  margin-top: 4px;
 }
 
 .message .thumbnail {
