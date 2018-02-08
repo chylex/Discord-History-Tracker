@@ -13,7 +13,7 @@
   </head>
   <body>
     <div class="inner">
-      <h1>Discord History Tracker <span class="version">BETA&nbsp;v.6</span>&nbsp;<span class="bar">|</span>&nbsp;<span class="notes"><a href="https://github.com/chylex/Discord-History-Tracker/wiki/Release-Notes">Release&nbsp;Notes</a></span></h1>
+      <h1>Discord History Tracker <span class="version">BETA&nbsp;v.6a</span>&nbsp;<span class="bar">|</span>&nbsp;<span class="notes"><a href="https://github.com/chylex/Discord-History-Tracker/wiki/Release-Notes">Release&nbsp;Notes</a></span></h1>
       <p>Discord History Tracker is a browser script that lets you locally save chat history in your servers, groups, and private conversations.</p>
       <p>When the script is active, it will automatically load history of the selected text channel up to the first message, and let you download it for offline viewing in your browser.</p>
       
@@ -44,10 +44,10 @@
       <h3>What next?</h3>
       <p>When running for the first time, you will see a <strong>Settings</strong> dialog where you can configure the script. These settings will be remembered as long as you don't delete cookies in your browser.</p>
       <p>By default, Discord History Tracker is set to pause tracking after it reaches a previously saved message to avoid unnecessary history loading. You may also set it to load all channels in the server or your friends list by selecting <strong>Switch to Next Channel</strong>.</p>
-      <p>Once you have configured everything, upload your previously saved file (if you have any), click <strong>Start Tracking</strong>, and let it run. After the script saves all messages, download the generated file.</p>
+      <p>Once you have configured everything, upload your previously saved archive (if you have any), click <strong>Start Tracking</strong>, and let it run. After the script saves all messages, download the archive.</p>
       
       <h2>How to View History</h2>
-      <p>Open the <a href="build/viewer.html">Viewer</a> and upload the generated file. It is recommended to download the viewer and place it next to your saved files, that way you can view your history offline.</p>
+      <p>Download the <a href="build/viewer.html">Viewer</a>, open it in your browser, and load the archive. By downloading it to your computer, you can view archives offline, and allow the browser to load image previews that might otherwise not load if the remote server prevents embedding them.</p>
       
       <h2>External Links</h2>
       <p class="links">
