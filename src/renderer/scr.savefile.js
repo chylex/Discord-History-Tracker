@@ -38,6 +38,16 @@ SAVEFILE.prototype.getMessageCount = function(channel){
   return Object.keys(this.getMessages(channel)).length;
 };
 
+SAVEFILE.prototype.getFilteredMessageCount = function(channel, userindex){
+  if (userindex === -1) return this.getMessageCount(channel);
+
+  var count = 0;
+  UTILS.forEachValue(this.getMessages(channel), messageObject => {
+    if (messageObject.u === userindex) count++;
+  });
+  return count;
+};
+
 SAVEFILE.prototype.getAllMessages = function(){
   var messages = {};
   

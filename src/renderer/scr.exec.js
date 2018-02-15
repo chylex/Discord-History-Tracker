@@ -26,6 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
   
   STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
   
+  GUI.onOptionMessagesByUserChanged(() => {
+    STATE.setMessagesByUser(GUI.getOptionMessagesByUser());
+  });
+
   GUI.onNavigationButtonClicked(action => {
     STATE.updateCurrentPage(action);
   });
@@ -38,5 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
     GUI.updateNavigation(STATE.getCurrentPage(), STATE.getPageCount());
     GUI.updateMessageList(messages);
     GUI.scrollMessagesToTop();
+  });
+
+  STATE.onUsersRefreshed(users => {
+    GUI.updateUserFilter(users);
   });
 });

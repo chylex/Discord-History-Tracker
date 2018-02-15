@@ -1,6 +1,7 @@
 var GUI = (function(){
   var eventOnFileUploaded;
   var eventOnOptMessagesPerPageChanged;
+  var eventOnOptMessagesByUserChanged;
   var eventOnNavButtonClicked;
   
   var showModal = function(width, html){
@@ -73,6 +74,10 @@ var GUI = (function(){
         eventOnOptMessagesPerPageChanged && eventOnOptMessagesPerPageChanged();
       });
       
+      DOM.id("opt-messages-by-user").addEventListener("change", () => {
+        eventOnOptMessagesByUserChanged && eventOnOptMessagesByUserChanged();
+      });
+
       DOM.tag("button", DOM.fcls("nav")).forEach(button => {
         button.disabled = true;
         
@@ -114,6 +119,13 @@ var GUI = (function(){
     },
     
     /*
+     * Sets a callback for when the user changes the messages by user option. The callback is not passed any arguments.
+     */
+    onOptionMessagesByUserChanged: function(callback){
+      eventOnOptMessagesByUserChanged = callback;
+    },
+
+    /*
      * Sets a callback for when the user clicks a navigation button. The callback is passed one of the following strings: first, prev, next, last.
      */
     onNavigationButtonClicked: function(callback){
@@ -131,6 +143,13 @@ var GUI = (function(){
       return parseInt(DOM.id("opt-messages-per-page").value, 10);
     },
     
+    /*
+     * Returns the user which to filter messages by.
+     */
+    getOptionMessagesByUser: function(){
+      return DOM.id("opt-messages-by-user").value;
+    },
+
     /*
      * Updates the navigation text and buttons.
      */
@@ -158,7 +177,7 @@ var GUI = (function(){
         eleChannels.innerHTML = "";
       }
       else{
-        eleChannels.innerHTML = channels.map(channel => DISCORD.getChannelHTML(channel)).join("");
+        eleChannels.innerHTML = channels.filter(channel => channel.msgcount > 0).map(channel => DISCORD.getChannelHTML(channel)).join("");
         
         Array.prototype.forEach.call(eleChannels.children, ele => {
           ele.addEventListener("click", e => {
@@ -186,6 +205,34 @@ var GUI = (function(){
       DOM.id("messages").innerHTML = messages ? messages.map(message => DISCORD.getMessageHTML(message)).join("") : "";
     },
     
+    /*
+     * Updates the select box with all possibly user names.
+     */
+    updateUserFilter: function(users){
+      var select = DOM.id("opt-messages-by-user");
+
+      // Remove all but first option
+      for (var i = select.length; i > 0; i--) {
+        select.remove(i);
+      }
+
+      var options = [];
+      for (var key in users) {
+        // Skip loop if the property is from prototype
+        if (!users.hasOwnProperty(key)) continue;
+
+        var option = document.createElement("option");
+        option.value = key;
+        option.text = users[key].name;
+        options.push(option);
+      }
+      options.sort((a, b) => {
+        return a.text.toLowerCase().localeCompare(b.text.toLowerCase());
+      }).forEach(option => {
+        select.add(option);
+      });
+    },
+
     /*
      * Scrolls the message div to the top.
      */
