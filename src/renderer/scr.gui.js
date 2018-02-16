@@ -1,8 +1,21 @@
 var GUI = (function(){
   var eventOnFileUploaded;
   var eventOnOptMessagesPerPageChanged;
-  var eventOnOptMessagesByUserChanged;
+  var eventOnOptMessageFilterChanged;
   var eventOnNavButtonClicked;
+  
+  var getActiveFilter = function(){
+    var active = DOM.fcls("active", DOM.id("opt-filter-list"));
+    
+    return active && active.value !== "" ? {
+      "type": active.getAttribute("data-filter-type"),
+      "value": active.value
+    } : null;
+  };
+  
+  var triggerFilterChanged = function(){
+    eventOnOptMessageFilterChanged && eventOnOptMessageFilterChanged(getActiveFilter());
+  };
   
   var showModal = function(width, html){
     var dialog = DOM.id("dialog");
@@ -59,6 +72,8 @@ var GUI = (function(){
      */
     setup: function(){
       var inputUploadedFile = DOM.id("uploaded-file");
+      var inputMessageFilter = DOM.id("opt-messages-filter");
+      var containerFilterList = DOM.id("opt-filter-list");
 
       DOM.id("btn-upload-file").addEventListener("click", () => {
         inputUploadedFile.click();
@@ -67,15 +82,30 @@ var GUI = (function(){
       inputUploadedFile.addEventListener("change", () => {
         if (eventOnFileUploaded && eventOnFileUploaded(inputUploadedFile.files)){
           inputUploadedFile.value = null;
+          
+          inputMessageFilter.value = "";
+          inputMessageFilter.dispatchEvent(new Event("change"));
         }
+      });
+      
+      inputMessageFilter.value = ""; // required to prevent browsers from remembering old value
+      
+      inputMessageFilter.addEventListener("change", () => {
+        DOM.cls("active", containerFilterList).forEach(ele => ele.classList.remove("active"));
+        
+        if (inputMessageFilter.value){
+          containerFilterList.querySelector("[data-filter-type='"+inputMessageFilter.value+"']").classList.add("active");
+        }
+        
+        triggerFilterChanged();
+      });
+      
+      Array.prototype.forEach.call(containerFilterList.children, ele => {
+        ele.addEventListener("change", e => triggerFilterChanged());
       });
       
       DOM.id("opt-messages-per-page").addEventListener("change", () => {
         eventOnOptMessagesPerPageChanged && eventOnOptMessagesPerPageChanged();
-      });
-      
-      DOM.id("opt-messages-by-user").addEventListener("change", () => {
-        eventOnOptMessagesByUserChanged && eventOnOptMessagesByUserChanged();
       });
 
       DOM.tag("button", DOM.fcls("nav")).forEach(button => {
@@ -119,10 +149,10 @@ var GUI = (function(){
     },
     
     /*
-     * Sets a callback for when the user changes the messages by user option. The callback is not passed any arguments.
+     * Sets a callback for when the user changes the active filter. The callback is passed either null or an object such as { type: <filter type>, value: <filter value> }.
      */
-    onOptionMessagesByUserChanged: function(callback){
-      eventOnOptMessagesByUserChanged = callback;
+    onOptMessageFilterChanged: function(callback){
+      eventOnOptMessageFilterChanged = callback;
     },
 
     /*
@@ -142,13 +172,6 @@ var GUI = (function(){
     getOptionMessagesPerPage: function(){
       return parseInt(DOM.id("opt-messages-per-page").value, 10);
     },
-    
-    /*
-     * Returns the user which to filter messages by.
-     */
-    getOptionMessagesByUser: function(){
-      return DOM.id("opt-messages-by-user").value;
-    },
 
     /*
      * Updates the navigation text and buttons.
@@ -163,9 +186,9 @@ var GUI = (function(){
       DOM.id("nav-last").disabled = currentPage === (totalPages || 1);
     },
     
-    // ------------
-    // Channel list
-    // ------------
+    // --------------
+    // Updating lists
+    // --------------
     
     /*
      * Updates the channel list and sets up their click events. The callback is triggered whenever a channel is selected, and takes the channel ID as its argument.
@@ -177,7 +200,11 @@ var GUI = (function(){
         eleChannels.innerHTML = "";
       }
       else{
-        eleChannels.innerHTML = channels.filter(channel => channel.msgcount > 0).map(channel => DISCORD.getChannelHTML(channel)).join("");
+        if (getActiveFilter() != null){
+          channels = channels.filter(channel => channel.msgcount > 0);
+        }
+        
+        eleChannels.innerHTML = channels.map(channel => DISCORD.getChannelHTML(channel)).join("");
         
         Array.prototype.forEach.call(eleChannels.children, ele => {
           ele.addEventListener("click", e => {
@@ -206,31 +233,26 @@ var GUI = (function(){
     },
     
     /*
-     * Updates the select box with all possibly user names.
+     * Updates the user filter list.
      */
-    updateUserFilter: function(users){
-      var select = DOM.id("opt-messages-by-user");
-
-      // Remove all but first option
-      for (var i = select.length; i > 0; i--) {
-        select.remove(i);
+    updateUserList: function(users){
+      var eleSelect = DOM.id("opt-filter-user");
+      
+      while(eleSelect.length > 1){
+        eleSelect.remove(1);
       }
-
+      
       var options = [];
-      for (var key in users) {
-        // Skip loop if the property is from prototype
-        if (!users.hasOwnProperty(key)) continue;
-
+      
+      for(var key of Object.keys(users)){
         var option = document.createElement("option");
         option.value = key;
         option.text = users[key].name;
         options.push(option);
       }
-      options.sort((a, b) => {
-        return a.text.toLowerCase().localeCompare(b.text.toLowerCase());
-      }).forEach(option => {
-        select.add(option);
-      });
+      
+      options.sort((a, b) => a.text.toLocaleLowerCase().localeCompare(b.text.toLocaleLowerCase()));
+      options.forEach(option => eleSelect.add(option));
     },
 
     /*

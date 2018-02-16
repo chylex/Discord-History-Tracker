@@ -11,7 +11,7 @@ var STATE = (function(){
   var selectedChannel;
   var currentPage;
   var messagesPerPage;
-  var messagesByUser;
+  var filterFunction;
   
   // ----------------------------------
   // Channel and message refresh events
@@ -53,10 +53,10 @@ var STATE = (function(){
     FILE = file;
     MSGS = null;
     currentPage = 1;
-
+    
+    triggerUsersRefreshed();
     triggerChannelsRefreshed();
     triggerMessagesRefreshed();
-    triggerUsersRefreshed();
   };
 
   ROOT.getChannelName = function(channel){
@@ -74,24 +74,34 @@ var STATE = (function(){
   // --------------------------
   // Channel list and selection
   // --------------------------
+  
+  var getFilteredMessageKeys = function(channel){
+    var messages = FILE.getMessages(channel);
+    var keys = Object.keys(messages);
+    
+    if (filterFunction){
+      keys = keys.filter(key => filterFunction(messages[key]));
+    }
+    
+    return keys;
+  };
 
   ROOT.getChannelList = function(){
     var channels = FILE.getChannels();
-    var userindex = messagesByUser ? FILE.meta.userindex.indexOf(messagesByUser) : -1;
 
     return Object.keys(channels).map(key => ({
       "id": key,
       "name": channels[key].name,
       "server": FILE.getServer(channels[key].server),
-      "msgcount": FILE.getFilteredMessageCount(key, userindex)
+      "msgcount": getFilteredMessageKeys(key).length
     }));
   };
 
   ROOT.selectChannel = function(channel){
     currentPage = 1;
     selectedChannel = channel;
-    MSGS = Object.keys(FILE.getMessages(channel)).sort(PROCESSOR.SORTER.oldestToNewest);
-
+    
+    MSGS = getFilteredMessageKeys(channel).sort(PROCESSOR.SORTER.oldestToNewest);
     triggerMessagesRefreshed();
   };
 
@@ -102,19 +112,6 @@ var STATE = (function(){
   // ------------
   // Message list
   // ------------
-  ROOT.getFilteredMessageList = function(){
-    if (!messagesByUser) {
-      return MSGS;
-    }
-
-    var pos = FILE.meta.userindex.indexOf(messagesByUser);
-    var messages = FILE.getMessages(selectedChannel);
-    return MSGS.filter(key =>  {
-      var message = messages[key];
-      return message.u == pos;
-    });
-  };
-
   
   ROOT.getMessageList = function(){
     if (!MSGS){
@@ -124,7 +121,7 @@ var STATE = (function(){
     var messages = FILE.getMessages(selectedChannel);
     var startIndex = messagesPerPage*(ROOT.getCurrentPage()-1);
 
-    return ROOT.getFilteredMessageList().slice(startIndex, !messagesPerPage ? undefined : startIndex+messagesPerPage).map(key => {
+    return MSGS.slice(startIndex, !messagesPerPage ? undefined : startIndex+messagesPerPage).map(key => {
       var message = messages[key];
 
       return {
@@ -137,24 +134,32 @@ var STATE = (function(){
       };
     });
   };
-  
-  ROOT.getUserList = function(){
-    if (!FILE){
-      return [];
-    }
-
-    return FILE.meta.users;
-  };
 
   // ----------
   // Filtering
   // ----------
+  
+  ROOT.setActiveFilter = function(filter){
+    switch(filter ? filter.type : ""){
+      case "user":
+        filterFunction = PROCESSOR.FILTER.byUser(FILE.getUserIndex(filter.value));
+        break;
 
-  ROOT.setMessagesByUser = function(key){
-    currentPage = 1;
-    messagesByUser = key;
+      default:
+        filterFunction = null;
+        break;
+    }
+    
     triggerChannelsRefreshed();
-    triggerMessagesRefreshed();
+    ROOT.selectChannel(selectedChannel); // resets current page and updates messages
+  };
+  
+  // -----
+  // Users
+  // -----
+  
+  ROOT.getUserList = function(){
+    return FILE ? FILE.getUsers() : [];
   };
 
   // ----------
@@ -188,7 +193,7 @@ var STATE = (function(){
   };
 
   ROOT.getPageCount = function(){
-    return !MSGS ? 0 : (!messagesPerPage ? 1 : Math.ceil(ROOT.getFilteredMessageList().length/messagesPerPage));
+    return !MSGS ? 0 : (!messagesPerPage ? 1 : Math.ceil(MSGS.length/messagesPerPage));
   };
   
   // --------

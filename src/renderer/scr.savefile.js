@@ -26,26 +26,16 @@ SAVEFILE.prototype.getChannelById = function(channel){
   return this.meta.channels[channel] || { "id": channel, "name": channel };
 };
 
+SAVEFILE.prototype.getUsers = function(){
+  return this.meta.users;
+};
+
 SAVEFILE.prototype.getUser = function(index){
   return this.meta.users[this.meta.userindex[index]] || { "name": "&lt;unknown&gt;" };
 };
 
 SAVEFILE.prototype.getUserById = function(user){
   return this.meta.users[user] || { "name": user };
-};
-
-SAVEFILE.prototype.getMessageCount = function(channel){
-  return Object.keys(this.getMessages(channel)).length;
-};
-
-SAVEFILE.prototype.getFilteredMessageCount = function(channel, userindex){
-  if (userindex === -1) return this.getMessageCount(channel);
-
-  var count = 0;
-  UTILS.forEachValue(this.getMessages(channel), messageObject => {
-    if (messageObject.u === userindex) count++;
-  });
-  return count;
 };
 
 SAVEFILE.prototype.getAllMessages = function(){
@@ -56,6 +46,8 @@ SAVEFILE.prototype.getAllMessages = function(){
   });
   
   return messages;
+SAVEFILE.prototype.getUserIndex = function(user){
+  return this.meta.userindex.indexOf(user);
 };
 
 SAVEFILE.prototype.getMessages = function(channel){

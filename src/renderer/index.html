@@ -31,12 +31,6 @@
           <option value="0">All messages&nbsp;</option>
         </select>
       </div>
-      
-      <div> <!-- needed to stop the select from messing up -->
-        <select id="opt-messages-by-user">
-          <option value="">Filter messages by user&nbsp;</option>
-        </select>
-      </div>
 
       <div class="nav">
         <button id="nav-first" data-nav="first">&laquo;</button>
@@ -44,6 +38,21 @@
         <p>Page <span id="nav-page-current">1</span>/<span id="nav-page-total">?</span></p>
         <button id="nav-next" data-nav="next">&rsaquo;</button>
         <button id="nav-last" data-nav="last">&raquo;</button>
+      </div>
+      
+      <div class="splitter"></div>
+      
+      <div> <!-- needed to stop the select from messing up -->
+        <select id="opt-messages-filter">
+          <option value="">No filter&nbsp;</option>
+          <option value="user">Filter messages by user&nbsp;</option>
+        </select>
+      </div>
+      
+      <div id="opt-filter-list">
+        <select id="opt-filter-user" data-filter-type="user">
+          <option value="">Select user...</option>
+        </select>
       </div>
       
       <div class="separator"></div>

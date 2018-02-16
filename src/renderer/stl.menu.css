@@ -60,3 +60,11 @@
 #menu .nav > button, #menu .nav > p {
   margin: 8px 1px;
 }
+
+#opt-filter-list > select, #opt-filter-list > input {
+  display: none;
+}
+
+#opt-filter-list > .active {
+  display: block;
+}
