@@ -46,6 +46,10 @@
         <select id="opt-messages-filter">
           <option value="">No filter&nbsp;</option>
           <option value="user">Filter messages by user&nbsp;</option>
+          <option value="contents">Filter messages by contents&nbsp;</option>
+          <option value="withimages">Only messages with images&nbsp;</option>
+          <option value="withdownloads">Only messages with downloads&nbsp;</option>
+          <option value="edited">Only edited messages&nbsp;</option>
         </select>
       </div>
       
@@ -53,6 +57,11 @@
         <select id="opt-filter-user" data-filter-type="user">
           <option value="">Select user...</option>
         </select>
+        <input type="text" data-filter-type="contents" placeholder="Messages containing...">
+        <input type="hidden" data-filter-type="withimages" value="1">
+        <input type="hidden" data-filter-type="withattachments" value="1">
+        <input type="hidden" data-filter-type="withdownloads" value="1">
+        <input type="hidden" data-filter-type="edited" value="1">
       </div>
       
       <div class="separator"></div>

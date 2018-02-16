@@ -76,6 +76,8 @@ var DISCORD = (function(){
       ].join(""));
     },
     
+    isImageAttachment: isImageAttachment,
+    
     getChannelHTML: function(channel){
       return (channel.server.type === "SERVER" ? templateChannelServer : templateChannelPrivate).apply(channel, (property, value) => {
         if (property === "server.type"){

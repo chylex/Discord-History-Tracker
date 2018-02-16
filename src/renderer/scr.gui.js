@@ -101,7 +101,7 @@ var GUI = (function(){
       });
       
       Array.prototype.forEach.call(containerFilterList.children, ele => {
-        ele.addEventListener("change", e => triggerFilterChanged());
+        ele.addEventListener(ele.tagName === "SELECT" ? "change" : "input", e => triggerFilterChanged());
       });
       
       DOM.id("opt-messages-per-page").addEventListener("change", () => {

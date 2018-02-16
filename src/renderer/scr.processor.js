@@ -8,7 +8,10 @@ var PROCESSOR = function(messageObject){
 PROCESSOR.FILTER = {
   byUser: ((userindex) => message => message.u === userindex),
   byTime: ((timeStart, timeEnd) => message => message.t >= timeStart && message.t <= timeEnd),
-  byContents: ((search) => search.test ? message => search.test(message.m) : message => message.m.indexOf(search) !== -1),
+  byContents: ((substr) => message => message.m.indexOf(substr) !== -1),
+  byRegex: ((regex) => message => regex.test(message.m)),
+  withImages: (() => message => (message.e && message.e.some(embed => embed.type === "image")) || (message.a && message.a.some(DISCORD.isImageAttachment))),
+  withDownloads: (() => message => message.a && message.a.some(attachment => !DISCORD.isImageAttachment(attachment))),
   withEmbeds: (() => message => message.e && message.e.length > 0),
   withAttachments: (() => message => message.a && message.a.length > 0),
   isEdited: (() => message => (message.f&1) === 1)

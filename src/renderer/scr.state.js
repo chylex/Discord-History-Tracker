@@ -146,6 +146,22 @@ var STATE = (function(){
       case "user":
         filterFunction = PROCESSOR.FILTER.byUser(FILE.getUserIndex(filter.value));
         break;
+        
+      case "contents":
+        filterFunction = PROCESSOR.FILTER.byContents(filter.value);
+        break;
+        
+      case "withimages":
+        filterFunction = PROCESSOR.FILTER.withImages();
+        break;
+        
+      case "withdownloads":
+        filterFunction = PROCESSOR.FILTER.withDownloads();
+        break;
+        
+      case "edited":
+        filterFunction = PROCESSOR.FILTER.isEdited();
+        break;
 
       default:
         filterFunction = null;

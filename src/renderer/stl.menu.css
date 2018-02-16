@@ -18,7 +18,7 @@
   cursor: default;
 }
 
-#menu button, #menu select {
+#menu button, #menu select, #menu input[type="text"] {
   margin: 8px;
   background-color: #7289DA;
   color: #FFF;
@@ -35,6 +35,12 @@
 #menu select {
   font-size: 14px;
   padding: 6px;
+  border: 0;
+}
+
+#menu input[type="text"] {
+  font-size: 14px;
+  padding: 7px 12px;
   border: 0;
 }
 
