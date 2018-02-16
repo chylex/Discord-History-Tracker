@@ -11,6 +11,7 @@ var STATE = (function(){
   var selectedChannel;
   var currentPage;
   var messagesPerPage;
+  var messagesByUser;
   
   // ----------------------------------
   // Channel and message refresh events
@@ -18,6 +19,7 @@ var STATE = (function(){
   
   var eventOnChannelsRefreshed;
   var eventOnMessagesRefreshed;
+  var eventOnUsersRefreshed;
   
   var triggerChannelsRefreshed = function(){
     eventOnChannelsRefreshed && eventOnChannelsRefreshed(ROOT.getChannelList());
@@ -27,6 +29,10 @@ var STATE = (function(){
     eventOnMessagesRefreshed && eventOnMessagesRefreshed(ROOT.getMessageList());
   };
   
+  var triggerUsersRefreshed = function(){
+    eventOnUsersRefreshed && eventOnUsersRefreshed(ROOT.getUserList());
+  };
+
   ROOT.onChannelsRefreshed = function(callback){
     eventOnChannelsRefreshed = callback;
   };
@@ -35,6 +41,10 @@ var STATE = (function(){
     eventOnMessagesRefreshed = callback;
   };
   
+  ROOT.onUsersRefreshed = function(callback){
+    eventOnUsersRefreshed = callback;
+  };
+
   // ------------------------------------
   // File upload and basic data retrieval
   // ------------------------------------
@@ -46,6 +56,7 @@ var STATE = (function(){
 
     triggerChannelsRefreshed();
     triggerMessagesRefreshed();
+    triggerUsersRefreshed();
   };
 
   ROOT.getChannelName = function(channel){
@@ -66,12 +77,13 @@ var STATE = (function(){
 
   ROOT.getChannelList = function(){
     var channels = FILE.getChannels();
+    var userindex = messagesByUser ? FILE.meta.userindex.indexOf(messagesByUser) : -1;
 
     return Object.keys(channels).map(key => ({
       "id": key,
       "name": channels[key].name,
       "server": FILE.getServer(channels[key].server),
-      "msgcount": FILE.getMessageCount(key)
+      "msgcount": FILE.getFilteredMessageCount(key, userindex)
     }));
   };
 
@@ -90,6 +102,19 @@ var STATE = (function(){
   // ------------
   // Message list
   // ------------
+  ROOT.getFilteredMessageList = function(){
+    if (!messagesByUser) {
+      return MSGS;
+    }
+
+    var pos = FILE.meta.userindex.indexOf(messagesByUser);
+    var messages = FILE.getMessages(selectedChannel);
+    return MSGS.filter(key =>  {
+      var message = messages[key];
+      return message.u == pos;
+    });
+  };
+
   
   ROOT.getMessageList = function(){
     if (!MSGS){
@@ -99,7 +124,7 @@ var STATE = (function(){
     var messages = FILE.getMessages(selectedChannel);
     var startIndex = messagesPerPage*(ROOT.getCurrentPage()-1);
 
-    return MSGS.slice(startIndex, !messagesPerPage ? undefined : startIndex+messagesPerPage).map(key => {
+    return ROOT.getFilteredMessageList().slice(startIndex, !messagesPerPage ? undefined : startIndex+messagesPerPage).map(key => {
       var message = messages[key];
 
       return {
@@ -113,6 +138,25 @@ var STATE = (function(){
     });
   };
   
+  ROOT.getUserList = function(){
+    if (!FILE){
+      return [];
+    }
+
+    return FILE.meta.users;
+  };
+
+  // ----------
+  // Filtering
+  // ----------
+
+  ROOT.setMessagesByUser = function(key){
+    currentPage = 1;
+    messagesByUser = key;
+    triggerChannelsRefreshed();
+    triggerMessagesRefreshed();
+  };
+
   // ----------
   // Pagination
   // ----------
@@ -144,7 +188,7 @@ var STATE = (function(){
   };
 
   ROOT.getPageCount = function(){
-    return !MSGS ? 0 : (!messagesPerPage ? 1 : Math.ceil(MSGS.length/messagesPerPage));
+    return !MSGS ? 0 : (!messagesPerPage ? 1 : Math.ceil(ROOT.getFilteredMessageList().length/messagesPerPage));
   };
   
   // --------
