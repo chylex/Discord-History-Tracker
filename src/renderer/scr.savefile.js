@@ -38,14 +38,6 @@ SAVEFILE.prototype.getUserById = function(user){
   return this.meta.users[user] || { "name": user };
 };
 
-SAVEFILE.prototype.getAllMessages = function(){
-  var messages = {};
-  
-  UTILS.forEachValue(this.data, messageObject => {
-    UTILS.combineObjects(messages, messageObject);
-  });
-  
-  return messages;
 SAVEFILE.prototype.getUserIndex = function(user){
   return this.meta.userindex.indexOf(user);
 };

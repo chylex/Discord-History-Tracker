@@ -4,14 +4,29 @@ document.addEventListener("DOMContentLoaded", () => {
   
   GUI.onFileUploaded(files => {
     if (files.length === 1){
-      UTILS.readJsonFile(files[0], (obj, file) => {
+      var file = files[0];
+      var reader = new FileReader();
+
+      reader.onload = function(){
+        var obj;
+        
+        try{
+          obj = JSON.parse(reader.result);
+        }catch(e){
+          console.error(e);
+          alert("Could not parse '"+file.name+"', see console for details.");
+          return;
+        }
+        
         if (SAVEFILE.isValid(obj)){
           STATE.uploadFile(new SAVEFILE(obj));
         }
         else{
-          alert((obj ? "File '{}' has an invalid format." : "Could not parse '{}', see console for details.").replace("{}", file.name));
+          alert("File '"+file.name+"' has an invalid format.");
         }
-      });
+      };
+
+      reader.readAsText(file, "UTF-8");
     }
     else{
       alert("Please, select only one file.");

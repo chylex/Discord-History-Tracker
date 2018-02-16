@@ -8,10 +8,10 @@ var STATE = (function(){
   var FILE;
   var MSGS;
   
+  var filterFunction;
   var selectedChannel;
   var currentPage;
   var messagesPerPage;
-  var filterFunction;
   
   // ----------------------------------
   // Channel and message refresh events
@@ -65,10 +65,6 @@ var STATE = (function(){
 
   ROOT.getUserName = function(user){
     return FILE.getUserById(user).name;
-  };
-
-  ROOT.getRawMessages = function(channel){
-    return channel ? FILE.getMessages(channel) : FILE.getAllMessages();
   };
   
   // --------------------------
