@@ -85,6 +85,8 @@ var GUI = (function(){
           
           inputMessageFilter.value = "";
           inputMessageFilter.dispatchEvent(new Event("change"));
+          
+          DOM.id("opt-filter-contents").value = "";
         }
       });
       
