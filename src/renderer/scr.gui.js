@@ -193,7 +193,7 @@ var GUI = (function(){
     /*
      * Updates the channel list and sets up their click events. The callback is triggered whenever a channel is selected, and takes the channel ID as its argument.
      */
-    updateChannelList: function(channels, callback){
+    updateChannelList: function(channels, selected, callback){
       var eleChannels = DOM.id("channels");
       
       if (!channels){
@@ -218,6 +218,11 @@ var GUI = (function(){
             callback(ele.getAttribute("data-channel"));
           });
         });
+        
+        if (selected){
+          var activeChannel = eleChannels.querySelector("[data-channel='"+selected+"']");
+          activeChannel && activeChannel.classList.add("active");
+        }
       }
     },
     

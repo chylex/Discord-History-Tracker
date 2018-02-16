@@ -21,8 +21,8 @@ var STATE = (function(){
   var eventOnMessagesRefreshed;
   var eventOnUsersRefreshed;
   
-  var triggerChannelsRefreshed = function(){
-    eventOnChannelsRefreshed && eventOnChannelsRefreshed(ROOT.getChannelList());
+  var triggerChannelsRefreshed = function(selectedChannel){
+    eventOnChannelsRefreshed && eventOnChannelsRefreshed(ROOT.getChannelList(), selectedChannel);
   };
   
   var triggerMessagesRefreshed = function(){
@@ -52,6 +52,8 @@ var STATE = (function(){
   ROOT.uploadFile = function(file){
     FILE = file;
     MSGS = null;
+    
+    selectedChannel = null;
     currentPage = 1;
     
     triggerUsersRefreshed();
@@ -83,6 +85,10 @@ var STATE = (function(){
   };
 
   ROOT.getChannelList = function(){
+    if (!FILE){
+      return [];
+    }
+    
     var channels = FILE.getChannels();
 
     return Object.keys(channels).map(key => ({
@@ -146,8 +152,11 @@ var STATE = (function(){
         break;
     }
     
-    triggerChannelsRefreshed();
-    ROOT.selectChannel(selectedChannel); // resets current page and updates messages
+    triggerChannelsRefreshed(selectedChannel);
+    
+    if (selectedChannel){
+      ROOT.selectChannel(selectedChannel); // resets current page and updates messages
+    }
   };
   
   // -----

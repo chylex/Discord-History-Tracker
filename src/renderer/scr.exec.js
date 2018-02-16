@@ -53,8 +53,8 @@ document.addEventListener("DOMContentLoaded", () => {
     GUI.updateUserList(users);
   });
   
-  STATE.onChannelsRefreshed(channels => {
-    GUI.updateChannelList(channels, STATE.selectChannel);
+  STATE.onChannelsRefreshed((channels, selected) => {
+    GUI.updateChannelList(channels, selected, STATE.selectChannel);
   });
   
   STATE.onMessagesRefreshed(messages => {
