@@ -17,6 +17,12 @@ var DISCORD = (function(){
     mentionChannel: /&lt;#(\d+?)&gt;/g
   };
   
+  var isImageAttachment = function(attachment){
+    var dot = attachment.url.lastIndexOf(".");
+    var ext = dot === -1 ? "" : attachment.url.substring(dot).toLowerCase();
+    return ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg";
+  };
+  
   var templateChannelServer;
   var templateChannelPrivate;
   var templateMessage;
@@ -138,9 +144,7 @@ var DISCORD = (function(){
           }
           
           return value.map(attachment => {
-            var ext = attachment.url.slice(-4).toLowerCase();
-
-            if ((ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg") && STATE.settings.enableImagePreviews){
+            if (isImageAttachment(attachment) && STATE.settings.enableImagePreviews){
               return templateEmbedImage.apply(attachment);
             }
             else{
