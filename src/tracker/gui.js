@@ -223,7 +223,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>BETA v.7, released 16 Feb 2018</sub>
+<sub>BETA v.8, released 5 Aug 2018</sub>
 </p>`);
       
       // elements
