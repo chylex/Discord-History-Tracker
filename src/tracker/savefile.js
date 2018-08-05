@@ -65,196 +65,195 @@
  * }
  */
 
-var SAVEFILE = function(parsedObj){
-  var me = this;
-  
-  if (SAVEFILE.isValid(parsedObj)){
+class SAVEFILE{
+  constructor(parsedObj){
+    var me = this;
+    
+    if (!SAVEFILE.isValid(parsedObj)){
+      parsedObj = {
+        meta: {},
+        data: {}
+      };
+    }
+    
     me.meta = parsedObj.meta;
+    me.data = parsedObj.data;
+    
     me.meta.users = me.meta.users || {};
     me.meta.userindex = me.meta.userindex || [];
     me.meta.servers = me.meta.servers || [];
     me.meta.channels = me.meta.channels || {};
     
-    me.data = parsedObj.data;
-  }
-  else{
-    me.meta = {};
-    me.meta.users = {};
-    me.meta.userindex = [];
-    me.meta.servers = [];
-    me.meta.channels = {};
-    
-    me.data = {};
+    me.tmp = {
+      userlookup: {},
+      channelkeys: new Set(),
+      messagekeys: new Set(),
+      freshmsgs: new Set()
+    }
   }
   
-  me.tmp = {};
-  me.tmp.userlookup = {};
-  me.tmp.channelkeys = new Set();
-  me.tmp.messagekeys = new Set();
-  me.tmp.freshmsgs = new Set();
-};
-
-SAVEFILE.isValid = function(parsedObj){
-  return parsedObj && typeof parsedObj.meta === "object" && typeof parsedObj.data === "object";
-};
-
-SAVEFILE.prototype.findOrRegisterUser = function(userId, userName){
-  if (!(userId in this.meta.users)){
-    this.meta.users[userId] = {
-      "name": userName
-    };
-    
-    this.meta.userindex.push(userId);
-    return this.tmp.userlookup[userId] = this.meta.userindex.length-1;
-  }
-  else if (!(userId in this.tmp.userlookup)){
-    return this.tmp.userlookup[userId] = this.meta.userindex.findIndex(id => id == userId);
-  }
-  else{
-    return this.tmp.userlookup[userId];
-  }
-};
-
-SAVEFILE.prototype.findOrRegisterServer = function(serverName, serverType){
-  var index = this.meta.servers.findIndex(server => server.name === serverName && server.type === serverType);
-  
-  if (index === -1){
-    this.meta.servers.push({
-      "name": serverName,
-      "type": serverType
-    });
-    
-    return this.meta.servers.length-1;
-  }
-  else{
-    return index;
-  }
-};
-
-SAVEFILE.prototype.tryRegisterChannel = function(serverIndex, channelId, channelName){
-  if (!this.meta.servers[serverIndex]){
-    return undefined;
-  }
-  else if (channelId in this.meta.channels){
-    return false;
-  }
-  else{
-    this.meta.channels[channelId] = {
-      "server": serverIndex,
-      "name": channelName
-    };
-    
-    this.tmp.channelkeys.add(channelId);
-    return true;
-  }
-};
-
-SAVEFILE.prototype.addMessage = function(channelId, messageId, messageObject){
-  var container = this.data[channelId] || (this.data[channelId] = {});
-  var wasPresent = messageId in container;
-  
-  container[messageId] = messageObject;
-  this.tmp.messagekeys.add(messageId);
-  return !wasPresent;
-};
-
-SAVEFILE.prototype.convertToMessageObject = function(discordMessage){
-  var obj = {
-    u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username),
-    t: +discordMessage.timestamp.toDate(),
-    m: discordMessage.content
-  };
-  
-  if (discordMessage.editedTimestamp !== null){
-    obj.f = 1; // rewrite as bit flag if needed later
+  static isValid(parsedObj){
+    return parsedObj && typeof parsedObj.meta === "object" && typeof parsedObj.data === "object";
   }
   
-  if (discordMessage.embeds.length > 0){
-    obj.e = discordMessage.embeds.map(embed => {
-      let conv = {
-        url: embed.url,
-        type: embed.type
+  findOrRegisterUser(userId, userName){
+    if (!(userId in this.meta.users)){
+      this.meta.users[userId] = {
+        "name": userName
       };
       
-      if (embed.type === "rich"){
-        if (Array.isArray(embed.title) && embed.title.length === 1){
-          conv.t = embed.title[0];
-          
-          if (Array.isArray(embed.description) && embed.description.length === 1){
-            conv.d = embed.description[0];
+      this.meta.userindex.push(userId);
+      return this.tmp.userlookup[userId] = this.meta.userindex.length-1;
+    }
+    else if (!(userId in this.tmp.userlookup)){
+      return this.tmp.userlookup[userId] = this.meta.userindex.findIndex(id => id == userId);
+    }
+    else{
+      return this.tmp.userlookup[userId];
+    }
+  }
+  
+  findOrRegisterServer(serverName, serverType){
+    var index = this.meta.servers.findIndex(server => server.name === serverName && server.type === serverType);
+    
+    if (index === -1){
+      this.meta.servers.push({
+        "name": serverName,
+        "type": serverType
+      });
+      
+      return this.meta.servers.length-1;
+    }
+    else{
+      return index;
+    }
+  }
+  
+  tryRegisterChannel(serverIndex, channelId, channelName){
+    if (!this.meta.servers[serverIndex]){
+      return undefined;
+    }
+    else if (channelId in this.meta.channels){
+      return false;
+    }
+    else{
+      this.meta.channels[channelId] = {
+        "server": serverIndex,
+        "name": channelName
+      };
+      
+      this.tmp.channelkeys.add(channelId);
+      return true;
+    }
+  }
+  
+  addMessage(channelId, messageId, messageObject){
+    var container = this.data[channelId] || (this.data[channelId] = {});
+    var wasPresent = messageId in container;
+    
+    container[messageId] = messageObject;
+    this.tmp.messagekeys.add(messageId);
+    return !wasPresent;
+  }
+  
+  convertToMessageObject(discordMessage){
+    var obj = {
+      u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username),
+      t: +discordMessage.timestamp.toDate(),
+      m: discordMessage.content
+    };
+    
+    if (discordMessage.editedTimestamp !== null){
+      obj.f = 1; // rewrite as bit flag if needed later
+    }
+    
+    if (discordMessage.embeds.length > 0){
+      obj.e = discordMessage.embeds.map(embed => {
+        let conv = {
+          url: embed.url,
+          type: embed.type
+        };
+        
+        if (embed.type === "rich"){
+          if (Array.isArray(embed.title) && embed.title.length === 1){
+            conv.t = embed.title[0];
+            
+            if (Array.isArray(embed.description) && embed.description.length === 1){
+              conv.d = embed.description[0];
+            }
+          }
+          else{
+            conv.t = "";
           }
         }
-        else{
-          conv.t = "";
-        }
+        
+        return conv;
+      });
+    }
+    
+    if (discordMessage.attachments.length > 0){
+      obj.a = discordMessage.attachments.map(attachment => ({
+        url: attachment.url
+      }));
+    }
+    
+    return obj;
+  }
+  
+  isMessageFresh(id){
+    return this.tmp.freshmsgs.has(id);
+  }
+  
+  addMessagesFromDiscord(channelId, discordMessageArray){
+    var hasNewMessages = false;
+    
+    for(var discordMessage of discordMessageArray){
+      if (this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage))){
+        this.tmp.freshmsgs.add(discordMessage.id);
+        hasNewMessages = true;
       }
+    }
+    
+    return hasNewMessages;
+  }
+  
+  countChannels(){
+    return this.tmp.channelkeys.size;
+  }
+  
+  countMessages(){
+    return this.tmp.messagekeys.size;
+  }
+  
+  combineWith(obj){
+    var userMap = {};
+    
+    for(var userId in obj.meta.users){
+      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, obj.meta.users[userId].name);
+    }
+    
+    for(var channelId in obj.meta.channels){
+      var oldServer = obj.meta.servers[obj.meta.channels[channelId].server];
+      this.tryRegisterChannel(this.findOrRegisterServer(oldServer.name, oldServer.type), channelId, obj.meta.channels[channelId].name);
+    }
+    
+    for(var channelId in obj.data){
+      var oldChannel = obj.data[channelId];
       
-      return conv;
+      for(var messageId in oldChannel){
+        var oldMessage = oldChannel[messageId];
+        var oldUser = oldMessage.u;
+        
+        oldMessage.u = userMap[oldUser] || oldUser;
+        this.addMessage(channelId, messageId, oldMessage);
+      }
+    }
+  }
+  
+  toJson(){
+    return JSON.stringify({
+      "meta": this.meta,
+      "data": this.data
     });
   }
-  
-  if (discordMessage.attachments.length > 0){
-    obj.a = discordMessage.attachments.map(attachment => ({
-      url: attachment.url
-    }));
-  }
-  
-  return obj;
-};
-
-SAVEFILE.prototype.isMessageFresh = function(id){
-  return this.tmp.freshmsgs.has(id);
-};
-
-SAVEFILE.prototype.addMessagesFromDiscord = function(channelId, discordMessageArray){
-  var hasNewMessages = false;
-  
-  for(var discordMessage of discordMessageArray){
-    if (this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage))){
-      this.tmp.freshmsgs.add(discordMessage.id);
-      hasNewMessages = true;
-    }
-  }
-  
-  return hasNewMessages;
-};
-
-SAVEFILE.prototype.countChannels = function(){
-  return this.tmp.channelkeys.size;
-};
-
-SAVEFILE.prototype.countMessages = function(){
-  return this.tmp.messagekeys.size;
-};
-
-SAVEFILE.prototype.combineWith = function(obj){
-  var userMap = {};
-  
-  for(var userId in obj.meta.users){
-    userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, obj.meta.users[userId].name);
-  }
-  
-  for(var channelId in obj.meta.channels){
-    var oldServer = obj.meta.servers[obj.meta.channels[channelId].server];
-    this.tryRegisterChannel(this.findOrRegisterServer(oldServer.name, oldServer.type), channelId, obj.meta.channels[channelId].name);
-  }
-  
-  for(var channelId in obj.data){
-    var oldChannel = obj.data[channelId];
-    
-    for(var messageId in oldChannel){
-      var oldMessage = oldChannel[messageId];
-      var oldUser = oldMessage.u;
-      
-      oldMessage.u = userMap[oldUser] || oldUser;
-      this.addMessage(channelId, messageId, oldMessage);
-    }
-  }
-};
-
-SAVEFILE.prototype.toJson = function(){
-  return JSON.stringify({
-    "meta": this.meta,
-    "data": this.data
-  });
-};
+}

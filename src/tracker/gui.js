@@ -82,33 +82,28 @@ var GUI = (function(){
       
       // styles
       
-      controller.styles = DOM.createStyle([
-        ".app, .connecting { bottom: 48px !important; }",
-        "#dht-ctrl { position: absolute; bottom: 0; width: 100%; height: 48px; background-color: #FFF; }",
-        "#dht-ctrl button { height: 32px; margin: 8px 0 8px 8px; font-size: 16px; padding: 0 12px; background-color: #7289DA; color: #FFF; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.75); }",
-        "#dht-ctrl button:disabled { background-color: #7A7A7A; cursor: default; }",
-        "#dht-ctrl-close { margin: 8px 8px 8px 0 !important; float: right; }",
-        "#dht-ctrl p { display: inline-block; margin: 14px 12px; }",
-        "#dht-ctrl input { display: none; }"
-      ]);
+      controller.styles = DOM.createStyle(`
+.app, .connecting { bottom: 48px !important; }
+#dht-ctrl { position: absolute; bottom: 0; width: 100%; height: 48px; background-color: #FFF; }
+#dht-ctrl button { height: 32px; margin: 8px 0 8px 8px; font-size: 16px; padding: 0 12px; background-color: #7289DA; color: #FFF; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.75); }
+#dht-ctrl button:disabled { background-color: #7A7A7A; cursor: default; }
+#dht-ctrl-close { margin: 8px 8px 8px 0 !important; float: right; }
+#dht-ctrl p { display: inline-block; margin: 14px 12px; }
+#dht-ctrl input { display: none; }`);
       
       // main
       
       var btn = (id, title) => "<button id='dht-ctrl-"+id+"'>"+title+"</button>";
       
-      controller.ele = DOM.createElement("div", document.body);
-      controller.ele.id = "dht-ctrl";
-      
-      controller.ele.innerHTML = [
-        btn("upload", "Upload &amp; Combine"),
-        btn("settings", "Settings"),
-        btn("track", ""),
-        btn("download", "Download"),
-        btn("reset", "Reset"),
-        "<p id='dht-ctrl-status'></p>",
-        "<input id='dht-ctrl-upload-input' type='file' multiple>",
-        btn("close", "X")
-      ].join("");
+      controller.ele = DOM.createElement("div", document.body, "dht-ctrl", `
+${btn("upload", "Upload &amp; Combine")}
+${btn("settings", "Settings")}
+${btn("track", "")}
+${btn("download", "Download")}
+${btn("reset", "Reset")}
+<p id='dht-ctrl-status'></p>
+<input id='dht-ctrl-upload-input' type='file' multiple>
+${btn("close", "X")}`);
       
       // elements
       
@@ -196,17 +191,15 @@ var GUI = (function(){
       
       // styles
       
-      settings.styles = DOM.createStyle([
-        "#dht-cfg-overlay { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #000; opacity: 0.5; display: block; z-index: 1000; }",
-        "#dht-cfg { position: absolute; left: 50%; top: 50%; width: 800px; height: 262px; margin-left: -400px; margin-top: -131px; padding: 8px; background-color: #fff; z-index: 1001; }",
-        "#dht-cfg-note { margin-top: 22px; }",
-        "#dht-cfg sub { color: #666; font-size: 13px; }"
-      ]);
+      settings.styles = DOM.createStyle(`
+#dht-cfg-overlay { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #000; opacity: 0.5; display: block; z-index: 1000; }
+#dht-cfg { position: absolute; left: 50%; top: 50%; width: 800px; height: 262px; margin-left: -400px; margin-top: -131px; padding: 8px; background-color: #fff; z-index: 1001; }
+#dht-cfg-note { margin-top: 22px; }
+#dht-cfg sub { color: #666; font-size: 13px; }`);
       
       // overlay
       
-      settings.overlay = DOM.createElement("div", document.body);
-      settings.overlay.id = "dht-cfg-overlay";
+      settings.overlay = DOM.createElement("div", document.body, "dht-cfg-overlay");
       
       DOM.listen(settings.overlay, "click", () => {
         root.hideSettings();
@@ -214,28 +207,24 @@ var GUI = (function(){
       
       // main
       
-      settings.ele = DOM.createElement("div", document.body);
-      settings.ele.id = "dht-cfg";
-      
       var radio = (type, id, label) => "<label><input id='dht-cfg-"+type+"-"+id+"' name='dht-"+type+"' type='radio'> "+label+"</label><br>";
       
-      settings.ele.innerHTML = [
-        "<label><input id='dht-cfg-autoscroll' type='checkbox'> Autoscroll</label><br>",
-        "<br>",
-        "<label>After reaching the first message in channel...</label><br>",
-        radio("afm", "nothing", "Do Nothing"),
-        radio("afm", "pause", "Pause Tracking"),
-        radio("afm", "switch", "Switch to Next Channel"),
-        "<br>",
-        "<label>After reaching a previously saved message...</label><br>",
-        radio("asm", "nothing", "Do Nothing"),
-        radio("asm", "pause", "Pause Tracking"),
-        radio("asm", "switch", "Switch to Next Channel"),
-        "<p id='dht-cfg-note'>",
-        "It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>",
-        "<sub>BETA v.7, released 16 Feb 2018</sub>",
-        "</p>"
-      ].join("");
+      settings.ele = DOM.createElement("div", document.body, "dht-cfg", `
+<label><input id='dht-cfg-autoscroll' type='checkbox'> Autoscroll</label><br>
+<br>
+<label>After reaching the first message in channel...</label><br>
+${radio("afm", "nothing", "Do Nothing")}
+${radio("afm", "pause", "Pause Tracking")}
+${radio("afm", "switch", "Switch to Next Channel")}
+<br>
+<label>After reaching a previously saved message...</label><br>
+${radio("asm", "nothing", "Do Nothing")}
+${radio("asm", "pause", "Pause Tracking")}
+${radio("asm", "switch", "Switch to Next Channel")}
+<p id='dht-cfg-note'>
+It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
+<sub>BETA v.7, released 16 Feb 2018</sub>
+</p>`);
       
       // elements
       

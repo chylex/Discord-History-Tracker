@@ -1,6 +1,8 @@
 var DOM = (function(){
-  var createElement = (tag, parent) => {
+  var createElement = (tag, parent, id, html) => {
     var ele = document.createElement(tag);
+    ele.id = id || "";
+    ele.innerHTML = html || "";
     parent.appendChild(ele);
     return ele;
   };
@@ -29,7 +31,7 @@ var DOM = (function(){
     /*
      * Creates an element, adds it to the DOM, and returns it.
      */
-    createElement: (tag, parent) => createElement(tag, parent),
+    createElement: (tag, parent, id, html) => createElement(tag, parent, id, html),
     
     /*
      * Removes an element from the DOM.
@@ -37,13 +39,9 @@ var DOM = (function(){
     removeElement: (ele) => ele.parentNode.removeChild(ele),
     
     /*
-     * Creates a new style element with the specified CSS contents and returns it.
+     * Creates a new style element with the specified CSS and returns it.
      */
-    createStyle: (styles) => {
-      var ele = createElement("style", document.head);
-      styles.forEach(rule => ele.sheet.insertRule(rule, 0));
-      return ele;
-    },
+    createStyle: (styles) => createElement("style", document.head, "", styles),
     
     /*
      * Convenience setTimeout function to save space after minification.
