@@ -1,8 +1,6 @@
 var DISCORD = (function(){
-  var regexMessageRequest = /\/channels\/(\d+)\/messages[^a-z]/;
-  
   var getTopMessageViewElement = function(){
-    let view = DOM.fcls("messages");
+    let view = DOM.queryReactClass("messages");
     return view && view.children.length && view.children[0];
   };
   
@@ -19,8 +17,8 @@ var DISCORD = (function(){
         if (!topEle){
           restartTimer(500);
         }
-        else if (!topEle.classList.contains("loading-more")){
-          let messages = DOM.fcls("messages").children.length;
+        else if (!topEle.getAttribute("class").includes("loadingMore-")){
+          let messages = DOM.queryReactClass("messages").children.length;
           
           if (messages < 100){
             waitingForCleanup = 0;
@@ -35,12 +33,12 @@ var DISCORD = (function(){
               waitingForCleanup = 6;
               
               DOM.setTimer(() => {
-                let view = DOM.fcls("messages");
+                let view = DOM.queryReactClass("messages");
                 view.scrollTop = view.scrollHeight/2;
               }, 1);
             }
             
-            callback(topEle.classList.contains("has-more"));
+            callback(topEle.getAttribute("class").includes("hasMore-"));
             restartTimer(200);
           }
         }
@@ -95,7 +93,7 @@ var DISCORD = (function(){
             "server": name,
             "channel": name,
             "id": linkSplit[linkSplit.length-1],
-            "type": DOM.cls("status", channel).length ? "DM" : "GROUP"
+            "type": !!DOM.fcls("status", channel) ? "DM" : "GROUP"
           };
         }
         else{
@@ -132,7 +130,7 @@ var DISCORD = (function(){
      * Returns an array containing currently loaded messages.
      */
     getMessages: function(){
-      var props = DISCORD.getReactProps(DOM.fcls("messages"));
+      var props = DISCORD.getReactProps(DOM.queryReactClass("messages"));
       var array = props && props.children.find(ele => ele && ele.length);
       var messages = [];
       
@@ -150,21 +148,21 @@ var DISCORD = (function(){
     /*
      * Returns true if the message view is visible.
      */
-    isInMessageView: () => DOM.cls("messages").length > 0,
+    isInMessageView: () => !!DOM.queryReactClass("messages"),
     
     /*
      * Returns true if there are more messages available or if they're still loading.
      */
     hasMoreMessages: function(){
-      let classes = getTopMessageViewElement().classList;
-      return classes.contains("has-more") || classes.contains("loading-more");
+      let classes = getTopMessageViewElement().getAttribute("class");
+      return classes.includes("hasMore-") || classes.includes("loadingMore-");
     },
     
     /*
      * Forces the message view to load older messages by scrolling all the way up.
      */
     loadOlderMessages: function(){
-      let view = DOM.fcls("messages");
+      let view = DOM.queryReactClass("messages");
       view.scrollTop = view.scrollHeight/2;
       view.scrollTop = 0;
     },

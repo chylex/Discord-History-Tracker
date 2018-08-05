@@ -12,16 +12,6 @@ var DOM = (function(){
     id: (id, parent) => (parent || document).getElementById(id),
     
     /*
-     * Returns an array of all child elements containing the specified class. Parent defaults to the entire document.
-     */
-    cls: (cls, parent) => Array.prototype.slice.call((parent || document).getElementsByClassName(cls)),
-    
-    /*
-     * Returns an array of all child elements that have the specified tag. Parent defaults to the entire document.
-     */
-    tag: (tag, parent) => Array.prototype.slice.call((parent || document).getElementsByTagName(tag)),
-    
-    /*
      * Returns the first child element containing the specified class. Parent defaults to the entire document.
      */
     fcls: (cls, parent) => (parent || document).getElementsByClassName(cls)[0],
@@ -30,6 +20,11 @@ var DOM = (function(){
      * Returns the first child element that has the specified tag. Parent defaults to the entire document.
      */
     ftag: (tag, parent) => (parent || document).getElementsByTagName(tag)[0],
+    
+    /*
+     * Returns the first child element containing the specified obfuscated class. Parent defaults to the entire document.
+     */
+    queryReactClass: (cls, parent) => (parent || document).querySelector(`[class*="${cls}-"]`),
     
     /*
      * Creates an element, adds it to the DOM, and returns it.
