@@ -31,11 +31,6 @@ var DOM = (function(){
     fcls: (cls, parent) => (parent || document).getElementsByClassName(cls)[0],
     
     /*
-     * Returns the first child element that has the specified tag. Parent defaults to the entire document.
-     */
-    ftag: (tag, parent) => (parent || document).getElementsByTagName(tag)[0],
-    
-    /*
      * Creates an element, adds it to the DOM, and returns it.
      */
     createElement: (tag, parent) => {

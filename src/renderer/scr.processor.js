@@ -1,5 +1,4 @@
-var PROCESSOR = function(messageObject){
-};
+var PROCESSOR = {};
 
 // ------------------------
 // Global filter generators
