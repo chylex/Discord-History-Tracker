@@ -51,11 +51,11 @@ var STATE = (function(){
     }
     
     /*
-    * Toggles the tracking state.
-    */
-    toggleTracking(){
-      this._isTracking = !this._isTracking;
-      triggerStateChanged("tracking", this._isTracking);
+     * Sets the tracking state.
+     */
+    setIsTracking(state){
+      this._isTracking = state;
+      triggerStateChanged("tracking", state);
     }
     
     /*

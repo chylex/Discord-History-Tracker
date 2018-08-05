@@ -129,7 +129,7 @@ ${btn("close", "X")}`);
       });
       
       DOM.listen(controller.ui.btnToggleTracking, "click", () => {
-        STATE.toggleTracking();
+        STATE.setIsTracking(!STATE.isTracking());
       });
       
       DOM.listen(controller.ui.btnDownload, "click", () => {

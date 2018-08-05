@@ -14,14 +14,14 @@ window.DHT_ON_UNLOAD = [];
 
 // Execution
 
-let ignoreMessageCallback = false;
+let ignoreMessageCallback = new Set();
 
 let stopTrackingDelayed = function(callback){
-  ignoreMessageCallback = true;
+  ignoreMessageCallback.add("stopping");
   
   DOM.setTimer(() => {
-    STATE.toggleTracking();
-    ignoreMessageCallback = false;
+    STATE.setIsTracking(false);
+    ignoreMessageCallback.delete("stopping");
     
     if (callback){
       callback();
@@ -30,7 +30,7 @@ let stopTrackingDelayed = function(callback){
 };
 
 DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
-  if (STATE.isTracking() && !ignoreMessageCallback){
+  if (STATE.isTracking() && ignoreMessageCallback.size === 0){
     let info = DISCORD.getSelectedChannel();
     
     if (!info){
@@ -48,9 +48,9 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
     }
     
     let hasUpdatedFile = STATE.addDiscordMessages(info.id, messages);
-
+    
     if (SETTINGS.autoscroll){
-      let action = CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
+      let action = null;
       
       if (!hasUpdatedFile && !STATE.isMessageFresh(messages[0].id)){
         action = SETTINGS.afterSavedMsg;
@@ -58,12 +58,26 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
       else if (!hasMoreMessages){
         action = SETTINGS.afterFirstMsg;
       }
-
-      if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
-        STATE.toggleTracking();
+      
+      if (action === null){
+        DISCORD.loadOlderMessages();
       }
       else{
-        DISCORD.loadOlderMessages();
+        ignoreMessageCallback.add("stalling");
+        
+        DOM.setTimer(() => {
+          ignoreMessageCallback.delete("stalling");
+          
+          let updatedInfo = DISCORD.getSelectedChannel();
+          
+          if (updatedInfo && updatedInfo.id === info.id){
+            STATE.addDiscordMessages(info.id, DISCORD.getMessages()); // sometimes needed to catch the last few messages before switching
+          }
+          
+          if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
+            STATE.setIsTracking(false);
+          }
+        }, 250);
       }
     }
   }
@@ -88,7 +102,7 @@ STATE.onStateChanged((type, enabled) => {
       }
       else{
         let action = SETTINGS.afterFirstMsg;
-
+        
         if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
           stopTrackingDelayed();
         }
