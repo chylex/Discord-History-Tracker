@@ -113,7 +113,7 @@ var DISCORD = (function(){
               .replace(REGEX.specialEscapedSingle, escapeHtmlMatch)
               .replace(REGEX.specialEscapedDouble, full => full.replace(/\\/g, "").replace(/(.)/g, escapeHtmlMatch))
               .replace(REGEX.formatBold, "<b>$1</b>")
-              .replace(REGEX.formatItalic, (full, pre, match) => pre === '\\' ? full : pre+"<i>"+match+"</i>")
+              .replace(REGEX.formatItalic, (full, pre, match) => pre === '\\' ? full : (pre || "")+"<i>"+match+"</i>")
               .replace(REGEX.formatUnderline, "<u>$1</u>")
               .replace(REGEX.formatStrike, "<s>$1</s>");
           }
