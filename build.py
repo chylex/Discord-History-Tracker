@@ -15,10 +15,11 @@ EXEC_YUI = "java -jar lib/yuicompressor-2.4.8.jar --charset utf-8 --line-break 1
 USE_UGLIFYJS = "--nominify" not in sys.argv
 USE_JAVA = "--nominify" not in sys.argv
 BUILD_WEBSITE = "--website" in sys.argv
+CLIPBOARD_TRACKER = "--copytracker" in sys.argv
 
 WORKING_DIR = os.getcwd()
 
-    
+
 if USE_JAVA and shutil.which("java") is None:
   USE_JAVA = False
   print("Could not find 'java', CSS minification will be disabled")
@@ -33,7 +34,7 @@ else:
     USE_UGLIFYJS = False
     print("Could not find 'uglifyjs', JS minification will be disabled")
 
-  
+
 with open("reserve.txt", "r") as reserved:
   RESERVED_PROPS = ",".join(line.strip() for line in reserved.readlines())
 
@@ -159,3 +160,12 @@ build_renderer()
 if BUILD_WEBSITE:
   print("Building website...")
   build_website()
+
+if CLIPBOARD_TRACKER:
+  if os.name == "nt":
+    print("Copying to clipboard...")
+    os.system("clip < bld/track.js")
+  else:
+    print("Clipboard is only supported on Windows")
+
+print("Done")
