@@ -20,28 +20,18 @@
       <img src="img/tracker.png" width="851" class="dht">
       
       <h2>How to Save History</h2>
-      
-      <h3>...using the Discord app</h3>
+      <h3>Running the Script</h3>
       <ol>
         <li>Click <a href="javascript:" id="tracker-copy">Copy to Clipboard</a><textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea> to copy the script<noscript> (requires JavaScript)</noscript></li>
-        <li>Press <strong>Ctrl+Shift+I</strong> in the Discord app, and click the <strong>Console</strong> tab</li>
-        <li>Paste the script into the text box on the bottom, and press <strong>Enter</strong> to run it</li>
-        <li>Press <strong>Ctrl+Shift+I</strong> again to close the console</li>
+        <li>Open the JavaScript console in your browser or the Discord app by pressing <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong>, and selecting the <strong>Console</strong> tab</li>
+        <li>Paste the script into the console, and press <strong>Enter</strong> to run it</li>
+        <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> again to close the console</li>
       </ol>
       
-      <h3>...using Firefox</h3>
-      <ol>
-        <li>Click <a rel="sidebar" title="Discord History Tracker" href="<?php include "./build/track.html"; ?>">Add Bookmark</a> and uncheck &laquo;Load this bookmark in the sidebar&raquo;</li>
-        <li>Open <a href="https://discordapp.com/channels/@me">Discord</a> and click the bookmark to run the script</li>
-      </ol>
       
-      <h3>...using Chrome, Edge, Safari, or another browser</h3>
-      <ol>
-        <li>Copy the link address of the <a rel="sidebar" title="Discord History Tracker" href="<?php include "./build/track.html"; ?>">tracker script</a> and use your browser's bookmark manager to add it as a bookmark (you may be able to drag the link to your bookmark bar too)</li>
-        <li>Open <a href="https://discordapp.com/channels/@me">Discord</a> and click the bookmark to run the script</li>
-      </ol>
+      <p>Please note that it's no longer possible to use DHT as a bookmark. Discord updated their <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP">CSP</a> rules which improve website security, but as a result, browsers will no longer execute bookmark scripts on the website.</p>
       
-      <h3>What next?</h3>
+      <h3>Using the Script</h3>
       <p>When running for the first time, you will see a <strong>Settings</strong> dialog where you can configure the script. These settings will be remembered as long as you don't delete cookies in your browser.</p>
       <p>By default, Discord History Tracker is set to pause tracking after it reaches a previously saved message to avoid unnecessary history loading. You may also set it to load all channels in the server or your friends list by selecting <strong>Switch to Next Channel</strong>.</p>
       <p>Once you have configured everything, upload your previously saved archive (if you have any), click <strong>Start Tracking</strong>, and let it run. After the script saves all messages, download the archive.</p>
