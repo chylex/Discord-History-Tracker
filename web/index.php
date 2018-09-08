@@ -22,12 +22,14 @@
       <h2>How to Save History</h2>
       <h3>Running the Script</h3>
       <ol>
-        <li>Click <a href="javascript:" id="tracker-copy">Copy to Clipboard</a><textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea> to copy the script<noscript> (requires JavaScript)</noscript></li>
+        <li>Click <a href="javascript:" id="tracker-copy-button">Copy to Clipboard</a> to copy the script<noscript> (requires JavaScript)</noscript></li>
         <li>Open the JavaScript console in your browser or the Discord app by pressing <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong>, and selecting the <strong>Console</strong> tab</li>
         <li>Paste the script into the console, and press <strong>Enter</strong> to run it</li>
         <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> again to close the console</li>
       </ol>
       
+      <p id="tracker-copy-issue">Your browser may not support copying to clipboard, please try copying the script manually:</p>
+      <textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea>
       
       <p>Please note that it's no longer possible to use DHT as a bookmark. Discord updated their <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP">CSP</a> rules which improve website security, but as a result, browsers will no longer execute bookmark scripts on the website.</p>
       
@@ -57,21 +59,30 @@
       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
       ga('create','UA-48632978-5','auto');ga('send','pageview');
       
-      document.getElementById("tracker-copy").addEventListener("click", function(){
-        var ele = document.getElementById("tracker-copy-contents");
-        ele.style.display = "block";
-        ele.select();
+      var contents = document.getElementById("tracker-copy-contents");
+      var issue = document.getElementById("tracker-copy-issue");
+      var button = document.getElementById("tracker-copy-button");
+      
+      if (document.queryCommandSupported("copy")){
+        contents.style.display = "none";
+        issue.style.display = "none";
+      }
+      
+      button.addEventListener("click", function(){
+        contents.style.display = "block";
+        issue.style.display = "block";
         
-        try{
-          if (!document.execCommand("copy")){
-            throw null;
-          }
-        }catch(e){
-          prompt("Press CTRL+C to copy the script:", ele.value);
-        }
+        contents.select();
+        document.execCommand("copy");
         
-        ele.style.display = "none";
+        button.innerHTML = "Copied to Clipboard";
+        contents.style.display = "none";
+        issue.style.display = "none";
       });
+      
+      contents.addEventListener("click", function(){
+        contents.select();
+      })
     </script>
   </body>
 </html>
