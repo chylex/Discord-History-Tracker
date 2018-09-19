@@ -45,14 +45,6 @@
   border: 0;
 }
 
-#menu p {
-  font-size: 16px;
-  padding: 8px;
-  background-color: #7E7E7E;
-  color: #FFF;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.75);
-}
-
 #menu .nav {
   display: flex;
   flex-direction: row;
@@ -60,7 +52,12 @@
 }
 
 #menu .nav > button {
+  font-size: 14px;
+}
+
+#menu .nav > button.icon {
   font-family: Lucida Console, monospace;
+  font-size: 17px;
   padding: 0 8px;
 }
 

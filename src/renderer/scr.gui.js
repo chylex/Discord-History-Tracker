@@ -178,6 +178,7 @@ var GUI = (function(){
       
       DOM.id("nav-first").disabled = currentPage === 1;
       DOM.id("nav-prev").disabled = currentPage === 1;
+      DOM.id("nav-pick").disabled = (totalPages || 0) <= 1;
       DOM.id("nav-next").disabled = currentPage === (totalPages || 1);
       DOM.id("nav-last").disabled = currentPage === (totalPages || 1);
     },

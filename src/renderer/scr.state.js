@@ -198,18 +198,28 @@ var STATE = (function(){
       case "prev": currentPage = Math.max(1, currentPage-1); break;
       case "next": currentPage = Math.min(ROOT.getPageCount(), currentPage+1); break;
       case "last": currentPage = ROOT.getPageCount(); break;
+      
+      case "pick":
+        var page = parseInt(prompt("Select page:", currentPage), 10);
+        
+        if (!page){
+          return;
+        }
+        
+        currentPage = Math.max(1, Math.min(ROOT.getPageCount(), page));
+        break;
     }
-
+    
     triggerMessagesRefreshed();
   };
 
   ROOT.getCurrentPage = function(){
     var total = ROOT.getPageCount();
-
+    
     if (currentPage > total && total > 0){
       currentPage = total;
     }
-
+    
     return currentPage || 1;
   };
 
