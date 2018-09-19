@@ -41,7 +41,9 @@
  *         e: [ // omit for no embeds
  *           {
  *             url: <embed url>,
- *             type: <embed type>
+ *             type: <embed type>,
+ *             t: <rich embed title>,      // only present if type == rich, may be empty
+ *             d: <rich embed description> // only present if type == rich, and if the embed has a simple description text
  *           }, ...
  *         ],
  *         a: [ // omit for no attachments
@@ -61,7 +63,10 @@
  * {
  *   userlookup: {
  *     <discord user id>: <user index in the meta.userindex array>
- *   }
+ *   },
+ *   channelkeys: Set<channel id>,
+ *   messagekeys: Set<message id>,
+ *   freshmsgs: Set<message id> // only messages which were newly added to the savefile in the current session
  * }
  */
 
