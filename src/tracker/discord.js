@@ -186,17 +186,15 @@ var DISCORD = (function(){
         }
       }
       else{
-        var allChannels = document.querySelector("[class|='channels']").querySelectorAll("[class|='containerDefault']");
+        var isValidChannel = ele => ele.childElementCount > 0 && /wrapper([a-zA-Z]+?)Text/.test(ele.children[0].className);
+        var allChannels = Array.prototype.filter.call(document.querySelector("[class|='channels']").querySelectorAll("[class|='containerDefault']"), isValidChannel);
+        
         var nextChannel = null;
         
         for(var index = 0; index < allChannels.length-1; index++){
           if (allChannels[index].children[0].className.includes("wrapperSelectedText")){
-            var next = allChannels[index+1];
-            
-            if (next.childElementCount > 0 && /wrapper([a-zA-Z]+?)Text/.test(next.children[0].className)){
-              nextChannel = allChannels[index+1];
-              break;
-            }
+            nextChannel = allChannels[index+1];
+            break;
           }
         }
         
