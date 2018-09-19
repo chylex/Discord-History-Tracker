@@ -174,7 +174,8 @@ var DISCORD = (function(){
       var dms = document.querySelector("[class|='privateChannels']");
       
       if (dms){
-        var nextChannel = DOM.queryReactClass("selected", dms).nextElementSibling;
+        var currentChannel = DOM.queryReactClass("selected", dms);
+        var nextChannel = currentChannel && currentChannel.nextElementSibling;
         var nextLink = nextChannel && nextChannel.querySelector("a[href*='/@me/']");
         
         if (!nextChannel || !nextLink || !nextChannel.getAttribute("class").includes("channel-")){
@@ -182,6 +183,7 @@ var DISCORD = (function(){
         }
         else{
           nextLink.click();
+          nextChannel.scrollIntoView(true);
           return true;
         }
       }
@@ -203,6 +205,7 @@ var DISCORD = (function(){
         }
         else{
           nextChannel.children[0].click();
+          nextChannel.scrollIntoView(true);
           return true;
         }
       }
