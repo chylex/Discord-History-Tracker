@@ -36,6 +36,7 @@
   font-size: 14px;
   padding: 6px;
   border: 0;
+  cursor: pointer;
 }
 
 #menu input[type="text"] {
