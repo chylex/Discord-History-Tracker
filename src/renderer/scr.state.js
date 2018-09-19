@@ -202,7 +202,7 @@ var STATE = (function(){
       case "pick":
         var page = parseInt(prompt("Select page:", currentPage), 10);
         
-        if (!page){
+        if (!page && page !== 0){
           return;
         }
         
