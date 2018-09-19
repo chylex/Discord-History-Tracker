@@ -147,7 +147,7 @@ ${btn("close", "X")}`);
       });
       
       DOM.listen(controller.ui.inputUpload, "change", () => {
-        [].forEach.call(controller.ui.inputUpload.files, file => {
+        Array.prototype.forEach.call(controller.ui.inputUpload.files, file => {
           var reader = new FileReader();
           
           reader.onload = function(){

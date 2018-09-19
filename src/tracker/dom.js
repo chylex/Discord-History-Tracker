@@ -14,16 +14,6 @@ var DOM = (function(){
     id: (id, parent) => (parent || document).getElementById(id),
     
     /*
-     * Returns the first child element containing the specified class. Parent defaults to the entire document.
-     */
-    fcls: (cls, parent) => (parent || document).getElementsByClassName(cls)[0],
-    
-    /*
-     * Returns the first child element that has the specified tag. Parent defaults to the entire document.
-     */
-    ftag: (tag, parent) => (parent || document).getElementsByTagName(tag)[0],
-    
-    /*
      * Returns the first child element containing the specified obfuscated class. Parent defaults to the entire document.
      */
     queryReactClass: (cls, parent) => (parent || document).querySelector(`[class*="${cls}-"]`),
