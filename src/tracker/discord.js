@@ -71,47 +71,47 @@ var DISCORD = (function(){
     getSelectedChannel: function(){
       try{
         var obj;
-
-        var channelListEle = DOM.fcls("private-channels");
-        var channel;
-
+        var channelListEle = document.querySelector("[class|='privateChannels']");
+        
         if (channelListEle){
-          channel = DOM.fcls("selected", channelListEle);
-
-          if (!channel.classList.contains("private")){
+          var channel = DOM.queryReactClass("selected", channelListEle);
+          
+          if (!channel){
             return null;
           }
           
-          var linkSplit = DOM.ftag("a", channel).href.split("/");
-          var name = [].find.call(DOM.fcls("channel-name", channel).childNodes, node => node.nodeType === Node.TEXT_NODE).nodeValue;
+          var linkSplit = channel.querySelector("a[href*='/@me/']").href.split("/");
+          var link = linkSplit[linkSplit.length-1];
           
-          if (!name){
+          if (!(/^\d+$/.test(link))){
             return null;
           }
-
+          
+          var name = [].find.call(channel.querySelector("[class|='name']").childNodes, node => node.nodeType === Node.TEXT_NODE).nodeValue;
+          
           obj = {
             "server": name,
             "channel": name,
-            "id": linkSplit[linkSplit.length-1],
-            "type": !!DOM.fcls("status", channel) ? "DM" : "GROUP"
+            "id": link,
+            "type": !!DOM.queryReactClass("status", channel) ? "DM" : "GROUP"
           };
         }
         else{
           channelListEle = document.querySelector("[class|='channels']");
-          channel = channelListEle.querySelector("[class|='wrapperSelectedText']").parentElement;
           
+          var channel = channelListEle.querySelector("[class|='wrapperSelectedText']").parentElement;
           var props = DISCORD.getReactProps(channel);
-
+          
           if (!props){
             return null;
           }
-
+          
           var channelObj = props.children.props.channel;
           
           if (!channelObj){
             return null;
           }
-
+          
           obj = {
             "server": channelListEle.querySelector("header > span").innerHTML,
             "channel": channelObj.name,
@@ -119,7 +119,7 @@ var DISCORD = (function(){
             "type": "SERVER"
           };
         }
-
+        
         return obj.channel.length === 0 ? null : obj;
       }catch(e){
         return null;
@@ -171,17 +171,17 @@ var DISCORD = (function(){
      * Selects the next text channel and returns true, otherwise returns false if there are no more channels.
      */
     selectNextTextChannel: function(){
-      var dms = DOM.fcls("private-channels");
+      var dms = document.querySelector("[class|='privateChannels']");
       
       if (dms){
-        var nextChannel = DOM.fcls("selected", dms).nextElementSibling;
-        var classes = nextChannel && nextChannel.classList;
-
-        if (nextChannel === null || !classes.contains("channel") || !classes.contains("private")){
+        var nextChannel = DOM.queryReactClass("selected", dms).nextElementSibling;
+        var nextLink = nextChannel && nextChannel.querySelector("a[href*='/@me/']");
+        
+        if (!nextChannel || !nextLink || !nextChannel.getAttribute("class").includes("channel-")){
           return false;
         }
         else{
-          DOM.ftag("a", nextChannel).click();
+          nextLink.click();
           return true;
         }
       }
