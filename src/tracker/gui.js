@@ -52,6 +52,8 @@ var GUI = (function(){
         settings.ui.cbAutoscroll.checked = SETTINGS.autoscroll;
         settings.ui.optsAfterFirstMsg[SETTINGS.afterFirstMsg].checked = true;
         settings.ui.optsAfterSavedMsg[SETTINGS.afterSavedMsg].checked = true;
+        settings.ui.metaDiscrim.checked = SETTINGS.metaDiscrim;
+        settings.ui.metaDisplay.checked = SETTINGS.metaDisplay;
       }
       
       if (type === "setting" || force){
@@ -207,7 +209,8 @@ ${btn("close", "X")}`);
       
       // main
       
-      var radio = (type, id, label) => "<label><input id='dht-cfg-"+type+"-"+id+"' name='dht-"+type+"' type='radio'> "+label+"</label><br>";
+      var radio = (type, id, label) => "<label><input id='dht-cfg-"+type+"-"+id+"' name='dht-"+type+"' type='radio'> "+label+"</label><br>";     
+      var check = (type, id, label) => "<label><input id='dht-cfg-"+type+"-"+id+"' name='dht-"+type+"' type='checkbox'> "+label+"</label><br>";
       
       settings.ele = DOM.createElement("div", document.body, "dht-cfg", `
 <label><input id='dht-cfg-autoscroll' type='checkbox'> Autoscroll</label><br>
@@ -221,6 +224,10 @@ ${radio("afm", "switch", "Switch to Next Channel")}
 ${radio("asm", "nothing", "Do Nothing")}
 ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
+<br>
+<label>Additional metadata to scrape:</label><br>
+${check("dat", "discrim", "User tags (e.g. #1234)")}
+${check("dat", "display", "User display names")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
 <sub>{{{version:full}}}</sub>
@@ -231,7 +238,9 @@ It is recommended to disable link and image previews to avoid putting unnecessar
       settings.ui = {
         cbAutoscroll: DOM.id("dht-cfg-autoscroll"),
         optsAfterFirstMsg: {},
-        optsAfterSavedMsg: {}
+        optsAfterSavedMsg: {},
+        metaDiscrim: DOM.id("dht-cfg-dat-discrim"),
+        metaDisplay: DOM.id("dht-cfg-dat-display")
       };
       
       settings.ui.optsAfterFirstMsg[CONSTANTS.AUTOSCROLL_ACTION_NOTHING] = DOM.id("dht-cfg-afm-nothing");
@@ -258,6 +267,14 @@ It is recommended to disable link and image previews to avoid putting unnecessar
         DOM.listen(settings.ui.optsAfterSavedMsg[key], "click", () => {
           SETTINGS.afterSavedMsg = key;
         });
+      });
+      
+      settings.ui.metaDiscrim.addEventListener("change", () => {
+        SETTINGS.metaDiscrim = settings.ui.metaDiscrim.checked;
+      });
+
+      settings.ui.metaDisplay.addEventListener("change", () => {
+        SETTINGS.metaDisplay = settings.ui.metaDisplay.checked;
       });
       
       setupStateChanged("settings");
