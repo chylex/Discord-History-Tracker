@@ -6,7 +6,8 @@
  *   meta: {
  *     users: {
  *       <discord user id>: {
- *         name: <user name>
+ *         name: <user name>,
+ *         tag: <user discriminator>
  *       }, ...
  *     },
  *
@@ -102,12 +103,13 @@ class SAVEFILE{
     return parsedObj && typeof parsedObj.meta === "object" && typeof parsedObj.data === "object";
   }
   
-  findOrRegisterUser(userId, userName){
+  findOrRegisterUser(userId, userName, userDiscriminator){
     if (!(userId in this.meta.users)){
       this.meta.users[userId] = {
-        "name": userName
-      };
-      
+        "name": userName,
+        "tag": userDiscriminator
+      };      
+
       this.meta.userindex.push(userId);
       return this.tmp.userlookup[userId] = this.meta.userindex.length-1;
     }
@@ -163,8 +165,10 @@ class SAVEFILE{
   }
   
   convertToMessageObject(discordMessage){
+    var author = discordMessage.author;
+    
     var obj = {
-      u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username),
+      u: this.findOrRegisterUser(author.id, author.username, author.discriminator),
       t: discordMessage.timestamp.toDate().getTime()
     };
     
@@ -253,7 +257,7 @@ class SAVEFILE{
         
         if (oldUser in userMap){
           oldMessage.u = userMap[oldUser];
-          this.addMessage(channelId, messageId, oldMessage);
+        this.addMessage(channelId, messageId, oldMessage);
         }
         else{
           if (!shownError){
