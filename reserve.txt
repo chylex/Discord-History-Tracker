@@ -32,6 +32,7 @@ type
 state
 id
 username
+discriminator
 timestamp
 content
 editedTimestamp
