@@ -45,7 +45,7 @@ def combine_files(input_pattern, output_file):
       output_file.write(line)
 
 
-def build_tracker():
+def build_tracker_html():
   output_file_raw = "bld/track.js"
   output_file_html = "bld/track.html"
   
@@ -79,6 +79,21 @@ def build_tracker():
   
   with open(output_file_html, "w") as out:
     out.write(script_contents)
+
+
+def build_tracker_userscript():
+  output_file = "bld/track.user.js"
+  
+  input_pattern = "src/tracker/*.js"
+  userscript_base = "src/base/track.user.js"
+  
+  with open(userscript_base, "r") as base:
+    userscript_contents = base.read().split("{{{contents}}}")
+  
+  with open(output_file, "w") as out:
+    out.write(userscript_contents[0])
+    combine_files(input_pattern, out)
+    out.write(userscript_contents[1])
 
 
 def build_renderer():
@@ -151,8 +166,11 @@ def build_website():
 
 os.makedirs("bld", exist_ok = True)
 
-print("Building tracker...")
-build_tracker()
+print("Building tracker html...")
+build_tracker_html()
+
+print("Building tracker userscript...")
+build_tracker_userscript()
 
 print("Building renderer...")
 build_renderer()
