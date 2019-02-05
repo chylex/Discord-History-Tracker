@@ -136,8 +136,10 @@ var DISCORD = (function(){
       
       if (array){
         for(let obj of array){
-          if (obj.props.messages){
-            Array.prototype.push.apply(messages, obj.props.messages);
+          let nested = obj.props.children;
+          
+          if (nested && nested.props && nested.props.messages){
+            Array.prototype.push.apply(messages, nested.props.messages);
           }
         }
       }
