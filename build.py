@@ -8,8 +8,8 @@ import os
 import distutils.dir_util
 
 
-VERSION_SHORT = "BETA v.9"
-VERSION_FULL = VERSION_SHORT + ", released 19 Sep 2018"
+VERSION_SHORT = "BETA v.10"
+VERSION_FULL = VERSION_SHORT + ", released 6 Feb 2019"
 
 
 EXEC_UGLIFYJS_WIN = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
