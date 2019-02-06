@@ -15,23 +15,45 @@
     <div class="inner">
       <h1>Discord History Tracker <span class="version">BETA&nbsp;v.9</span>&nbsp;<span class="bar">|</span>&nbsp;<span class="notes"><a href="https://github.com/chylex/Discord-History-Tracker/wiki/Release-Notes">Release&nbsp;Notes</a></span></h1>
       <p>Discord History Tracker is a browser script that lets you locally save chat history in your servers, groups, and private conversations.</p>
-      <p>When the script is active, it will automatically load history of the selected text channel up to the first message, and let you download it for offline viewing in your browser.</p>
+      <p>When the script is active, it will load history of the selected text channel up to the first message, and let you download it for offline viewing in your browser.</p>
       
-      <img src="img/tracker.png" width="851" class="dht">
+      <img src="img/tracker.png" width="851" class="dht bordered">
       
       <h2>How to Save History</h2>
       <h3>Running the Script</h3>
-      <ol>
-        <li>Click <a href="javascript:" id="tracker-copy-button">Copy to Clipboard</a> to copy the script<noscript> (requires JavaScript)</noscript></li>
-        <li>Open the JavaScript console in your browser or the Discord app by pressing <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong>, and selecting the <strong>Console</strong> tab</li>
-        <li>Paste the script into the console, and press <strong>Enter</strong> to run it</li>
-        <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> again to close the console</li>
-      </ol>
       
-      <p id="tracker-copy-issue">Your browser may not support copying to clipboard, please try copying the script manually:</p>
-      <textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea>
+      <h4>Option 1: Userscript</h4>
+      <div class="quote">
+        <p><strong>Preferred option.</strong> It requires a browser addon, but will keep DHT updated and make it easily accessible on the Discord website.</p>
+        
+        <ol>
+          <li>Install a userscript manager addon if you don't already have one:
+            <ul>
+              <li><a href="https://violentmonkey.github.io/get-it/">Violentmonkey</a> (Firefox, Chrome)</li>
+              <li><a href="https://tampermonkey.net/">Tampermonkey</a> (Edge, Opera, Safari)</li>
+              <li><a href="https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/">Greasemonkey</a> (Firefox) may work, but is not recommended as it doesn't work with many userscripts</li>
+            </ul>
+          </li>
+          <li>Click <a href="build/track.user.js">Install Userscript</a> to prompt an installation into the userscript manager</li>
+          <li>Open <a href="https://discordapp.com/channels/@me">Discord</a>, and view any server, group, or private conversation (it will not work in Friends list)</li>
+          <li>Click <strong>DHT</strong> in the top right corner:<br><img src="img/button.png" class="bordered"></li>
+        </ol>
+      </div>
       
-      <p>Please note that it's no longer possible to use DHT as a bookmark. Discord updated their <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP">CSP</a> rules which improve website security, but as a result, browsers will no longer execute bookmark scripts on the website.</p>
+      <h4>Option 2: Browser Console</h4>
+      <div class="quote">
+        <p>The console is the only way to use DHT directly in the desktop app.</p>
+        
+        <ol>
+          <li>Click <a href="javascript:" id="tracker-copy-button">Copy to Clipboard</a> to copy the script<noscript> (requires JavaScript)</noscript></li>
+          <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> in your browser or the Discord app, and select the <strong>Console</strong> tab</li>
+          <li>Paste the script into the console, and press <strong>Enter</strong> to run it</li>
+          <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> again to close the console</li>
+        </ol>
+        
+        <p id="tracker-copy-issue">Your browser may not support copying to clipboard, please try copying the script manually:</p>
+        <textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea>
+      </div>
       
       <h3>Using the Script</h3>
       <p>When running for the first time, you will see a <strong>Settings</strong> dialog where you can configure the script. These settings will be remembered as long as you don't delete cookies in your browser.</p>

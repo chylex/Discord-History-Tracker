@@ -151,6 +151,7 @@ def build_renderer():
 
 def build_website():
   tracker_file_html = "bld/track.html"
+  tracker_file_userscript = "bld/track.user.js"
   viewer_file = "bld/viewer.html"
   web_style_file = "bld/web/style.css"
   
@@ -158,6 +159,7 @@ def build_website():
   
   os.makedirs("bld/web/build", exist_ok = True)
   shutil.copyfile(tracker_file_html, "bld/web/build/track.html")
+  shutil.copyfile(tracker_file_userscript, "bld/web/build/track.user.js")
   shutil.copyfile(viewer_file, "bld/web/build/viewer.html")
   
   if USE_JAVA:
