@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      BETA v.9
+// @version      {{{version}}}
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/

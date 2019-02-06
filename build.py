@@ -8,6 +8,10 @@ import os
 import distutils.dir_util
 
 
+VERSION_SHORT = "BETA v.9"
+VERSION_FULL = VERSION_SHORT + ", released 19 Sep 2018"
+
+
 EXEC_UGLIFYJS_WIN = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
 EXEC_UGLIFYJS_AUTO = "uglifyjs --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
 EXEC_YUI = "java -jar lib/yuicompressor-2.4.8.jar --charset utf-8 --line-break 160 --type css -o \"{1}\" \"{0}\""
@@ -42,7 +46,7 @@ with open("reserve.txt", "r") as reserved:
 def combine_files(input_pattern, output_file):
   with fileinput.input(sorted(glob.glob(input_pattern))) as stream:
     for line in stream:
-      output_file.write(line)
+      output_file.write(line.replace("{{{version:full}}}", VERSION_FULL))
 
 
 def build_tracker_html():
@@ -88,7 +92,7 @@ def build_tracker_userscript():
   userscript_base = "src/base/track.user.js"
   
   with open(userscript_base, "r") as base:
-    userscript_contents = base.read().split("{{{contents}}}")
+    userscript_contents = base.read().replace("{{{version}}}", VERSION_SHORT).split("{{{contents}}}")
   
   with open(output_file, "w") as out:
     out.write(userscript_contents[0])
@@ -156,6 +160,13 @@ def build_website():
   web_style_file = "bld/web/style.css"
   
   distutils.dir_util.copy_tree("web", "bld/web")
+  index_file = "bld/web/index.php"
+  
+  with open(index_file, "r") as index:
+    index_contents = index.read()
+  
+  with open(index_file, "w") as index:
+    index.write(index_contents.replace("{{{version:web}}}", VERSION_SHORT.replace(" ", "&nbsp;")))
   
   os.makedirs("bld/web/build", exist_ok = True)
   shutil.copyfile(tracker_file_html, "bld/web/build/track.html")
