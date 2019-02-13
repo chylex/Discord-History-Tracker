@@ -87,7 +87,7 @@ var DISCORD = (function(){
             return null;
           }
           
-          var name = Array.prototype.find.call(channel.querySelector("[class|='name']").childNodes, node => node.nodeType === Node.TEXT_NODE).nodeValue;
+          var name = Array.prototype.find.call(channel.querySelector("span[class^='name']").childNodes, node => node.nodeType === Node.TEXT_NODE).nodeValue;
           
           obj = {
             "server": name,
