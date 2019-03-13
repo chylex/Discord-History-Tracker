@@ -87,7 +87,20 @@ var DISCORD = (function(){
             return null;
           }
           
-          var name = Array.prototype.find.call(channel.querySelector("span[class^='name']").childNodes, node => node.nodeType === Node.TEXT_NODE).nodeValue;
+          var name;
+          
+          for(let ele of channel.querySelectorAll("[class^='name']")){
+            let node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
+            
+            if (node){
+              name = node.nodeValue;
+              break;
+            }
+          }
+          
+          if (!name){
+            return null;
+          }
           
           obj = {
             "server": name,
