@@ -19,7 +19,7 @@ const start = function(){
 const css = document.createElement("style");
 
 css.innerText = `
-#dht-userscript-trigger { cursor: pointer }
+#dht-userscript-trigger { cursor: pointer; margin-top: 5px }
 #dht-userscript-trigger svg { opacity: 0.6 }
 #dht-userscript-trigger:hover svg { opacity: 1 }
 `;
@@ -31,7 +31,7 @@ window.setInterval(function(){
     return;
   }
   
-  const help = document.querySelector("div[class^='titleWrapper'] a[href*='support.discordapp.com']");
+  const help = document.querySelector("div[class^='title'] a[href*='support.discordapp.com']");
   
   if (help){
     help.insertAdjacentHTML("afterend", `
