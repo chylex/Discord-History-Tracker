@@ -8,6 +8,7 @@
 // @include      https://discordapp.com/*
 // @run-at       document-idle
 // @grant        none
+// @inject-into auto
 // ==/UserScript==
 
 const start = function(){
