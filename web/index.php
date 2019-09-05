@@ -24,14 +24,14 @@
       
       <h4>Option 1: Userscript</h4>
       <div class="quote">
-        <p><strong>Preferred option.</strong> It requires a browser addon, but will keep DHT updated and make it easily accessible on the Discord website.</p>
+        <p><strong>Preferred option.</strong> Requires a browser addon, but DHT will stay up-to-date and be easily accessible on the Discord website.</p>
         
         <ol>
-          <li>Install a userscript manager addon if you don't already have one:
+          <li>Install a userscript manager addon:
             <ul>
-              <li><a href="https://violentmonkey.github.io/get-it/">Violentmonkey</a> (Firefox, Chrome)</li>
-              <li><a href="https://tampermonkey.net/">Tampermonkey</a> (Edge, Opera, Safari)</li>
-              <li><a href="https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/">Greasemonkey</a> (Firefox) may work, but is not recommended as it doesn't work with many userscripts</li>
+              <li><a href="https://violentmonkey.github.io/get-it/">Violentmonkey</a> (Chrome)</li>
+              <li><a href="https://tampermonkey.net/">Tampermonkey</a> (Firefox, Edge, Chrome, Opera)</li>
+              <li>Due to browser bugs / limitations, DHT will not work in <strong>Firefox</strong> with Greasemonkey / Violentmonkey, and in <strong>Safari</strong> at all</li>
             </ul>
           </li>
           <li>Click <a href="build/track.user.js">Install Userscript</a> to prompt an installation into the userscript manager</li>
