@@ -4,7 +4,7 @@ All you need to **use Discord History Tracker** is either an up-to-date browser,
 
 To **report an issue or suggestion**, first please see the [issues](https://github.com/chylex/Discord-History-Tracker/issues) page and make sure someone else hasn't already created a similar issue report. If you do find an existing issue, comment on it or add a reaction. Otherwise, either click [New Issue](https://github.com/chylex/Discord-History-Tracker/issues/new), or contact me via email [contact@chylex.com](mailto:contact@chylex.com) or Twitter [@chylexmc](https://twitter.com/chylexmc).
 
-If you are interested in **creating your own version** from the source code, continue reading the [build instructions](#Build Instructions) below.
+If you are interested in **creating your own version** from the source code, continue reading the [build instructions](#Build-Instructions) below.
 
 # Build Instructions
 
