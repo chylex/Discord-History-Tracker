@@ -65,7 +65,7 @@ var DOM = (function(){
     downloadTextFile: (fileName, fileContents) => {
       var blob = new Blob([fileContents], { "type": "octet/stream" });
       
-      if (window.navigator.msSaveBlob){
+      if ("msSaveBlob" in window.navigator){
         return window.navigator.msSaveBlob(blob, fileName);
       }
       
