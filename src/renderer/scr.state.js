@@ -256,6 +256,7 @@ var STATE = (function(){
   
   defineSettingProperty("enableImagePreviews", true);
   defineSettingProperty("enableFormatting", true);
+  defineSettingProperty("enableAnimatedEmoji", true);
   
   // End
   return ROOT;

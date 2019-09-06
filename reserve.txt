@@ -8,6 +8,8 @@ enableImagePreviews
 _enableImagePreviews
 enableFormatting
 _enableFormatting
+enableAnimatedEmoji
+_enableAnimatedEmoji
 DHT_LOADED
 DHT_EMBEDDED
 meta
