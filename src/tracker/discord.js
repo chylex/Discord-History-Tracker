@@ -102,11 +102,13 @@ var DISCORD = (function(){
             return null;
           }
           
+          var icon = channel.querySelector("img[class*='avatar']");
+          
           obj = {
             "server": name,
             "channel": name,
             "id": link,
-            "type": !!DOM.queryReactClass("status", channel) ? "DM" : "GROUP"
+            "type": (icon && icon.src.includes("/channel-icons/")) ? "GROUP" : "DM"
           };
         }
         else{
