@@ -25,6 +25,11 @@ var DISCORD = (function(){
     return ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg";
   };
   
+  var getHumanReadableTime = function(timestamp){
+    var date = new Date(timestamp);
+    return date.toLocaleDateString() + ", " + date.toLocaleTimeString();
+  };
+  
   var templateChannelServer;
   var templateChannelPrivate;
   var templateMessage;
@@ -52,7 +57,7 @@ var DISCORD = (function(){
       
       templateMessage = new TEMPLATE([
         "<div>",
-        "<h2><strong class='username'>{user.name}</strong><span class='info time'>{timestamp}</span>{edited}</h2>",
+        "<h2><strong class='username'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}</h2>",
         "<div class='message'>{contents}{embeds}{attachments}</div>",
         "</div>"
       ].join(""));
@@ -95,8 +100,7 @@ var DISCORD = (function(){
     getMessageHTML: function(message){
       return templateMessage.apply(message, (property, value) => {
         if (property === "timestamp"){
-          var date = new Date(value);
-          return date.toLocaleDateString()+", "+date.toLocaleTimeString();
+          return getHumanReadableTime(value);
         }
         else if (property === "contents"){
           if (value.length === 0){
@@ -165,8 +169,8 @@ var DISCORD = (function(){
             }
           }).join("");
         }
-        else if (property === "edited"){
-          return value ? "<span class='info edited'>(edited)</span>" : "";
+        else if (property === "edit"){
+          return value ? "<span class='info edited'>(edited" + (value > 1 ? " " + getHumanReadableTime(value) : "") + ")</span>" : "";
         }
       });
     }

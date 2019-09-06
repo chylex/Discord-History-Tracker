@@ -139,7 +139,7 @@ var STATE = (function(){
         "contents": message.m,
         "embeds": message.e,
         "attachments": message.a,
-        "edited": (message.f&1) === 1
+        "edit": ("te" in message) ? message.te : (message.f & 1) === 1
       };
     });
   };

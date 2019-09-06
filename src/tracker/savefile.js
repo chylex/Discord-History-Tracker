@@ -37,7 +37,8 @@
  *         u: <user index of the sender>,
  *         t: <message timestamp>,
  *         m: <message content>,
- *         f: <message flags>, // bit 1 = edited (omit for no flags),
+ *         f: <message flags>,   // only present if edited in which case it equals 1, deprecated (use 'te' instead),
+ *         te: <edit timestamp>, // only present if edited,
  *         e: [ // omit for no embeds
  *           {
  *             url: <embed url>,
@@ -169,7 +170,7 @@ class SAVEFILE{
     };
     
     if (discordMessage.editedTimestamp !== null){
-      obj.f = 1; // rewrite as bit flag if needed later
+      obj.te = +discordMessage.editedTimestamp.toDate();
     }
     
     if (discordMessage.embeds.length > 0){
