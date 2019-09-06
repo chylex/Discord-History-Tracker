@@ -96,7 +96,14 @@ var STATE = (function(){
       "name": channels[key].name,
       "server": FILE.getServer(channels[key].server),
       "msgcount": getFilteredMessageKeys(key).length
-    }));
+    })).sort((ac, bc) => {
+      var as = ac.server;
+      var bs = bc.server;
+      
+      return as.type.localeCompare(bs.type, "en") ||
+             as.name.toLocaleLowerCase().localeCompare(bs.name.toLocaleLowerCase(), undefined, { numeric: true }) ||
+             ac.name.toLocaleLowerCase().localeCompare(bc.name.toLocaleLowerCase(), undefined, { numeric: true });
+    });
   };
 
   ROOT.selectChannel = function(channel){
