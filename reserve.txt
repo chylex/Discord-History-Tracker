@@ -9,6 +9,7 @@ _enableImagePreviews
 enableFormatting
 _enableFormatting
 DHT_LOADED
+DHT_EMBEDDED
 meta
 data
 users
