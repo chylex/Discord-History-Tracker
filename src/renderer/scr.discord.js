@@ -14,7 +14,8 @@ var DISCORD = (function(){
     specialUnescaped: /([*_~\\])/g,
     mentionRole: /&lt;@&(\d+?)&gt;/g,
     mentionUser: /&lt;@!?(\d+?)&gt;/g,
-    mentionChannel: /&lt;#(\d+?)&gt;/g
+    mentionChannel: /&lt;#(\d+?)&gt;/g,
+    customEmoji: /&lt;:([^:]+):(\d+?)&gt;/g
   };
   
   var isImageAttachment = function(attachment){
@@ -121,7 +122,8 @@ var DISCORD = (function(){
           processed = processed
             .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
             .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
-            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>");
+            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>")
+            .replace(REGEX.customEmoji, "<img src='https://cdn.discordapp.com/emojis/$2.png' alt=':$1:' title=':$1:' class='emoji'>");
           
           return "<p>"+processed+"</p>";
         }

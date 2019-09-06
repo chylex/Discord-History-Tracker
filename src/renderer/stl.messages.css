@@ -119,3 +119,11 @@
   margin-top: 6px;
   padding: 7px;
 }
+
+.message .emoji {
+  width: 22px;
+  height: 22px;
+  margin: 0 1px;
+  vertical-align: -30%;
+  object-fit: contain;
+}
