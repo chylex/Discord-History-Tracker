@@ -55,6 +55,12 @@
         <textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea>
       </div>
       
+      <h4>Old Versions</h4>
+      <div class="quote">
+        <p>Whenever DHT is fixed to work with a recent Discord update, it will no longer work on the previous version of Discord.</p>
+        <p>If you haven't received that Discord update yet, see <a href="https://github.com/chylex/Discord-History-Tracker/wiki/Release-Notes">Release Notes</a> for information about recent updates, and <a href="https://github.com/chylex/Discord-History-Tracker/wiki/Old-Versions">Old Versions</a> if you need to use an older version of DHT.</p>
+      </div>
+      
       <h3>Using the Script</h3>
       <p>When running for the first time, you will see a <strong>Settings</strong> dialog where you can configure the script. These settings will be remembered as long as you don't delete cookies in your browser.</p>
       <p>By default, Discord History Tracker is set to pause tracking after it reaches a previously saved message to avoid unnecessary history loading. You may also set it to load all channels in the server or your friends list by selecting <strong>Switch to Next Channel</strong>.</p>
