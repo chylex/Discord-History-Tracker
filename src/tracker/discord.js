@@ -71,16 +71,16 @@ var DISCORD = (function(){
     getSelectedChannel: function(){
       try{
         var obj;
-        var channelListEle = document.querySelector("[class|='privateChannels']");
+        var channelListEle = DOM.queryReactClass("privateChannels");
         
         if (channelListEle){
           var channel = DOM.queryReactClass("selected", channelListEle);
           
-          if (!channel){
+          if (!channel || !("href" in channel) || !channel.href.includes("/@me/")){
             return null;
           }
           
-          var linkSplit = channel.querySelector("a[href*='/@me/']").href.split("/");
+          var linkSplit = channel.href.split("/");
           var link = linkSplit[linkSplit.length-1];
           
           if (!(/^\d+$/.test(link))){
@@ -112,9 +112,9 @@ var DISCORD = (function(){
           };
         }
         else{
-          channelListEle = document.querySelector("[class|='channels']");
+          channelListEle = document.querySelector("div[class*='sidebar'] > div[class*='container']");
           
-          var channel = channelListEle.querySelector("[class*='modeSelected']").parentElement;
+          var channel = channelListEle.querySelector("div[class*='scrollerWrap'] > div[class*='scroller'] [class*='modeSelected']").parentElement;
           var props = DISCORD.getReactProps(channel);
           
           if (!props){
@@ -128,7 +128,7 @@ var DISCORD = (function(){
           }
           
           obj = {
-            "server": channelListEle.querySelector("header > span").innerHTML,
+            "server": channelListEle.querySelector("header > h1").innerText,
             "channel": channelObj.name,
             "id": channelObj.id,
             "type": "SERVER"
@@ -188,18 +188,17 @@ var DISCORD = (function(){
      * Selects the next text channel and returns true, otherwise returns false if there are no more channels.
      */
     selectNextTextChannel: function(){
-      var dms = document.querySelector("[class|='privateChannels']");
+      var dms = DOM.queryReactClass("privateChannels");
       
       if (dms){
         var currentChannel = DOM.queryReactClass("selected", dms);
         var nextChannel = currentChannel && currentChannel.nextElementSibling;
-        var nextLink = nextChannel && nextChannel.querySelector("a[href*='/@me/']");
         
-        if (!nextChannel || !nextLink || !nextChannel.getAttribute("class").includes("channel-")){
+        if (!nextChannel || !nextChannel.getAttribute("class").includes("channel-") || !("href" in nextChannel) || !nextChannel.href.includes("/@me/")){
           return false;
         }
         else{
-          nextLink.click();
+          nextChannel.click();
           nextChannel.scrollIntoView(true);
           return true;
         }
@@ -212,7 +211,13 @@ var DISCORD = (function(){
         var isValidChannelType = ele => !!ele.querySelector('path[d="' + channelIconNormal + '"]') || !!ele.querySelector('path[d="' + channelIconSpecial + '"]');
         var isValidChannel = ele => ele.childElementCount > 0 && isValidChannelClass(ele.children[0].className) && isValidChannelType(ele);
         
-        var allChannels = Array.prototype.filter.call(document.querySelector("[class|='channels']").querySelectorAll("[class|='containerDefault']"), isValidChannel);
+        var channelListEle = document.querySelector("div[class*='sidebar'] > div[class*='container'] > div[class*='scrollerWrap'] > div[class*='scroller']");
+        
+        if (!channelListEle){
+          return false;
+        }
+        
+        var allChannels = Array.prototype.filter.call(channelListEle.querySelectorAll("[class*='containerDefault']"), isValidChannel);
         var nextChannel = null;
         
         for(var index = 0; index < allChannels.length-1; index++){
