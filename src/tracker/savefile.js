@@ -233,6 +233,7 @@ class SAVEFILE{
   
   combineWith(obj){
     var userMap = {};
+    var shownError = false;
     
     for(var userId in obj.meta.users){
       userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, obj.meta.users[userId].name);
@@ -250,8 +251,23 @@ class SAVEFILE{
         var oldMessage = oldChannel[messageId];
         var oldUser = oldMessage.u;
         
-        oldMessage.u = userMap[oldUser] || oldUser;
-        this.addMessage(channelId, messageId, oldMessage);
+        if (oldUser in userMap){
+          oldMessage.u = userMap[oldUser];
+          this.addMessage(channelId, messageId, oldMessage);
+        }
+        else{
+          if (!shownError){
+            shownError = true;
+            alert("The uploaded archive appears to be corrupted, some messages will be skipped. See console for details.");
+            
+            console.error("User list:", obj.meta.users);
+            console.error("User index:", obj.meta.userindex);
+            console.error("Generated mapping:", userMap);
+            console.error("Missing user for the following messages:");
+          }
+          
+          console.error(oldMessage);
+        }
       }
     }
   }
