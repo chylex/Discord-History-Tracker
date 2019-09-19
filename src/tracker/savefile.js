@@ -36,14 +36,14 @@
  *       <discord message id>: {
  *         u: <user index of the sender>,
  *         t: <message timestamp>,
- *         m: <message content>,
+ *         m: <message content>, // only present if not empty
  *         f: <message flags>,   // only present if edited in which case it equals 1, deprecated (use 'te' instead),
  *         te: <edit timestamp>, // only present if edited,
  *         e: [ // omit for no embeds
  *           {
  *             url: <embed url>,
  *             type: <embed type>,
- *             t: <rich embed title>,      // only present if type == rich, may be empty
+ *             t: <rich embed title>,      // only present if type == rich, and if not empty
  *             d: <rich embed description> // only present if type == rich, and if the embed has a simple description text
  *           }, ...
  *         ],
@@ -165,12 +165,15 @@ class SAVEFILE{
   convertToMessageObject(discordMessage){
     var obj = {
       u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username),
-      t: +discordMessage.timestamp.toDate(),
-      m: discordMessage.content
+      t: discordMessage.timestamp.toDate().getTime()
     };
     
+    if (discordMessage.content.length > 0){
+      obj.m = discordMessage.content;
+    }
+    
     if (discordMessage.editedTimestamp !== null){
-      obj.te = +discordMessage.editedTimestamp.toDate();
+      obj.te = discordMessage.editedTimestamp.toDate().getTime();
     }
     
     if (discordMessage.embeds.length > 0){
@@ -187,9 +190,6 @@ class SAVEFILE{
             if (Array.isArray(embed.description) && embed.description.length === 1){
               conv.d = embed.description[0];
             }
-          }
-          else{
-            conv.t = "";
           }
         }
         

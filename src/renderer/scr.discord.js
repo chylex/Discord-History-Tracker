@@ -103,7 +103,7 @@ var DISCORD = (function(){
           return getHumanReadableTime(value);
         }
         else if (property === "contents"){
-          if (value.length === 0){
+          if (value == null || value.length === 0){
             return "";
           }
           

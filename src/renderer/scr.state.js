@@ -136,7 +136,7 @@ var STATE = (function(){
       return {
         "user": FILE.getUser(message.u),
         "timestamp": message.t,
-        "contents": message.m,
+        "contents": ("m" in message) ? message.m : null,
         "embeds": message.e,
         "attachments": message.a,
         "edit": ("te" in message) ? message.te : (message.f & 1) === 1
