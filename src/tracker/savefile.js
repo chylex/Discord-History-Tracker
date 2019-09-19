@@ -184,10 +184,10 @@ class SAVEFILE{
         };
         
         if (embed.type === "rich"){
-          if (Array.isArray(embed.title) && embed.title.length === 1){
+          if (Array.isArray(embed.title) && embed.title.length === 1 && typeof embed.title[0] === "string"){
             conv.t = embed.title[0];
             
-            if (Array.isArray(embed.description) && embed.description.length === 1){
+            if (Array.isArray(embed.description) && embed.description.length === 1 && typeof embed.description[0] === "string"){
               conv.d = embed.description[0];
             }
           }
