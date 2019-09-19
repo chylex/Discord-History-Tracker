@@ -35,7 +35,7 @@
             </ul>
           </li>
           <li>Click <a href="build/track.user.js">Install Userscript</a> to prompt an installation into the userscript manager</li>
-          <li>Open <a href="https://discordapp.com/channels/@me">Discord</a>, and view any server, group, or private conversation (it will not work in Friends list)</li>
+          <li>Open <a href="https://discordapp.com/channels/@me">Discord</a>, and view any server, group, or private conversation (it will not appear in Friends list)</li>
           <li>Click <strong>DHT</strong> in the top right corner:<br><img src="img/button.png" class="bordered"></li>
         </ol>
       </div>
@@ -45,7 +45,7 @@
         <p>The console is the only way to use DHT directly in the desktop app.</p>
         
         <ol>
-          <li>Click <a href="javascript:" id="tracker-copy-button">Copy to Clipboard</a> to copy the script<noscript> (requires JavaScript)</noscript></li>
+          <li>Click <a href="javascript:" id="tracker-copy-button" onauxclick="return false;">Copy to Clipboard</a> to copy the script<noscript> (requires JavaScript)</noscript></li>
           <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> in your browser or the Discord app, and select the <strong>Console</strong> tab</li>
           <li>Paste the script into the console, and press <strong>Enter</strong> to run it</li>
           <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> again to close the console</li>
@@ -53,6 +53,17 @@
         
         <p id="tracker-copy-issue">Your browser may not support copying to clipboard, please try copying the script manually:</p>
         <textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea>
+      </div>
+      
+      <h4>Option 3: Bookmarklet</h4>
+      <div class="quote">
+        <p>Requires Firefox 69 or newer.</p>
+        
+        <ol>
+          <li>Right-click <a href="<?php include "./build/track.html"; ?>" onclick="return false;" onauxclick="return false;">Discord History Tracker</a></li>
+          <li>Select &laquo;Bookmark This Link&raquo; and save the bookmark</li>
+          <li>Open <a href="https://discordapp.com/channels/@me">Discord</a> and click the bookmark to run the script</li>
+        </ol>
       </div>
       
       <h4>Old Versions</h4>
