@@ -1,7 +1,12 @@
 var DISCORD = (function(){
   var getTopMessageViewElement = function(){
     let view = DOM.queryReactClass("messages");
-    return view && view.children.length && view.children[0];
+    
+    if (view && view.children.length){
+      return view.children[0].getAttribute("class").includes("privateChannelPlaceholder-") ? view.children[1] : view.children[0];
+    }
+    
+    return null;
   };
   
   var observerTimer = 0, waitingForCleanup = 0;
@@ -150,6 +155,10 @@ var DISCORD = (function(){
       var messages = [];
       
       if (array){
+        if (array.length == 2 && !array.every(ele => ele && ele.length)){
+          array = array[1];
+        }
+        
         for(let obj of array){
           let nested = obj.props.children;
           
