@@ -3,7 +3,8 @@ var DISCORD = (function(){
     let view = DOM.queryReactClass("messages");
     
     if (view && view.children.length){
-      return view.children[0].getAttribute("class").includes("privateChannelPlaceholder-") ? view.children[1] : view.children[0];
+      let topClass = view.children[0].getAttribute("class");
+      return topClass.includes("placeholder") || topClass.includes("privateChannelPlaceholder-") ? view.children[1] : view.children[0];
     }
     
     return null;
@@ -160,10 +161,8 @@ var DISCORD = (function(){
         }
         
         for(let obj of array){
-          let nested = obj.props.children;
-          
-          if (nested && nested.props && nested.props.messages){
-            Array.prototype.push.apply(messages, nested.props.messages);
+          if (obj.props && obj.props.message){
+            messages.push(obj.props.message);
           }
         }
       }
@@ -189,8 +188,11 @@ var DISCORD = (function(){
      */
     loadOlderMessages: function(){
       let view = DOM.queryReactClass("messages");
-      view.scrollTop = view.scrollHeight/2;
-      view.scrollTop = 0;
+      
+      if (view.scrollTop > 0){
+        view.scrollTop = view.scrollHeight / 2;
+        view.scrollTop = 0;
+      }
     },
     
     /*
