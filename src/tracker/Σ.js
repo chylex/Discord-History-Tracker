@@ -42,7 +42,11 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
     
     let messages = DISCORD.getMessages();
     
-    if (!messages.length){
+    if (messages == null){
+      stopTrackingDelayed();
+      return;
+    }
+    else if (!messages.length){
       DISCORD.loadOlderMessages();
       return;
     }
@@ -71,7 +75,11 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
           let updatedInfo = DISCORD.getSelectedChannel();
           
           if (updatedInfo && updatedInfo.id === info.id){
-            STATE.addDiscordMessages(info.id, DISCORD.getMessages()); // sometimes needed to catch the last few messages before switching
+            let lastMessages = DISCORD.getMessages(); // sometimes needed to catch the last few messages before switching
+            
+            if (lastMessages != null){
+              STATE.addDiscordMessages(info.id, lastMessages);
+            }
           }
           
           if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
@@ -88,8 +96,16 @@ STATE.onStateChanged((type, enabled) => {
     let info = DISCORD.getSelectedChannel();
     
     if (info){
-      STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
-      STATE.addDiscordMessages(info.id, DISCORD.getMessages());
+      let messages = DISCORD.getMessages();
+      
+      if (messages != null){
+        STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
+        STATE.addDiscordMessages(info.id, messages);
+      }
+      else{
+        stopTrackingDelayed(() => alert("Cannot see any messages."));
+        return;
+      }
     }
     else{
       stopTrackingDelayed(() => alert("The selected channel is not visible in the channel list."));
