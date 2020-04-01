@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      BETA v.18
+// @version      BETA v.19
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -13,15 +13,30 @@
 const start = function(){
 
 var DISCORD = (function(){
-  var getTopMessageViewElement = function(){
-    let view = DOM.queryReactClass("messages");
+  var getMessageContainerElement = function(){
+    return document.querySelector("[data-ref-id='messages']");
+  };
+  
+  var getMessageScrollerElement = function(){
+    return getMessageContainerElement().closest("[class*='scroller']");
+  };
+  
+  var checkTopSpecialMessageElement = function(view, cls){
+    cls = `${cls}-`;
+    const selector = `[class*="${cls}"]`;
     
-    if (view && view.children.length){
-      let topClass = view.children[0].getAttribute("class");
-      return topClass.includes("placeholder") || topClass.includes("privateChannelPlaceholder-") ? view.children[1] : view.children[0];
+    for(let child of view.children){
+      let childClass = child.className;
+    
+      if (childClass.includes(cls) || child.querySelector(selector)){
+        return true;
+      }
+      else if (childClass.includes("message-")){
+        break;
+      }
     }
     
-    return null;
+    return false;
   };
   
   var observerTimer = 0, waitingForCleanup = 0;
@@ -32,13 +47,13 @@ var DISCORD = (function(){
      */
     setupMessageUpdateCallback: function(callback){
       var onTimerFinished = function(){
-        let topEle = getTopMessageViewElement();
+        let view = getMessageContainerElement();
         
-        if (!topEle){
+        if (!view){
           restartTimer(500);
         }
-        else if (!topEle.getAttribute("class").includes("loadingMore-")){
-          let messages = DOM.queryReactClass("messages").children.length;
+        else if (!checkTopSpecialMessageElement(view, "loadingMore")){
+          let messages = getMessageContainerElement().children.length;
           
           if (messages < 100){
             waitingForCleanup = 0;
@@ -53,12 +68,12 @@ var DISCORD = (function(){
               waitingForCleanup = 6;
               
               DOM.setTimer(() => {
-                let view = DOM.queryReactClass("messages");
+                let view = getMessageScrollerElement();
                 view.scrollTop = view.scrollHeight/2;
               }, 1);
             }
             
-            callback(topEle.getAttribute("class").includes("hasMore-"));
+            callback(checkTopSpecialMessageElement(view, "hasMore"));
             restartTimer(200);
           }
         }
@@ -132,7 +147,7 @@ var DISCORD = (function(){
           };
         }
         else{
-          channelListEle = document.querySelector("div[class*='sidebar'] > div[class*='container']");
+          channelListEle = document.querySelector("div[class*='sidebar'] > nav[class*='container']");
           
           var channel = channelListEle.querySelector("div[class*='scrollerWrap'] > div[class*='scroller'] [class*='modeSelected']").parentElement;
           var props = DISCORD.getReactProps(channel);
@@ -157,6 +172,7 @@ var DISCORD = (function(){
         
         return obj.channel.length === 0 ? null : obj;
       }catch(e){
+        console.error(e);
         return null;
       }
     },
@@ -165,46 +181,47 @@ var DISCORD = (function(){
      * Returns an array containing currently loaded messages.
      */
     getMessages: function(){
-      var props = DISCORD.getReactProps(DOM.queryReactClass("messages"));
-      var array = props && props.children.find(ele => ele && ele.length);
+      try{
+        var props = DISCORD.getReactProps(getMessageContainerElement());
+        var wrappers = props.children.find(ele => ele && ele.length);
+        
       var messages = [];
       
-      if (array){
-        if (array.length == 2 && !array.every(ele => ele && ele.length)){
-          array = array[1];
-        }
+        for(let obj of wrappers){
+          let nested = obj.props;
         
-        for(let obj of array){
-          if (obj.props && obj.props.message){
-            messages.push(obj.props.message);
-          }
+          if (nested && nested.message){
+            messages.push(nested.message);
         }
       }
       
       return messages;
+      }catch(e){
+        console.error(e);
+        return null;
+      }
     },
     
     /*
      * Returns true if the message view is visible.
      */
-    isInMessageView: () => !!DOM.queryReactClass("messages"),
+    isInMessageView: () => !!getMessageContainerElement(),
     
     /*
      * Returns true if there are more messages available or if they're still loading.
      */
     hasMoreMessages: function(){
-      let classes = getTopMessageViewElement().getAttribute("class");
-      return classes.includes("hasMore-") || classes.includes("loadingMore-");
+      let view = getMessageContainerElement();
+      return checkTopSpecialMessageElement(view, "hasMore") || checkTopSpecialMessageElement(view, "loadingMore");
     },
     
     /*
      * Forces the message view to load older messages by scrolling all the way up.
      */
     loadOlderMessages: function(){
-      let view = DOM.queryReactClass("messages");
+      let view = getMessageScrollerElement();
       
       if (view.scrollTop > 0){
-        view.scrollTop = view.scrollHeight / 2;
         view.scrollTop = 0;
       }
     },
@@ -236,7 +253,7 @@ var DISCORD = (function(){
         var isValidChannelType = ele => !!ele.querySelector('path[d="' + channelIconNormal + '"]') || !!ele.querySelector('path[d="' + channelIconSpecial + '"]');
         var isValidChannel = ele => ele.childElementCount > 0 && isValidChannelClass(ele.children[0].className) && isValidChannelType(ele);
         
-        var channelListEle = document.querySelector("div[class*='sidebar'] > div[class*='container'] > div[class*='scrollerWrap'] > div[class*='scroller']");
+        var channelListEle = document.querySelector("div[class*='sidebar'] > nav[class*='container'] > div[class*='scrollerWrap'] > div[class*='scroller']");
         
         if (!channelListEle){
           return false;
@@ -574,7 +591,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>BETA v.18, released 6 Feb 2020</sub>
+<sub>BETA v.19, released 1 Apr 2020</sub>
 </p>`);
       
       // elements
@@ -1134,7 +1151,11 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
     
     let messages = DISCORD.getMessages();
     
-    if (!messages.length){
+    if (messages == null){
+      stopTrackingDelayed();
+      return;
+    }
+    else if (!messages.length){
       DISCORD.loadOlderMessages();
       return;
     }
@@ -1163,7 +1184,11 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
           let updatedInfo = DISCORD.getSelectedChannel();
           
           if (updatedInfo && updatedInfo.id === info.id){
-            STATE.addDiscordMessages(info.id, DISCORD.getMessages()); // sometimes needed to catch the last few messages before switching
+            let lastMessages = DISCORD.getMessages(); // sometimes needed to catch the last few messages before switching
+            
+            if (lastMessages != null){
+              STATE.addDiscordMessages(info.id, lastMessages);
+            }
           }
           
           if ((action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel()) || action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE){
@@ -1180,8 +1205,16 @@ STATE.onStateChanged((type, enabled) => {
     let info = DISCORD.getSelectedChannel();
     
     if (info){
-      STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
-      STATE.addDiscordMessages(info.id, DISCORD.getMessages());
+      let messages = DISCORD.getMessages();
+      
+      if (messages != null){
+        STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
+        STATE.addDiscordMessages(info.id, messages);
+      }
+      else{
+        stopTrackingDelayed(() => alert("Cannot see any messages."));
+        return;
+      }
     }
     else{
       stopTrackingDelayed(() => alert("The selected channel is not visible in the channel list."));
@@ -1227,7 +1260,7 @@ window.setInterval(function(){
     return;
   }
   
-  const help = document.querySelector("div[class^='title'] a[href*='support.discordapp.com']");
+  const help = document.querySelector("section[class^='title'] a[href*='support.discordapp.com']");
   
   if (help){
     help.insertAdjacentHTML("afterend", `
