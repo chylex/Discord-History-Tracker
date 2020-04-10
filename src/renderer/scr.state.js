@@ -96,7 +96,14 @@ var STATE = (function(){
       "name": channels[key].name,
       "server": FILE.getServer(channels[key].server),
       "msgcount": getFilteredMessageKeys(key).length
-    }));
+    })).sort((ac, bc) => {
+      var as = ac.server;
+      var bs = bc.server;
+      
+      return as.type.localeCompare(bs.type, "en") ||
+             as.name.toLocaleLowerCase().localeCompare(bs.name.toLocaleLowerCase(), undefined, { numeric: true }) ||
+             ac.name.toLocaleLowerCase().localeCompare(bc.name.toLocaleLowerCase(), undefined, { numeric: true });
+    });
   };
 
   ROOT.selectChannel = function(channel){
@@ -129,10 +136,10 @@ var STATE = (function(){
       return {
         "user": FILE.getUser(message.u),
         "timestamp": message.t,
-        "contents": message.m,
+        "contents": ("m" in message) ? message.m : null,
         "embeds": message.e,
         "attachments": message.a,
-        "edited": (message.f&1) === 1
+        "edit": ("te" in message) ? message.te : (message.f & 1) === 1
       };
     });
   };
@@ -233,7 +240,24 @@ var STATE = (function(){
   
   ROOT.settings = {};
   
-  var defineSettingProperty = (property, defaultValue) => {
+  var getStorageItem = (property) => {
+    try{
+      return localStorage.getItem(property);
+    }catch(e){
+      console.error(e);
+      return null;
+    }
+  };
+  
+  var setStorageItem = (property, value) => {
+    try{
+      localStorage.setItem(property, value);
+    }catch(e){
+      console.error(e);
+    }
+  };
+  
+  var defineSettingProperty = (property, defaultValue, storageToValue) => {
     var name = "_"+property;
     
     Object.defineProperty(ROOT.settings, property, {
@@ -241,14 +265,28 @@ var STATE = (function(){
       set: (value => {
         ROOT.settings[name] = value;
         triggerMessagesRefreshed();
+        setStorageItem(property, value);
       })
     });
     
-    ROOT.settings[name] = defaultValue;
-  }
+    var stored = getStorageItem(property);
+    
+    if (stored !== null){
+      stored = storageToValue(stored);
+    }
+    
+    ROOT.settings[name] = stored === null ? defaultValue : stored;
+  };
   
-  defineSettingProperty("enableImagePreviews", true);
-  defineSettingProperty("enableFormatting", true);
+  var fromBooleanString = (value) => {
+    if (value === "true") return true;
+    if (value === "false") return false;
+    return null;
+  };
+  
+  defineSettingProperty("enableImagePreviews", true, fromBooleanString);
+  defineSettingProperty("enableFormatting", true, fromBooleanString);
+  defineSettingProperty("enableAnimatedEmoji", true, fromBooleanString);
   
   // End
   return ROOT;

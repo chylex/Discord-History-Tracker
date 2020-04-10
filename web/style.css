@@ -1,11 +1,11 @@
 body {
-  font-family: Whitney, "Helvetica Neue", Helvetica, Verdana, "Lucida Grande", sans-serif;
+  font-family: Whitney, "Helvetica Neue", Helvetica, Arial, sans-serif;
   margin: 0;
   padding: 0;
   font-size: 18px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 1px 1px 0 #111;
   color: rgba(255, 255, 255, 0.8);
-  background-color: #3F4145;
+  background-color: #3B3E45;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
 }
@@ -22,7 +22,7 @@ p {
 }
 
 a {
-  color: #0BA0D9;
+  color: #0EB3E0;
   text-decoration: none;
 }
 
@@ -30,11 +30,19 @@ a:hover {
   text-decoration: underline;
 }
 
+h1, h2 {
+  text-shadow: 1px 1px 2px #000;
+}
+
+h3, h4 {
+  text-shadow: 1px 1px 1px #000;
+}
+
 h1 {
   margin: 40px 0 16px;
   font-size: 44px;
-  color: rgba(255, 255, 255, 0.6);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  color: #8aa2f6;
+  text-shadow: 1px 1px 2px #000;
 }
 
 h1 span {
@@ -42,13 +50,13 @@ h1 span {
 }
 
 h1 span.version {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 h1 span.bar {
   font-size: 20px;
   vertical-align: 10%;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 h1 span.notes {
@@ -58,15 +66,13 @@ h1 span.notes {
 h2 {
   margin: 36px 0 0;
   font-size: 32px;
-  color: rgba(255, 255, 255, 0.7);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  color: #ffb67b;
 }
 
 h3 {
   margin: 24px 0 0;
   font-size: 22px;
-  color: rgba(255, 255, 255, 0.65);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 h2 + h3, h3 + h4 {
@@ -76,8 +82,7 @@ h2 + h3, h3 + h4 {
 h4 {
   margin: 22px 0 0;
   font-size: 19px;
-  color: rgba(255, 255, 255, 0.6);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 ul, ol {

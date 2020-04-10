@@ -8,7 +8,10 @@ enableImagePreviews
 _enableImagePreviews
 enableFormatting
 _enableFormatting
+enableAnimatedEmoji
+_enableAnimatedEmoji
 DHT_LOADED
+DHT_EMBEDDED
 meta
 data
 users
@@ -23,7 +26,9 @@ e
 a
 t
 d
+te
 author
+state
 id
 username
 timestamp
@@ -40,3 +45,4 @@ props
 children
 channel
 messages
+msSaveBlob

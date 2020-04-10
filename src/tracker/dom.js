@@ -63,7 +63,13 @@ var DOM = (function(){
      * Triggers a UTF-8 text file download.
      */
     downloadTextFile: (fileName, fileContents) => {
-      var url = window.URL.createObjectURL(new Blob([fileContents], { "type": "octet/stream" }));
+      var blob = new Blob([fileContents], { "type": "octet/stream" });
+      
+      if ("msSaveBlob" in window.navigator){
+        return window.navigator.msSaveBlob(blob, fileName);
+      }
+      
+      var url = window.URL.createObjectURL(blob);
       
       var ele = createElement("a", document.body);
       ele.href = url;

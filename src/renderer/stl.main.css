@@ -6,6 +6,10 @@ body {
   overflow: hidden;
 }
 
+body.embedded .hide-embedded {
+  display: none;
+}
+
 #menu {
   width: 100%;
   height: 48px;

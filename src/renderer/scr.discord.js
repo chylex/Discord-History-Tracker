@@ -14,13 +14,20 @@ var DISCORD = (function(){
     specialUnescaped: /([*_~\\])/g,
     mentionRole: /&lt;@&(\d+?)&gt;/g,
     mentionUser: /&lt;@!?(\d+?)&gt;/g,
-    mentionChannel: /&lt;#(\d+?)&gt;/g
+    mentionChannel: /&lt;#(\d+?)&gt;/g,
+    customEmojiStatic: /&lt;:([^:]+):(\d+?)&gt;/g,
+    customEmojiAnimated: /&lt;a:([^:]+):(\d+?)&gt;/g
   };
   
   var isImageAttachment = function(attachment){
     var dot = attachment.url.lastIndexOf(".");
     var ext = dot === -1 ? "" : attachment.url.substring(dot).toLowerCase();
     return ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg";
+  };
+  
+  var getHumanReadableTime = function(timestamp){
+    var date = new Date(timestamp);
+    return date.toLocaleDateString() + ", " + date.toLocaleTimeString();
   };
   
   var templateChannelServer;
@@ -50,7 +57,7 @@ var DISCORD = (function(){
       
       templateMessage = new TEMPLATE([
         "<div>",
-        "<h2><strong class='username'>{user.name}</strong><span class='info time'>{timestamp}</span>{edited}</h2>",
+        "<h2><strong class='username'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}</h2>",
         "<div class='message'>{contents}{embeds}{attachments}</div>",
         "</div>"
       ].join(""));
@@ -93,11 +100,10 @@ var DISCORD = (function(){
     getMessageHTML: function(message){
       return templateMessage.apply(message, (property, value) => {
         if (property === "timestamp"){
-          var date = new Date(value);
-          return date.toLocaleDateString()+", "+date.toLocaleTimeString();
+          return getHumanReadableTime(value);
         }
         else if (property === "contents"){
-          if (value.length === 0){
+          if (value == null || value.length === 0){
             return "";
           }
           
@@ -118,10 +124,14 @@ var DISCORD = (function(){
               .replace(REGEX.formatStrike, "<s>$1</s>");
           }
           
+          var animatedEmojiExtension = STATE.settings.enableAnimatedEmoji ? "gif" : "png";
+          
           processed = processed
             .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
             .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
-            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>");
+            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>")
+            .replace(REGEX.customEmojiStatic, "<img src='https://cdn.discordapp.com/emojis/$2.png' alt=':$1:' title=':$1:' class='emoji'>")
+            .replace(REGEX.customEmojiAnimated, "<img src='https://cdn.discordapp.com/emojis/$2."+animatedEmojiExtension+"' alt=':$1:' title=':$1:' class='emoji'>");
           
           return "<p>"+processed+"</p>";
         }
@@ -159,8 +169,8 @@ var DISCORD = (function(){
             }
           }).join("");
         }
-        else if (property === "edited"){
-          return value ? "<span class='info edited'>(edited)</span>" : "";
+        else if (property === "edit"){
+          return value ? "<span class='info edited'>(edited" + (value > 1 ? " " + getHumanReadableTime(value) : "") + ")</span>" : "";
         }
       });
     }

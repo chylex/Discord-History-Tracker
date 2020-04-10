@@ -24,18 +24,18 @@
       
       <h4>Option 1: Userscript</h4>
       <div class="quote">
-        <p><strong>Preferred option.</strong> It requires a browser addon, but will keep DHT updated and make it easily accessible on the Discord website.</p>
+        <p><strong>Preferred option.</strong> Requires a browser addon, but DHT will stay up-to-date and be easily accessible on the Discord website.</p>
         
         <ol>
-          <li>Install a userscript manager addon if you don't already have one:
+          <li>Install a userscript manager addon:
             <ul>
-              <li><a href="https://violentmonkey.github.io/get-it/">Violentmonkey</a> (Firefox, Chrome)</li>
-              <li><a href="https://tampermonkey.net/">Tampermonkey</a> (Edge, Opera, Safari)</li>
-              <li><a href="https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/">Greasemonkey</a> (Firefox) may work, but is not recommended as it doesn't work with many userscripts</li>
+              <li><a href="https://violentmonkey.github.io/get-it/">Violentmonkey</a> (Chrome)</li>
+              <li><a href="https://tampermonkey.net/">Tampermonkey</a> (Firefox, Edge, Chrome, Opera)</li>
+              <li>Due to browser bugs / limitations, DHT will not work in <strong>Firefox</strong> with Greasemonkey / Violentmonkey, and in <strong>Safari</strong> at all</li>
             </ul>
           </li>
           <li>Click <a href="build/track.user.js">Install Userscript</a> to prompt an installation into the userscript manager</li>
-          <li>Open <a href="https://discordapp.com/channels/@me">Discord</a>, and view any server, group, or private conversation (it will not work in Friends list)</li>
+          <li>Open <a href="https://discordapp.com/channels/@me" rel="noreferrer">Discord</a>, and view any server, group, or private conversation (it will not appear in Friends list)</li>
           <li>Click <strong>DHT</strong> in the top right corner:<br><img src="img/button.png" class="bordered"></li>
         </ol>
       </div>
@@ -45,7 +45,7 @@
         <p>The console is the only way to use DHT directly in the desktop app.</p>
         
         <ol>
-          <li>Click <a href="javascript:" id="tracker-copy-button">Copy to Clipboard</a> to copy the script<noscript> (requires JavaScript)</noscript></li>
+          <li>Click <a href="javascript:" id="tracker-copy-button" onauxclick="return false;">Copy to Clipboard</a> to copy the script<noscript> (requires JavaScript)</noscript></li>
           <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> in your browser or the Discord app, and select the <strong>Console</strong> tab</li>
           <li>Paste the script into the console, and press <strong>Enter</strong> to run it</li>
           <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> again to close the console</li>
@@ -53,6 +53,23 @@
         
         <p id="tracker-copy-issue">Your browser may not support copying to clipboard, please try copying the script manually:</p>
         <textarea id="tracker-copy-contents"><?php include "./build/track.html"; ?></textarea>
+      </div>
+      
+      <h4>Option 3: Bookmarklet</h4>
+      <div class="quote">
+        <p>Requires Firefox 69 or newer.</p>
+        
+        <ol>
+          <li>Right-click <a href="<?php include "./build/track.html"; ?>" onclick="return false;" onauxclick="return false;">Discord History Tracker</a></li>
+          <li>Select &laquo;Bookmark This Link&raquo; and save the bookmark</li>
+          <li>Open <a href="https://discordapp.com/channels/@me" rel="noreferrer">Discord</a> and click the bookmark to run the script</li>
+        </ol>
+      </div>
+      
+      <h4>Old Versions</h4>
+      <div class="quote">
+        <p>Whenever DHT is fixed to work with a recent Discord update, it will no longer work on the previous version of Discord.</p>
+        <p>If you haven't received that Discord update yet, see <a href="https://github.com/chylex/Discord-History-Tracker/wiki/Release-Notes">Release Notes</a> for information about recent updates, and <a href="https://github.com/chylex/Discord-History-Tracker/wiki/Old-Versions">Old Versions</a> if you need to use an older version of DHT.</p>
       </div>
       
       <h3>Using the Script</h3>
@@ -68,7 +85,8 @@
         <a href="https://github.com/chylex/Discord-History-Tracker/issues">Issues&nbsp;&amp;&nbsp;Suggestions</a>&nbsp;&nbsp;&mdash;&nbsp;
         <a href="https://github.com/chylex/Discord-History-Tracker">Source&nbsp;Code</a>&nbsp;&nbsp;&mdash;&nbsp;
         <a href="https://twitter.com/chylexmc">Follow&nbsp;Dev&nbsp;on&nbsp;Twitter</a>&nbsp;&nbsp;&mdash;&nbsp;
-        <a href="https://www.patreon.com/chylex">Support&nbsp;Development&nbsp;on&nbsp;Patreon</a>
+        <a href="https://www.patreon.com/chylex">Support&nbsp;via&nbsp;Patreon</a>&nbsp;&nbsp;&mdash;&nbsp;
+        <a href="https://ko-fi.com/chylex">Support&nbsp;via&nbsp;Ko-fi</a>
       </p>
       
       <h2>Disclaimer</h2>

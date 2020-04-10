@@ -7,13 +7,13 @@ var PROCESSOR = {};
 PROCESSOR.FILTER = {
   byUser: ((userindex) => message => message.u === userindex),
   byTime: ((timeStart, timeEnd) => message => message.t >= timeStart && message.t <= timeEnd),
-  byContents: ((substr) => message => message.m.indexOf(substr) !== -1),
-  byRegex: ((regex) => message => regex.test(message.m)),
+  byContents: ((substr) => message => ("m" in message ? message.m : "").indexOf(substr) !== -1),
+  byRegex: ((regex) => message => regex.test("m" in message ? message.m : "")),
   withImages: (() => message => (message.e && message.e.some(embed => embed.type === "image")) || (message.a && message.a.some(DISCORD.isImageAttachment))),
   withDownloads: (() => message => message.a && message.a.some(attachment => !DISCORD.isImageAttachment(attachment))),
   withEmbeds: (() => message => message.e && message.e.length > 0),
   withAttachments: (() => message => message.a && message.a.length > 0),
-  isEdited: (() => message => (message.f&1) === 1)
+  isEdited: (() => message => ("te" in message) ? message.te : (message.f & 1) === 1)
 };
 
 // --------------

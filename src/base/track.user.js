@@ -31,7 +31,7 @@ window.setInterval(function(){
     return;
   }
   
-  const help = document.querySelector("div[class^='title'] a[href*='support.discordapp.com']");
+  const help = document.querySelector("section[class^='title'] a[href*='support.discordapp.com']");
   
   if (help){
     help.insertAdjacentHTML("afterend", `
