@@ -4,7 +4,7 @@ var DISCORD = (function(){
   };
   
   var getMessageScrollerElement = function(){
-    return getMessageContainerElement().closest("[class*='scroller']");
+    return getMessageContainerElement().closest("[class*='scroller-']");
   };
   
   var checkTopSpecialMessageElement = function(view, cls){
