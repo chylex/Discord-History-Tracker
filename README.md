@@ -25,8 +25,6 @@ Now you can modify the source code:
 After you've done changes to the source code, you will need to build it. Before that, download and install:
 * (**required**) [Python 3](https://www.python.org/downloads)
   * Use to run the build script
-* (optional) [Java 7+](https://www.java.com/inc/BrowserRedirect1.jsp) / [OpenJDK 7+](http://openjdk.java.net/install/index.html)
-  * Only required for optional [CSS minification](#Minification)
 * (optional) [Node + npm](https://nodejs.org/en) & command line [uglify-es](https://www.npmjs.com/package/uglify-es)
   * Not required on Windows
   * Only required for optional [JS minification](#Minification) on Linux/Mac
@@ -41,11 +39,9 @@ You can tweak the build process using the following flags:
 
 ### Minification
 
-The build process automatically minifies the CSS using `YUI Compressor` and JS files using `UglifyJS@3`.
+The build process automatically minifies JS using `UglifyJS@3`, and CSS using a custom minifier.
 
 * If the `--nominify` flag is used, minification will be completely disabled
-* If Java is not available from the command line, CSS minification will be skipped
-  * You can check whether you have installed Java correctly by running `java -version` in the command line, and making sure the version is `1.7.xyz` or higher
 * If `uglify-es` is not available from the command line, JS minification will be skipped
   * When building on Windows 64-bit, the build script will use the included Node runner and packages
   * When building on Windows 32-bit, you will need to download [Node 32-bit](https://nodejs.org/en/download) and replace the included one in `lib/`
