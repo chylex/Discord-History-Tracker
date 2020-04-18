@@ -132,11 +132,11 @@ def build_tracker_userscript():
     out.write(userscript_contents[1])
 
 
-def build_renderer():
+def build_viewer():
   output_file = "bld/viewer.html"
-  input_html = "src/renderer/index.html"
+  input_html = "src/viewer/index.html"
   
-  input_css_pattern = "src/renderer/*.css"
+  input_css_pattern = "src/viewer/styles/*.css"
   tmp_css_file_combined = "bld/viewer.tmp.css"
   tmp_css_file_minified = "bld/viewer.min.css"
   
@@ -146,7 +146,7 @@ def build_renderer():
   minify_css(tmp_css_file_combined, tmp_css_file_minified)
   os.remove(tmp_css_file_combined)
   
-  input_js_pattern = "src/renderer/*.js"
+  input_js_pattern = "src/viewer/scripts/*.js"
   tmp_js_file_combined = "bld/viewer.tmp.js"
   tmp_js_file_minified = "bld/viewer.min.js"
   
@@ -213,8 +213,8 @@ build_tracker_html()
 print("Building tracker userscript...")
 build_tracker_userscript()
 
-print("Building renderer...")
-build_renderer()
+print("Building viewer...")
+build_viewer()
 
 if BUILD_WEBSITE:
   print("Building website...")

@@ -16,7 +16,7 @@ Fork the repository and clone it to your computer (if you've never used git, you
 
 Now you can modify the source code:
 * `src/tracker/` contains JS files that are automatically combined into the **tracker bookmark/script**
-* `src/renderer/` contains HTML, CSS, JS files that are then combined into the **offline viewer page**
+* `src/viewer/` contains HTML, CSS, JS files that are then combined into the **offline viewer page**
 * `lib/` contains utilities required to build the project
 * `web/` contains source code of the [official website](https://dht.chylex.com), which can be used as a template when making your own website
 
