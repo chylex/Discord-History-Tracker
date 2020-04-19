@@ -70,7 +70,14 @@ var GUI = (function(){
       var inputUploadedFile = DOM.id("uploaded-file");
       var inputMessageFilter = DOM.id("opt-messages-filter");
       var containerFilterList = DOM.id("opt-filter-list");
-
+      
+      var resetActiveFilter = function(){
+        inputMessageFilter.value = "";
+        inputMessageFilter.dispatchEvent(new Event("change"));
+        
+        DOM.id("opt-filter-contents").value = "";
+      };
+      
       DOM.id("btn-upload-file").addEventListener("click", () => {
         inputUploadedFile.click();
       });
@@ -78,11 +85,7 @@ var GUI = (function(){
       inputUploadedFile.addEventListener("change", () => {
         if (eventOnFileUploaded && eventOnFileUploaded(inputUploadedFile.files)){
           inputUploadedFile.value = null;
-          
-          inputMessageFilter.value = "";
-          inputMessageFilter.dispatchEvent(new Event("change"));
-          
-          DOM.id("opt-filter-contents").value = "";
+          resetActiveFilter();
         }
       });
       
@@ -120,6 +123,17 @@ var GUI = (function(){
       
       DOM.id("btn-about").addEventListener("click", () => {
         showInfoModal();
+      });
+      
+      DOM.id("messages").addEventListener("click", e => {
+        var jump = e.target.getAttribute("data-jump");
+        
+        if (jump){
+          resetActiveFilter();
+          
+          var index = STATE.navigateToMessage(jump);
+          DOM.id("messages").children[index].scrollIntoView();
+        }
       });
       
       DOM.id("overlay").addEventListener("click", () => {

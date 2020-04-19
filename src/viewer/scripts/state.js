@@ -139,14 +139,33 @@ var STATE = (function(){
         "contents": ("m" in message) ? message.m : null,
         "embeds": message.e,
         "attachments": message.a,
-        "edit": ("te" in message) ? message.te : (message.f & 1) === 1
+        "edit": ("te" in message) ? message.te : (message.f & 1) === 1,
+        "jump": key
       };
     });
+  };
+  
+  ROOT.navigateToMessage = function(id){
+    if (!MSGS){
+      return 0;
+    }
+    
+    var index = MSGS.indexOf(id);
+    
+    if (index == -1){
+      return 0;
+    }
+    
+    currentPage = Math.max(1, Math.min(ROOT.getPageCount(), 1 + Math.floor(index / messagesPerPage)));
+    triggerMessagesRefreshed();
+    return index % messagesPerPage;
   };
 
   // ----------
   // Filtering
   // ----------
+  
+  ROOT.hasActiveFilter = false;
   
   ROOT.setActiveFilter = function(filter){
     switch(filter ? filter.type : ""){
@@ -174,6 +193,8 @@ var STATE = (function(){
         filterFunction = null;
         break;
     }
+    
+    ROOT.hasActiveFilter = filterFunction != null;
     
     triggerChannelsRefreshed(selectedChannel);
     
