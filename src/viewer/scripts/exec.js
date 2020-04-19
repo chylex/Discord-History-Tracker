@@ -64,6 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (files.length === 1){
         var file = files[0];
         var reader = new FileReader();
+        
+        STATE.setUploadedFileName(file.name);
 
         reader.onload = () => loadJSON(reader.result, "Could not parse '"+file.name+"', see console for details.", "File '"+file.name+"' has an invalid format.");
         reader.readAsText(file, "UTF-8");

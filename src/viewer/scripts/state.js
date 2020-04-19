@@ -8,6 +8,7 @@ var STATE = (function(){
   var FILE;
   var MSGS;
   
+  var uploadedFileName;
   var filterFunction;
   var selectedChannel;
   var currentPage;
@@ -59,6 +60,10 @@ var STATE = (function(){
     triggerUsersRefreshed();
     triggerChannelsRefreshed();
     triggerMessagesRefreshed();
+  };
+  
+  ROOT.setUploadedFileName = function(name){
+    uploadedFileName = name;
   };
 
   ROOT.getChannelName = function(channel){
@@ -201,6 +206,21 @@ var STATE = (function(){
     if (selectedChannel){
       ROOT.selectChannel(selectedChannel); // resets current page and updates messages
     }
+  };
+  
+  ROOT.saveFilteredMessages = function(){
+    var saveFileName = "dht-filtered.txt";
+    
+    if (uploadedFileName){
+      if (uploadedFileName.includes("filtered")){
+        saveFileName = uploadedFileName;
+      }
+      else{
+        saveFileName = uploadedFileName.replace(".", "-filtered.");
+      }
+    }
+    
+    DOM.downloadTextFile(saveFileName, FILE.filterToJson(filterFunction));
   };
   
   // -----

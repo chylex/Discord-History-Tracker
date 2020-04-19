@@ -14,7 +14,10 @@ var GUI = (function(){
   };
   
   var triggerFilterChanged = function(){
-    eventOnOptMessageFilterChanged && eventOnOptMessageFilterChanged(getActiveFilter());
+    var activeFilter = getActiveFilter();
+    DOM.id("opt-save-filtered").classList.toggle("active", activeFilter != null);
+    
+    eventOnOptMessageFilterChanged && eventOnOptMessageFilterChanged(activeFilter);
   };
   
   var showModal = function(width, html){
@@ -76,6 +79,7 @@ var GUI = (function(){
         inputMessageFilter.dispatchEvent(new Event("change"));
         
         DOM.id("opt-filter-contents").value = "";
+        DOM.id("opt-save-filtered").classList.remove("active");
       };
       
       DOM.id("btn-upload-file").addEventListener("click", () => {
@@ -107,6 +111,12 @@ var GUI = (function(){
       
       DOM.id("opt-messages-per-page").addEventListener("change", () => {
         eventOnOptMessagesPerPageChanged && eventOnOptMessagesPerPageChanged();
+      });
+      
+      DOM.id("btn-save-filtered").addEventListener("click", () => {
+        if (confirm("Filtering only removes messages, all users and servers will remain in the new archive. Continue?")){
+          STATE.saveFilteredMessages();
+        }
       });
 
       DOM.tag("button", DOM.fcls("nav")).forEach(button => {

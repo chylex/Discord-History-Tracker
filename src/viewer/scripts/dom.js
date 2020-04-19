@@ -1,4 +1,10 @@
 var DOM = (function(){
+  var createElement = (tag, parent) => {
+    var ele = document.createElement(tag);
+    parent.appendChild(ele);
+    return ele;
+  };
+  
   var entityMap = {
     "&": "&amp;",
     "<": "&lt;",
@@ -33,11 +39,7 @@ var DOM = (function(){
     /*
      * Creates an element, adds it to the DOM, and returns it.
      */
-    createElement: (tag, parent) => {
-      var ele = document.createElement(tag);
-      parent.appendChild(ele);
-      return ele;
-    },
+    createElement: (tag, parent) => createElement(tag, parent),
     
     /*
      * Removes an element from the DOM.
@@ -47,6 +49,29 @@ var DOM = (function(){
     /*
      * Converts characters to their HTML entity form.
      */
-    escapeHTML: (html) => String(html).replace(entityRegex, s => entityMap[s])
+    escapeHTML: (html) => String(html).replace(entityRegex, s => entityMap[s]),
+    
+    /*
+     * Triggers a UTF-8 text file download.
+     */
+    downloadTextFile: (fileName, fileContents) => {
+      var blob = new Blob([fileContents], { "type": "octet/stream" });
+      
+      if ("msSaveBlob" in window.navigator){
+        return window.navigator.msSaveBlob(blob, fileName);
+      }
+      
+      var url = window.URL.createObjectURL(blob);
+      
+      var ele = createElement("a", document.body);
+      ele.href = url;
+      ele.download = fileName;
+      ele.style.display = "none";
+      
+      ele.click();
+      
+      document.body.removeChild(ele);
+      window.URL.revokeObjectURL(url);
+    }
   };
 })();

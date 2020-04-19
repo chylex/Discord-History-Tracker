@@ -72,3 +72,11 @@
 #opt-filter-list > .active {
   display: block;
 }
+
+#opt-save-filtered {
+  display: flex;
+}
+
+#opt-save-filtered:not(.active) {
+  display: none;
+}
