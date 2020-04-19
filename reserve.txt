@@ -28,6 +28,7 @@ t
 d
 te
 author
+type
 state
 id
 username
