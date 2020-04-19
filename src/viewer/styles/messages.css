@@ -20,22 +20,22 @@
   color: #FFF;
   font-size: 15px;
   font-weight: 600;
+  margin-right: 3px;
   letter-spacing: 0;
 }
 
 #messages .info {
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0;
 }
 
-#messages .time {
-  margin-left: 10px;
-}
-
-#messages .edited {
-  margin-left: 5px;
+#messages .info::before {
+  content: "\2022";
+  text-align: center;
+  display: inline-block;
+  width: 14px;
 }
 
 .message {

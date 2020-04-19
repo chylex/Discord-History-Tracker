@@ -170,7 +170,7 @@ var DISCORD = (function(){
           }).join("");
         }
         else if (property === "edit"){
-          return value ? "<span class='info edited'>(edited" + (value > 1 ? " " + getHumanReadableTime(value) : "") + ")</span>" : "";
+          return value ? "<span class='info edited'>Edited" + (value > 1 ? " " + getHumanReadableTime(value) : "") + "</span>" : "";
         }
       });
     }
