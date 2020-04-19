@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      BETA v.20
+// @version      v.21
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -281,6 +281,7 @@ var DISCORD = (function(){
     }
   };
 })();
+
 var DOM = (function(){
   var createElement = (tag, parent, id, html) => {
     var ele = document.createElement(tag);
@@ -366,6 +367,7 @@ var DOM = (function(){
     }
   };
 })();
+
 var GUI = (function(){
   var controller;
   var settings;
@@ -591,7 +593,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>BETA v.20, released 18 Apr 2020</sub>
+<sub>v.21, released 19 Apr 2020</sub>
 </p>`);
       
       // elements
@@ -643,6 +645,7 @@ It is recommended to disable link and image previews to avoid putting unnecessar
   
   return root;
 })();
+
 /*
  * SAVEFILE STRUCTURE
  * ==================
@@ -859,7 +862,7 @@ class SAVEFILE{
     var hasNewMessages = false;
     
     for(var discordMessage of discordMessageArray){
-      if (discordMessage.state === "SENT" && this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage))){
+      if (discordMessage.type === 0 && discordMessage.state === "SENT" && this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage))){
         this.tmp.freshmsgs.add(discordMessage.id);
         hasNewMessages = true;
       }
@@ -924,6 +927,7 @@ class SAVEFILE{
     });
   }
 }
+
 var CONSTANTS = {
   AUTOSCROLL_ACTION_NOTHING: "optNothing",
   AUTOSCROLL_ACTION_PAUSE: "optPause",
@@ -988,6 +992,7 @@ var SETTINGS = (function(){
   
   return root;
 })();
+
 var STATE = (function(){
   var stateChangedEvents = [];
   
@@ -1107,6 +1112,7 @@ var STATE = (function(){
   
   return new CLS();
 })();
+
 if (!window.location.href.includes("discordapp.com/")){
   if (!confirm("Could not detect Discord in the URL, do you want to run the script anyway?")){
     return;
