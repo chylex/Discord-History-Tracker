@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.21
+// @version      v.22
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
 // @supportURL   https://github.com/chylex/Discord-History-Tracker/issues
-// @include      https://discordapp.com/*
+// @include      https://discord.com/*
 // @run-at       document-idle
 // @grant        none
 // ==/UserScript==
@@ -593,7 +593,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.21, released 19 Apr 2020</sub>
+<sub>v.22, released 6 May 2020</sub>
 </p>`);
       
       // elements
@@ -1113,7 +1113,7 @@ var STATE = (function(){
   return new CLS();
 })();
 
-if (!window.location.href.includes("discordapp.com/")){
+if (!window.location.href.includes("discord.com/")){
   if (!confirm("Could not detect Discord in the URL, do you want to run the script anyway?")){
     return;
   }
@@ -1266,7 +1266,7 @@ window.setInterval(function(){
     return;
   }
   
-  const help = document.querySelector("section[class^='title'] a[href*='support.discordapp.com']");
+  const help = document.querySelector("section[class^='title'] a[href*='support.discord.com']");
   
   if (help){
     help.insertAdjacentHTML("afterend", `
