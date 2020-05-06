@@ -5,7 +5,7 @@
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
 // @supportURL   https://github.com/chylex/Discord-History-Tracker/issues
-// @include      https://discordapp.com/*
+// @include      https://discord.com/*
 // @run-at       document-idle
 // @grant        none
 // ==/UserScript==
@@ -31,7 +31,7 @@ window.setInterval(function(){
     return;
   }
   
-  const help = document.querySelector("section[class^='title'] a[href*='support.discordapp.com']");
+  const help = document.querySelector("section[class^='title'] a[href*='support.discord.com']");
   
   if (help){
     help.insertAdjacentHTML("afterend", `

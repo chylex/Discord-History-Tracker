@@ -1,4 +1,4 @@
-if (!window.location.href.includes("discordapp.com/")){
+if (!window.location.href.includes("discord.com/")){
   if (!confirm("Could not detect Discord in the URL, do you want to run the script anyway?")){
     return;
   }

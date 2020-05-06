@@ -35,7 +35,7 @@
             </ul>
           </li>
           <li>Click <a href="build/track.user.js">Install Userscript</a> to prompt an installation into the userscript manager</li>
-          <li>Open <a href="https://discordapp.com/channels/@me" rel="noreferrer">Discord</a>, and view any server, group, or private conversation (it will not appear in Friends list)</li>
+          <li>Open <a href="https://discord.com/channels/@me" rel="noreferrer">Discord</a>, and view any server, group, or private conversation (it will not appear in Friends list)</li>
           <li>Click <strong>DHT</strong> in the top right corner:<br><img src="img/button.png" class="bordered"></li>
         </ol>
       </div>
@@ -62,7 +62,7 @@
         <ol>
           <li>Right-click <a href="<?php include "./build/track.html"; ?>" onclick="return false;" onauxclick="return false;">Discord History Tracker</a></li>
           <li>Select &laquo;Bookmark This Link&raquo; and save the bookmark</li>
-          <li>Open <a href="https://discordapp.com/channels/@me" rel="noreferrer">Discord</a> and click the bookmark to run the script</li>
+          <li>Open <a href="https://discord.com/channels/@me" rel="noreferrer">Discord</a> and click the bookmark to run the script</li>
         </ol>
       </div>
       

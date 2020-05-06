@@ -1,6 +1,6 @@
 # Welcome
 
-All you need to **use Discord History Tracker** is either an up-to-date browser, or the [Discord desktop client](https://discordapp.com/download). Visit the [official website](https://dht.chylex.com) for instructions.
+All you need to **use Discord History Tracker** is either an up-to-date browser, or the [Discord desktop client](https://discord.com/download). Visit the [official website](https://dht.chylex.com) for instructions.
 
 To **report an issue or suggestion**, first please see the [issues](https://github.com/chylex/Discord-History-Tracker/issues) page and make sure someone else hasn't already created a similar issue report. If you do find an existing issue, comment on it or add a reaction. Otherwise, either click [New Issue](https://github.com/chylex/Discord-History-Tracker/issues/new), or contact me via email [contact@chylex.com](mailto:contact@chylex.com) or Twitter [@chylexmc](https://twitter.com/chylexmc).
 
