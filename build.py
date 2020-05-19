@@ -9,8 +9,8 @@ import re
 import distutils.dir_util
 
 
-VERSION_SHORT = "v.22"
-VERSION_FULL = VERSION_SHORT + ", released 6 May 2020"
+VERSION_SHORT = "v.23"
+VERSION_FULL = VERSION_SHORT + ", released 19 May 2020"
 
 
 EXEC_UGLIFYJS_WIN = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""

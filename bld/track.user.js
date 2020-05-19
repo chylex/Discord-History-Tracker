@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.22
+// @version      v.23
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -14,7 +14,7 @@ const start = function(){
 
 var DISCORD = (function(){
   var getMessageContainerElement = function(){
-    return document.querySelector("[data-ref-id='messages']");
+    return DOM.id("messages") || document.querySelector("[data-ref-id='messages']");
   };
   
   var getMessageScrollerElement = function(){
@@ -143,7 +143,7 @@ var DISCORD = (function(){
             "server": name,
             "channel": name,
             "id": link,
-            "type": (icon && icon.src.includes("/channel-icons/")) ? "GROUP" : "DM"
+            "type": (icon && (icon.src.includes("/channel-icons/") || icon.src.includes("/assets/"))) ? "GROUP" : "DM"
           };
         }
         else{
@@ -593,7 +593,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.22, released 6 May 2020</sub>
+<sub>v.23, released 19 May 2020</sub>
 </p>`);
       
       // elements
