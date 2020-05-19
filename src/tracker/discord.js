@@ -1,6 +1,6 @@
 var DISCORD = (function(){
   var getMessageContainerElement = function(){
-    return document.querySelector("[data-ref-id='messages']");
+    return DOM.id("messages") || document.querySelector("[data-ref-id='messages']");
   };
   
   var getMessageScrollerElement = function(){
