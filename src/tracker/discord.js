@@ -129,7 +129,7 @@ var DISCORD = (function(){
             "server": name,
             "channel": name,
             "id": link,
-            "type": (icon && icon.src.includes("/channel-icons/")) ? "GROUP" : "DM"
+            "type": (icon && (icon.src.includes("/channel-icons/") || icon.src.includes("/assets/"))) ? "GROUP" : "DM"
           };
         }
         else{
