@@ -43,6 +43,15 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+.user-icon {
+  float: left;
+  margin-right: 10px;
+  width: 48px;
+  border-radius: 50%;
+  padding-top: 3px;
+}
+.user-icon img { width: 48px; }
+.message-container { clear: both; }
 
 .message {
   margin-top: 6px;

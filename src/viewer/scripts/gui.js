@@ -38,6 +38,7 @@ var GUI = (function(){
     showModal(560, `
 <label><input id='dht-cfg-imgpreviews' type='checkbox'> Image Previews</label><br>
 <label><input id='dht-cfg-formatting' type='checkbox'> Message Formatting</label><br>
+<label><input id='dht-cfg-usericons' type='checkbox'> User Icons</label><br>
 <label><input id='dht-cfg-animemoji' type='checkbox'> Animated Emoji</label><br>`);
     
     var setupCheckBox = function(id, settingName){
@@ -48,6 +49,7 @@ var GUI = (function(){
     
     setupCheckBox("dht-cfg-imgpreviews", "enableImagePreviews");
     setupCheckBox("dht-cfg-formatting", "enableFormatting");
+    setupCheckBox("dht-cfg-usericons", "enableUserIcons");
     setupCheckBox("dht-cfg-animemoji", "enableAnimatedEmoji");
   };
   

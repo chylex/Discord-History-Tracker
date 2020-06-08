@@ -10,6 +10,8 @@ enableFormatting
 _enableFormatting
 enableAnimatedEmoji
 _enableAnimatedEmoji
+enableUserIcons
+_enableUserIcons
 DHT_LOADED
 DHT_EMBEDDED
 meta

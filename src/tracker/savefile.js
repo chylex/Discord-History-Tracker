@@ -7,6 +7,7 @@
  *     users: {
  *       <discord user id>: {
  *         name: <user name>,
+ *         avatar: <user icon>,
  *         tag: <user discriminator> // only present if not a bot
  *       }, ...
  *     },
@@ -27,7 +28,10 @@
  *     channels: {
  *       <discord channel id>: {
  *         server: <server index in the meta.servers array>,
- *         name: <channel name>
+ *         position: <order in server channel list>,
+ *         name: <channel name>,
+ *         topic: <channel topic>, // TODO
+ *         nsfw: <channel NSFW status>
  *       }, ...
  *     }
  *   },
@@ -103,7 +107,7 @@ class SAVEFILE{
     return parsedObj && typeof parsedObj.meta === "object" && typeof parsedObj.data === "object";
   }
   
-  findOrRegisterUser(userId, userName, userDiscriminator){
+  findOrRegisterUser(userId, userName, userDiscriminator, userAvatar){
     if (!(userId in this.meta.users)){
       this.meta.users[userId] = {
         "name": userName
@@ -111,6 +115,10 @@ class SAVEFILE{
       
       if (userDiscriminator){
         this.meta.users[userId].tag = userDiscriminator;
+      }
+
+      if (userAvatar){
+      	this.meta.users[userId].tag = userAvatar;
       }
 
       this.meta.userindex.push(userId);
@@ -140,7 +148,7 @@ class SAVEFILE{
     }
   }
   
-  tryRegisterChannel(serverIndex, channelId, channelName){
+  tryRegisterChannel(serverIndex, channelPosition, channelId, channelName, channelTopic, channelNSFW){
     if (!this.meta.servers[serverIndex]){
       return undefined;
     }
@@ -150,7 +158,10 @@ class SAVEFILE{
     else{
       this.meta.channels[channelId] = {
         "server": serverIndex,
-        "name": channelName
+        "position": channelPosition,
+        "name": channelName,
+        "topic": channelTopic,
+        "nsfw": channelNSFW
       };
       
       this.tmp.channelkeys.add(channelId);
@@ -171,7 +182,7 @@ class SAVEFILE{
     var author = discordMessage.author;
     
     var obj = {
-      u: this.findOrRegisterUser(author.id, author.username, author.bot ? null : author.discriminator),
+      u: this.findOrRegisterUser(author.id, author.username, author.bot ? null : author.discriminator, author.avatar),
       t: discordMessage.timestamp.toDate().getTime()
     };
     
@@ -244,7 +255,7 @@ class SAVEFILE{
     
     for(var userId in obj.meta.users){
       var oldUser = obj.meta.users[userId];
-      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, oldUser.name, oldUser.tag);
+      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, oldUser.name, oldUser.tag, oldUser.avatar);
     }
     
     for(var channelId in obj.meta.channels){

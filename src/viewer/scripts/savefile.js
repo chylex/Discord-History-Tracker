@@ -32,11 +32,11 @@ class SAVEFILE{
   }
 
   getUser(index){
-    return this.meta.users[this.meta.userindex[index]] || { "name": "&lt;unknown&gt;" };
+    return this.meta.users[this.meta.userindex[index]] || { "id": 0, "name": "&lt;unknown&gt;", "avatar": "", "discriminator": "0000" };
   }
 
   getUserById(user){
-    return this.meta.users[user] || { "name": user };
+    return this.meta.users[user] || { "id": 0, "name": user, "avatar": "", "discriminator": "0000" };
   }
 
   getUserIndex(user){

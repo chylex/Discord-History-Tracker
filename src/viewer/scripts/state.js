@@ -73,7 +73,9 @@ var STATE = (function(){
   ROOT.getUserName = function(user){
     return FILE.getUserById(user).name;
   };
-  
+  ROOT.getUserDiscriminator = function(user){
+    return FILE.getUserById(user).discriminator;
+  };
   // --------------------------
   // Channel list and selection
   // --------------------------
@@ -100,7 +102,10 @@ var STATE = (function(){
       "id": key,
       "name": channels[key].name,
       "server": FILE.getServer(channels[key].server),
-      "msgcount": getFilteredMessageKeys(key).length
+      "msgcount": getFilteredMessageKeys(key).length,
+      "topic": channels[key].topic,
+      "nsfw": channels[key].nsfw,
+      "position": channels[key].position
     })).sort((ac, bc) => {
       var as = ac.server;
       var bs = bc.server;
@@ -327,6 +332,7 @@ var STATE = (function(){
   
   defineSettingProperty("enableImagePreviews", true, fromBooleanString);
   defineSettingProperty("enableFormatting", true, fromBooleanString);
+  defineSettingProperty("enableUserIcons", true, fromBooleanString);
   defineSettingProperty("enableAnimatedEmoji", true, fromBooleanString);
   
   // End
