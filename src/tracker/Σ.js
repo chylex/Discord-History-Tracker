@@ -1,7 +1,7 @@
-if (!window.location.href.includes("discord.com/")){
-  if (!confirm("Could not detect Discord in the URL, do you want to run the script anyway?")){
-    return;
-  }
+const url = window.location.href;
+
+if (!url.includes("discord.com/") && !url.includes("discordapp.com/") && !confirm("Could not detect Discord in the URL, do you want to run the script anyway?")){
+  return;
 }
 
 if (window.DHT_LOADED){
