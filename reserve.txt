@@ -27,11 +27,13 @@ a
 t
 d
 te
+tag
 author
 type
 state
 id
 username
+bot
 discriminator
 timestamp
 content

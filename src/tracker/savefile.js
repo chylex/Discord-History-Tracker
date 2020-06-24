@@ -7,7 +7,7 @@
  *     users: {
  *       <discord user id>: {
  *         name: <user name>,
- *         tag: <user discriminator>
+ *         tag: <user discriminator> // only present if not a bot
  *       }, ...
  *     },
  *
@@ -106,9 +106,12 @@ class SAVEFILE{
   findOrRegisterUser(userId, userName, userDiscriminator){
     if (!(userId in this.meta.users)){
       this.meta.users[userId] = {
-        "name": userName,
-        "tag": userDiscriminator
-      };      
+        "name": userName
+      };
+      
+      if (userDiscriminator){
+        this.meta.users[userId].tag = userDiscriminator;
+      }
 
       this.meta.userindex.push(userId);
       return this.tmp.userlookup[userId] = this.meta.userindex.length-1;
@@ -168,7 +171,7 @@ class SAVEFILE{
     var author = discordMessage.author;
     
     var obj = {
-      u: this.findOrRegisterUser(author.id, author.username, author.discriminator),
+      u: this.findOrRegisterUser(author.id, author.username, author.bot ? null : author.discriminator),
       t: discordMessage.timestamp.toDate().getTime()
     };
     
@@ -257,7 +260,7 @@ class SAVEFILE{
         
         if (oldUser in userMap){
           oldMessage.u = userMap[oldUser];
-        this.addMessage(channelId, messageId, oldMessage);
+          this.addMessage(channelId, messageId, oldMessage);
         }
         else{
           if (!shownError){
