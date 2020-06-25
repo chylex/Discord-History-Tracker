@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.23
+// @version      v.24
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -138,12 +138,15 @@ var DISCORD = (function(){
           }
           
           var icon = channel.querySelector("img[class*='avatar']");
+          var iconParent = icon && icon.closest("foreignObject");
+          var iconMask = iconParent && iconParent.getAttribute("mask");
           
           obj = {
             "server": name,
             "channel": name,
             "id": link,
-            "type": (icon && (icon.src.includes("/channel-icons/") || icon.src.includes("/assets/"))) ? "GROUP" : "DM"
+            "type": (iconMask && iconMask.includes("#svg-mask-avatar-default")) ? "GROUP" : "DM",
+            "extra": {}
           };
         }
         else{
@@ -166,7 +169,12 @@ var DISCORD = (function(){
             "server": channelListEle.querySelector("header > h1").innerText,
             "channel": channelObj.name,
             "id": channelObj.id,
-            "type": "SERVER"
+            "type": "SERVER",
+            "extra": {
+              "position": channelObj.position,
+              "topic": channelObj.topic,
+              "nsfw": channelObj.nsfw
+            }
           };
         }
         
@@ -593,7 +601,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.23, released 19 May 2020</sub>
+<sub>v.24, released 25 July 2020</sub>
 </p>`);
       
       // elements
@@ -654,7 +662,9 @@ It is recommended to disable link and image previews to avoid putting unnecessar
  *   meta: {
  *     users: {
  *       <discord user id>: {
- *         name: <user name>
+ *         name: <user name>,
+ *         avatar: <user icon>,
+ *         tag: <user discriminator> // only present if not a bot
  *       }, ...
  *     },
  *
@@ -674,7 +684,10 @@ It is recommended to disable link and image previews to avoid putting unnecessar
  *     channels: {
  *       <discord channel id>: {
  *         server: <server index in the meta.servers array>,
- *         name: <channel name>
+ *         name: <channel name>,
+ *         position: <order in channel list>, // only present if server type == SERVER
+ *         topic: <channel topic>,            // only present if server type == SERVER
+ *         nsfw: <channel NSFW status>        // only present if server type == SERVER
  *       }, ...
  *     }
  *   },
@@ -750,12 +763,22 @@ class SAVEFILE{
     return parsedObj && typeof parsedObj.meta === "object" && typeof parsedObj.data === "object";
   }
   
-  findOrRegisterUser(userId, userName){
-    if (!(userId in this.meta.users)){
-      this.meta.users[userId] = {
-        "name": userName
-      };
-      
+  findOrRegisterUser(userId, userName, userDiscriminator, userAvatar){
+    var wasPresent = userId in this.meta.users;
+    var userObj = wasPresent ? this.meta.users[userId] : {};
+    
+    userObj.name = userName;
+    
+    if (userDiscriminator){
+      userObj.tag = userDiscriminator;
+    }
+    
+    if (userAvatar){
+      userObj.avatar = userAvatar;
+    }
+    
+    if (!wasPresent){
+      this.meta.users[userId] = userObj;
       this.meta.userindex.push(userId);
       return this.tmp.userlookup[userId] = this.meta.userindex.length-1;
     }
@@ -783,19 +806,33 @@ class SAVEFILE{
     }
   }
   
-  tryRegisterChannel(serverIndex, channelId, channelName){
+  tryRegisterChannel(serverIndex, channelId, channelName, extraInfo){
     if (!this.meta.servers[serverIndex]){
       return undefined;
     }
-    else if (channelId in this.meta.channels){
+    
+    var wasPresent = channelId in this.meta.channels;
+    var channelObj = wasPresent ? this.meta.channels[channelId] : { "server": serverIndex };
+    
+    channelObj.name = channelName;
+    
+    if (extraInfo.position){
+      channelObj.position = extraInfo.position;
+    }
+    
+    if (extraInfo.topic){
+      channelObj.topic = extraInfo.topic;
+    }
+    
+    if (extraInfo.nsfw){
+      channelObj.nsfw = extraInfo.nsfw;
+    }
+    
+    if (wasPresent){
       return false;
     }
     else{
-      this.meta.channels[channelId] = {
-        "server": serverIndex,
-        "name": channelName
-      };
-      
+      this.meta.channels[channelId] = channelObj;
       this.tmp.channelkeys.add(channelId);
       return true;
     }
@@ -811,8 +848,10 @@ class SAVEFILE{
   }
   
   convertToMessageObject(discordMessage){
+    var author = discordMessage.author;
+    
     var obj = {
-      u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username),
+      u: this.findOrRegisterUser(author.id, author.username, author.bot ? null : author.discriminator, author.avatar),
       t: discordMessage.timestamp.toDate().getTime()
     };
     
@@ -884,12 +923,14 @@ class SAVEFILE{
     var shownError = false;
     
     for(var userId in obj.meta.users){
-      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, obj.meta.users[userId].name);
+      var oldUser = obj.meta.users[userId];
+      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, oldUser.name, oldUser.tag, oldUser.avatar);
     }
     
     for(var channelId in obj.meta.channels){
       var oldServer = obj.meta.servers[obj.meta.channels[channelId].server];
-      this.tryRegisterChannel(this.findOrRegisterServer(oldServer.name, oldServer.type), channelId, obj.meta.channels[channelId].name);
+      var oldChannel = obj.meta.channels[channelId];
+      this.tryRegisterChannel(this.findOrRegisterServer(oldServer.name, oldServer.type), channelId, oldChannel.name, oldChannel /* filtered later */);
     }
     
     for(var channelId in obj.data){
@@ -1074,10 +1115,10 @@ var STATE = (function(){
     /*
      * Registers a Discord server and channel.
      */
-    addDiscordChannel(serverName, serverType, channelId, channelName){
+    addDiscordChannel(serverName, serverType, channelId, channelName, extraInfo){
       var serverIndex = this.getSavefile().findOrRegisterServer(serverName, serverType);
       
-      if (this.getSavefile().tryRegisterChannel(serverIndex, channelId, channelName) === true){
+      if (this.getSavefile().tryRegisterChannel(serverIndex, channelId, channelName, extraInfo) === true){
         triggerStateChanged("data", "channel");
       }
     }
@@ -1113,10 +1154,10 @@ var STATE = (function(){
   return new CLS();
 })();
 
-if (!window.location.href.includes("discord.com/")){
-  if (!confirm("Could not detect Discord in the URL, do you want to run the script anyway?")){
-    return;
-  }
+const url = window.location.href;
+
+if (!url.includes("discord.com/") && !url.includes("discordapp.com/") && !confirm("Could not detect Discord in the URL, do you want to run the script anyway?")){
+  return;
 }
 
 if (window.DHT_LOADED){
@@ -1153,7 +1194,7 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
       return;
     }
     
-    STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
+    STATE.addDiscordChannel(info.server, info.type, info.id, info.channel, info.extra);
     
     let messages = DISCORD.getMessages();
     
@@ -1214,7 +1255,7 @@ STATE.onStateChanged((type, enabled) => {
       let messages = DISCORD.getMessages();
       
       if (messages != null){
-        STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
+        STATE.addDiscordChannel(info.server, info.type, info.id, info.channel, info.extra);
         STATE.addDiscordMessages(info.id, messages);
       }
       else{
