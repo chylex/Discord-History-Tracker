@@ -69,13 +69,15 @@ var STATE = (function(){
   ROOT.getChannelName = function(channel){
     return FILE.getChannelById(channel).name;
   };
-
+  
   ROOT.getUserName = function(user){
     return FILE.getUserById(user).name;
   };
-  ROOT.getUserDiscriminator = function(user){
-    return FILE.getUserById(user).discriminator;
+  
+  ROOT.getUserTag = function(user){
+    return FILE.getUserById(user).tag;
   };
+  
   // --------------------------
   // Channel list and selection
   // --------------------------
@@ -103,9 +105,9 @@ var STATE = (function(){
       "name": channels[key].name,
       "server": FILE.getServer(channels[key].server),
       "msgcount": getFilteredMessageKeys(key).length,
-      "topic": channels[key].topic,
-      "nsfw": channels[key].nsfw,
-      "position": channels[key].position
+      "topic": channels[key].topic || "",
+      "nsfw": channels[key].nsfw || false,
+      "position": channels[key].position || -1
     })).sort((ac, bc) => {
       var as = ac.server;
       var bs = bc.server;
@@ -142,9 +144,12 @@ var STATE = (function(){
 
     return MSGS.slice(startIndex, !messagesPerPage ? undefined : startIndex+messagesPerPage).map(key => {
       var message = messages[key];
+      var user = FILE.getUser(message.u);
+      var avatar = user.avatar ? { id: FILE.getUserId(message.u), path: user.avatar } : null;
 
       return {
-        "user": FILE.getUser(message.u),
+        "user": user,
+        "avatar": avatar,
         "timestamp": message.t,
         "contents": ("m" in message) ? message.m : null,
         "embeds": message.e,
@@ -332,7 +337,7 @@ var STATE = (function(){
   
   defineSettingProperty("enableImagePreviews", true, fromBooleanString);
   defineSettingProperty("enableFormatting", true, fromBooleanString);
-  defineSettingProperty("enableUserIcons", true, fromBooleanString);
+  defineSettingProperty("enableUserAvatars", true, fromBooleanString);
   defineSettingProperty("enableAnimatedEmoji", true, fromBooleanString);
   
   // End

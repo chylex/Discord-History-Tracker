@@ -130,9 +130,7 @@ var DISCORD = (function(){
             "channel": name,
             "id": link,
             "type": (icon && (icon.src.includes("/channel-icons/") || icon.src.includes("/assets/"))) ? "GROUP" : "DM",
-            "topic": "",
-            "nsfw": false,
-            "position": 0
+            "extra": {}
           };
         }
         else{
@@ -156,9 +154,11 @@ var DISCORD = (function(){
             "channel": channelObj.name,
             "id": channelObj.id,
             "type": "SERVER",
-            "topic": channelObj.topic,
-            "nsfw": channelObj.nsfw,
-            "position": channelObj.position
+            "extra": {
+              "position": channelObj.position,
+              "topic": channelObj.topic,
+              "nsfw": channelObj.nsfw
+            }
           };
         }
         

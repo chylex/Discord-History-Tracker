@@ -28,10 +28,10 @@
  *     channels: {
  *       <discord channel id>: {
  *         server: <server index in the meta.servers array>,
- *         position: <order in server channel list>,
  *         name: <channel name>,
- *         topic: <channel topic>, // TODO
- *         nsfw: <channel NSFW status>
+ *         position: <order in channel list>, // only present if server type == SERVER
+ *         topic: <channel topic>,            // only present if server type == SERVER
+ *         nsfw: <channel NSFW status>        // only present if server type == SERVER
  *       }, ...
  *     }
  *   },
@@ -118,7 +118,7 @@ class SAVEFILE{
       }
 
       if (userAvatar){
-      	this.meta.users[userId].tag = userAvatar;
+        this.meta.users[userId].avatar = userAvatar;
       }
 
       this.meta.userindex.push(userId);
@@ -148,7 +148,7 @@ class SAVEFILE{
     }
   }
   
-  tryRegisterChannel(serverIndex, channelPosition, channelId, channelName, channelTopic, channelNSFW){
+  tryRegisterChannel(serverIndex, channelId, channelName, extraInfo){
     if (!this.meta.servers[serverIndex]){
       return undefined;
     }
@@ -158,11 +158,20 @@ class SAVEFILE{
     else{
       this.meta.channels[channelId] = {
         "server": serverIndex,
-        "position": channelPosition,
-        "name": channelName,
-        "topic": channelTopic,
-        "nsfw": channelNSFW
+        "name": channelName
       };
+      
+      if (extraInfo.position){
+        this.meta.channels[channelId].position = extraInfo.position;
+      }
+      
+      if (extraInfo.topic){
+        this.meta.channels[channelId].topic = extraInfo.topic;
+      }
+      
+      if (extraInfo.nsfw){
+        this.meta.channels[channelId].nsfw = extraInfo.nsfw;
+      }
       
       this.tmp.channelkeys.add(channelId);
       return true;
@@ -260,7 +269,8 @@ class SAVEFILE{
     
     for(var channelId in obj.meta.channels){
       var oldServer = obj.meta.servers[obj.meta.channels[channelId].server];
-      this.tryRegisterChannel(this.findOrRegisterServer(oldServer.name, oldServer.type), channelId, obj.meta.channels[channelId].name);
+      var oldChannel = obj.meta.channels[channelId];
+      this.tryRegisterChannel(this.findOrRegisterServer(oldServer.name, oldServer.type), channelId, oldChannel.name, oldChannel /* filtered later */);
     }
     
     for(var channelId in obj.data){
