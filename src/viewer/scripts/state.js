@@ -114,6 +114,7 @@ var STATE = (function(){
       
       return as.type.localeCompare(bs.type, "en") ||
              as.name.toLocaleLowerCase().localeCompare(bs.name.toLocaleLowerCase(), undefined, { numeric: true }) ||
+             ac.position - bc.position ||
              ac.name.toLocaleLowerCase().localeCompare(bc.name.toLocaleLowerCase(), undefined, { numeric: true });
     });
   };
