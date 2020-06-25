@@ -243,7 +243,8 @@ class SAVEFILE{
     var shownError = false;
     
     for(var userId in obj.meta.users){
-      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, obj.meta.users[userId].name);
+      var oldUser = obj.meta.users[userId];
+      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, oldUser.name, oldUser.tag);
     }
     
     for(var channelId in obj.meta.channels){
