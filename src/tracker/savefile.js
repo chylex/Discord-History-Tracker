@@ -108,19 +108,21 @@ class SAVEFILE{
   }
   
   findOrRegisterUser(userId, userName, userDiscriminator, userAvatar){
-    if (!(userId in this.meta.users)){
-      this.meta.users[userId] = {
-        "name": userName
-      };
-      
-      if (userDiscriminator){
-        this.meta.users[userId].tag = userDiscriminator;
-      }
-
-      if (userAvatar){
-        this.meta.users[userId].avatar = userAvatar;
-      }
-
+    var wasPresent = userId in this.meta.users;
+    var userObj = wasPresent ? this.meta.users[userId] : {};
+    
+    userObj.name = userName;
+    
+    if (userDiscriminator){
+      userObj.tag = userDiscriminator;
+    }
+    
+    if (userAvatar){
+      userObj.avatar = userAvatar;
+    }
+    
+    if (!wasPresent){
+      this.meta.users[userId] = userObj;
       this.meta.userindex.push(userId);
       return this.tmp.userlookup[userId] = this.meta.userindex.length-1;
     }
@@ -152,27 +154,29 @@ class SAVEFILE{
     if (!this.meta.servers[serverIndex]){
       return undefined;
     }
-    else if (channelId in this.meta.channels){
+    
+    var wasPresent = channelId in this.meta.channels;
+    var channelObj = wasPresent ? this.meta.channels[channelId] : { "server": serverIndex };
+    
+    channelObj.name = channelName;
+    
+    if (extraInfo.position){
+      channelObj.position = extraInfo.position;
+    }
+    
+    if (extraInfo.topic){
+      channelObj.topic = extraInfo.topic;
+    }
+    
+    if (extraInfo.nsfw){
+      channelObj.nsfw = extraInfo.nsfw;
+    }
+    
+    if (wasPresent){
       return false;
     }
     else{
-      this.meta.channels[channelId] = {
-        "server": serverIndex,
-        "name": channelName
-      };
-      
-      if (extraInfo.position){
-        this.meta.channels[channelId].position = extraInfo.position;
-      }
-      
-      if (extraInfo.topic){
-        this.meta.channels[channelId].topic = extraInfo.topic;
-      }
-      
-      if (extraInfo.nsfw){
-        this.meta.channels[channelId].nsfw = extraInfo.nsfw;
-      }
-      
+      this.meta.channels[channelId] = channelObj;
       this.tmp.channelkeys.add(channelId);
       return true;
     }
