@@ -124,12 +124,14 @@ var DISCORD = (function(){
           }
           
           var icon = channel.querySelector("img[class*='avatar']");
+          var iconParent = icon && icon.closest("foreignObject");
+          var iconMask = iconParent && iconParent.getAttribute("mask");
           
           obj = {
             "server": name,
             "channel": name,
             "id": link,
-            "type": (icon && (icon.src.includes("/channel-icons/") || icon.src.includes("/assets/"))) ? "GROUP" : "DM",
+            "type": (iconMask && iconMask.includes("#svg-mask-avatar-default")) ? "GROUP" : "DM",
             "extra": {}
           };
         }
