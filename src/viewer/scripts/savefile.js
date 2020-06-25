@@ -35,6 +35,10 @@ class SAVEFILE{
     return this.meta.users[this.meta.userindex[index]] || { "name": "&lt;unknown&gt;" };
   }
 
+  getUserId(index){
+    return this.meta.userindex[index];
+  }
+
   getUserById(user){
     return this.meta.users[user] || { "name": user };
   }

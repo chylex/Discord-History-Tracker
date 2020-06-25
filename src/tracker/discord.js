@@ -129,7 +129,8 @@ var DISCORD = (function(){
             "server": name,
             "channel": name,
             "id": link,
-            "type": (icon && (icon.src.includes("/channel-icons/") || icon.src.includes("/assets/"))) ? "GROUP" : "DM"
+            "type": (icon && (icon.src.includes("/channel-icons/") || icon.src.includes("/assets/"))) ? "GROUP" : "DM",
+            "extra": {}
           };
         }
         else{
@@ -152,7 +153,12 @@ var DISCORD = (function(){
             "server": channelListEle.querySelector("header > h1").innerText,
             "channel": channelObj.name,
             "id": channelObj.id,
-            "type": "SERVER"
+            "type": "SERVER",
+            "extra": {
+              "position": channelObj.position,
+              "topic": channelObj.topic,
+              "nsfw": channelObj.nsfw
+            }
           };
         }
         

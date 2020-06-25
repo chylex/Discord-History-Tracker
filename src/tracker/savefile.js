@@ -7,6 +7,7 @@
  *     users: {
  *       <discord user id>: {
  *         name: <user name>,
+ *         avatar: <user icon>,
  *         tag: <user discriminator> // only present if not a bot
  *       }, ...
  *     },
@@ -27,7 +28,10 @@
  *     channels: {
  *       <discord channel id>: {
  *         server: <server index in the meta.servers array>,
- *         name: <channel name>
+ *         name: <channel name>,
+ *         position: <order in channel list>, // only present if server type == SERVER
+ *         topic: <channel topic>,            // only present if server type == SERVER
+ *         nsfw: <channel NSFW status>        // only present if server type == SERVER
  *       }, ...
  *     }
  *   },
@@ -103,7 +107,7 @@ class SAVEFILE{
     return parsedObj && typeof parsedObj.meta === "object" && typeof parsedObj.data === "object";
   }
   
-  findOrRegisterUser(userId, userName, userDiscriminator){
+  findOrRegisterUser(userId, userName, userDiscriminator, userAvatar){
     if (!(userId in this.meta.users)){
       this.meta.users[userId] = {
         "name": userName
@@ -111,6 +115,10 @@ class SAVEFILE{
       
       if (userDiscriminator){
         this.meta.users[userId].tag = userDiscriminator;
+      }
+
+      if (userAvatar){
+        this.meta.users[userId].avatar = userAvatar;
       }
 
       this.meta.userindex.push(userId);
@@ -140,7 +148,7 @@ class SAVEFILE{
     }
   }
   
-  tryRegisterChannel(serverIndex, channelId, channelName){
+  tryRegisterChannel(serverIndex, channelId, channelName, extraInfo){
     if (!this.meta.servers[serverIndex]){
       return undefined;
     }
@@ -152,6 +160,18 @@ class SAVEFILE{
         "server": serverIndex,
         "name": channelName
       };
+      
+      if (extraInfo.position){
+        this.meta.channels[channelId].position = extraInfo.position;
+      }
+      
+      if (extraInfo.topic){
+        this.meta.channels[channelId].topic = extraInfo.topic;
+      }
+      
+      if (extraInfo.nsfw){
+        this.meta.channels[channelId].nsfw = extraInfo.nsfw;
+      }
       
       this.tmp.channelkeys.add(channelId);
       return true;
@@ -171,7 +191,7 @@ class SAVEFILE{
     var author = discordMessage.author;
     
     var obj = {
-      u: this.findOrRegisterUser(author.id, author.username, author.bot ? null : author.discriminator),
+      u: this.findOrRegisterUser(author.id, author.username, author.bot ? null : author.discriminator, author.avatar),
       t: discordMessage.timestamp.toDate().getTime()
     };
     
@@ -244,12 +264,13 @@ class SAVEFILE{
     
     for(var userId in obj.meta.users){
       var oldUser = obj.meta.users[userId];
-      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, oldUser.name, oldUser.tag);
+      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, oldUser.name, oldUser.tag, oldUser.avatar);
     }
     
     for(var channelId in obj.meta.channels){
       var oldServer = obj.meta.servers[obj.meta.channels[channelId].server];
-      this.tryRegisterChannel(this.findOrRegisterServer(oldServer.name, oldServer.type), channelId, obj.meta.channels[channelId].name);
+      var oldChannel = obj.meta.channels[channelId];
+      this.tryRegisterChannel(this.findOrRegisterServer(oldServer.name, oldServer.type), channelId, oldChannel.name, oldChannel /* filtered later */);
     }
     
     for(var channelId in obj.data){

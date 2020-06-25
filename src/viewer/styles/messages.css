@@ -16,6 +16,27 @@
   display: block;
 }
 
+#messages .avatar-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  align-content: flex-start;
+}
+
+#messages .avatar-wrapper > div {
+  flex: 1 1 auto;
+}
+
+#messages .avatar {
+  flex: 0 0 38px !important;
+  margin: 8px 14px 0 0;
+}
+
+#messages .avatar img {
+  width: 38px;
+  border-radius: 50%;
+}
+
 #messages .username {
   color: #FFF;
   font-size: 15px;

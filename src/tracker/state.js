@@ -79,10 +79,10 @@ var STATE = (function(){
     /*
      * Registers a Discord server and channel.
      */
-    addDiscordChannel(serverName, serverType, channelId, channelName){
+    addDiscordChannel(serverName, serverType, channelId, channelName, extraInfo){
       var serverIndex = this.getSavefile().findOrRegisterServer(serverName, serverType);
       
-      if (this.getSavefile().tryRegisterChannel(serverIndex, channelId, channelName) === true){
+      if (this.getSavefile().tryRegisterChannel(serverIndex, channelId, channelName, extraInfo) === true){
         triggerStateChanged("data", "channel");
       }
     }

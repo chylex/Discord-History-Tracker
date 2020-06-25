@@ -32,7 +32,9 @@ var DISCORD = (function(){
   
   var templateChannelServer;
   var templateChannelPrivate;
-  var templateMessage;
+  var templateMessageNoAvatar;
+  var templateMessageWithAvatar;
+  var templateUserAvatar;
   var templateEmbedImage;
   var templateEmbedRich;
   var templateEmbedRichNoDescription;
@@ -43,23 +45,37 @@ var DISCORD = (function(){
     setup: function(){
       templateChannelServer = new TEMPLATE([
         "<div data-channel='{id}'>",
-        "<div class='info'><strong class='name'>#{name}</strong><span class='msgcount'>{msgcount}</span></div>",
+        "<div class='info' title='{topic}'><strong class='name'>#{name}</strong>{nsfw}<span class='tag'>{msgcount}</span></div>",
         "<span class='server'>{server.name} ({server.type})</span>",
         "</div>"
       ].join(""));
       
       templateChannelPrivate = new TEMPLATE([
         "<div data-channel='{id}'>",
-        "<div class='info'><strong class='name'>{name}</strong><span class='msgcount'>{msgcount}</span></div>",
+        "<div class='info'><strong class='name'>{name}</strong><span class='tag'>{msgcount}</span></div>",
         "<span class='server'>({server.type})</span>",
         "</div>"
       ].join(""));
       
-      templateMessage = new TEMPLATE([
+      templateMessageNoAvatar = new TEMPLATE([
         "<div>",
-        "<h2><strong class='username'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
+        "<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
         "<div class='message'>{contents}{embeds}{attachments}</div>",
         "</div>"
+      ].join(""));
+      
+      templateMessageWithAvatar = new TEMPLATE([
+        "<div class='avatar-wrapper'>",
+        "<div class='avatar'>{avatar}</div>",
+        "<div>",
+        "<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
+        "<div class='message'>{contents}{embeds}{attachments}</div>",
+        "</div>",
+        "</div>"
+      ].join(""));
+      
+      templateUserAvatar = new TEMPLATE([
+        "<img src='https://cdn.discordapp.com/avatars/{id}/{path}.webp?size=128'>"
       ].join(""));
       
       templateEmbedImage = new TEMPLATE([
@@ -94,12 +110,18 @@ var DISCORD = (function(){
             case "DM": return "user";
           }
         }
+        else if (property === "nsfw"){
+          return value ? "<span class='tag'>NSFW</span>" : "";
+        }
       });
     },
     
     getMessageHTML: function(message){
-      return templateMessage.apply(message, (property, value) => {
-        if (property === "timestamp"){
+      return (STATE.settings.enableUserAvatars ? templateMessageWithAvatar : templateMessageNoAvatar).apply(message, (property, value) => {
+        if (property === "avatar"){
+          return value ? templateUserAvatar.apply(value) : "";
+        }
+        else if (property === "timestamp"){
           return getHumanReadableTime(value);
         }
         else if (property === "contents"){
@@ -129,7 +151,7 @@ var DISCORD = (function(){
           processed = processed
             .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
             .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
-            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>")
+            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user' title='#"+STATE.getUserTag(match)+"'>@"+STATE.getUserName(match)+"</span>")
             .replace(REGEX.customEmojiStatic, "<img src='https://cdn.discordapp.com/emojis/$2.png' alt=':$1:' title=':$1:' class='emoji'>")
             .replace(REGEX.customEmojiAnimated, "<img src='https://cdn.discordapp.com/emojis/$2."+animatedEmojiExtension+"' alt=':$1:' title=':$1:' class='emoji'>");
           

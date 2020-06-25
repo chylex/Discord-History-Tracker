@@ -10,6 +10,8 @@ enableFormatting
 _enableFormatting
 enableAnimatedEmoji
 _enableAnimatedEmoji
+enableUserAvatars
+_enableUserAvatars
 DHT_LOADED
 DHT_EMBEDDED
 meta
@@ -28,9 +30,13 @@ t
 d
 te
 tag
+avatar
 author
 type
 state
+position
+topic
+nsfw
 id
 username
 bot
