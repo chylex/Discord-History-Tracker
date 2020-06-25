@@ -121,6 +121,9 @@ var DISCORD = (function(){
         if (property === "avatar"){
           return value ? templateUserAvatar.apply(value) : "";
         }
+        else if (property === "user.tag"){
+          return value ? value : "????";
+        }
         else if (property === "timestamp"){
           return getHumanReadableTime(value);
         }
@@ -151,7 +154,7 @@ var DISCORD = (function(){
           processed = processed
             .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
             .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
-            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user' title='#"+STATE.getUserTag(match)+"'>@"+STATE.getUserName(match)+"</span>")
+            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user' title='#"+(STATE.getUserTag(match) || "????")+"'>@"+STATE.getUserName(match)+"</span>")
             .replace(REGEX.customEmojiStatic, "<img src='https://cdn.discordapp.com/emojis/$2.png' alt=':$1:' title=':$1:' class='emoji'>")
             .replace(REGEX.customEmojiAnimated, "<img src='https://cdn.discordapp.com/emojis/$2."+animatedEmojiExtension+"' alt=':$1:' title=':$1:' class='emoji'>");
           
