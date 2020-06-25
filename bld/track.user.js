@@ -143,10 +143,7 @@ var DISCORD = (function(){
             "server": name,
             "channel": name,
             "id": link,
-            "type": (icon && (icon.src.includes("/channel-icons/") || icon.src.includes("/assets/"))) ? "GROUP" : "DM",
-            "topic": "",
-            "nsfw": false,
-            "position": 0
+            "type": (icon && (icon.src.includes("/channel-icons/") || icon.src.includes("/assets/"))) ? "GROUP" : "DM"
           };
         }
         else{
@@ -169,10 +166,7 @@ var DISCORD = (function(){
             "server": channelListEle.querySelector("header > h1").innerText,
             "channel": channelObj.name,
             "id": channelObj.id,
-            "type": "SERVER",
-            "topic": channelObj.topic,
-            "nsfw": channelObj.nsfw,
-            "position": channelObj.position
+            "type": "SERVER"
           };
         }
         
@@ -661,8 +655,6 @@ It is recommended to disable link and image previews to avoid putting unnecessar
  *     users: {
  *       <discord user id>: {
  *         name: <user name>
- *         avatar: <user icon/avatar>
- *         discriminator: <user tag, e.g. #1234>
  *       }, ...
  *     },
  *
@@ -683,9 +675,6 @@ It is recommended to disable link and image previews to avoid putting unnecessar
  *       <discord channel id>: {
  *         server: <server index in the meta.servers array>,
  *         name: <channel name>
- *         topic: <channel description>
- *         nsfw: <channel is NSFW>
- *         position: <order in server's channel list>
  *       }, ...
  *     }
  *   },
@@ -761,13 +750,10 @@ class SAVEFILE{
     return parsedObj && typeof parsedObj.meta === "object" && typeof parsedObj.data === "object";
   }
   
-  findOrRegisterUser(userId, userName, avatar, discriminator){
+  findOrRegisterUser(userId, userName){
     if (!(userId in this.meta.users)){
       this.meta.users[userId] = {
-        "id": userId,
-        "name": userName,
-        "avatar": avatar,
-        "discriminator": discriminator
+        "name": userName
       };
       
       this.meta.userindex.push(userId);
@@ -797,7 +783,7 @@ class SAVEFILE{
     }
   }
   
-  tryRegisterChannel(serverIndex, channelId, channelName, channelTopic, channelNSFW, channelPosition){
+  tryRegisterChannel(serverIndex, channelId, channelName){
     if (!this.meta.servers[serverIndex]){
       return undefined;
     }
@@ -807,10 +793,7 @@ class SAVEFILE{
     else{
       this.meta.channels[channelId] = {
         "server": serverIndex,
-        "name": channelName,
-        "topic": channelTopic,
-        "nsfw": channelNSFW,
-        "position": channelPosition
+        "name": channelName
       };
       
       this.tmp.channelkeys.add(channelId);
@@ -829,7 +812,7 @@ class SAVEFILE{
   
   convertToMessageObject(discordMessage){
     var obj = {
-      u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username, discordMessage.author.avatar, discordMessage.author.discriminator),
+      u: this.findOrRegisterUser(discordMessage.author.id, discordMessage.author.username),
       t: discordMessage.timestamp.toDate().getTime()
     };
     
@@ -901,7 +884,7 @@ class SAVEFILE{
     var shownError = false;
     
     for(var userId in obj.meta.users){
-      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, obj.meta.users[userId].name, obj.meta.users[userId].avatar, obj.meta.users[userId].discriminator);
+      userMap[obj.meta.userindex.findIndex(id => id == userId)] = this.findOrRegisterUser(userId, obj.meta.users[userId].name);
     }
     
     for(var channelId in obj.meta.channels){
@@ -1091,10 +1074,10 @@ var STATE = (function(){
     /*
      * Registers a Discord server and channel.
      */
-    addDiscordChannel(serverName, serverType, channelId, channelName, channelTopic, channelNSFW, channelPosition){
+    addDiscordChannel(serverName, serverType, channelId, channelName){
       var serverIndex = this.getSavefile().findOrRegisterServer(serverName, serverType);
       
-      if (this.getSavefile().tryRegisterChannel(serverIndex, channelId, channelName, channelTopic, channelNSFW, channelPosition) === true){
+      if (this.getSavefile().tryRegisterChannel(serverIndex, channelId, channelName) === true){
         triggerStateChanged("data", "channel");
       }
     }
@@ -1170,7 +1153,7 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
       return;
     }
     
-    STATE.addDiscordChannel(info.server, info.type, info.id, info.channel, info.topic, info.nsfw, info.position);
+    STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
     
     let messages = DISCORD.getMessages();
     
@@ -1231,7 +1214,7 @@ STATE.onStateChanged((type, enabled) => {
       let messages = DISCORD.getMessages();
       
       if (messages != null){
-        STATE.addDiscordChannel(info.server, info.type, info.id, info.channel, info.topic, info.nsfw, info.position);
+        STATE.addDiscordChannel(info.server, info.type, info.id, info.channel);
         STATE.addDiscordMessages(info.id, messages);
       }
       else{
