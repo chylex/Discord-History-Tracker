@@ -136,9 +136,9 @@ var DISCORD = (function(){
           };
         }
         else{
-          channelListEle = document.querySelector("div[class*='sidebar'] > nav[class*='container']");
+          channelListEle = document.getElementById("channels");
           
-          var channel = channelListEle.querySelector("div[class*='scrollerWrap'] > div[class*='scroller'] [class*='modeSelected']").parentElement;
+          var channel = channelListEle.querySelector("[class*='modeSelected']").parentElement;
           var props = DISCORD.getReactProps(channel);
           
           if (!props){
@@ -152,7 +152,7 @@ var DISCORD = (function(){
           }
           
           obj = {
-            "server": channelListEle.querySelector("header > h1").innerText,
+            "server": document.querySelector("nav header > h1").innerText,
             "channel": channelObj.name,
             "id": channelObj.id,
             "type": "SERVER",
