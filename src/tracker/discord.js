@@ -110,7 +110,7 @@ var DISCORD = (function(){
           
           var name;
           
-          for(let ele of channel.querySelectorAll("[class^='name']")){
+          for(let ele of channel.querySelectorAll("[class^='name-'] *")){
             let node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
             
             if (node){
