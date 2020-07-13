@@ -247,7 +247,7 @@ var DISCORD = (function(){
         var isValidChannelType = ele => !!ele.querySelector('path[d="' + channelIconNormal + '"]') || !!ele.querySelector('path[d="' + channelIconSpecial + '"]');
         var isValidChannel = ele => ele.childElementCount > 0 && isValidChannelClass(ele.children[0].className) && isValidChannelType(ele);
         
-        var channelListEle = document.querySelector("div[class*='sidebar'] > nav[class*='container'] > div[class*='scrollerWrap'] > div[class*='scroller']");
+        var channelListEle = document.querySelector("div[class*='sidebar'] > nav[class*='container'] > div[class*='scroller']");
         
         if (!channelListEle){
           return false;
