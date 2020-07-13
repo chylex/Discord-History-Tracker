@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.25
+// @version      v.26
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -124,7 +124,7 @@ var DISCORD = (function(){
           
           var name;
           
-          for(let ele of channel.querySelectorAll("[class^='name']")){
+          for(let ele of channel.querySelectorAll("[class^='name-'] *")){
             let node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
             
             if (node){
@@ -261,7 +261,7 @@ var DISCORD = (function(){
         var isValidChannelType = ele => !!ele.querySelector('path[d="' + channelIconNormal + '"]') || !!ele.querySelector('path[d="' + channelIconSpecial + '"]');
         var isValidChannel = ele => ele.childElementCount > 0 && isValidChannelClass(ele.children[0].className) && isValidChannelType(ele);
         
-        var channelListEle = document.querySelector("div[class*='sidebar'] > nav[class*='container'] > div[class*='scrollerWrap'] > div[class*='scroller']");
+        var channelListEle = document.querySelector("div[class*='sidebar'] > nav[class*='container'] > div[class*='scroller']");
         
         if (!channelListEle){
           return false;
@@ -601,7 +601,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.25, released 1 July 2020</sub>
+<sub>v.26, released 13 July 2020</sub>
 </p>`);
       
       // elements
