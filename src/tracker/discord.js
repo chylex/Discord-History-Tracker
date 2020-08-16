@@ -1,10 +1,10 @@
 var DISCORD = (function(){
   var getMessageContainerElement = function(){
-    return DOM.id("messages") || document.querySelector("[data-ref-id='messages']");
+    return DOM.queryReactClass("messagesWrapper");
   };
   
   var getMessageScrollerElement = function(){
-    return getMessageContainerElement().closest("[class*='scroller-']");
+    return getMessageContainerElement().querySelector("[class*='scroller-']");
   };
   
   var checkTopSpecialMessageElement = function(view, cls){
@@ -176,20 +176,21 @@ var DISCORD = (function(){
      */
     getMessages: function(){
       try{
-        var props = DISCORD.getReactProps(getMessageContainerElement());
-        var wrappers = props.children.find(ele => ele && ele.length);
+        var inner = DOM.queryReactClass("scrollerInner", getMessageContainerElement());
+        var props = DISCORD.getReactProps(inner);
+        var wrappers = props.children.find(ele => Array.isArray(ele));
         
-      var messages = [];
-      
+        var messages = [];
+        
         for(let obj of wrappers){
           let nested = obj.props;
         
           if (nested && nested.message){
             messages.push(nested.message);
+          }
         }
-      }
-      
-      return messages;
+        
+        return messages;
       }catch(e){
         console.error(e);
         return null;
