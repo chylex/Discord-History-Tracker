@@ -29,7 +29,7 @@ let stopTrackingDelayed = function(callback){
   }, 200); // give the user visual feedback after clicking the button before switching off
 };
 
-DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
+DISCORD.setupMessageUpdateCallback(() => {
   if (STATE.isTracking() && ignoreMessageCallback.size === 0){
     let info = DISCORD.getSelectedChannel();
     
@@ -59,12 +59,14 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
       if (!hasUpdatedFile && !STATE.isMessageFresh(messages[0].id)){
         action = SETTINGS.afterSavedMsg;
       }
-      else if (!hasMoreMessages){
+      else if (!DISCORD.hasMoreMessages()){
         action = SETTINGS.afterFirstMsg;
       }
       
       if (action === null){
-        DISCORD.loadOlderMessages();
+        if (hasUpdatedFile){
+          DISCORD.loadOlderMessages();
+        }
       }
       else{
         ignoreMessageCallback.add("stalling");

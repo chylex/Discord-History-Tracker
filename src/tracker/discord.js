@@ -7,24 +7,6 @@ var DISCORD = (function(){
     return getMessageContainerElement().querySelector("[class*='scroller-']");
   };
   
-  var checkTopSpecialMessageElement = function(view, cls){
-    cls = `${cls}-`;
-    const selector = `[class*="${cls}"]`;
-    
-    for(let child of view.children){
-      let childClass = child.className;
-    
-      if (childClass.includes(cls) || child.querySelector(selector)){
-        return true;
-      }
-      else if (childClass.includes("message-")){
-        break;
-      }
-    }
-    
-    return false;
-  };
-  
   var observerTimer = 0, waitingForCleanup = 0;
   
   return {
@@ -38,7 +20,7 @@ var DISCORD = (function(){
         if (!view){
           restartTimer(500);
         }
-        else if (!checkTopSpecialMessageElement(view, "loadingMore")){
+        else{
           let messages = getMessageContainerElement().children.length;
           
           if (messages < 100){
@@ -59,12 +41,9 @@ var DISCORD = (function(){
               }, 1);
             }
             
-            callback(checkTopSpecialMessageElement(view, "hasMore"));
+            callback();
             restartTimer(200);
           }
-        }
-        else{
-          restartTimer(25);
         }
       };
       
@@ -206,8 +185,7 @@ var DISCORD = (function(){
      * Returns true if there are more messages available or if they're still loading.
      */
     hasMoreMessages: function(){
-      let view = getMessageContainerElement();
-      return checkTopSpecialMessageElement(view, "hasMore") || checkTopSpecialMessageElement(view, "loadingMore");
+      return document.querySelector("#messagesNavigationDescription + [class^=container]") === null;
     },
     
     /*
