@@ -15,6 +15,7 @@ window.DHT_ON_UNLOAD = [];
 // Execution
 
 let ignoreMessageCallback = new Set();
+let frozenMessageLoadingTimer = null;
 
 let stopTrackingDelayed = function(callback){
   ignoreMessageCallback.add("stopping");
@@ -66,6 +67,11 @@ DISCORD.setupMessageUpdateCallback(() => {
       if (action === null){
         if (hasUpdatedFile){
           DISCORD.loadOlderMessages();
+          window.clearTimeout(frozenMessageLoadingTimer);
+          frozenMessageLoadingTimer = null;
+        }
+        else{
+          frozenMessageLoadingTimer = window.setTimeout(DISCORD.loadOlderMessages, 2500);
         }
       }
       else{
