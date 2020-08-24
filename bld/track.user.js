@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.26
+// @version      v.27
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -14,29 +14,11 @@ const start = function(){
 
 var DISCORD = (function(){
   var getMessageContainerElement = function(){
-    return DOM.id("messages") || document.querySelector("[data-ref-id='messages']");
+    return DOM.queryReactClass("messagesWrapper");
   };
   
   var getMessageScrollerElement = function(){
-    return getMessageContainerElement().closest("[class*='scroller-']");
-  };
-  
-  var checkTopSpecialMessageElement = function(view, cls){
-    cls = `${cls}-`;
-    const selector = `[class*="${cls}"]`;
-    
-    for(let child of view.children){
-      let childClass = child.className;
-    
-      if (childClass.includes(cls) || child.querySelector(selector)){
-        return true;
-      }
-      else if (childClass.includes("message-")){
-        break;
-      }
-    }
-    
-    return false;
+    return getMessageContainerElement().querySelector("[class*='scroller-']");
   };
   
   var observerTimer = 0, waitingForCleanup = 0;
@@ -52,7 +34,7 @@ var DISCORD = (function(){
         if (!view){
           restartTimer(500);
         }
-        else if (!checkTopSpecialMessageElement(view, "loadingMore")){
+        else{
           let messages = getMessageContainerElement().children.length;
           
           if (messages < 100){
@@ -73,12 +55,9 @@ var DISCORD = (function(){
               }, 1);
             }
             
-            callback(checkTopSpecialMessageElement(view, "hasMore"));
+            callback();
             restartTimer(200);
           }
-        }
-        else{
-          restartTimer(25);
         }
       };
       
@@ -190,20 +169,21 @@ var DISCORD = (function(){
      */
     getMessages: function(){
       try{
-        var props = DISCORD.getReactProps(getMessageContainerElement());
-        var wrappers = props.children.find(ele => ele && ele.length);
+        var inner = DOM.queryReactClass("scrollerInner", getMessageContainerElement());
+        var props = DISCORD.getReactProps(inner);
+        var wrappers = props.children.find(ele => Array.isArray(ele));
         
-      var messages = [];
-      
+        var messages = [];
+        
         for(let obj of wrappers){
           let nested = obj.props;
         
           if (nested && nested.message){
             messages.push(nested.message);
+          }
         }
-      }
-      
-      return messages;
+        
+        return messages;
       }catch(e){
         console.error(e);
         return null;
@@ -219,8 +199,7 @@ var DISCORD = (function(){
      * Returns true if there are more messages available or if they're still loading.
      */
     hasMoreMessages: function(){
-      let view = getMessageContainerElement();
-      return checkTopSpecialMessageElement(view, "hasMore") || checkTopSpecialMessageElement(view, "loadingMore");
+      return document.querySelector("#messagesNavigationDescription + [class^=container]") === null;
     },
     
     /*
@@ -601,7 +580,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.26, released 13 July 2020</sub>
+<sub>v.27, released 24 Aug 2020</sub>
 </p>`);
       
       // elements
@@ -1171,6 +1150,7 @@ window.DHT_ON_UNLOAD = [];
 // Execution
 
 let ignoreMessageCallback = new Set();
+let frozenMessageLoadingTimer = null;
 
 let stopTrackingDelayed = function(callback){
   ignoreMessageCallback.add("stopping");
@@ -1185,7 +1165,7 @@ let stopTrackingDelayed = function(callback){
   }, 200); // give the user visual feedback after clicking the button before switching off
 };
 
-DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
+DISCORD.setupMessageUpdateCallback(() => {
   if (STATE.isTracking() && ignoreMessageCallback.size === 0){
     let info = DISCORD.getSelectedChannel();
     
@@ -1215,12 +1195,19 @@ DISCORD.setupMessageUpdateCallback(hasMoreMessages => {
       if (!hasUpdatedFile && !STATE.isMessageFresh(messages[0].id)){
         action = SETTINGS.afterSavedMsg;
       }
-      else if (!hasMoreMessages){
+      else if (!DISCORD.hasMoreMessages()){
         action = SETTINGS.afterFirstMsg;
       }
       
       if (action === null){
-        DISCORD.loadOlderMessages();
+        if (hasUpdatedFile){
+          DISCORD.loadOlderMessages();
+          window.clearTimeout(frozenMessageLoadingTimer);
+          frozenMessageLoadingTimer = null;
+        }
+        else{
+          frozenMessageLoadingTimer = window.setTimeout(DISCORD.loadOlderMessages, 2500);
+        }
       }
       else{
         ignoreMessageCallback.add("stalling");
