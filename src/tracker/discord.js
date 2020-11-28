@@ -1,10 +1,10 @@
 var DISCORD = (function(){
-  var getMessageContainerElement = function(){
+  var getMessageOuterElement = function(){
     return DOM.queryReactClass("messagesWrapper");
   };
   
   var getMessageScrollerElement = function(){
-    return getMessageContainerElement().querySelector("[class*='scroller-']");
+    return getMessageOuterElement().querySelector("[class*='scroller-']");
   };
   
   var observerTimer = 0, waitingForCleanup = 0;
@@ -15,13 +15,14 @@ var DISCORD = (function(){
      */
     setupMessageUpdateCallback: function(callback){
       var onTimerFinished = function(){
-        let view = getMessageContainerElement();
+        let view = getMessageOuterElement();
         
         if (!view){
           restartTimer(500);
         }
         else{
-          let messages = getMessageContainerElement().children.length;
+          let anyMessage = getMessageOuterElement().querySelector("[class*='message-']");
+          let messages = anyMessage ? anyMessage.parentElement.children.length : 0;
           
           if (messages < 100){
             waitingForCleanup = 0;
@@ -59,8 +60,8 @@ var DISCORD = (function(){
      * Returns internal React state object of an element.
      */
     getReactProps: function(ele){
-      var key = Object.keys(ele || {}).find(key => key.startsWith("__reactInternalInstance"));
-      return key ? ele[key].memoizedProps : null;
+      var key = Object.keys(ele || {}).find(key => key.startsWith("__reactProps$"));
+      return key ? ele[key] : null;
     },
     
     /*
@@ -155,9 +156,9 @@ var DISCORD = (function(){
      */
     getMessages: function(){
       try{
-        var inner = DOM.queryReactClass("scrollerInner", getMessageContainerElement());
-        var props = DISCORD.getReactProps(inner);
-        var wrappers = props.children.find(ele => Array.isArray(ele));
+        var scroller = getMessageScrollerElement();
+        var props = DISCORD.getReactProps(scroller);
+        var wrappers = props.children.props.children.props.children.props.children.find(ele => Array.isArray(ele));
         
         var messages = [];
         
@@ -179,7 +180,7 @@ var DISCORD = (function(){
     /*
      * Returns true if the message view is visible.
      */
-    isInMessageView: () => !!getMessageContainerElement(),
+    isInMessageView: () => !!getMessageOuterElement(),
     
     /*
      * Returns true if there are more messages available or if they're still loading.
