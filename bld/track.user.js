@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.27
+// @version      v.28
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -13,12 +13,12 @@
 const start = function(){
 
 var DISCORD = (function(){
-  var getMessageContainerElement = function(){
+  var getMessageOuterElement = function(){
     return DOM.queryReactClass("messagesWrapper");
   };
   
   var getMessageScrollerElement = function(){
-    return getMessageContainerElement().querySelector("[class*='scroller-']");
+    return getMessageOuterElement().querySelector("[class*='scroller-']");
   };
   
   var observerTimer = 0, waitingForCleanup = 0;
@@ -29,13 +29,14 @@ var DISCORD = (function(){
      */
     setupMessageUpdateCallback: function(callback){
       var onTimerFinished = function(){
-        let view = getMessageContainerElement();
+        let view = getMessageOuterElement();
         
         if (!view){
           restartTimer(500);
         }
         else{
-          let messages = getMessageContainerElement().children.length;
+          let anyMessage = getMessageOuterElement().querySelector("[class*='message-']");
+          let messages = anyMessage ? anyMessage.parentElement.children.length : 0;
           
           if (messages < 100){
             waitingForCleanup = 0;
@@ -73,8 +74,15 @@ var DISCORD = (function(){
      * Returns internal React state object of an element.
      */
     getReactProps: function(ele){
-      var key = Object.keys(ele || {}).find(key => key.startsWith("__reactInternalInstance"));
-      return key ? ele[key].memoizedProps : null;
+      var keys = Object.keys(ele || {});
+      var key = keys.find(key => key.startsWith("__reactInternalInstance"));
+      
+      if (key){
+        return ele[key].memoizedProps;
+      }
+      
+      key = keys.find(key => key.startsWith("__reactProps$"));
+      return key ? ele[key] : null;
     },
     
     /*
@@ -169,9 +177,15 @@ var DISCORD = (function(){
      */
     getMessages: function(){
       try{
-        var inner = DOM.queryReactClass("scrollerInner", getMessageContainerElement());
-        var props = DISCORD.getReactProps(inner);
-        var wrappers = props.children.find(ele => Array.isArray(ele));
+        var scroller = getMessageScrollerElement();
+        var props = DISCORD.getReactProps(scroller);
+        var wrappers;
+        
+        try{
+          wrappers = props.children.props.children.props.children.props.children.find(ele => Array.isArray(ele));
+        }catch(e){ // old version compatibility
+          wrappers = props.children.find(ele => Array.isArray(ele));
+        }
         
         var messages = [];
         
@@ -193,7 +207,7 @@ var DISCORD = (function(){
     /*
      * Returns true if the message view is visible.
      */
-    isInMessageView: () => !!getMessageContainerElement(),
+    isInMessageView: () => !!getMessageOuterElement(),
     
     /*
      * Returns true if there are more messages available or if they're still loading.
@@ -580,7 +594,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.27, released 24 Aug 2020</sub>
+<sub>v.28, released 29 Nov 2020</sub>
 </p>`);
       
       // elements
@@ -880,7 +894,10 @@ class SAVEFILE{
     var hasNewMessages = false;
     
     for(var discordMessage of discordMessageArray){
-      if (discordMessage.type === 0 && discordMessage.state === "SENT" && this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage))){
+      var type = discordMessage.type;
+      
+      // https://discord.com/developers/docs/resources/channel#message-object-message-reference-structure
+      if ((type === 0 || type === 19) && discordMessage.state === "SENT" && this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage))){
         this.tmp.freshmsgs.add(discordMessage.id);
         hasNewMessages = true;
       }
