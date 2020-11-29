@@ -60,7 +60,14 @@ var DISCORD = (function(){
      * Returns internal React state object of an element.
      */
     getReactProps: function(ele){
-      var key = Object.keys(ele || {}).find(key => key.startsWith("__reactProps$"));
+      var keys = Object.keys(ele || {});
+      var key = keys.find(key => key.startsWith("__reactInternalInstance"));
+      
+      if (key){
+        return ele[key].memoizedProps;
+      }
+      
+      key = keys.find(key => key.startsWith("__reactProps$"));
       return key ? ele[key] : null;
     },
     
@@ -158,7 +165,13 @@ var DISCORD = (function(){
       try{
         var scroller = getMessageScrollerElement();
         var props = DISCORD.getReactProps(scroller);
-        var wrappers = props.children.props.children.props.children.props.children.find(ele => Array.isArray(ele));
+        var wrappers;
+        
+        try{
+          wrappers = props.children.props.children.props.children.props.children.find(ele => Array.isArray(ele));
+        }catch(e){ // old version compatibility
+          wrappers = props.children.find(ele => Array.isArray(ele));
+        }
         
         var messages = [];
         
