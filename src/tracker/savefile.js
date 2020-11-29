@@ -245,7 +245,10 @@ class SAVEFILE{
     var hasNewMessages = false;
     
     for(var discordMessage of discordMessageArray){
-      if (discordMessage.type === 0 && discordMessage.state === "SENT" && this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage))){
+      var type = discordMessage.type;
+      
+      // https://discord.com/developers/docs/resources/channel#message-object-message-reference-structure
+      if ((type === 0 || type === 19) && discordMessage.state === "SENT" && this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage))){
         this.tmp.freshmsgs.add(discordMessage.id);
         hasNewMessages = true;
       }
