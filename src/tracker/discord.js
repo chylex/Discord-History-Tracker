@@ -135,9 +135,42 @@ var DISCORD = (function(){
           var channelObj = props.children.props.channel;
           
           if (!channelObj){
+            var channellist = DISCORD.getReactProps(channelListEle).children.props.children.props.children; // may not be complete!
+            if (!channellist) {
+              return null; // no channels?
+            }
+            for (let e of channellist) {
+              if (!e || !e.props) {
+                continue;
+              }
+              if (e.props.channel) {
+                if (e.props.selected == true) {
+                 channelObj = e.props.channel;
+                   break;
+                } else {
+                 continue;
+                }
+             }
+              if (e.props.children) {
+                
+                for (let f of e.props.children) {
+                  if (!f || !f.props.channel) {
+                    continue;
+                  }
+                  if (f.props.selected == true) {
+                    channelObj = f.props.channel;
+                    break;
+                  }
+                }
+              }
+              if (channelObj) {
+                break;
+              }
+            }
+          }
+          if (!channelObj) {
             return null;
           }
-          
           obj = {
             "server": document.querySelector("nav header > h1").innerText,
             "channel": channelObj.name,
