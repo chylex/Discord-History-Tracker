@@ -126,13 +126,13 @@ var DISCORD = (function(){
           channelListEle = document.getElementById("channels");
           
           var channel = channelListEle.querySelector("[class*='modeSelected']").parentElement;
-          var props = DISCORD.getReactProps(channel);
+          var props = DISCORD.getReactProps(channel).children.props;
           
           if (!props){
             return null;
           }
           
-          var channelObj = props.children.props.channel;
+          var channelObj = props.channel || props.children().props.channel;
           
           if (!channelObj){
             return null;
