@@ -147,6 +147,10 @@ var STATE = (function(){
       var message = messages[key];
       var user = FILE.getUser(message.u);
       var avatar = user.avatar ? { id: FILE.getUserId(message.u), path: user.avatar } : null;
+      
+      var reply = ("r" in message && message.r.mid in messages) ? messages[message.r.mid] : null;
+      var replyUser = reply ? FILE.getUser(reply.u) : null;
+      var replyAvatar = replyUser ? (replyUser.avatar ? { id: FILE.getUserId(reply.u), path: replyUser.avatar } : null) : null;
 
       return {
         "user": user,
@@ -156,7 +160,13 @@ var STATE = (function(){
         "embeds": message.e,
         "attachments": message.a,
         "edit": ("te" in message) ? message.te : (message.f & 1) === 1,
-        "jump": key
+        "jump": key,
+        "reply": {
+          "id": ("r" in message) ? message.r.mid : null,
+          "user": replyUser,
+          "avatar": replyAvatar,
+          "contents": (reply && "m" in reply) ? reply.m : null
+        }
       };
     });
   };

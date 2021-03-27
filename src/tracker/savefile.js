@@ -56,7 +56,12 @@
  *           {
  *             url: <attachment url>
  *           }, ...
- *         ]
+ *         ],
+ *         r: { // only present if referencing another message (reply)
+ *           mid: <reply message id>,
+ *           cid: <reply message channel id>,
+ *           gid: <reply message guild id>
+ *         }
  *       }, ...
  *     }, ...
  *   }
@@ -232,6 +237,14 @@ class SAVEFILE{
       obj.a = discordMessage.attachments.map(attachment => ({
         url: attachment.url
       }));
+    }
+    
+    if (discordMessage.messageReference !== null){
+      obj.r = {
+        mid: discordMessage.messageReference.message_id,
+        cid: discordMessage.messageReference.channel_id,
+        gid: discordMessage.messageReference.guild_id
+      };
     }
     
     return obj;

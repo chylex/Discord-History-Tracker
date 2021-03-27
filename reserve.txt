@@ -57,3 +57,12 @@ children
 channel
 messages
 msSaveBlob
+messageReference
+message_id
+channel_id
+guild_id
+r
+reply
+mid
+cid
+gid

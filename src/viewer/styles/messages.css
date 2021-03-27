@@ -154,3 +154,54 @@
   vertical-align: -30%;
   object-fit: contain;
 }
+
+.reply-message {
+  margin-left: 50px;
+  white-space: nowrap;
+}
+
+.reply-message .emoji {
+  width: 16px;
+  height: 16px;
+  margin: 0 1px;
+  vertical-align: -20%;
+  object-fit: contain;
+}
+
+.reply-avatar {
+  margin-right: 3px;
+}
+
+.reply-avatar img {
+  width: 16px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.reply-username {
+  color: #FFF;
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: 5px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.reply-contents {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  width: calc(80%);
+  vertical-align: middle;
+}
+
+.reply-contents p {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reply-contents a {
+  color: #0096CF;
+  text-decoration: none;
+}
