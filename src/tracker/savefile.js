@@ -57,11 +57,7 @@
  *             url: <attachment url>
  *           }, ...
  *         ],
- *         r: { // only present if referencing another message (reply)
- *           mid: <reply message id>,
- *           cid: <reply message channel id>,
- *           gid: <reply message guild id>
- *         }
+ *         r: <reply message id> // only present if referencing another message (reply)
  *       }, ...
  *     }, ...
  *   }
@@ -240,11 +236,7 @@ class SAVEFILE{
     }
     
     if (discordMessage.messageReference !== null){
-      obj.r = {
-        mid: discordMessage.messageReference.message_id,
-        cid: discordMessage.messageReference.channel_id,
-        gid: discordMessage.messageReference.guild_id
-      };
+      obj.r = discordMessage.messageReference.message_id;
     }
     
     return obj;

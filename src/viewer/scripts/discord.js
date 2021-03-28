@@ -69,7 +69,7 @@ var DISCORD = (function(){
       .replace(REGEX.customEmojiAnimated, "<img src='https://cdn.discordapp.com/emojis/$2."+animatedEmojiExtension+"' alt=':$1:' title=':$1:' class='emoji'>");
     
     return "<p>"+processed+"</p>";
-  }
+  };
   
   return {
     setup: function(){
@@ -162,11 +162,7 @@ var DISCORD = (function(){
           return getHumanReadableTime(value);
         }
         else if (property === "contents"){
-          if (value == null || value.length === 0){
-            return "";
-          } else{
-            return processMessageContents(value);
-          }
+          return value == null || value.length === 0 ? "" : processMessageContents(value);
         }
         else if (property === "embeds"){
           if (!value){
@@ -209,15 +205,15 @@ var DISCORD = (function(){
           return STATE.hasActiveFilter ? "<span class='info jump' data-jump='" + value + "'>Jump to message</span>" : "";
         }
         else if (property === "reply"){
-          if (value.id === null) {
+          if (value === null) {
             return "";
           }
           
-          replyUser = "<span class='reply-username' title='#" + (value.user.tag ? value.user.tag : "????") + "'>" + value.user.name + "</span>";
-          replyAvatar = value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(value.avatar) + "</span>" : "";
-          replyContents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
+          var user = "<span class='reply-username' title='#" + (value.user.tag ? value.user.tag : "????") + "'>" + value.user.name + "</span>";
+          var avatar = value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(value.avatar) + "</span>" : "";
+          var contents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
           
-          return "<span class='info jump' data-jump='" + value.id + "'>Jump to reply</span> " + replyAvatar + replyUser + replyContents;
+          return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
       	}
       });
     }
