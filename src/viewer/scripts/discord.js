@@ -41,6 +41,36 @@ var DISCORD = (function(){
   var templateEmbedRichUnsupported;
   var templateEmbedDownload;
   
+  var processMessageContents = function(contents){
+    var processed = DOM.escapeHTML(contents.replace(REGEX.formatUrlNoEmbed, "$1"));
+    
+    if (STATE.settings.enableFormatting){
+      var escapeHtmlMatch = (full, match) => "&#"+match.charCodeAt(0)+";";
+      
+      processed = processed
+        .replace(REGEX.specialEscapedBacktick, "&#96;")
+        .replace(REGEX.formatCodeBlock, (full, ignore, match) => "<code class='block'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
+        .replace(REGEX.formatCodeInline, (full, ignore, match) => "<code class='inline'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
+        .replace(REGEX.specialEscapedSingle, escapeHtmlMatch)
+        .replace(REGEX.specialEscapedDouble, full => full.replace(/\\/g, "").replace(/(.)/g, escapeHtmlMatch))
+        .replace(REGEX.formatBold, "<b>$1</b>")
+        .replace(REGEX.formatItalic, (full, pre, match) => pre === '\\' ? full : (pre || "")+"<i>"+match+"</i>")
+        .replace(REGEX.formatUnderline, "<u>$1</u>")
+        .replace(REGEX.formatStrike, "<s>$1</s>");
+    }
+    
+    var animatedEmojiExtension = STATE.settings.enableAnimatedEmoji ? "gif" : "png";
+    
+    processed = processed
+      .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
+      .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
+      .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user' title='#"+(STATE.getUserTag(match) || "????")+"'>@"+STATE.getUserName(match)+"</span>")
+      .replace(REGEX.customEmojiStatic, "<img src='https://cdn.discordapp.com/emojis/$2.png' alt=':$1:' title=':$1:' class='emoji'>")
+      .replace(REGEX.customEmojiAnimated, "<img src='https://cdn.discordapp.com/emojis/$2."+animatedEmojiExtension+"' alt=':$1:' title=':$1:' class='emoji'>");
+    
+    return "<p>"+processed+"</p>";
+  };
+  
   return {
     setup: function(){
       templateChannelServer = new TEMPLATE([
@@ -59,17 +89,21 @@ var DISCORD = (function(){
       
       templateMessageNoAvatar = new TEMPLATE([
         "<div>",
+        "<div>{reply}</div>",
         "<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
         "<div class='message'>{contents}{embeds}{attachments}</div>",
         "</div>"
       ].join(""));
       
       templateMessageWithAvatar = new TEMPLATE([
+        "<div>",
+        "<div class='reply-message'>{reply}</div>",
         "<div class='avatar-wrapper'>",
         "<div class='avatar'>{avatar}</div>",
         "<div>",
         "<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
         "<div class='message'>{contents}{embeds}{attachments}</div>",
+        "</div>",
         "</div>",
         "</div>"
       ].join(""));
@@ -128,37 +162,7 @@ var DISCORD = (function(){
           return getHumanReadableTime(value);
         }
         else if (property === "contents"){
-          if (value == null || value.length === 0){
-            return "";
-          }
-          
-          var processed = DOM.escapeHTML(value.replace(REGEX.formatUrlNoEmbed, "$1"));
-          
-          if (STATE.settings.enableFormatting){
-            var escapeHtmlMatch = (full, match) => "&#"+match.charCodeAt(0)+";";
-            
-            processed = processed
-              .replace(REGEX.specialEscapedBacktick, "&#96;")
-              .replace(REGEX.formatCodeBlock, (full, ignore, match) => "<code class='block'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
-              .replace(REGEX.formatCodeInline, (full, ignore, match) => "<code class='inline'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
-              .replace(REGEX.specialEscapedSingle, escapeHtmlMatch)
-              .replace(REGEX.specialEscapedDouble, full => full.replace(/\\/g, "").replace(/(.)/g, escapeHtmlMatch))
-              .replace(REGEX.formatBold, "<b>$1</b>")
-              .replace(REGEX.formatItalic, (full, pre, match) => pre === '\\' ? full : (pre || "")+"<i>"+match+"</i>")
-              .replace(REGEX.formatUnderline, "<u>$1</u>")
-              .replace(REGEX.formatStrike, "<s>$1</s>");
-          }
-          
-          var animatedEmojiExtension = STATE.settings.enableAnimatedEmoji ? "gif" : "png";
-          
-          processed = processed
-            .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
-            .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
-            .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user' title='#"+(STATE.getUserTag(match) || "????")+"'>@"+STATE.getUserName(match)+"</span>")
-            .replace(REGEX.customEmojiStatic, "<img src='https://cdn.discordapp.com/emojis/$2.png' alt=':$1:' title=':$1:' class='emoji'>")
-            .replace(REGEX.customEmojiAnimated, "<img src='https://cdn.discordapp.com/emojis/$2."+animatedEmojiExtension+"' alt=':$1:' title=':$1:' class='emoji'>");
-          
-          return "<p>"+processed+"</p>";
+          return value == null || value.length === 0 ? "" : processMessageContents(value);
         }
         else if (property === "embeds"){
           if (!value){
@@ -200,6 +204,17 @@ var DISCORD = (function(){
         else if (property === "jump"){
           return STATE.hasActiveFilter ? "<span class='info jump' data-jump='" + value + "'>Jump to message</span>" : "";
         }
+        else if (property === "reply"){
+          if (value === null) {
+            return "";
+          }
+          
+          var user = "<span class='reply-username' title='#" + (value.user.tag ? value.user.tag : "????") + "'>" + value.user.name + "</span>";
+          var avatar = value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(value.avatar) + "</span>" : "";
+          var contents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
+          
+          return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
+      	}
       });
     }
   };

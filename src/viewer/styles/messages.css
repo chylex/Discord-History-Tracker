@@ -154,3 +154,65 @@
   vertical-align: -30%;
   object-fit: contain;
 }
+
+.reply-message {
+  margin: 0 0 -2px 52px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  line-height: 120%;
+  white-space: nowrap;
+}
+
+.reply-message .jump {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  text-underline-offset: 1px;
+  margin-right: 7px;
+}
+
+.reply-message .emoji {
+  width: 16px;
+  height: 16px;
+  vertical-align: -20%;
+  object-fit: contain;
+}
+
+.reply-message .user {
+  margin-right: 5px;
+}
+
+.reply-avatar {
+  margin-right: 4px;
+}
+
+.reply-avatar img {
+  width: 16px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.reply-username {
+  color: #FFF;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.reply-contents {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  max-width: calc(80%);
+}
+
+.reply-contents p {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reply-contents a {
+  color: #0096CF;
+  text-decoration: none;
+}

@@ -37,7 +37,7 @@ var STATE = (function(){
   ROOT.onChannelsRefreshed = function(callback){
     eventOnChannelsRefreshed = callback;
   };
-    
+  
   ROOT.onMessagesRefreshed = function(callback){
     eventOnMessagesRefreshed = callback;
   };
@@ -147,7 +147,17 @@ var STATE = (function(){
       var message = messages[key];
       var user = FILE.getUser(message.u);
       var avatar = user.avatar ? { id: FILE.getUserId(message.u), path: user.avatar } : null;
-
+      
+      var reply = ("r" in message && message.r in messages) ? messages[message.r] : null;
+      var replyUser = reply ? FILE.getUser(reply.u) : null;
+      var replyAvatar = replyUser && replyUser.avatar ? { id: FILE.getUserId(reply.u), path: replyUser.avatar } : null;
+      var replyObj = reply ? {
+        "id": message.r,
+        "user": replyUser,
+        "avatar": replyAvatar,
+        "contents": reply.m
+      } : null;
+      
       return {
         "user": user,
         "avatar": avatar,
@@ -156,7 +166,8 @@ var STATE = (function(){
         "embeds": message.e,
         "attachments": message.a,
         "edit": ("te" in message) ? message.te : (message.f & 1) === 1,
-        "jump": key
+        "jump": key,
+        "reply": replyObj
       };
     });
   };

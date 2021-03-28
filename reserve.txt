@@ -28,6 +28,7 @@ e
 a
 t
 d
+r
 te
 tag
 avatar
@@ -50,6 +51,7 @@ embeds
 attachments
 title
 description
+reply
 toDate
 memoizedProps
 props
@@ -57,3 +59,5 @@ children
 channel
 messages
 msSaveBlob
+messageReference
+message_id

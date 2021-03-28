@@ -56,7 +56,8 @@
  *           {
  *             url: <attachment url>
  *           }, ...
- *         ]
+ *         ],
+ *         r: <reply message id> // only present if referencing another message (reply)
  *       }, ...
  *     }, ...
  *   }
@@ -232,6 +233,10 @@ class SAVEFILE{
       obj.a = discordMessage.attachments.map(attachment => ({
         url: attachment.url
       }));
+    }
+    
+    if (discordMessage.messageReference !== null){
+      obj.r = discordMessage.messageReference.message_id;
     }
     
     return obj;
