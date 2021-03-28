@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.29
+// @version      v.30
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -594,7 +594,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.29, released 20 Dec 2020</sub>
+<sub>v.30, released 28 Mar 2021</sub>
 </p>`);
       
       // elements
@@ -705,7 +705,8 @@ It is recommended to disable link and image previews to avoid putting unnecessar
  *           {
  *             url: <attachment url>
  *           }, ...
- *         ]
+ *         ],
+ *         r: <reply message id> // only present if referencing another message (reply)
  *       }, ...
  *     }, ...
  *   }
@@ -881,6 +882,10 @@ class SAVEFILE{
       obj.a = discordMessage.attachments.map(attachment => ({
         url: attachment.url
       }));
+    }
+    
+    if (discordMessage.messageReference !== null){
+      obj.r = discordMessage.messageReference.message_id;
     }
     
     return obj;
