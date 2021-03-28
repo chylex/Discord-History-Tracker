@@ -192,7 +192,6 @@ def build_website():
     with open(index_file, "w") as index:
         index.write(index_contents.replace("{{{version:web}}}", VERSION_SHORT.replace(" ", "&nbsp;")))
     
-    os.makedirs("bld/web/build", exist_ok = True)
     shutil.copyfile(tracker_file_html, "bld/web/build/track.html")
     shutil.copyfile(tracker_file_userscript, "bld/web/build/track.user.js")
     shutil.copyfile(viewer_file, "bld/web/build/viewer.html")
