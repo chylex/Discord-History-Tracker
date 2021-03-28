@@ -214,7 +214,7 @@ var DISCORD = (function(){
           var contents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
           
           return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
-      	}
+        }
       });
     }
   };
