@@ -135,7 +135,11 @@ var DISCORD = (function(){
       ].join(""));
       
       templateReaction = new TEMPLATE([
-        "<span class='reaction-wrapper'><img src='https://cdn.discordapp.com/emojis/{eid}.{ext}' alt=':{en}:' title=':{en}:' class='emoji'>{c}</span>"
+        "<span class='reaction-wrapper'><span class='reaction-emoji'>{en}</span><span class='count'>{c}</span></span>"
+      ].join(""));
+      
+      templateReactionCustom = new TEMPLATE([
+        "<span class='reaction-wrapper'><img src='https://cdn.discordapp.com/emojis/{eid}.{ext}' alt=':{en}:' title=':{en}:' class='reaction-emoji-custom'><span class='count'>{c}</span></span>"
       ].join(""));
     },
     
@@ -227,8 +231,12 @@ var DISCORD = (function(){
           }
           
       	  return value.map(reaction => {
-      	    reaction.ext = reaction.a ? (STATE.settings.enableAnimatedEmoji ? "gif" : "png") : "png";
-      	    return templateReaction.apply(reaction);
+      	    if (reaction.eid !== null){
+      	      reaction.ext = reaction.a ? (STATE.settings.enableAnimatedEmoji ? "gif" : "png") : "png";
+      	      return templateReactionCustom.apply(reaction);
+      	    } else{
+      	      return templateReaction.apply(reaction);
+      	    }
           }).join("");
       	}
       });
