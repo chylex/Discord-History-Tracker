@@ -8,8 +8,8 @@ import os
 import re
 import distutils.dir_util
 
-VERSION_SHORT = "v.29"
-VERSION_FULL = VERSION_SHORT + ", released 20 Dec 2020"
+VERSION_SHORT = "v.30"
+VERSION_FULL = VERSION_SHORT + ", released 28 Mar 2021"
 
 EXEC_UGLIFYJS_WIN = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
 EXEC_UGLIFYJS_AUTO = "uglifyjs --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
@@ -192,7 +192,6 @@ def build_website():
     with open(index_file, "w") as index:
         index.write(index_contents.replace("{{{version:web}}}", VERSION_SHORT.replace(" ", "&nbsp;")))
     
-    os.makedirs("bld/web/build", exist_ok = True)
     shutil.copyfile(tracker_file_html, "bld/web/build/track.html")
     shutil.copyfile(tracker_file_userscript, "bld/web/build/track.user.js")
     shutil.copyfile(viewer_file, "bld/web/build/viewer.html")
