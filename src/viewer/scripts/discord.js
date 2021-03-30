@@ -89,7 +89,7 @@ var DISCORD = (function(){
       
       templateMessageNoAvatar = new TEMPLATE([
         "<div>",
-        "<div>{reply}</div>",
+        "<div class='reply-message'>{reply}</div>",
         "<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
         "<div class='message'>{contents}{embeds}{attachments}</div>",
         "<div class='reactions'>{reactions}</div>",
@@ -98,7 +98,7 @@ var DISCORD = (function(){
       
       templateMessageWithAvatar = new TEMPLATE([
         "<div>",
-        "<div class='reply-message'>{reply}</div>",
+        "<div class='reply-message reply-message-margin'>{reply}</div>",
         "<div class='avatar-wrapper'>",
         "<div class='avatar'>{avatar}</div>",
         "<div>",

@@ -156,12 +156,15 @@
 }
 
 .reply-message {
-  margin: 0 0 -2px 52px;
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
   line-height: 120%;
   white-space: nowrap;
+}
+
+.reply-message-margin {
+  margin: 0 0 -2px 52px;
 }
 
 .reply-message .jump {
@@ -212,9 +215,19 @@
   text-overflow: ellipsis;
 }
 
+.reply-contents .link {
+  color: #7289DA;
+  background-color: rgba(115, 139, 215, 0.1);
+}
+
 .reply-contents a {
   color: #0096CF;
   text-decoration: none;
+}
+
+.reply-contents code {
+  background-color: #2E3136;
+  font-family: Menlo, Consolas, Monaco, monospace;
 }
 
 .reactions {
