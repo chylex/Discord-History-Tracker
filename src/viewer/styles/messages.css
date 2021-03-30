@@ -74,12 +74,12 @@
   word-wrap: break-word;
 }
 
-.message .link {
+.message .link, .reply-message .link {
   color: #7289DA;
   background-color: rgba(115, 139, 215, 0.1);
 }
 
-.message a {
+.message a, .reply-message a {
   color: #0096CF;
   text-decoration: none;
 }
@@ -156,12 +156,15 @@
 }
 
 .reply-message {
-  margin: 0 0 -2px 52px;
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
   line-height: 120%;
   white-space: nowrap;
+}
+
+.reply-message-with-avatar {
+  margin: 0 0 -2px 52px;
 }
 
 .reply-message .jump {
@@ -212,7 +215,8 @@
   text-overflow: ellipsis;
 }
 
-.reply-contents a {
-  color: #0096CF;
-  text-decoration: none;
+.reply-contents code {
+  background-color: #2E3136;
+  font-family: Menlo, Consolas, Monaco, monospace;
+  padding: 1px 2px;
 }
