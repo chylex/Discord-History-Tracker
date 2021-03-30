@@ -92,6 +92,7 @@ var DISCORD = (function(){
         "<div>{reply}</div>",
         "<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
         "<div class='message'>{contents}{embeds}{attachments}</div>",
+        "<div class='reactions'>{reactions}</div>",
         "</div>"
       ].join(""));
       
@@ -103,6 +104,7 @@ var DISCORD = (function(){
         "<div>",
         "<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
         "<div class='message'>{contents}{embeds}{attachments}</div>",
+        "<div class='reactions'>{reactions}</div>",
         "</div>",
         "</div>",
         "</div>"
@@ -130,6 +132,10 @@ var DISCORD = (function(){
       
       templateEmbedDownload = new TEMPLATE([
         "<a href='{url}' class='embed download'>Download {filename}</a>"
+      ].join(""));
+      
+      templateReaction = new TEMPLATE([
+        "<span class='reaction-wrapper'><img src='https://cdn.discordapp.com/emojis/{eid}.{ext}' alt=':{en}:' title=':{en}:' class='emoji'>{c}</span>"
       ].join(""));
     },
     
@@ -214,6 +220,16 @@ var DISCORD = (function(){
           var contents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
           
           return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
+      	}
+      	else if (property === "reactions"){
+      	  if (!value){
+            return "";
+          }
+          
+      	  return value.map(reaction => {
+      	    reaction.ext = reaction.a ? (STATE.settings.enableAnimatedEmoji ? "gif" : "png") : "png";
+      	    return templateReaction.apply(reaction);
+          }).join("");
       	}
       });
     }

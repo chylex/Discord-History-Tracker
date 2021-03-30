@@ -216,3 +216,24 @@
   color: #0096CF;
   text-decoration: none;
 }
+
+.reactions {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.reactions .reaction-wrapper {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin: 0 2px 2px 0;
+  background: #42454a;
+}
+
+.reactions .emoji {
+  width: 20px;
+  height: 20px;
+  vertical-align: -30%;
+  margin-right: 6px;
+}
