@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.30
+// @version      v.31
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -594,7 +594,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.30, released 28 Mar 2021</sub>
+<sub>v.31, released 3 April 2021</sub>
 </p>`);
       
       // elements
@@ -691,8 +691,8 @@ It is recommended to disable link and image previews to avoid putting unnecessar
  *         u: <user index of the sender>,
  *         t: <message timestamp>,
  *         m: <message content>, // only present if not empty
- *         f: <message flags>,   // only present if edited in which case it equals 1, deprecated (use 'te' instead),
- *         te: <edit timestamp>, // only present if edited,
+ *         f: <message flags>,   // only present if edited in which case it equals 1, deprecated (use 'te' instead)
+ *         te: <edit timestamp>, // only present if edited
  *         e: [ // omit for no embeds
  *           {
  *             url: <embed url>,
@@ -706,7 +706,15 @@ It is recommended to disable link and image previews to avoid putting unnecessar
  *             url: <attachment url>
  *           }, ...
  *         ],
- *         r: <reply message id> // only present if referencing another message (reply)
+ *         r: <reply message id>, // only present if referencing another message (reply)
+ *         re: [ // omit for no reactions
+ *           {
+ *             c: <react count>
+ *             n: <emoji name>,
+ *             id: <emoji id>,          // only present for custom emoji
+ *             an: <emoji is animated>, // only present for custom animated emoji
+ *           }, ...
+ *         ]
  *       }, ...
  *     }, ...
  *   }
@@ -750,7 +758,7 @@ class SAVEFILE{
       channelkeys: new Set(),
       messagekeys: new Set(),
       freshmsgs: new Set()
-    }
+    };
   }
   
   static isValid(parsedObj){
@@ -886,6 +894,25 @@ class SAVEFILE{
     
     if (discordMessage.messageReference !== null){
       obj.r = discordMessage.messageReference.message_id;
+    }
+    
+    if (discordMessage.reactions.length > 0) {
+      obj.re = discordMessage.reactions.map(reaction => {
+	      let conv = {
+		      c: reaction.count,
+		      n: reaction.emoji.name
+	      };
+	      
+	      if (reaction.emoji.id !== null) {
+	      	conv.id = reaction.emoji.id;
+	      }
+	      
+	      if (reaction.emoji.animated) {
+	      	conv.an = true;
+	      }
+	      
+	      return conv;
+      });
     }
     
     return obj;
