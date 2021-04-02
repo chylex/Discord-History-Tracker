@@ -220,3 +220,42 @@
   font-family: Menlo, Consolas, Monaco, monospace;
   padding: 1px 2px;
 }
+
+.reply-contents code {
+  background-color: #2E3136;
+  font-family: Menlo, Consolas, Monaco, monospace;
+}
+
+.reactions {
+  margin-top: 4px;
+}
+
+.reactions .reaction-wrapper {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin: 0 2px 2px 0;
+  background: #42454a;
+  vertical-align: middle;
+}
+
+.reactions .reaction-emoji {
+  margin-right: 6px;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  line-height: 20px;
+  text-align: center;
+}
+
+.reactions .reaction-emoji-custom {
+  margin-right: 6px;
+  width: 20px;
+  height: 20px;
+  vertical-align: -30%;
+}
+
+.reactions .count {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}

@@ -57,7 +57,14 @@
  *             url: <attachment url>
  *           }, ...
  *         ],
- *         r: <reply message id> // only present if referencing another message (reply)
+ *         r: <reply message id> // only present if referencing another message (reply),
+ *         re: [ // reactions
+ *           {
+ *             en: <emoji name>,
+ *             eid: <emoji id>,
+ *             a: <emoji is animated>,
+ *             c: <react count>
+ *         ]
  *       }, ...
  *     }, ...
  *   }
@@ -237,6 +244,17 @@ class SAVEFILE{
     
     if (discordMessage.messageReference !== null){
       obj.r = discordMessage.messageReference.message_id;
+    }
+    
+    if (discordMessage.reactions.length > 0) {
+      obj.re = discordMessage.reactions.map(reaction => {
+        return {
+          en: reaction.emoji.name,
+          eid: reaction.emoji.id,
+          a: reaction.emoji.animated,
+          c: reaction.count
+        };
+      });
     }
     
     return obj;

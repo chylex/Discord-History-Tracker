@@ -61,3 +61,11 @@ messages
 msSaveBlob
 messageReference
 message_id
+reactions
+emoji
+animated
+re
+en
+eid
+c
+ext
