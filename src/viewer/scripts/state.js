@@ -168,7 +168,7 @@ var STATE = (function(){
         "edit": ("te" in message) ? message.te : (message.f & 1) === 1,
         "jump": key,
         "reply": replyObj,
-        "reactions": message.re
+        "reactions": ("re" in message) ? message.re : null
       };
     });
   };

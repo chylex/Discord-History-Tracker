@@ -221,11 +221,6 @@
   padding: 1px 2px;
 }
 
-.reply-contents code {
-  background-color: #2E3136;
-  font-family: Menlo, Consolas, Monaco, monospace;
-}
-
 .reactions {
   margin-top: 4px;
 }
@@ -233,29 +228,27 @@
 .reactions .reaction-wrapper {
   display: inline-block;
   border-radius: 4px;
-  padding: 2px 8px;
-  margin: 0 2px 2px 0;
+  margin: 3px 2px 0 0;
+  padding: 3px 6px;
   background: #42454a;
-  vertical-align: middle;
+  cursor: default;
 }
 
 .reactions .reaction-emoji {
-  margin-right: 6px;
-  width: 20px;
-  height: 20px;
+  margin-right: 5px;
+  font-size: 16px;
   display: inline-block;
-  line-height: 20px;
   text-align: center;
+  vertical-align: -5%;
 }
 
 .reactions .reaction-emoji-custom {
-  margin-right: 6px;
-  width: 20px;
-  height: 20px;
-  vertical-align: -30%;
+  height: 15px;
+  margin-right: 5px;
+  vertical-align: -10%;
 }
 
 .reactions .count {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.45);
   font-size: 14px;
 }

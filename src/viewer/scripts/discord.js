@@ -135,11 +135,11 @@ var DISCORD = (function(){
       ].join(""));
       
       templateReaction = new TEMPLATE([
-        "<span class='reaction-wrapper'><span class='reaction-emoji'>{en}</span><span class='count'>{c}</span></span>"
+        "<span class='reaction-wrapper'><span class='reaction-emoji'>{n}</span><span class='count'>{c}</span></span>"
       ].join(""));
       
       templateReactionCustom = new TEMPLATE([
-        "<span class='reaction-wrapper'><img src='https://cdn.discordapp.com/emojis/{eid}.{ext}' alt=':{en}:' title=':{en}:' class='reaction-emoji-custom'><span class='count'>{c}</span></span>"
+        "<span class='reaction-wrapper'><img src='https://cdn.discordapp.com/emojis/{id}.{ext}' alt=':{n}:' title=':{n}:' class='reaction-emoji-custom'><span class='count'>{c}</span></span>"
       ].join(""));
     },
     
@@ -224,21 +224,22 @@ var DISCORD = (function(){
           var contents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
           
           return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
-      	}
-      	else if (property === "reactions"){
-      	  if (!value){
+        }
+        else if (property === "reactions"){
+          if (value === null){
             return "";
           }
           
-      	  return value.map(reaction => {
-      	    if (reaction.eid !== null){
-      	      reaction.ext = reaction.a ? (STATE.settings.enableAnimatedEmoji ? "gif" : "png") : "png";
-      	      return templateReactionCustom.apply(reaction);
-      	    } else{
-      	      return templateReaction.apply(reaction);
-      	    }
+          return value.map(reaction => {
+            if ("id" in reaction){
+              reaction.ext = reaction.an && STATE.settings.enableAnimatedEmoji ? "gif" : "png";
+              return templateReactionCustom.apply(reaction);
+            }
+            else {
+              return templateReaction.apply(reaction);
+            }
           }).join("");
-      	}
+        }
       });
     }
   };

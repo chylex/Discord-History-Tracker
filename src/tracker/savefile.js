@@ -42,8 +42,8 @@
  *         u: <user index of the sender>,
  *         t: <message timestamp>,
  *         m: <message content>, // only present if not empty
- *         f: <message flags>,   // only present if edited in which case it equals 1, deprecated (use 'te' instead),
- *         te: <edit timestamp>, // only present if edited,
+ *         f: <message flags>,   // only present if edited in which case it equals 1, deprecated (use 'te' instead)
+ *         te: <edit timestamp>, // only present if edited
  *         e: [ // omit for no embeds
  *           {
  *             url: <embed url>,
@@ -57,13 +57,14 @@
  *             url: <attachment url>
  *           }, ...
  *         ],
- *         r: <reply message id> // only present if referencing another message (reply),
- *         re: [ // reactions
+ *         r: <reply message id>, // only present if referencing another message (reply)
+ *         re: [ // omit for no reactions
  *           {
- *             en: <emoji name>,
- *             eid: <emoji id>,
- *             a: <emoji is animated>,
  *             c: <react count>
+ *             n: <emoji name>,
+ *             id: <emoji id>,          // only present for custom emoji
+ *             an: <emoji is animated>, // only present for custom animated emoji
+ *           }, ...
  *         ]
  *       }, ...
  *     }, ...
@@ -108,7 +109,7 @@ class SAVEFILE{
       channelkeys: new Set(),
       messagekeys: new Set(),
       freshmsgs: new Set()
-    }
+    };
   }
   
   static isValid(parsedObj){
@@ -248,12 +249,20 @@ class SAVEFILE{
     
     if (discordMessage.reactions.length > 0) {
       obj.re = discordMessage.reactions.map(reaction => {
-        return {
-          en: reaction.emoji.name,
-          eid: reaction.emoji.id,
-          a: reaction.emoji.animated,
-          c: reaction.count
-        };
+	      let conv = {
+		      c: reaction.count,
+		      n: reaction.emoji.name
+	      };
+	      
+	      if (reaction.emoji.id !== null) {
+	      	conv.id = reaction.emoji.id;
+	      }
+	      
+	      if (reaction.emoji.animated) {
+	      	conv.an = true;
+	      }
+	      
+	      return conv;
       });
     }
     
