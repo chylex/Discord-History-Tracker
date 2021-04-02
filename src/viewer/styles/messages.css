@@ -74,12 +74,12 @@
   word-wrap: break-word;
 }
 
-.message .link {
+.message .link, .reply-message .link {
   color: #7289DA;
   background-color: rgba(115, 139, 215, 0.1);
 }
 
-.message a {
+.message a, .reply-message a {
   color: #0096CF;
   text-decoration: none;
 }
@@ -163,7 +163,7 @@
   white-space: nowrap;
 }
 
-.reply-message-margin {
+.reply-message-with-avatar {
   margin: 0 0 -2px 52px;
 }
 
@@ -215,14 +215,10 @@
   text-overflow: ellipsis;
 }
 
-.reply-contents .link {
-  color: #7289DA;
-  background-color: rgba(115, 139, 215, 0.1);
-}
-
-.reply-contents a {
-  color: #0096CF;
-  text-decoration: none;
+.reply-contents code {
+  background-color: #2E3136;
+  font-family: Menlo, Consolas, Monaco, monospace;
+  padding: 1px 2px;
 }
 
 .reply-contents code {

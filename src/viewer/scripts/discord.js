@@ -98,7 +98,7 @@ var DISCORD = (function(){
       
       templateMessageWithAvatar = new TEMPLATE([
         "<div>",
-        "<div class='reply-message reply-message-margin'>{reply}</div>",
+        "<div class='reply-message reply-message-with-avatar'>{reply}</div>",
         "<div class='avatar-wrapper'>",
         "<div class='avatar'>{avatar}</div>",
         "<div>",
@@ -220,7 +220,7 @@ var DISCORD = (function(){
           }
           
           var user = "<span class='reply-username' title='#" + (value.user.tag ? value.user.tag : "????") + "'>" + value.user.name + "</span>";
-          var avatar = STATE.settings.enableUserAvatars ? (value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(value.avatar) + "</span>" : "") : "";
+          var avatar = STATE.settings.enableUserAvatars && value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(value.avatar) + "</span>" : "";
           var contents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
           
           return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
