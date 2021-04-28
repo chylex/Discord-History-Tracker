@@ -793,28 +793,33 @@ class SAVEFILE{
   }
   
   findOrRegisterServer(serverName, serverType){
+    var linkSplit = window.location.href.split('/');
+    var serverId = linkSplit[linkSplit.length - 2];
+
     var index = this.meta.servers.findIndex(server => server.name === serverName && server.type === serverType);
     
     if (index === -1){
       this.meta.servers.push({
+        "id": serverId,
         "name": serverName,
         "type": serverType
       });
       
-      return this.meta.servers.length-1;
+      return serverId;
     }
     else{
-      return index;
+      return this.meta.servers[index].id;
     }
   }
   
-  tryRegisterChannel(serverIndex, channelId, channelName, extraInfo){
-    if (!this.meta.servers[serverIndex]){
+  tryRegisterChannel(serverId, channelId, channelName, extraInfo){
+    var index = this.meta.servers.findIndex(server => server.id === serverId);
+    if (index === -1){
       return undefined;
     }
     
     var wasPresent = channelId in this.meta.channels;
-    var channelObj = wasPresent ? this.meta.channels[channelId] : { "server": serverIndex };
+    var channelObj = wasPresent ? this.meta.channels[channelId] : { "server": serverId };
     
     channelObj.name = channelName;
     
@@ -1144,9 +1149,9 @@ var STATE = (function(){
      * Registers a Discord server and channel.
      */
     addDiscordChannel(serverName, serverType, channelId, channelName, extraInfo){
-      var serverIndex = this.getSavefile().findOrRegisterServer(serverName, serverType);
+      var serverId = this.getSavefile().findOrRegisterServer(serverName, serverType);
       
-      if (this.getSavefile().tryRegisterChannel(serverIndex, channelId, channelName, extraInfo) === true){
+      if (this.getSavefile().tryRegisterChannel(serverId, channelId, channelName, extraInfo) === true){
         triggerStateChanged("data", "channel");
       }
     }
