@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:DHT.Desktop.Main.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DHT.Desktop.Main.Pages.TrackingPage">
+
+    <Design.DataContext>
+        <pages:TrackingPageModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="FontFamily" Value="Consolas,Courier" />
+            <Setter Property="FontSize" Value="15" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Spacing="10">
+        <TextBlock TextWrapping="Wrap">
+            To start tracking messages, copy the tracking script and paste it into the console of either the Discord app (Ctrl+Shift+I), or your browser with Discord open.
+        </TextBlock>
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button x:Name="CopyTrackingScript" Click="CopyTrackingScriptButton_OnClick">Copy Tracking Script</Button>
+            <Button Command="{Binding OnClickToggleButton}" Content="{Binding ToggleButtonText}" IsEnabled="{Binding IsToggleButtonEnabled}" />
+        </StackPanel>
+        <Expander Header="Advanced Settings">
+            <StackPanel Spacing="10" Margin="0 10 0 0">
+                <TextBlock TextWrapping="Wrap">
+                    The following settings determine how the tracking script communicates with this application. If you change them, you will have to copy and apply the tracking script again.
+                </TextBlock>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <StackPanel Orientation="Vertical">
+                        <Label Target="Port">Port</Label>
+                        <TextBox x:Name="Port" Width="70" Text="{Binding InputPort}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical">
+                        <Label Target="Token">Token</Label>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="Token" Width="200" Text="{Binding InputToken}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Command="{Binding OnClickRandomizeToken}" VerticalAlignment="Bottom">Randomize Token</Button>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button IsEnabled="{Binding HasMadeChanges}" Command="{Binding OnClickApplyChanges}">Apply &amp; Restart</Button>
+                    <Button IsEnabled="{Binding HasMadeChanges}" Command="{Binding OnClickCancelChanges}">Cancel</Button>
+                </StackPanel>
+            </StackPanel>
+        </Expander>
+    </StackPanel>
+
+</UserControl>

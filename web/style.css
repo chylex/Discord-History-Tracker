@@ -1,13 +1,12 @@
 body {
   font-family: Whitney, "Helvetica Neue", Helvetica, Arial, sans-serif;
   margin: 0;
-  padding: 0;
+  padding: 0 0 20px;
   font-size: 18px;
   text-shadow: 1px 1px 0 #111;
   color: rgba(255, 255, 255, 0.8);
-  background-color: #3B3E45;
+  background-color: #3b3e45;
   box-sizing: border-box;
-  -moz-box-sizing: border-box;
 }
 
 .inner {
@@ -22,7 +21,7 @@ p {
 }
 
 a {
-  color: #0EB3E0;
+  color: #1ecfff;
   text-decoration: none;
 }
 
@@ -64,30 +63,31 @@ h1 span.notes {
 }
 
 h2 {
-  margin: 36px 0 0;
+  margin: 40px 0 0;
   font-size: 32px;
-  color: #ffb67b;
+  color: #f9d288;
 }
 
 h3 {
-  margin: 24px 0 0;
+  margin: 30px 0 12px;
   font-size: 22px;
   color: rgba(255, 255, 255, 0.9);
 }
 
 h2 + h3, h3 + h4 {
-  margin-top: 12px;
+  margin-top: 15px;
 }
 
 h4 {
-  margin: 22px 0 0;
-  font-size: 19px;
+  margin: 25px 0 0;
+  font-size: 20px;
   color: rgba(255, 255, 255, 0.75);
 }
 
 ul, ol {
   margin-top: -6px;
   margin-left: -6px;
+  margin-bottom: -2px;
 }
 
 li {
@@ -100,6 +100,10 @@ li > ul, li > ol {
 
 li > img {
   margin-top: 8px;
+}
+
+code {
+  margin: 0 3px;
 }
 
 .dht {
@@ -116,11 +120,10 @@ li > img {
   border: 2px dashed rgba(255, 255, 255, 0.25);
   border-radius: 3px;
   box-sizing: border-box;
-  -moz-box-sizing: border-box;
 }
 
 .quote {
-  border-left: 2px dashed rgba(255, 255, 255, 0.1);
+  border-left: 2px dashed rgba(255, 253, 123, 0.5);
   margin-left: 2px;
   padding-left: 12px;
 }

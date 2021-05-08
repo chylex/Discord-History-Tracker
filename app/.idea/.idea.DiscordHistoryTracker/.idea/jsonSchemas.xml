@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JsonSchemaMappingsProjectConfiguration">
+    <state>
+      <map>
+        <entry key="track-channel">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="track-channel" />
+              <option name="relativePathToSchema" value="Resources/Schemas/track-channel.yml" />
+              <option name="schemaVersion" value="JSON Schema version 7" />
+            </SchemaInfo>
+          </value>
+        </entry>
+        <entry key="track-messages">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="track-messages" />
+              <option name="relativePathToSchema" value="Resources/Schemas/track-messages.yml" />
+              <option name="schemaVersion" value="JSON Schema version 7" />
+            </SchemaInfo>
+          </value>
+        </entry>
+        <entry key="track-users">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="track-users" />
+              <option name="relativePathToSchema" value="Resources/Schemas/track-users.yml" />
+              <option name="schemaVersion" value="JSON Schema version 7" />
+            </SchemaInfo>
+          </value>
+        </entry>
+      </map>
+    </state>
+  </component>
+</project>

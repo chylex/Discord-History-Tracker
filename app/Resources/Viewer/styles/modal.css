@@ -1,0 +1,46 @@
+#modal div {
+  position: absolute;
+  display: none;
+}
+
+#modal.visible div {
+  display: block;
+}
+
+#modal #overlay {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+}
+
+#modal.visible #overlay {
+  opacity: 0.5;
+}
+
+#dialog {
+  left: 50%;
+  top: 50%;
+  padding: 16px;
+  background-color: #fff;
+  transform: translateY(-50%);
+}
+
+#dialog p {
+  line-height: 1.2;
+}
+
+#dialog p:first-child, #dialog p:last-child {
+  margin-top: 1px;
+  margin-bottom: 1px;
+}
+
+#dialog a {
+  color: #0096cf;
+  text-decoration: none;
+}
+
+#dialog a:hover {
+  text-decoration: underline;
+}

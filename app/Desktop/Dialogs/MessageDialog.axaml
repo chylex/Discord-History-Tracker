@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:dialogs="clr-namespace:DHT.Desktop.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="500"
+        x:Class="DHT.Desktop.Dialogs.MessageDialog"
+        Title="{Binding Title}"
+        Width="500" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.DataContext>
+        <dialogs:MessageDialogModel />
+    </Window.DataContext>
+
+    <Window.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="WrapPanel">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Margin" Value="0 8 0 0" />
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Margin" Value="8 0 0 0" />
+            <Setter Property="MinWidth" Value="80" />
+        </Style>
+    </Window.Styles>
+
+    <StackPanel Margin="20">
+        <TextBlock Text="{Binding Message}" />
+        <WrapPanel>
+            <Button Click="ClickOk" IsVisible="{Binding IsOkVisible}">OK</Button>
+            <Button Click="ClickYes" IsVisible="{Binding IsYesVisible}">Yes</Button>
+            <Button Click="ClickNo" IsVisible="{Binding IsNoVisible}">No</Button>
+            <Button Click="ClickCancel" IsVisible="{Binding IsCancelVisible}">Cancel</Button>
+        </WrapPanel>
+    </StackPanel>
+
+</Window>

@@ -1,0 +1,42 @@
+$schema: http://json-schema.org/draft-07/schema
+type: object
+properties:
+  server:
+    type: object
+    properties:
+      id:
+        type: string
+        pattern: "^[0-9]+$"
+      name:
+        type: string
+      type:
+        type: string
+        enum:
+          - SERVER
+          - GROUP
+          - DM
+    required:
+      - id
+      - name
+      - type
+  channel:
+    type: object
+    properties:
+      id:
+        type: string
+        pattern: "^[0-9]+$"
+      name:
+        type: string
+      position:
+        type: number
+        minimum: 0
+      topic:
+        type: string
+      nsfw:
+        type: boolean
+    required:
+      - id
+      - name
+required:
+  - server
+  - channel

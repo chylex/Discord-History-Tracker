@@ -1,5 +1,9 @@
-/inspectionProfiles/
+/codeStyles
+/dataSources.local.xml
+/deployment.xml
 /httpRequests/
-/shelf/
+/inspectionProfiles
 /misc.xml
+/shelf/
+/webServers.xml
 /workspace.xml

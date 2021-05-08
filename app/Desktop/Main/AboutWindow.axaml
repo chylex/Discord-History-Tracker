@@ -1,0 +1,67 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:main="clr-namespace:DHT.Desktop.Main"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="295"
+        x:Class="DHT.Desktop.Main.AboutWindow"
+        Title="About Discord History Tracker"
+        Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
+        Width="480" Height="295" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Design.DataContext>
+        <main:AboutWindowModel />
+    </Design.DataContext>
+
+    <Window.Styles>
+        <Style Selector="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="Spacing" Value="5" />
+        </Style>
+        <Style Selector="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Grid > Button">
+            <Setter Property="Margin" Value="0 4" />
+            <Setter Property="Padding" Value="8 4" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+    </Window.Styles>
+
+    <StackPanel Orientation="Vertical" Margin="20" Spacing="12">
+
+        <TextBlock VerticalAlignment="Center">
+            Discord History Tracker was created by chylex and released under the MIT license.
+        </TextBlock>
+
+        <StackPanel>
+            <Button Command="{Binding ShowOfficialWebsite}">Official Website</Button>
+            <Button Command="{Binding ShowSourceCode}">Source Code</Button>
+        </StackPanel>
+
+        <Grid RowDefinitions="Auto,5,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="175,125,*" Margin="0 10 0 0">
+            <TextBlock Grid.Row="0" Grid.Column="0" FontWeight="Bold">Third-Party Software</TextBlock>
+            <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold">License</TextBlock>
+            <TextBlock Grid.Row="0" Grid.Column="2" FontWeight="Bold">Link</TextBlock>
+
+            <TextBlock Grid.Row="2" Grid.Column="0">.NET 5</TextBlock>
+            <TextBlock Grid.Row="2" Grid.Column="1">MIT</TextBlock>
+            <Button Grid.Row="2" Grid.Column="2" Command="{Binding ShowLibraryNetCore}">GitHub</Button>
+
+            <TextBlock Grid.Row="3" Grid.Column="0">Avalonia</TextBlock>
+            <TextBlock Grid.Row="3" Grid.Column="1">MIT</TextBlock>
+            <Button Grid.Row="3" Grid.Column="2" Command="{Binding ShowLibraryAvalonia}">NuGet</Button>
+
+            <TextBlock Grid.Row="4" Grid.Column="0">SQLite</TextBlock>
+            <TextBlock Grid.Row="4" Grid.Column="1">Public Domain</TextBlock>
+            <Button Grid.Row="4" Grid.Column="2" Command="{Binding ShowLibrarySqlite}">Official Website</Button>
+
+            <TextBlock Grid.Row="5" Grid.Column="0">Microsoft.Data.Sqlite</TextBlock>
+            <TextBlock Grid.Row="5" Grid.Column="1">Apache-2.0</TextBlock>
+            <Button Grid.Row="5" Grid.Column="2" Command="{Binding ShowLibrarySqliteAdoNet}">NuGet</Button>
+        </Grid>
+
+    </StackPanel>
+</Window>

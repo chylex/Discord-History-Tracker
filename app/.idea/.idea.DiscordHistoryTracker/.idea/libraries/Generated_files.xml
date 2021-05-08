@@ -1,0 +1,22 @@
+<component name="libraryTable">
+  <library name="Generated files" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/Resources/Tracker/scripts.min/discord.js" />
+        <item url="file://$PROJECT_DIR$/Resources/Tracker/scripts.min/dom.js" />
+        <item url="file://$PROJECT_DIR$/Resources/Tracker/scripts.min/gui.js" />
+        <item url="file://$PROJECT_DIR$/Resources/Tracker/scripts.min/settings.js" />
+        <item url="file://$PROJECT_DIR$/Resources/Tracker/scripts.min/state.js" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/Resources/Tracker/scripts.min/discord.js" />
+      <root url="file://$PROJECT_DIR$/Resources/Tracker/scripts.min/dom.js" />
+      <root url="file://$PROJECT_DIR$/Resources/Tracker/scripts.min/gui.js" />
+      <root url="file://$PROJECT_DIR$/Resources/Tracker/scripts.min/settings.js" />
+      <root url="file://$PROJECT_DIR$/Resources/Tracker/scripts.min/state.js" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

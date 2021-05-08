@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:main="clr-namespace:DHT.Desktop.Main"
+             xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DHT.Desktop.Main.MainContentScreen">
+
+    <Design.DataContext>
+        <main:MainContentScreenModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="TabControl WrapPanel">
+            <Setter Property="Background" Value="#546A9F" />
+        </Style>
+        <Style Selector="TabItem">
+            <Setter Property="Foreground" Value="#E9E9E9" />
+            <Setter Property="FontSize" Value="20" />
+        </Style>
+        <Style Selector="TabItem[TabStripPlacement=Left] /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Margin" Value="5 0" />
+        </Style>
+        <Style Selector="TabItem:pointerover">
+            <Setter Property="Background" Value="#1F2E45" />
+        </Style>
+        <Style Selector="TabItem:pointerover /template/ Border">
+            <Setter Property="Background" Value="#1F2E45" />
+        </Style>
+        <Style Selector="TabItem:pointerover > TextBlock">
+            <Setter Property="Foreground" Value="#E9E9E9" />
+        </Style>
+        <Style Selector="TabItem:selected:pointerover /template/ Border">
+            <Setter Property="Background" Value="#FFFFFF" />
+        </Style>
+        <Style Selector="TabItem:selected:pointerover > TextBlock">
+            <Setter Property="Foreground" Value="#1A2234" />
+        </Style>
+        <Style Selector="TabItem:selected">
+            <Setter Property="Foreground" Value="#1A2234" />
+            <Setter Property="Background" Value="#FFFFFF" />
+        </Style>
+        <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="TabItem:disabled > TextBlock">
+            <Setter Property="Foreground" Value="#B2B2B2" />
+            <Setter Property="TextDecorations" Value="Strikethrough" />
+        </Style>
+        <Style Selector="TabItem.first">
+            <Setter Property="Margin" Value="0 13 0 0" />
+        </Style>
+        <Style Selector="TabControl">
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="ContentPresenter.page">
+            <Setter Property="Margin" Value="15 21" />
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel>
+        <TabControl x:Name="TabControl" TabStripPlacement="Left">
+            <TabItem x:Name="TabDatabase" Header="Database" Classes="first">
+                <DockPanel>
+                    <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Bottom" />
+                    <ScrollViewer>
+                        <ContentPresenter Content="{Binding DatabasePage}" Classes="page" />
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+            <TabItem x:Name="TabTracking" Header="Tracking">
+                <DockPanel>
+                    <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Bottom" />
+                    <ScrollViewer>
+                        <ContentPresenter Content="{Binding TrackingPage}" Classes="page" />
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+            <TabItem x:Name="TabViewer" Header="Viewer">
+                <DockPanel>
+                    <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Bottom" />
+                    <ScrollViewer>
+                        <ContentPresenter Content="{Binding ViewerPage}" Classes="page" />
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+
+</UserControl>

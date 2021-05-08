@@ -1,0 +1,73 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DHT.Desktop.App">
+
+    <Application.Styles>
+
+        <FluentTheme Mode="Light" />
+
+        <Style Selector="Button">
+            <Setter Property="Padding" Value="10 7 10 6" />
+            <Setter Property="Background" Value="#D2D2D2" />
+            <Setter Property="BorderBrush" Value="#999999" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="TextBlock.Foreground" Value="#070707" />
+            <Setter Property="Background" Value="#D2D2D2" />
+            <Setter Property="BorderBrush" Value="#999999" />
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#DEDEDE" />
+            <Setter Property="BorderBrush" Value="#A2A2A2" />
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="Button:pressed">
+            <Setter Property="RenderTransform" Value="none" />
+        </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E5E5E5" />
+            <Setter Property="BorderBrush" Value="#A5A5A5" />
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="TextBlock.Foreground" Value="#909090" />
+            <Setter Property="Background" Value="#E9E9E9" />
+            <Setter Property="BorderBrush" Value="#BFBFBF" />
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="BorderBrush" Value="#999999" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="SelectionBrush" Value="#72C0FF" />
+            <Setter Property="Background" Value="#F4F4F4" />
+            <Setter Property="Padding" Value="6 0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBox /template/ Border#PART_BorderElement">
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#999999" />
+            <Setter Property="Background" Value="#F8F8F8" />
+        </Style>
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#546A9F" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="#FBFBFB" />
+        </Style>
+        <Style Selector="TextBox:disabled /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#999999" />
+            <Setter Property="Background" Value="#BBBBBB" />
+        </Style>
+        <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+    </Application.Styles>
+
+</Application>

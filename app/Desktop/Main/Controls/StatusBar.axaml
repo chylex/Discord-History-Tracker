@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
+             mc:Ignorable="d"
+             x:Class="DHT.Desktop.Main.Controls.StatusBar">
+
+    <Design.DataContext>
+        <controls:StatusBarModel />
+    </Design.DataContext>
+
+    <UserControl.Background>
+        <SolidColorBrush>#546A9F</SolidColorBrush>
+    </UserControl.Background>
+
+    <UserControl.Styles>
+        <Style Selector="StackPanel > TextBlock">
+            <Setter Property="Foreground" Value="#E0E0E0" />
+        </Style>
+        <Style Selector="StackPanel > TextBlock.label">
+            <Setter Property="FontSize" Value="15" />
+        </Style>
+        <Style Selector="StackPanel > TextBlock.value">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="TextAlignment" Value="Right" />
+        </Style>
+        <Style Selector="StackPanel > Rectangle">
+            <Setter Property="Margin" Value="14 0" />
+            <Setter Property="Stroke" Value="#3B5287" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Orientation="Horizontal" Margin="4 3">
+        <StackPanel Orientation="Vertical" Width="65">
+            <TextBlock Classes="label">Status</TextBlock>
+            <TextBlock FontSize="12" Margin="0 2 0 0" Text="{Binding StatusText}" />
+        </StackPanel>
+        <Rectangle />
+        <StackPanel Orientation="Vertical">
+            <TextBlock Classes="label">Servers</TextBlock>
+            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalServers, StringFormat={}{0:n0}}" />
+        </StackPanel>
+        <Rectangle />
+        <StackPanel Orientation="Vertical">
+            <TextBlock Classes="label">Channels</TextBlock>
+            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalChannels, StringFormat={}{0:n0}}" />
+        </StackPanel>
+        <Rectangle />
+        <StackPanel Orientation="Vertical">
+            <TextBlock Classes="label">Messages</TextBlock>
+            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalMessages, StringFormat={}{0:n0}}" />
+        </StackPanel>
+    </StackPanel>
+
+</UserControl>

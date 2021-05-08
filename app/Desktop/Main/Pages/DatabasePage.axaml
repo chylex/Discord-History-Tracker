@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:DHT.Desktop.Main.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DHT.Desktop.Main.Pages.DatabasePage">
+
+    <Design.DataContext>
+        <pages:DatabasePageModel />
+    </Design.DataContext>
+
+    <StackPanel Spacing="10">
+        <DockPanel>
+            <Button Command="{Binding CloseDatabase}" DockPanel.Dock="Right">Close Database</Button>
+            <TextBox Text="{Binding Db.Path}" Width="NaN" Margin="0 0 10 0" IsEnabled="True" />
+        </DockPanel>
+        <Button Command="{Binding OpenDatabaseFolder}">Open Database Folder</Button>
+    </StackPanel>
+
+</UserControl>

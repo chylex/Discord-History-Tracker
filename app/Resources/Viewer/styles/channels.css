@@ -1,0 +1,42 @@
+#channels {
+  width: 15vw;
+  min-width: 215px;
+  max-width: 300px;
+  overflow-y: auto;
+  background-color: #1c1e22;
+}
+
+#channels > div {
+  cursor: pointer;
+  padding: 10px 12px;
+  color: #eee;
+  font-size: 15px;
+  border-bottom: 1px solid #333333;
+}
+
+#channels > div:hover, #channels > div.active {
+  background-color: #282b30;
+}
+
+#channels .info {
+  display: flex;
+  height: 16px;
+  margin-bottom: 4px;
+}
+
+#channels .name {
+  flex-grow: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#channels .tag {
+  flex-shrink: 1;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  margin-left: 4px;
+  margin-top: 1px;
+  padding: 2px 5px;
+  font-size: 11px;
+}

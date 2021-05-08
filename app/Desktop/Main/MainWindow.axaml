@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:main="clr-namespace:DHT.Desktop.Main"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="DHT.Desktop.Main.MainWindow"
+        Title="Discord History Tracker"
+        Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
+        Width="800" Height="450"
+        MinWidth="480" MinHeight="240"
+        WindowStartupLocation="CenterScreen">
+
+    <Design.DataContext>
+        <main:MainWindowModel />
+    </Design.DataContext>
+
+    <Panel>
+        <ContentPresenter Content="{Binding WelcomeScreen}" IsVisible="{Binding ShowWelcomeScreen}" />
+        <ContentPresenter Content="{Binding MainContentScreen}" IsVisible="{Binding ShowMainContentScreen}" />
+    </Panel>
+</Window>

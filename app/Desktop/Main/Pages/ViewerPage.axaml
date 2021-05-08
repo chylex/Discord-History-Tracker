@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:DHT.Desktop.Main.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DHT.Desktop.Main.Pages.ViewerPage">
+
+    <Design.DataContext>
+        <pages:ViewerPageModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="Grid > Label">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Grid > CalendarDatePicker">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="IsTodayHighlighted" Value="True" />
+            <Setter Property="SelectedDateFormat" Value="Short" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Orientation="Vertical" Spacing="20">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+            <Button Command="{Binding OnClickOpenViewer}" Margin="0 0 5 0">Open Viewer</Button>
+            <Button Command="{Binding OnClickSaveViewer}" Margin="5 0 0 0">Save Viewer</Button>
+        </StackPanel>
+        <TextBlock Text="{Binding ExportedMessageText}" />
+        <StackPanel>
+            <CheckBox IsChecked="{Binding FilterByDate}">Filter by Date</CheckBox>
+            <Grid ColumnDefinitions="Auto, 4, 140" RowDefinitions="Auto, 4, Auto" Margin="4">
+                <Label Grid.Row="0" Grid.Column="0">From:</Label>
+                <CalendarDatePicker Grid.Row="0" Grid.Column="2" x:Name="StartDatePicker" IsEnabled="{Binding FilterByDate}" SelectedDateChanged="CalendarDatePicker_OnSelectedDateChanged" />
+                <Label Grid.Row="2" Grid.Column="0">To:</Label>
+                <CalendarDatePicker Grid.Row="2" Grid.Column="2" x:Name="EndDatePicker" IsEnabled="{Binding FilterByDate}" SelectedDateChanged="CalendarDatePicker_OnSelectedDateChanged" />
+            </Grid>
+        </StackPanel>
+    </StackPanel>
+
+</UserControl>
