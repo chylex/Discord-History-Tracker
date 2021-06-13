@@ -25,7 +25,7 @@ Now you can modify the source code:
 After you've done changes to the source code, you will need to build it. Before that, download and install:
 * (**required**) [Python 3](https://www.python.org/downloads)
   * Use to run the build script
-* (optional) [Node + npm](https://nodejs.org/en) & command line [uglify-es](https://www.npmjs.com/package/uglify-es)
+* (optional) [Node + npm](https://nodejs.org/en) & command line [uglify-js](https://www.npmjs.com/package/uglify-js)
   * Not required on Windows
   * Only required for optional [JS minification](#Minification) on Linux/Mac
 
@@ -42,7 +42,7 @@ You can tweak the build process using the following flags:
 The build process automatically minifies JS using `UglifyJS@3`, and CSS using a custom minifier.
 
 * If the `--nominify` flag is used, minification will be completely disabled
-* If `uglify-es` is not available from the command line, JS minification will be skipped
+* If `uglify-js` is not available from the command line, JS minification will be skipped
   * When building on Windows 64-bit, the build script will use the included Node runner and packages
   * When building on Windows 32-bit, you will need to download [Node 32-bit](https://nodejs.org/en/download) and replace the included one in `lib/`
-  * When building on Linux/Mac, the build script will attempt to find `uglifyjs` in the command line, however you need to make sure it's the correct package (only `uglify-es` will work; if you install the older package just named `uglifyjs`, then it will crash and probably set something on fire)
+  * When building on Linux/Mac, the build script will attempt to find `uglifyjs` in the command line
