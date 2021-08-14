@@ -75,6 +75,8 @@ const STATE = (function() {
 	 * @property {Object[]} embeds
 	 * @property {DiscordMessageReaction[]} [reactions]
 	 * @property {DiscordMessageReference} [messageReference]
+	 * @property {Number} type
+	 * @property {String} state
 	 */
 	
 	/**
@@ -170,6 +172,13 @@ const STATE = (function() {
 		 * @param {DiscordMessage[]} discordMessageArray
 		 */
 		async addDiscordMessages(channelId, discordMessageArray) {
+			// https://discord.com/developers/docs/resources/channel#message-object-message-reference-structure
+			discordMessageArray = discordMessageArray.filter(msg => (msg.type === 0 || msg.type === 19) && msg.state === "SENT");
+			
+			if (discordMessageArray.length === 0) {
+				return false;
+			}
+			
 			const userInfo = {};
 			let hasNewUsers = false;
 			
