@@ -97,7 +97,7 @@
 		const info = DISCORD.getSelectedChannel();
 		
 		if (!info) {
-			GUI.setStatus("Stopped");
+			GUI.setStatus("Error (Unknown Channel)");
 			stopTrackingDelayed();
 			return;
 		}
@@ -130,17 +130,9 @@
 	
 	STATE.onTrackingStateChanged(enabled => {
 		if (enabled) {
-			if (DISCORD.getSelectedChannel() == null) {
-				const message = document.querySelector("div[class*='modeSelected-'][class*='typeThread-']") == null
-				                ? "Cannot find selected channel. Ensure it is visible in the channel list."
-				                : "Cannot find selected thread. Ensure it is visible in the channel list. If it is, try switching to a different server and back, or restarting Discord.";
-				stopTrackingDelayed(() => alert(message));
-				return;
-			}
-			
 			const messages = DISCORD.getMessages();
 			
-			if (messages == null) {
+			if (messages.length === 0) {
 				stopTrackingDelayed(() => alert("Cannot see any messages."));
 				return;
 			}

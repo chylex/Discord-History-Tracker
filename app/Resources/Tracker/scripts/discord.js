@@ -5,7 +5,11 @@ class DISCORD {
 	}
 	
 	static getMessageScrollerElement() {
-		return this.getMessageOuterElement().querySelector("[class*='scroller-']");
+		return DOM.queryReactClass("scroller", this.getMessageOuterElement());
+	}
+	
+	static getMessageElements() {
+		return this.getMessageOuterElement().querySelectorAll("[class*='message-']");
 	}
 	
 	static hasMoreMessages() {
@@ -42,7 +46,7 @@ class DISCORD {
 				return;
 			}
 			
-			const anyMessage = this.getMessageOuterElement().querySelector("[class*='message-']");
+			const anyMessage = DOM.queryReactClass("message", this.getMessageOuterElement());
 			const messageCount = anyMessage ? anyMessage.parentElement.children.length : 0;
 			
 			if (messageCount > 300) {
@@ -87,31 +91,73 @@ class DISCORD {
 	}
 	
 	/**
+	 * Returns the property object of a message element.
+	 * @returns { null | { message: DiscordMessage, channel: Object } }
+	 */
+	static getMessageElementProps(ele) {
+		const props = DOM.getReactProps(ele);
+		
+		if (props.children && props.children.length >= 4) {
+			const childProps = props.children[3].props;
+			
+			if ("message" in childProps && "channel" in childProps) {
+				return childProps;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns an array containing currently loaded messages.
+	 */
+	static getMessages() {
+		try {
+			const messages = [];
+			
+			for (const ele of this.getMessageElements()) {
+				const props = this.getMessageElementProps(ele);
+				
+				if (props != null) {
+					messages.push(props.message);
+				}
+			}
+			
+			return messages;
+		} catch (e) {
+			console.error(e);
+			return [];
+		}
+	}
+	
+	/**
 	 * Returns an object containing the selected server and channel information.
 	 * For types DM and GROUP, the server and channel ids and names are identical.
-	 * @returns {{}|null}
+	 * @returns { {} | null }
 	 */
 	static getSelectedChannel() {
 		try {
-			let channelListEle = DOM.queryReactClass("privateChannels");
+			let obj;
 			
-			if (channelListEle) {
-				const channel = DOM.queryReactClass("selected", channelListEle);
+			for (const ele of this.getMessageElements()) {
+				const props = this.getMessageElementProps(ele);
 				
-				if (!channel || !("href" in channel) || !channel.href.includes("/@me/")) {
-					return null;
+				if (props != null) {
+					obj = props.channel;
+					break;
 				}
-				
-				const linkSplit = channel.href.split("/");
-				const id = linkSplit[linkSplit.length - 1];
-				
-				if (!(/^\d+$/.test(id))) {
-					return null;
-				}
-				
+			}
+			
+			if (!obj) {
+				return null;
+			}
+			
+			const dms = DOM.queryReactClass("privateChannels");
+			
+			if (dms) {
 				let name;
 				
-				for (const ele of channel.querySelectorAll("[class^='name-'] *")) {
+				for (const ele of dms.querySelectorAll("[class*='channel-'][class*='selected-'] [class^='name-'] *")) {
 					const node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
 					
 					if (node) {
@@ -124,118 +170,49 @@ class DISCORD {
 					return null;
 				}
 				
-				const icon = channel.querySelector("img[class*='avatar']");
-				const iconParent = icon && icon.closest("foreignObject");
-				const iconMask = iconParent && iconParent.getAttribute("mask");
+				let type;
 				
-				return {
-					"server": { id, name, type: (iconMask && iconMask.includes("#svg-mask-avatar-default")) ? "GROUP" : "DM" },
-					"channel": { id, name }
-				};
+				// https://discord.com/developers/docs/resources/channel#channel-object-channel-types
+				switch (obj.type) {
+					case 1: type = "DM"; break;
+					case 3: type = "GROUP"; break;
+					default: return null;
+				}
+				
+				const id = obj.id;
+				const server = { id, name, type };
+				const channel = { id, name };
+				
+				return { server, channel };
 			}
-			else {
-				channelListEle = document.getElementById("channels");
+			else if (obj.guild_id) {
+				const server = {
+					"id": obj.guild_id,
+					"name": document.querySelector("nav header > h1").innerText,
+					"type": "SERVER"
+				};
 				
-				const channel = channelListEle.querySelector("[class*='modeSelected']").parentElement;
-				const props = DOM.getReactProps(channel).children.props;
-				
-				if (!props) {
-					return null;
-				}
-				
-				let channelObj;
-				
-				try {
-					channelObj = props.channel || props.children().props.channel;
-				} catch (ignored) {
-					channelObj = null;
-				}
-				
-				if (channelObj) {
-					return {
-						"server": {
-							"id": channelObj.guild_id,
-							"name": document.querySelector("nav header > h1").innerText,
-							"type": "SERVER"
-						},
-						"channel": {
-							"id": channelObj.id,
-							"name": channelObj.name,
-							"extra": {
-								"position": channelObj.position,
-								"topic": channelObj.topic,
-								"nsfw": channelObj.nsfw
-							}
-						}
-					};
-				}
-				
-				const parentProps = DOM.getReactProps(channel.parentElement);
-				const parentPropsChildren = parentProps.children;
-				
-				if (!Array.isArray(parentPropsChildren) || parentPropsChildren.length < 3) {
-					return null;
-				}
-				
-				const threadItems = parentPropsChildren[2];
-				const threadItem = Array.isArray(threadItems) && threadItems.find(item => item.props && item.props.thread && channel.querySelector("div[data-list-item-id='channels___" + item.props.thread.id + "']") !== null);
-				
-				if (!threadItem) {
-					return null;
-				}
-				
-				const thread = threadItem.props.thread;
-				
-				return {
-					"server": {
-						"id": thread.guild_id,
-						"name": document.querySelector("nav header > h1").innerText,
-						"type": "SERVER"
-					},
-					"channel": {
-						"id": thread.id,
-						"name": thread.name,
-						"extra": {
-							"parent": thread.parent_id,
-							"nsfw": thread.nsfw
-						}
+				const channel = {
+					"id": obj.id,
+					"name": obj.name,
+					"extra": {
+						"nsfw": obj.nsfw
 					}
 				};
-			}
-		} catch (e) {
-			console.error(e);
-			return null;
-		}
-	}
-	
-	/**
-	 * Returns an array containing currently loaded messages, or null if the messages cannot be retrieved.
-	 */
-	static getMessages() {
-		try {
-			const scroller = this.getMessageScrollerElement();
-			const props = DOM.getReactProps(scroller);
-			let wrappers;
-			
-			try {
-				// noinspection JSUnresolvedVariable
-				wrappers = props.children.props.children.props.children.props.children.find(ele => Array.isArray(ele));
-			} catch (e) { // old version compatibility
-				wrappers = props.children.find(ele => Array.isArray(ele));
-			}
-			
-			const messages = [];
-			
-			for (const obj of wrappers) {
-				// noinspection JSUnresolvedVariable
-				const nested = obj.props;
 				
-				if (nested && nested.message) {
-					messages.push(nested.message);
+				if (obj.parent_id) {
+					channel["extra"]["parent"] = obj.parent_id;
 				}
+				else {
+					channel["extra"]["position"] = obj.position;
+					channel["extra"]["topic"] = obj.topic;
+				}
+				
+				return { server, channel };
 			}
-			
-			return messages;
+			else {
+				return null;
+			}
 		} catch (e) {
 			console.error(e);
 			return null;
