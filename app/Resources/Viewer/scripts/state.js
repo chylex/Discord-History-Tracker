@@ -206,28 +206,47 @@ const STATE = (function() {
 			const user = getUser(message.u);
 			const avatar = user.avatar ? { id: getUserId(message.u), path: user.avatar } : null;
 			
-			const reply = "r" in message ? getMessageById(message.r) : null;
-			const replyUser = reply ? getUser(reply.u) : null;
-			const replyAvatar = replyUser && replyUser.avatar ? { id: getUserId(reply.u), path: replyUser.avatar } : null;
-			const replyObj = reply ? {
-				"id": message.r,
-				"user": replyUser,
-				"avatar": replyAvatar,
-				"contents": reply.m
-			} : null;
-			
-			return {
+			const obj = {
 				user,
 				avatar,
 				"timestamp": message.t,
-				"contents": ("m" in message) ? message.m : null,
-				"embeds": ("e" in message) ? message.e.map(embed => JSON.parse(embed)) : [],
-				"attachments": ("a" in message) ? message.a : [],
-				"edit": ("te" in message) ? message.te : null,
 				"jump": key,
-				"reply": replyObj,
-				"reactions": ("re" in message) ? message.re : null
 			};
+			
+			if ("m" in message) {
+				obj["contents"] = message.m;
+			}
+			
+			if ("e" in message) {
+				obj["embeds"] = message.e.map(embed => JSON.parse(embed));
+			}
+			
+			if ("a" in message) {
+				obj["attachments"] = message.a;
+			}
+			
+			if ("te" in message) {
+				obj["edit"] = message.te;
+			}
+			
+			if ("r" in message) {
+				const replyMessage = getMessageById(message.r);
+				const replyUser = replyMessage ? getUser(replyMessage.u) : null;
+				const replyAvatar = replyUser && replyUser.avatar ? { id: getUserId(replyMessage.u), path: replyUser.avatar } : null;
+				
+				obj["reply"] = replyMessage ? {
+					"id": message.r,
+					"user": replyUser,
+					"avatar": replyAvatar,
+					"contents": replyMessage.m
+				} : null;
+			}
+			
+			if ("re" in message) {
+				obj["reactions"] = message.re;
+			}
+			
+			return obj;
 		});
 	};
 	

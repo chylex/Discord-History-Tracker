@@ -171,7 +171,7 @@ const DISCORD = (function() {
 					return DOM.getHumanReadableTime(value);
 				}
 				else if (property === "contents") {
-					return value == null || value.length === 0 ? "" : processMessageContents(value);
+					return value && value.length > 0 ? processMessageContents(value) : "";
 				}
 				else if (property === "embeds") {
 					if (!value) {
@@ -225,8 +225,8 @@ const DISCORD = (function() {
 					return STATE.hasActiveFilter ? "<span class='info jump' data-jump='" + value + "'>Jump to message</span>" : "";
 				}
 				else if (property === "reply") {
-					if (value === null) {
-						return "";
+					if (!value) {
+						return value === null ? "<span class='reply-contents reply-missing'>(replies to an unknown message)</span>" : "";
 					}
 					
 					const user = "<span class='reply-username' title='#" + (value.user.tag ? value.user.tag : "????") + "'>" + value.user.name + "</span>";
@@ -236,7 +236,7 @@ const DISCORD = (function() {
 					return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
 				}
 				else if (property === "reactions"){
-					if (value === null){
+					if (!value){
 						return "";
 					}
 					
