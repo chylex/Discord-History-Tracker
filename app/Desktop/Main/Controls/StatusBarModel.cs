@@ -19,11 +19,11 @@ namespace DHT.Desktop.Main.Controls {
 		public string StatusText {
 			get {
 				return CurrentStatus switch {
-				       Status.Starting => "STARTING",
-				       Status.Ready => "READY",
-				       Status.Stopping => "STOPPING",
-				       Status.Stopped => "STOPPED",
-				       _ => ""
+					Status.Starting => "STARTING",
+					Status.Ready    => "READY",
+					Status.Stopping => "STOPPING",
+					Status.Stopped  => "STOPPED",
+					_               => ""
 				};
 			}
 		}

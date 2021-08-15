@@ -27,24 +27,24 @@ namespace DHT.Server.Endpoints {
 			var requestToken = request.Headers["X-DHT-Token"];
 			if (requestToken.Count != 1 || requestToken[0] != parameters.Token) {
 				Log.Error("Token: " + (requestToken.Count == 1 ? requestToken[0] : "<missing>"));
-				response.StatusCode = (int)HttpStatusCode.Forbidden;
+				response.StatusCode = (int) HttpStatusCode.Forbidden;
 				return;
 			}
 
 			try {
 				var (statusCode, output) = await Respond(ctx);
-				response.StatusCode = (int)statusCode;
+				response.StatusCode = (int) statusCode;
 
 				if (output != null) {
 					await response.WriteAsJsonAsync(output);
 				}
 			} catch (HttpException e) {
 				Log.Error(e);
-				response.StatusCode = (int)e.StatusCode;
+				response.StatusCode = (int) e.StatusCode;
 				await response.WriteAsync(e.Message);
 			} catch (Exception e) {
 				Log.Error(e);
-				response.StatusCode = (int)HttpStatusCode.InternalServerError;
+				response.StatusCode = (int) HttpStatusCode.InternalServerError;
 			}
 		}
 

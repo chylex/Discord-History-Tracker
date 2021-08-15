@@ -8,28 +8,28 @@ namespace DHT.Server.Data {
 	public static class ServerTypes {
 		public static ServerType? FromString(string? str) {
 			return str switch {
-			       "SERVER" => ServerType.Server,
-			       "GROUP"  => ServerType.Group,
-			       "DM"     => ServerType.DirectMessage,
-			       _        => null
+				"SERVER" => ServerType.Server,
+				"GROUP"  => ServerType.Group,
+				"DM"     => ServerType.DirectMessage,
+				_        => null
 			};
 		}
 
 		public static string ToString(ServerType? type) {
 			return type switch {
-			       ServerType.Server        => "SERVER",
-			       ServerType.Group         => "GROUP",
-			       ServerType.DirectMessage => "DM",
-			       _                        => "UNKNOWN"
+				ServerType.Server        => "SERVER",
+				ServerType.Group         => "GROUP",
+				ServerType.DirectMessage => "DM",
+				_                        => "UNKNOWN"
 			};
 		}
 
 		public static string ToJsonViewerString(ServerType? type) {
 			return type switch {
-			       ServerType.Server        => "server",
-			       ServerType.Group         => "group",
-			       ServerType.DirectMessage => "user",
-			       _                        => "unknown"
+				ServerType.Server        => "server",
+				ServerType.Group         => "group",
+				ServerType.DirectMessage => "user",
+				_                        => "unknown"
 			};
 		}
 	}

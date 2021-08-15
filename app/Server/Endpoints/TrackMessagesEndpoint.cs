@@ -56,7 +56,7 @@ namespace DHT.Server.Endpoints {
 			Name = ele.RequireString("name", path),
 			Type = ele.HasKey("type") ? ele.RequireString("type", path) : null,
 			Url = ele.RequireString("url", path),
-			Size = (ulong)ele.RequireLong("size", path)
+			Size = (ulong) ele.RequireLong("size", path)
 		});
 
 		private static IEnumerable<Embed> ReadEmbeds(JsonElement.ArrayEnumerator array, string path) => array.Select(ele => new Embed {
