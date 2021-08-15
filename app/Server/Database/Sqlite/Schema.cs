@@ -5,7 +5,7 @@ using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
 	internal class Schema {
-		internal const int Version = 1;
+		internal const int Version = 2;
 
 		private readonly SqliteConnection conn;
 
@@ -64,6 +64,7 @@ namespace DHT.Server.Database.Sqlite {
 			          id INTEGER PRIMARY KEY NOT NULL,
 			          server INTEGER NOT NULL,
 			          name TEXT NOT NULL,
+			          parent_id INTEGER,
 			          position INTEGER,
 			          topic TEXT,
 			          nsfw INTEGER)");
@@ -105,6 +106,10 @@ namespace DHT.Server.Database.Sqlite {
 
 		private void UpgradeSchemas(int dbVersion) {
 			Execute("UPDATE metadata SET value = " + Version + " WHERE key = 'version'");
+
+			if (dbVersion <= 1) {
+				Execute("ALTER TABLE channels ADD parent_id INTEGER");
+			}
 		}
 	}
 }

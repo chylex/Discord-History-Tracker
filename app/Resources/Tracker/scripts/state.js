@@ -158,9 +158,15 @@ const STATE = (function() {
 			};
 			
 			if ("extra" in channelInfo) {
-				channel.position = channelInfo.extra.position;
-				channel.topic = channelInfo.extra.topic;
-				channel.nsfw = channelInfo.extra.nsfw;
+				const extra = channelInfo.extra;
+				
+				if ("parent" in extra) {
+					channel.parent = extra.parent;
+				}
+				
+				channel.position = extra.position;
+				channel.topic = extra.topic;
+				channel.nsfw = extra.nsfw;
 			}
 			
 			await post("/track-channel", { server, channel });
@@ -172,8 +178,8 @@ const STATE = (function() {
 		 * @param {DiscordMessage[]} discordMessageArray
 		 */
 		async addDiscordMessages(channelId, discordMessageArray) {
-			// https://discord.com/developers/docs/resources/channel#message-object-message-reference-structure
-			discordMessageArray = discordMessageArray.filter(msg => (msg.type === 0 || msg.type === 19) && msg.state === "SENT");
+			// https://discord.com/developers/docs/resources/channel#message-object-message-types
+			discordMessageArray = discordMessageArray.filter(msg => (msg.type === 0 || msg.type === 19 || msg.type === 21) && msg.state === "SENT");
 			
 			if (discordMessageArray.length === 0) {
 				return false;

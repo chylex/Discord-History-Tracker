@@ -32,6 +32,7 @@ namespace DHT.Server.Endpoints {
 			Id = json.RequireSnowflake("id", path),
 			Server = serverId,
 			Name = json.RequireString("name", path),
+			ParentId = json.HasKey("parent") ? json.RequireSnowflake("parent", path) : null,
 			Position = json.HasKey("position") ? json.RequireInt("position", path, min: 0) : null,
 			Topic = json.HasKey("topic") ? json.RequireString("topic", path) : null,
 			Nsfw = json.HasKey("nsfw") ? json.RequireBool("nsfw", path) : null

@@ -71,6 +71,10 @@ namespace DHT.Server.Database.Export {
 				obj.server = serverIndices[channel.Server];
 				obj.name = channel.Name;
 
+				if (channel.ParentId != null) {
+					obj.parent = channel.ParentId;
+				}
+
 				if (channel.Position != null) {
 					obj.position = channel.Position;
 				}

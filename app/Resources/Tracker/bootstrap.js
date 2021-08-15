@@ -131,7 +131,10 @@
 	STATE.onTrackingStateChanged(enabled => {
 		if (enabled) {
 			if (DISCORD.getSelectedChannel() == null) {
-				stopTrackingDelayed(() => alert("The selected channel is not visible in the channel list."));
+				const message = document.querySelector("div[class*='modeSelected-'][class*='typeThread-']") == null
+				                ? "Cannot find selected channel. Ensure it is visible in the channel list."
+				                : "Cannot find selected thread. Ensure it is visible in the channel list. If it is, try switching to a different server and back, or restarting Discord.";
+				stopTrackingDelayed(() => alert(message));
 				return;
 			}
 			

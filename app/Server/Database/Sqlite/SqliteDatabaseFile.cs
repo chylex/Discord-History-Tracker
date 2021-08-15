@@ -72,13 +72,14 @@ namespace DHT.Server.Database.Sqlite {
 
 		public void AddChannel(Channel channel) {
 			using var cmd = conn.Upsert("channels", new[] {
-				"id", "server", "name", "position", "topic", "nsfw"
+				"id", "server", "name", "parent_id", "position", "topic", "nsfw"
 			});
 
 			var channelParams = cmd.Parameters;
 			channelParams.AddAndSet(":id", channel.Id);
 			channelParams.AddAndSet(":server", channel.Server);
 			channelParams.AddAndSet(":name", channel.Name);
+			channelParams.AddAndSet(":parent_id", channel.ParentId);
 			channelParams.AddAndSet(":position", channel.Position);
 			channelParams.AddAndSet(":topic", channel.Topic);
 			channelParams.AddAndSet(":nsfw", channel.Nsfw);
@@ -89,7 +90,7 @@ namespace DHT.Server.Database.Sqlite {
 		public List<Channel> GetAllChannels() {
 			var list = new List<Channel>();
 
-			using var cmd = conn.Command("SELECT id, server, name, position, topic, nsfw FROM channels");
+			using var cmd = conn.Command("SELECT id, server, name, parent_id, position, topic, nsfw FROM channels");
 			using var reader = cmd.ExecuteReader();
 
 			while (reader.Read()) {
@@ -97,9 +98,10 @@ namespace DHT.Server.Database.Sqlite {
 					Id = (ulong) reader.GetInt64(0),
 					Server = (ulong) reader.GetInt64(1),
 					Name = reader.GetString(2),
-					Position = reader.IsDBNull(3) ? null : reader.GetInt32(3),
-					Topic = reader.IsDBNull(4) ? null : reader.GetString(4),
-					Nsfw = reader.IsDBNull(5) ? null : reader.GetBoolean(5)
+					ParentId = reader.IsDBNull(3) ? null : (ulong) reader.GetInt64(3),
+					Position = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+					Topic = reader.IsDBNull(5) ? null : reader.GetString(5),
+					Nsfw = reader.IsDBNull(6) ? null : reader.GetBoolean(6)
 				});
 			}
 

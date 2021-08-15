@@ -118,7 +118,13 @@ const GUI = (function() {
 					resetActiveFilter();
 					
 					const index = STATE.navigateToMessage(jump);
-					DOM.id("messages").children[index].scrollIntoView();
+					
+					if (index === -1) {
+						alert("Message not found.");
+					}
+					else {
+						DOM.id("messages").children[index].scrollIntoView();
+					}
 				}
 			});
 			

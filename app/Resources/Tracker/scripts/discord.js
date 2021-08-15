@@ -1,3 +1,4 @@
+// noinspection JSUnresolvedVariable
 class DISCORD {
 	static getMessageOuterElement() {
 		return DOM.queryReactClass("messagesWrapper");
@@ -92,7 +93,6 @@ class DISCORD {
 	 */
 	static getSelectedChannel() {
 		try {
-			let obj;
 			let channelListEle = DOM.queryReactClass("privateChannels");
 			
 			if (channelListEle) {
@@ -128,7 +128,7 @@ class DISCORD {
 				const iconParent = icon && icon.closest("foreignObject");
 				const iconMask = iconParent && iconParent.getAttribute("mask");
 				
-				obj = {
+				return {
 					"server": { id, name, type: (iconMask && iconMask.includes("#svg-mask-avatar-default")) ? "GROUP" : "DM" },
 					"channel": { id, name }
 				};
@@ -137,40 +137,71 @@ class DISCORD {
 				channelListEle = document.getElementById("channels");
 				
 				const channel = channelListEle.querySelector("[class*='modeSelected']").parentElement;
-				// noinspection JSUnresolvedVariable
 				const props = DOM.getReactProps(channel).children.props;
 				
 				if (!props) {
 					return null;
 				}
 				
-				// noinspection JSUnresolvedVariable
-				const channelObj = props.channel || props.children().props.channel;
+				let channelObj;
 				
-				if (!channelObj) {
+				try {
+					channelObj = props.channel || props.children().props.channel;
+				} catch (ignored) {
+					channelObj = null;
+				}
+				
+				if (channelObj) {
+					return {
+						"server": {
+							"id": channelObj.guild_id,
+							"name": document.querySelector("nav header > h1").innerText,
+							"type": "SERVER"
+						},
+						"channel": {
+							"id": channelObj.id,
+							"name": channelObj.name,
+							"extra": {
+								"position": channelObj.position,
+								"topic": channelObj.topic,
+								"nsfw": channelObj.nsfw
+							}
+						}
+					};
+				}
+				
+				const parentProps = DOM.getReactProps(channel.parentElement);
+				const parentPropsChildren = parentProps.children;
+				
+				if (!Array.isArray(parentPropsChildren) || parentPropsChildren.length < 3) {
 					return null;
 				}
 				
-				// noinspection JSUnresolvedVariable
-				obj = {
+				const threadItems = parentPropsChildren[2];
+				const threadItem = Array.isArray(threadItems) && threadItems.find(item => item.props && item.props.thread && channel.querySelector("div[data-list-item-id='channels___" + item.props.thread.id + "']") !== null);
+				
+				if (!threadItem) {
+					return null;
+				}
+				
+				const thread = threadItem.props.thread;
+				
+				return {
 					"server": {
-						"id": channelObj.guild_id,
+						"id": thread.guild_id,
 						"name": document.querySelector("nav header > h1").innerText,
 						"type": "SERVER"
 					},
 					"channel": {
-						"id": channelObj.id,
-						"name": channelObj.name,
+						"id": thread.id,
+						"name": thread.name,
 						"extra": {
-							"position": channelObj.position,
-							"topic": channelObj.topic,
-							"nsfw": channelObj.nsfw
+							"parent": thread.parent_id,
+							"nsfw": thread.nsfw
 						}
 					}
 				};
 			}
-			
-			return obj.channel.length === 0 ? null : obj;
 		} catch (e) {
 			console.error(e);
 			return null;

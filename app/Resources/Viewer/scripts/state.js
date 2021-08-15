@@ -29,34 +29,157 @@ const STATE = (function() {
 		return loadedFileMeta ? loadedFileMeta.users : [];
 	};
 	
+	const getServer = function(index) {
+		return loadedFileMeta.servers[index] || { "name": "&lt;unknown&gt;", "type": "unknown" };
+	};
+	
+	const generateChannelHierarchy = function() {
+		/**
+		 * @type {Map<string, Set>}
+		 */
+		const hierarchy = new Map();
+		
+		if (!loadedFileMeta) {
+			return hierarchy;
+		}
+		
+		/**
+		 * @returns {Set}
+		 */
+		function getChildren(parentId) {
+			let children = hierarchy.get(parentId);
+			
+			if (!children) {
+				children = new Set();
+				hierarchy.set(parentId, children);
+			}
+			
+			return children;
+		}
+		
+		for (const [ id, channel ] of Object.entries(loadedFileMeta.channels)) {
+			getChildren(channel.parent || "").add(id);
+		}
+		
+		const unreachableIds = new Set(hierarchy.keys());
+		
+		function reachIds(parentId) {
+			unreachableIds.delete(parentId);
+			
+			const children = hierarchy.get(parentId);
+			
+			if (children) {
+				for (const id of children) {
+					reachIds(id);
+				}
+			}
+		}
+		
+		reachIds("");
+		
+		const rootChildren = getChildren("");
+		
+		for (const unreachableId of unreachableIds) {
+			for (const id of hierarchy.get(unreachableId)) {
+				rootChildren.add(id);
+			}
+			
+			hierarchy.delete(unreachableId);
+		}
+		
+		return hierarchy;
+	};
+	
+	const generateChannelOrder = function() {
+		if (!loadedFileMeta) {
+			return {};
+		}
+		
+		const channels = loadedFileMeta.channels;
+		const hierarchy = generateChannelHierarchy();
+		
+		function getSortedSubTree(parentId) {
+			const children = hierarchy.get(parentId);
+			if (!children) {
+				return [];
+			}
+			
+			const sortedChildren = Array.from(children);
+			
+			sortedChildren.sort((id1, id2) => {
+				const c1 = channels[id1];
+				const c2 = channels[id2];
+				const s1 = getServer(c1.server);
+				const s2 = getServer(c2.server);
+				
+				return s1.type.localeCompare(s2.type, "en") ||
+					s1.name.toLocaleLowerCase().localeCompare(s2.name.toLocaleLowerCase(), undefined, { numeric: true }) ||
+					(c1.position || -1) - (c2.position || -1) ||
+					c1.name.toLocaleLowerCase().localeCompare(c2.name.toLocaleLowerCase(), undefined, { numeric: true });
+			});
+			
+			const subTree = [];
+			
+			for (const id of sortedChildren) {
+				subTree.push(id);
+				subTree.push(...getSortedSubTree(id));
+			}
+			
+			return subTree;
+		}
+		
+		const orderArray = getSortedSubTree("");
+		const orderMap = {};
+		
+		for (let i = 0; i < orderArray.length; i++) {
+			orderMap[orderArray[i]] = i;
+		}
+		
+		return orderMap;
+	};
+	
 	const getChannelList = function() {
 		if (!loadedFileMeta) {
 			return [];
 		}
 		
 		const channels = loadedFileMeta.channels;
+		const channelOrder = generateChannelOrder();
 		
 		return Object.keys(channels).map(key => ({
 			"id": key,
 			"name": channels[key].name,
-			"server": loadedFileMeta.servers[channels[key].server] || { "name": "&lt;unknown&gt;", "type": "unknown" },
+			"server": getServer(channels[key].server),
 			"msgcount": getFilteredMessageKeys(key).length,
 			"topic": channels[key].topic || "",
 			"nsfw": channels[key].nsfw || false,
-			"position": channels[key].position || -1
 		})).sort((ac, bc) => {
-			const as = ac.server;
-			const bs = bc.server;
-			
-			return as.type.localeCompare(bs.type, "en") ||
-				as.name.toLocaleLowerCase().localeCompare(bs.name.toLocaleLowerCase(), undefined, { numeric: true }) ||
-				ac.position - bc.position ||
-				ac.name.toLocaleLowerCase().localeCompare(bc.name.toLocaleLowerCase(), undefined, { numeric: true });
+			return channelOrder[ac.id] - channelOrder[bc.id];
 		});
 	};
 	
 	const getMessages = function(channel) {
 		return loadedFileData[channel] || {};
+	};
+	
+	const getMessageById = function(id) {
+		for (const messages of Object.values(loadedFileData)) {
+			if (id in messages) {
+				return messages[id];
+			}
+		}
+		
+		return null;
+	};
+	
+	const getMessageChannel = function(id) {
+		for (const [ channel, messages ] of Object.entries(loadedFileData)) {
+			if (id in messages) {
+				return channel;
+			}
+		}
+		
+		return null;
 	};
 	
 	const getMessageList = function() {
@@ -83,7 +206,7 @@ const STATE = (function() {
 			const user = getUser(message.u);
 			const avatar = user.avatar ? { id: getUserId(message.u), path: user.avatar } : null;
 			
-			const reply = ("r" in message && message.r in messages) ? messages[message.r] : null;
+			const reply = "r" in message ? getMessageById(message.r) : null;
 			const replyUser = reply ? getUser(reply.u) : null;
 			const replyAvatar = replyUser && replyUser.avatar ? { id: getUserId(reply.u), path: replyUser.avatar } : null;
 			const replyObj = reply ? {
@@ -247,13 +370,20 @@ const STATE = (function() {
 		
 		navigateToMessage(id) {
 			if (!loadedMessages) {
-				return 0;
+				return -1;
+			}
+			
+			const channel = getMessageChannel(id);
+			
+			if (channel !== null && channel !== selectedChannel) {
+				triggerChannelsRefreshed(channel);
+				this.selectChannel(channel);
 			}
 			
 			const index = loadedMessages.indexOf(id);
 			
 			if (index === -1) {
-				return 0;
+				return -1;
 			}
 			
 			currentPage = Math.max(1, Math.min(this.getPageCount(), 1 + Math.floor(index / messagesPerPage)));
