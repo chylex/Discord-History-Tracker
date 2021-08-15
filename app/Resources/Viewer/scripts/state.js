@@ -317,15 +317,18 @@ const STATE = (function() {
 		},
 		
 		getChannelName(channel) {
-			return loadedFileMeta.channels[channel].name || channel;
+			const channelObj = loadedFileMeta.channels[channel];
+			return (channelObj && channelObj.name) || channel;
 		},
 		
 		getUserTag(user) {
-			return loadedFileMeta.users[user].tag;
+			const userObj = loadedFileMeta.users[user];
+			return (userObj && userObj.tag) || "????";
 		},
 		
 		getUserName(user) {
-			return loadedFileMeta.users[user].name || user;
+			const userObj = loadedFileMeta.users[user];
+			return (userObj && userObj.name) || user;
 		},
 		
 		selectChannel(channel) {
