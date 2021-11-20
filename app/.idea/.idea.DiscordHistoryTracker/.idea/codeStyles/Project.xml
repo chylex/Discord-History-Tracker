@@ -13,10 +13,10 @@
     <CssCodeStyleSettings>
       <option name="HEX_COLOR_LOWER_CASE" value="true" />
     </CssCodeStyleSettings>
-    <DB2CodeStyleSettings version="5">
+    <DB2CodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </DB2CodeStyleSettings>
-    <DerbyCodeStyleSettings version="5">
+    <DerbyCodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </DerbyCodeStyleSettings>
     <GoCodeStyleSettings>
@@ -26,10 +26,13 @@
       <option name="WRAP_FUNC_PARAMS" value="5" />
       <option name="WRAP_FUNC_RESULT" value="5" />
     </GoCodeStyleSettings>
-    <H2CodeStyleSettings version="5">
+    <H2CodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </H2CodeStyleSettings>
-    <HSQLCodeStyleSettings version="5">
+    <H2CodeStyleSettings version="6">
+      <option name="USE_GENERIC_STYLE" value="true" />
+    </H2CodeStyleSettings>
+    <HSQLCodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </HSQLCodeStyleSettings>
     <HTMLCodeStyleSettings>
@@ -85,10 +88,10 @@
     <LessCodeStyleSettings>
       <option name="HEX_COLOR_LOWER_CASE" value="true" />
     </LessCodeStyleSettings>
-    <MSSQLCodeStyleSettings version="5">
+    <MSSQLCodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </MSSQLCodeStyleSettings>
-    <MySQLCodeStyleSettings version="5">
+    <MySQLCodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </MySQLCodeStyleSettings>
     <Objective-C>
@@ -98,7 +101,7 @@
       <option name="SPACE_BEFORE_INIT_LIST" value="true" />
       <option name="SPACE_AFTER_DICTIONARY_LITERAL_COLON" value="false" />
     </Objective-C>
-    <OracleCodeStyleSettings version="5">
+    <OracleCodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </OracleCodeStyleSettings>
     <PHPCodeStyleSettings>
@@ -116,7 +119,7 @@
       <option name="NEW_LINE_AFTER_PHP_OPENING_TAG" value="true" />
       <option name="SPACE_AROUND_ASSIGNMENT_IN_DECLARE" value="true" />
     </PHPCodeStyleSettings>
-    <PostgresCodeStyleSettings version="5">
+    <PostgresCodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </PostgresCodeStyleSettings>
     <Properties>
@@ -143,13 +146,13 @@
       <option name="INDENT_WHEN_CASES" value="true" />
       <option name="CHAIN_CALLS_ALIGNMENT" value="2" />
     </Ruby>
-    <SQLiteCodeStyleSettings version="5">
+    <SQLiteCodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </SQLiteCodeStyleSettings>
     <ScssCodeStyleSettings>
       <option name="HEX_COLOR_LOWER_CASE" value="true" />
     </ScssCodeStyleSettings>
-    <SqlCodeStyleSettings version="5">
+    <SqlCodeStyleSettings version="6">
       <option name="KEYWORD_CASE" value="2" />
       <option name="TYPE_CASE" value="2" />
       <option name="CUSTOM_TYPE_CASE" value="2" />
@@ -175,7 +178,7 @@
       <option name="VIEW_INDENT_QUERY" value="true" />
       <option name="EXPR_CASE_WHEN_WRAP" value="false" />
     </SqlCodeStyleSettings>
-    <SybaseCodeStyleSettings version="5">
+    <SybaseCodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </SybaseCodeStyleSettings>
     <TypeScriptCodeStyleSettings version="0">
