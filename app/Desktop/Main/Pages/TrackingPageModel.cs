@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using System.Web;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Threading;
 using DHT.Desktop.Dialogs;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Models;
@@ -140,11 +139,9 @@ namespace DHT.Desktop.Main.Pages {
 			IsToggleButtonEnabled = true;
 		}
 
-		private void ServerLauncherOnServerManagementExceptionCaught(object? sender, Exception ex) {
+		private async void ServerLauncherOnServerManagementExceptionCaught(object? sender, Exception ex) {
 			Log.Error(ex);
-
-			string message = ex.Message;
-			Dispatcher.UIThread.Post(async () => { await Dialog.ShowOk(window, "Server Error", message); });
+			await Dialog.ShowOk(window, "Server Error", ex.Message);
 		}
 	}
 }
