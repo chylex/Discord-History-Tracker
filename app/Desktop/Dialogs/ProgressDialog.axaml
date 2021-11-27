@@ -6,6 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="500"
         x:Class="DHT.Desktop.Dialogs.ProgressDialog"
         Title="{Binding Title}"
+        Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
         Opened="Loaded"
         Closing="OnClosing"
         Width="500" SizeToContent="Height" CanResize="False"
