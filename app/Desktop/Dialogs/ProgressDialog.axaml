@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:dialogs="clr-namespace:DHT.Desktop.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="500"
+        x:Class="DHT.Desktop.Dialogs.ProgressDialog"
+        Title="{Binding Title}"
+        Opened="Loaded"
+        Closing="OnClosing"
+        Width="500" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.DataContext>
+        <dialogs:ProgressDialogModel />
+    </Window.DataContext>
+
+    <Window.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="TextBlock.items">
+            <Setter Property="Margin" Value="10 0 0 0" />
+            <Setter Property="TextAlignment" Value="Right" />
+            <Setter Property="TextWrapping" Value="NoWrap" />
+        </Style>
+        <Style Selector="ProgressBar">
+            <Setter Property="Margin" Value="0 15 0 0" />
+        </Style>
+    </Window.Styles>
+
+    <StackPanel Margin="20">
+        <DockPanel>
+            <TextBlock DockPanel.Dock="Right" Text="{Binding Items}" Classes="items" />
+            <TextBlock DockPanel.Dock="Left" Text="{Binding Message}" />
+        </DockPanel>
+        <ProgressBar Value="{Binding Progress}" />
+    </StackPanel>
+
+</Window>
