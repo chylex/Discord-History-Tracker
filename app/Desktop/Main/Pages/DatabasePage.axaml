@@ -15,7 +15,10 @@
             <Button Command="{Binding CloseDatabase}" DockPanel.Dock="Right">Close Database</Button>
             <TextBox Text="{Binding Db.Path}" Width="NaN" Margin="0 0 10 0" IsEnabled="True" />
         </DockPanel>
-        <Button Command="{Binding OpenDatabaseFolder}">Open Database Folder</Button>
+        <StackPanel Spacing="10" Orientation="Horizontal">
+            <Button Command="{Binding OpenDatabaseFolder}">Open Database Folder</Button>
+            <Button Command="{Binding MergeWithDatabase}">Merge with Database(s)...</Button>
+        </StackPanel>
     </StackPanel>
 
 </UserControl>

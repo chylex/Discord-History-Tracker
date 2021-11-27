@@ -80,7 +80,7 @@ namespace DHT.Server.Database.Sqlite {
 
 			Execute(@"CREATE TABLE attachments (
 			        message_id INTEGER NOT NULL,
-                    attachment_id INTEGER NOT NULL PRIMARY KEY NOT NULL,
+			        attachment_id INTEGER NOT NULL PRIMARY KEY NOT NULL,
 			        name TEXT NOT NULL,
 			        type TEXT,
 			        url TEXT NOT NULL,

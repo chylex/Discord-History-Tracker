@@ -28,5 +28,13 @@ namespace DHT.Server.Database {
 			field = value;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
+
+		public DatabaseStatistics Clone() {
+			return new DatabaseStatistics {
+				totalServers = totalServers,
+				totalChannels = totalChannels,
+				totalMessages = totalMessages
+			};
+		}
 	}
 }
