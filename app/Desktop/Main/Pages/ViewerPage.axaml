@@ -15,6 +15,7 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid > CalendarDatePicker">
+            <Setter Property="CornerRadius" Value="0" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />

@@ -26,7 +26,7 @@
             <Button Command="{Binding OnClickToggleButton}" Content="{Binding ToggleButtonText}" IsEnabled="{Binding IsToggleButtonEnabled}" />
         </StackPanel>
         <Expander Header="Advanced Settings">
-            <StackPanel Spacing="10" Margin="0 10 0 0">
+            <StackPanel Spacing="10">
                 <TextBlock TextWrapping="Wrap">
                     The following settings determine how the tracking script communicates with this application. If you change them, you will have to copy and apply the tracking script again.
                 </TextBlock>

@@ -11,6 +11,7 @@
             <Setter Property="Background" Value="#D2D2D2" />
             <Setter Property="BorderBrush" Value="#999999" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
@@ -18,7 +19,6 @@
             <Setter Property="TextBlock.Foreground" Value="#070707" />
             <Setter Property="Background" Value="#D2D2D2" />
             <Setter Property="BorderBrush" Value="#999999" />
-            <Setter Property="CornerRadius" Value="0" />
         </Style>
         <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#DEDEDE" />
@@ -37,19 +37,16 @@
             <Setter Property="TextBlock.Foreground" Value="#909090" />
             <Setter Property="Background" Value="#E9E9E9" />
             <Setter Property="BorderBrush" Value="#BFBFBF" />
-            <Setter Property="CornerRadius" Value="0" />
         </Style>
 
         <Style Selector="TextBox">
             <Setter Property="BorderBrush" Value="#999999" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="0" />
             <Setter Property="SelectionBrush" Value="#72C0FF" />
             <Setter Property="Background" Value="#F4F4F4" />
             <Setter Property="Padding" Value="6 0" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-        </Style>
-        <Style Selector="TextBox /template/ Border#PART_BorderElement">
-            <Setter Property="CornerRadius" Value="0" />
         </Style>
         <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
             <Setter Property="BorderBrush" Value="#999999" />
@@ -68,6 +65,55 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
+        <Style Selector="Expander">
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader">
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border x:Name="ToggleButtonBackground">
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="35">
+                            <Border x:Name="ExpandCollapseChevronBorder"
+                                    Grid.Column="0"
+                                    Width="35"
+                                    Height="35"
+                                    Margin="2,0"
+                                    RenderTransformOrigin="50%,50%">
+                                <Path x:Name="ExpandCollapseChevron"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      RenderTransformOrigin="50%,50%"
+                                      Stretch="None"
+                                      Stroke="{DynamicResource ExpanderChevronForeground}"
+                                      StrokeThickness="1" />
+                                <Border.RenderTransform>
+                                    <RotateTransform />
+                                </Border.RenderTransform>
+                            </Border>
+                            <ContentPresenter x:Name="PART_ContentPresenter"
+                                              Grid.Column="1"
+                                              Margin="0"
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalContentAlignment="Center"
+                                              Background="Transparent"
+                                              BorderBrush="Transparent"
+                                              BorderThickness="0"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              TextBlock.Foreground="{DynamicResource ExpanderForeground}" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
     </Application.Styles>
+
+    <Application.Resources>
+        <Thickness x:Key="ExpanderHeaderPadding">15,0</Thickness>
+        <Thickness x:Key="ExpanderContentPadding">15</Thickness>
+        <SolidColorBrush x:Key="ExpanderDropDownBackground" Color="#FCFCFC" />
+    </Application.Resources>
 
 </Application>
