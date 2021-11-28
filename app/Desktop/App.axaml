@@ -8,7 +8,7 @@
 
         <Style Selector="Button">
             <Setter Property="Padding" Value="10 7 10 6" />
-            <Setter Property="Background" Value="#D2D2D2" />
+            <Setter Property="Background" Value="#DDDDDD" />
             <Setter Property="BorderBrush" Value="#999999" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="0" />
@@ -16,12 +16,12 @@
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="TextBlock.Foreground" Value="#070707" />
-            <Setter Property="Background" Value="#D2D2D2" />
+            <Setter Property="TextBlock.Foreground" Value="#060606" />
+            <Setter Property="Background" Value="#DDDDDD" />
             <Setter Property="BorderBrush" Value="#999999" />
         </Style>
         <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#DEDEDE" />
+            <Setter Property="Background" Value="#E7E7E7" />
             <Setter Property="BorderBrush" Value="#A2A2A2" />
             <Setter Property="CornerRadius" Value="0" />
         </Style>
@@ -29,12 +29,12 @@
             <Setter Property="RenderTransform" Value="none" />
         </Style>
         <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E5E5E5" />
+            <Setter Property="Background" Value="#EBEBEB" />
             <Setter Property="BorderBrush" Value="#A5A5A5" />
             <Setter Property="CornerRadius" Value="0" />
         </Style>
         <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="TextBlock.Foreground" Value="#909090" />
+            <Setter Property="TextBlock.Foreground" Value="#7A7A7A" />
             <Setter Property="Background" Value="#E9E9E9" />
             <Setter Property="BorderBrush" Value="#BFBFBF" />
         </Style>
