@@ -4,6 +4,7 @@
     <option name="projectPerEditor">
       <map>
         <entry key="Desktop/App.axaml" value="Desktop/Desktop.csproj" />
+        <entry key="Desktop/Dialogs/CheckBoxDialog.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Dialogs/MessageDialog.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Dialogs/ProgressDialog.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/AboutWindow.axaml" value="Desktop/Desktop.csproj" />
