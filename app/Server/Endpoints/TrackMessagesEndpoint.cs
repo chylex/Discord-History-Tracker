@@ -22,8 +22,8 @@ namespace DHT.Server.Endpoints {
 				throw new HttpException(HttpStatusCode.BadRequest, "Expected root element to be an array.");
 			}
 
-			MessageFilter addedMessageIdFilter = new();
-			Message[] messages = new Message[root.GetArrayLength()];
+			var addedMessageIdFilter = new MessageFilter();
+			var messages = new Message[root.GetArrayLength()];
 
 			int i = 0;
 			foreach (JsonElement ele in root.EnumerateArray()) {

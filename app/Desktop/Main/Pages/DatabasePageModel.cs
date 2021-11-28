@@ -59,7 +59,7 @@ namespace DHT.Desktop.Main.Pages {
 			fileDialog.Directory = Path.GetDirectoryName(Db.Path);
 			fileDialog.AllowMultiple = true;
 
-			string[] paths = await fileDialog.ShowAsync(window);
+			string[]? paths = await fileDialog.ShowAsync(window);
 			if (paths == null || paths.Length == 0) {
 				return;
 			}

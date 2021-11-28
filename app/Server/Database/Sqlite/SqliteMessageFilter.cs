@@ -15,6 +15,7 @@ namespace DHT.Server.Database.Sqlite {
 			if (filter.StartDate != null) {
 				conditions.Add("timestamp >= " + new DateTimeOffset(filter.StartDate.Value).ToUnixTimeMilliseconds());
 			}
+
 			if (filter.EndDate != null) {
 				conditions.Add("timestamp <= " + new DateTimeOffset(filter.EndDate.Value).ToUnixTimeMilliseconds());
 			}

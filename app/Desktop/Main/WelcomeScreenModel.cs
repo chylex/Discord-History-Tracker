@@ -29,7 +29,7 @@ namespace DHT.Desktop.Main {
 			var dialog = DatabaseGui.NewOpenOrCreateDatabaseFileDialog();
 			dialog.Directory = Path.GetDirectoryName(dbFilePath);
 
-			string path = await dialog.ShowAsync(window);
+			string? path = await dialog.ShowAsync(window);
 			if (!string.IsNullOrWhiteSpace(path)) {
 				await OpenOrCreateDatabaseFromPath(path);
 			}

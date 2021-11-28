@@ -97,7 +97,8 @@ namespace DHT.Desktop.Main.Pages {
 			int counter = 0;
 
 			while (File.Exists(fullPath)) {
-				fullPath = Path.Combine(rootPath, filenameBase + "-" + (++counter) + ".html");
+				++counter;
+				fullPath = Path.Combine(rootPath, filenameBase + "-" + counter + ".html");
 			}
 
 			Directory.CreateDirectory(rootPath);
@@ -119,7 +120,7 @@ namespace DHT.Desktop.Main.Pages {
 				}
 			}.ShowAsync(window);
 
-			string path = await dialog;
+			string? path = await dialog;
 			if (!string.IsNullOrEmpty(path)) {
 				await File.WriteAllTextAsync(path, await GenerateViewerContents());
 			}

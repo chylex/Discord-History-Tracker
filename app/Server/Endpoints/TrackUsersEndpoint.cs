@@ -18,7 +18,7 @@ namespace DHT.Server.Endpoints {
 				throw new HttpException(HttpStatusCode.BadRequest, "Expected root element to be an array.");
 			}
 
-			User[] users = new User[root.GetArrayLength()];
+			var users = new User[root.GetArrayLength()];
 			int i = 0;
 
 			foreach (JsonElement user in root.EnumerateArray()) {

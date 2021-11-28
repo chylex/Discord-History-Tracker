@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -21,8 +20,11 @@ namespace DHT.Desktop.Dialogs {
 			AvaloniaXamlLoader.Load(this);
 		}
 
-		[SuppressMessage("ReSharper", "UnusedParameter.Local")]
-		private void Loaded(object? sender, EventArgs e) {
+		public void OnClosing(object? sender, CancelEventArgs e) {
+			e.Cancel = !isFinished;
+		}
+
+		public void Loaded(object? sender, EventArgs e) {
 			if (DataContext is ProgressDialogModel model) {
 				Task.Run(model.StartTask).ContinueWith(OnFinished, TaskScheduler.FromCurrentSynchronizationContext());
 			}
@@ -31,11 +33,6 @@ namespace DHT.Desktop.Dialogs {
 		private void OnFinished(Task task) {
 			isFinished = true;
 			Close();
-		}
-
-		[SuppressMessage("ReSharper", "UnusedParameter.Local")]
-		private void OnClosing(object? sender, CancelEventArgs e) {
-			e.Cancel = !isFinished;
 		}
 	}
 }
