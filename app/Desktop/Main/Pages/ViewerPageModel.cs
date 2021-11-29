@@ -6,9 +6,9 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
+using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Models;
 using DHT.Desktop.Resources;
-using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Server.Database.Export;
 
@@ -16,26 +16,7 @@ namespace DHT.Desktop.Main.Pages {
 	public class ViewerPageModel : BaseModel {
 		public string ExportedMessageText { get; private set; } = "";
 
-		private bool filterByDate = false;
-
-		public bool FilterByDate {
-			get => filterByDate;
-			set => Change(ref filterByDate, value);
-		}
-
-		private DateTime? startDate = null;
-
-		public DateTime? StartDate {
-			get => startDate;
-			set => Change(ref startDate, value);
-		}
-
-		private DateTime? endDate = null;
-
-		public DateTime? EndDate {
-			get => endDate;
-			set => Change(ref endDate, value);
-		}
+		private FilterPanelModel FilterModel { get; }
 
 		private readonly Window window;
 		private readonly IDatabaseFile db;
@@ -47,15 +28,14 @@ namespace DHT.Desktop.Main.Pages {
 			this.window = window;
 			this.db = db;
 
-			this.PropertyChanged += OnPropertyChanged;
+			this.FilterModel = new FilterPanelModel(window, db);
+			this.FilterModel.FilterPropertyChanged += OnFilterPropertyChanged;
 			this.db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 			UpdateStatistics();
 		}
 
-		private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
-			if (e.PropertyName is nameof(FilterByDate) or nameof(StartDate) or nameof(EndDate)) {
-				UpdateStatistics();
-			}
+		private void OnFilterPropertyChanged(object? sender, PropertyChangedEventArgs e) {
+			UpdateStatistics();
 		}
 
 		private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
@@ -64,24 +44,13 @@ namespace DHT.Desktop.Main.Pages {
 			}
 		}
 
-		private MessageFilter CreateFilter() {
-			MessageFilter filter = new();
-
-			if (FilterByDate) {
-				filter.StartDate = StartDate;
-				filter.EndDate = EndDate;
-			}
-
-			return filter;
-		}
-
 		private void UpdateStatistics() {
-			ExportedMessageText = "Will export " + db.CountMessages(CreateFilter()) + " out of " + db.Statistics.TotalMessages + " message(s).";
+			ExportedMessageText = "Will export " + db.CountMessages(FilterModel.CreateFilter()) + " out of " + db.Statistics.TotalMessages + " message(s).";
 			OnPropertyChanged(nameof(ExportedMessageText));
 		}
 
 		private async Task<string> GenerateViewerContents() {
-			string json = ViewerJsonExport.Generate(db, CreateFilter());
+			string json = ViewerJsonExport.Generate(db, FilterModel.CreateFilter());
 
 			string index = await ResourceLoader.ReadTextAsync("Viewer/index.html");
 			string viewer = index.Replace("/*[JS]*/", await ResourceLoader.ReadJoinedAsync("Viewer/scripts/", '\n'))

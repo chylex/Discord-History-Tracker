@@ -32,6 +32,7 @@ namespace DHT.Server.Database.Sqlite {
 			this.Statistics = new DatabaseStatistics();
 			UpdateServerStatistics();
 			UpdateChannelStatistics();
+			UpdateUserStatistics();
 			UpdateMessageStatistics();
 		}
 
@@ -129,6 +130,7 @@ namespace DHT.Server.Database.Sqlite {
 			}
 
 			tx.Commit();
+			UpdateUserStatistics();
 		}
 
 		public List<User> GetAllUsers() {
@@ -367,6 +369,11 @@ namespace DHT.Server.Database.Sqlite {
 		private void UpdateChannelStatistics() {
 			using var cmd = conn.Command("SELECT COUNT(*) FROM channels");
 			Statistics.TotalChannels = cmd.ExecuteScalar() as long? ?? 0;
+		}
+
+		private void UpdateUserStatistics() {
+			using var cmd = conn.Command("SELECT COUNT(*) FROM users");
+			Statistics.TotalUsers = cmd.ExecuteScalar() as long? ?? 0;
 		}
 
 		private void UpdateMessageStatistics() {

@@ -10,12 +10,5 @@ namespace DHT.Desktop.Main.Pages {
 		private void InitializeComponent() {
 			AvaloniaXamlLoader.Load(this);
 		}
-
-		public void CalendarDatePicker_OnSelectedDateChanged(object? sender, SelectionChangedEventArgs e) {
-			if (DataContext is ViewerPageModel model) {
-				model.StartDate = this.FindControl<CalendarDatePicker>("StartDatePicker").SelectedDate;
-				model.EndDate = this.FindControl<CalendarDatePicker>("EndDatePicker").SelectedDate;
-			}
-		}
 	}
 }

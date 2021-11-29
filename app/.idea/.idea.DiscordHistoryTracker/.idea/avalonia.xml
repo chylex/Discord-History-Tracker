@@ -8,6 +8,7 @@
         <entry key="Desktop/Dialogs/MessageDialog.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Dialogs/ProgressDialog.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/AboutWindow.axaml" value="Desktop/Desktop.csproj" />
+        <entry key="Desktop/Main/Controls/FilterPanel.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Controls/StatusBar.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/MainContentScreen.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/MainWindow.axaml" value="Desktop/Desktop.csproj" />

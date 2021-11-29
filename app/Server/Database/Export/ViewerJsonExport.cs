@@ -8,26 +8,48 @@ using DHT.Server.Data.Filters;
 namespace DHT.Server.Database.Export {
 	public static class ViewerJsonExport {
 		public static string Generate(IDatabaseFile db, MessageFilter? filter = null) {
-			JsonSerializerOptions opts = new();
+			var includedUserIds = new HashSet<ulong>();
+			var includedChannelIds = new HashSet<ulong>();
+			var includedServerIds = new HashSet<ulong>();
+
+			var includedMessages = db.GetMessages(filter);
+			var includedChannels = new List<Channel>();
+
+			foreach (var message in includedMessages) {
+				includedUserIds.Add(message.Sender);
+				includedChannelIds.Add(message.Channel);
+			}
+
+			foreach (var channel in db.GetAllChannels()) {
+				if (includedChannelIds.Contains(channel.Id)) {
+					includedChannels.Add(channel);
+					includedServerIds.Add(channel.Server);
+				}
+			}
+
+			var opts = new JsonSerializerOptions();
 			opts.Converters.Add(new ViewerJsonSnowflakeSerializer());
 
-			var users = GenerateUserList(db, out var userindex, out var userIndices);
-			var servers = GenerateServerList(db, out var serverindex);
-			var channels = GenerateChannelList(db, serverindex);
+			var users = GenerateUserList(db, includedUserIds, out var userindex, out var userIndices);
+			var servers = GenerateServerList(db, includedServerIds, out var serverindex);
+			var channels = GenerateChannelList(includedChannels, serverindex);
 
 			return JsonSerializer.Serialize(new {
 				meta = new { users, userindex, servers, channels },
-				data = GenerateMessageList(db, filter, userIndices)
+				data = GenerateMessageList(includedMessages, userIndices)
 			}, opts);
 		}
 
-		private static dynamic GenerateUserList(IDatabaseFile db, out List<string> userindex, out Dictionary<ulong, int> userIndices) {
+		private static dynamic GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds, out List<string> userindex, out Dictionary<ulong, int> userIndices) {
 			var users = new Dictionary<string, dynamic>();
 			userindex = new List<string>();
 			userIndices = new Dictionary<ulong, int>();
 
 			foreach (var user in db.GetAllUsers()) {
-				var id = user.Id.ToString();
+				var id = user.Id;
+				if (!userIds.Contains(id)) {
+					continue;
+				}
 
 				dynamic obj = new ExpandoObject();
 				obj.name = user.Name;
@@ -40,20 +62,26 @@ namespace DHT.Server.Database.Export {
 					obj.tag = user.Discriminator;
 				}
 
-				userIndices[user.Id] = users.Count;
-				userindex.Add(id);
-				users[id] = obj;
+				var idStr = id.ToString();
+				userIndices[id] = users.Count;
+				userindex.Add(idStr);
+				users[idStr] = obj;
 			}
 
 			return users;
 		}
 
-		private static dynamic GenerateServerList(IDatabaseFile db, out Dictionary<ulong, int> serverIndices) {
+		private static dynamic GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds, out Dictionary<ulong, int> serverIndices) {
 			var servers = new List<dynamic>();
 			serverIndices = new Dictionary<ulong, int>();
 
 			foreach (var server in db.GetAllServers()) {
-				serverIndices[server.Id] = servers.Count;
+				var id = server.Id;
+				if (!serverIds.Contains(id)) {
+					continue;
+				}
+
+				serverIndices[id] = servers.Count;
 				servers.Add(new {
 					name = server.Name,
 					type = ServerTypes.ToJsonViewerString(server.Type)
@@ -63,10 +91,10 @@ namespace DHT.Server.Database.Export {
 			return servers;
 		}
 
-		private static dynamic GenerateChannelList(IDatabaseFile db, Dictionary<ulong, int> serverIndices) {
+		private static dynamic GenerateChannelList(List<Channel> includedChannels, Dictionary<ulong, int> serverIndices) {
 			var channels = new Dictionary<string, dynamic>();
 
-			foreach (var channel in db.GetAllChannels()) {
+			foreach (var channel in includedChannels) {
 				dynamic obj = new ExpandoObject();
 				obj.server = serverIndices[channel.Server];
 				obj.name = channel.Name;
@@ -93,10 +121,10 @@ namespace DHT.Server.Database.Export {
 			return channels;
 		}
 
-		private static dynamic GenerateMessageList(IDatabaseFile db, MessageFilter? filter, Dictionary<ulong, int> userIndices) {
+		private static dynamic GenerateMessageList(List<Message> includedMessages, Dictionary<ulong, int> userIndices) {
 			var data = new Dictionary<string, Dictionary<string, dynamic>>();
 
-			foreach (var grouping in db.GetMessages(filter).GroupBy(message => message.Channel)) {
+			foreach (var grouping in includedMessages.GroupBy(message => message.Channel)) {
 				var channel = grouping.Key.ToString();
 				var channelData = new Dictionary<string, dynamic>();
 

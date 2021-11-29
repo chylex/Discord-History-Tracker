@@ -5,6 +5,7 @@ namespace DHT.Server.Database {
 	public class DatabaseStatistics : INotifyPropertyChanged {
 		private long totalServers;
 		private long totalChannels;
+		private long totalUsers;
 		private long totalMessages;
 
 		public long TotalServers {
@@ -15,6 +16,11 @@ namespace DHT.Server.Database {
 		public long TotalChannels {
 			get => totalChannels;
 			internal set => Change(out totalChannels, value);
+		}
+
+		public long TotalUsers {
+			get => totalUsers;
+			internal set => Change(out totalUsers, value);
 		}
 
 		public long TotalMessages {
@@ -33,6 +39,7 @@ namespace DHT.Server.Database {
 			return new DatabaseStatistics {
 				totalServers = totalServers,
 				totalChannels = totalChannels,
+				totalUsers = TotalUsers,
 				totalMessages = totalMessages
 			};
 		}

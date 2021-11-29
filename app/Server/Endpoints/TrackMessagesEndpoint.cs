@@ -22,17 +22,19 @@ namespace DHT.Server.Endpoints {
 				throw new HttpException(HttpStatusCode.BadRequest, "Expected root element to be an array.");
 			}
 
-			var addedMessageIdFilter = new MessageFilter();
+			var addedMessageIds = new HashSet<ulong>();
 			var messages = new Message[root.GetArrayLength()];
 
 			int i = 0;
 			foreach (JsonElement ele in root.EnumerateArray()) {
 				var message = ReadMessage(ele, "message");
 				messages[i++] = message;
-				addedMessageIdFilter.MessageIds.Add(message.Id);
+				addedMessageIds.Add(message.Id);
 			}
 
-			bool anyNewMessages = Db.CountMessages(addedMessageIdFilter) < messages.Length;
+			var addedMessageFilter = new MessageFilter { MessageIds = addedMessageIds };
+			bool anyNewMessages = Db.CountMessages(addedMessageFilter) < messages.Length;
+
 			Db.AddMessages(messages);
 
 			return (HttpStatusCode.OK, anyNewMessages ? 1 : 0);

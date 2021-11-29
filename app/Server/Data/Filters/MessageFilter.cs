@@ -6,6 +6,8 @@ namespace DHT.Server.Data.Filters {
 		public DateTime? StartDate { get; set; }
 		public DateTime? EndDate { get; set; }
 
-		public HashSet<ulong> MessageIds { get; } = new();
+		public HashSet<ulong>? ChannelIds { get; set; } = null;
+		public HashSet<ulong>? UserIds { get; set; } = null;
+		public HashSet<ulong>? MessageIds { get; set; } = null;
 	}
 }

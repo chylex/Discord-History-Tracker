@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using DHT.Server.Data.Filters;
 
 namespace DHT.Server.Database.Sqlite {
@@ -20,8 +19,16 @@ namespace DHT.Server.Database.Sqlite {
 				conditions.Add("timestamp <= " + new DateTimeOffset(filter.EndDate.Value).ToUnixTimeMilliseconds());
 			}
 
-			if (filter.MessageIds.Count > 0) {
-				conditions.Add("(" + string.Join(" OR ", filter.MessageIds.Select(id => "message_id = " + id)) + ")");
+			if (filter.ChannelIds != null) {
+				conditions.Add("channel_id IN (" + string.Join(",", filter.ChannelIds) + ")");
+			}
+
+			if (filter.UserIds != null) {
+				conditions.Add("sender_id IN (" + string.Join(",", filter.UserIds) + ")");
+			}
+
+			if (filter.MessageIds != null) {
+				conditions.Add("message_id IN (" + string.Join(",", filter.MessageIds) + ")");
 			}
 
 			return conditions.Count == 0 ? "" : " WHERE " + string.Join(" AND ", conditions);
