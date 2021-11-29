@@ -40,6 +40,8 @@ namespace DHT.Server.Database {
 			return new();
 		}
 
+		public void RemoveMessages(MessageFilter filter, MessageFilterRemovalMode mode) {}
+
 		public void Dispose() {
 			GC.SuppressFinalize(this);
 		}

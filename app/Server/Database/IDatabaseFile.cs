@@ -20,5 +20,6 @@ namespace DHT.Server.Database {
 		void AddMessages(Message[] messages);
 		int CountMessages(MessageFilter? filter = null);
 		List<Message> GetMessages(MessageFilter? filter = null);
+		void RemoveMessages(MessageFilter filter, MessageFilterRemovalMode mode);
 	}
 }

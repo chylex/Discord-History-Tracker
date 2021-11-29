@@ -7,15 +7,27 @@ using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
 using DHT.Desktop.Common;
+using DHT.Desktop.Dialogs;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Models;
 using DHT.Desktop.Resources;
+using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Server.Database.Export;
 
 namespace DHT.Desktop.Main.Pages {
 	public class ViewerPageModel : BaseModel {
 		public string ExportedMessageText { get; private set; } = "";
+
+		public bool DatabaseToolFilterModeKeep { get; set; } = true;
+		public bool DatabaseToolFilterModeRemove { get; set; } = false;
+
+		private bool hasFilters = false;
+
+		public bool HasFilters {
+			get => hasFilters;
+			set => Change(ref hasFilters, value);
+		}
 
 		private FilterPanelModel FilterModel { get; }
 
@@ -37,6 +49,7 @@ namespace DHT.Desktop.Main.Pages {
 
 		private void OnFilterPropertyChanged(object? sender, PropertyChangedEventArgs e) {
 			UpdateStatistics();
+			HasFilters = FilterModel.HasAnyFilters;
 		}
 
 		private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
@@ -93,6 +106,21 @@ namespace DHT.Desktop.Main.Pages {
 			string? path = await dialog;
 			if (!string.IsNullOrEmpty(path)) {
 				await File.WriteAllTextAsync(path, await GenerateViewerContents());
+			}
+		}
+
+		public async void OnClickApplyFiltersToDatabase() {
+			var filter = FilterModel.CreateFilter();
+
+			if (DatabaseToolFilterModeKeep) {
+				if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Keep Matching Messages in This Database", db.CountMessages(filter).Pluralize("message") + " will be kept, and the rest will be removed from this database. This action cannot be undone. Proceed?")) {
+					db.RemoveMessages(filter, MessageFilterRemovalMode.KeepMatching);
+				}
+			}
+			else if (DatabaseToolFilterModeRemove) {
+				if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Remove Matching Messages in This Database", db.CountMessages(filter).Pluralize("message") + " will be removed from this database. This action cannot be undone. Proceed?")) {
+					db.RemoveMessages(filter, MessageFilterRemovalMode.RemoveMatching);
+				}
 			}
 		}
 	}

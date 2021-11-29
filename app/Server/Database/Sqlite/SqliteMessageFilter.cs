@@ -4,7 +4,7 @@ using DHT.Server.Data.Filters;
 
 namespace DHT.Server.Database.Sqlite {
 	public static class SqliteMessageFilter {
-		public static string GenerateWhereClause(this MessageFilter? filter) {
+		public static string GenerateWhereClause(this MessageFilter? filter, bool invert = false) {
 			if (filter == null) {
 				return "";
 			}
@@ -31,7 +31,16 @@ namespace DHT.Server.Database.Sqlite {
 				conditions.Add("message_id IN (" + string.Join(",", filter.MessageIds) + ")");
 			}
 
-			return conditions.Count == 0 ? "" : " WHERE " + string.Join(" AND ", conditions);
+			if (conditions.Count == 0) {
+				return "";
+			}
+
+			if (invert) {
+				return " WHERE NOT (" + string.Join(" AND ", conditions) + ")";
+			}
+			else {
+				return " WHERE " + string.Join(" AND ", conditions);
+			}
 		}
 	}
 }

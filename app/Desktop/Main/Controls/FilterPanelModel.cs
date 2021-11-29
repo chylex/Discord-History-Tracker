@@ -26,6 +26,8 @@ namespace DHT.Desktop.Main.Controls {
 
 		public event PropertyChangedEventHandler? FilterPropertyChanged;
 
+		public bool HasAnyFilters => FilterByDate || FilterByChannel || FilterByUser;
+
 		private bool filterByDate = false;
 		private DateTime? startDate = null;
 		private DateTime? endDate = null;
@@ -63,7 +65,6 @@ namespace DHT.Desktop.Main.Controls {
 			get => filterByUser;
 			set => Change(ref filterByUser, value);
 		}
-
 
 		public HashSet<ulong> IncludedUsers {
 			get => includedUsers ?? db.GetAllUsers().Select(user => user.Id).ToHashSet();

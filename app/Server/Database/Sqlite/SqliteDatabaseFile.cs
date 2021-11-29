@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text;
 using System.Threading.Tasks;
 using DHT.Server.Collections;
 using DHT.Server.Data;
@@ -301,6 +302,24 @@ namespace DHT.Server.Database.Sqlite {
 			}
 
 			return list;
+		}
+
+		public void RemoveMessages(MessageFilter filter, MessageFilterRemovalMode mode) {
+			var whereClause = filter.GenerateWhereClause(invert: mode == MessageFilterRemovalMode.KeepMatching);
+			if (string.IsNullOrEmpty(whereClause)) {
+				return;
+			}
+
+			// Rider is being stupid...
+			StringBuilder build = new StringBuilder()
+			                      .Append("DELETE ")
+			                      .Append("FROM messages")
+			                      .Append(whereClause);
+
+			using var cmd = conn.Command(build.ToString());
+			cmd.ExecuteNonQuery();
+
+			UpdateMessageStatistics();
 		}
 
 		private MultiDictionary<ulong, Attachment> GetAllAttachments() {

@@ -7,7 +7,7 @@
         x:Class="DHT.Desktop.Main.MainWindow"
         Title="Discord History Tracker"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
-        Width="800" Height="450"
+        Width="800" Height="500"
         MinWidth="480" MinHeight="240"
         WindowStartupLocation="CenterScreen">
 
