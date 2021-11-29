@@ -15,6 +15,10 @@
             <Setter Property="FontFamily" Value="Consolas,Courier" />
             <Setter Property="FontSize" Value="15" />
         </Style>
+        <Style Selector="WrapPanel > StackPanel">
+            <Setter Property="Orientation" Value="Vertical" />
+            <Setter Property="Margin" Value="0 0 10 10" />
+        </Style>
     </UserControl.Styles>
 
     <StackPanel Spacing="10">
@@ -30,19 +34,21 @@
                 <TextBlock TextWrapping="Wrap">
                     The following settings determine how the tracking script communicates with this application. If you change them, you will have to copy and apply the tracking script again.
                 </TextBlock>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <StackPanel Orientation="Vertical">
+                <WrapPanel>
+                    <StackPanel>
                         <Label Target="Port">Port</Label>
                         <TextBox x:Name="Port" Width="70" Text="{Binding InputPort}" />
                     </StackPanel>
-                    <StackPanel Orientation="Vertical">
+                    <StackPanel>
                         <Label Target="Token">Token</Label>
                         <StackPanel Orientation="Horizontal">
                             <TextBox x:Name="Token" Width="200" Text="{Binding InputToken}" />
                         </StackPanel>
                     </StackPanel>
-                    <Button Command="{Binding OnClickRandomizeToken}" VerticalAlignment="Bottom">Randomize Token</Button>
-                </StackPanel>
+                    <StackPanel VerticalAlignment="Bottom">
+                        <Button Command="{Binding OnClickRandomizeToken}">Randomize Token</Button>
+                    </StackPanel>
+                </WrapPanel>
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <Button IsEnabled="{Binding HasMadeChanges}" Command="{Binding OnClickApplyChanges}">Apply &amp; Restart</Button>
                     <Button IsEnabled="{Binding HasMadeChanges}" Command="{Binding OnClickCancelChanges}">Cancel</Button>

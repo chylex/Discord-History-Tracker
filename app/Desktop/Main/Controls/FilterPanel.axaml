@@ -11,9 +11,6 @@
     </Design.DataContext>
 
     <UserControl.Styles>
-        <Style Selector="WrapPanel">
-            <Setter Property="Background" Value="#FFFFFF" />
-        </Style>
         <Style Selector="WrapPanel > StackPanel">
             <Setter Property="Margin" Value="0 20 40 0" />
             <Setter Property="Spacing" Value="4" />

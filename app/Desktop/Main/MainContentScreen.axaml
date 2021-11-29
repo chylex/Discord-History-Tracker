@@ -12,7 +12,7 @@
     </Design.DataContext>
 
     <UserControl.Styles>
-        <Style Selector="TabControl WrapPanel">
+        <Style Selector="TabControl ItemsPresenter > WrapPanel">
             <Setter Property="Background" Value="#546A9F" />
         </Style>
         <Style Selector="TabItem">

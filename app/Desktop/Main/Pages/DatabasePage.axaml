@@ -10,15 +10,21 @@
         <pages:DatabasePageModel />
     </Design.DataContext>
 
+    <UserControl.Styles>
+        <Style Selector="WrapPanel > Button">
+            <Setter Property="Margin" Value="0 0 10 10" />
+        </Style>
+    </UserControl.Styles>
+
     <StackPanel Spacing="10">
         <DockPanel>
             <Button Command="{Binding CloseDatabase}" DockPanel.Dock="Right">Close Database</Button>
             <TextBox Text="{Binding Db.Path}" Width="NaN" Margin="0 0 10 0" IsEnabled="True" />
         </DockPanel>
-        <StackPanel Spacing="10" Orientation="Horizontal">
+        <WrapPanel>
             <Button Command="{Binding OpenDatabaseFolder}">Open Database Folder</Button>
             <Button Command="{Binding MergeWithDatabase}">Merge with Database(s)...</Button>
-        </StackPanel>
+        </WrapPanel>
     </StackPanel>
 
 </UserControl>
