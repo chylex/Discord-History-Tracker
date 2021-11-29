@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:common="clr-namespace:DHT.Desktop.Common"
              x:Class="DHT.Desktop.App">
 
     <Application.Styles>
@@ -111,9 +112,13 @@
     </Application.Styles>
 
     <Application.Resources>
+
+        <common:NumberValueConverter x:Key="NumberValueConverter" />
+
         <Thickness x:Key="ExpanderHeaderPadding">15,0</Thickness>
         <Thickness x:Key="ExpanderContentPadding">15</Thickness>
         <SolidColorBrush x:Key="ExpanderDropDownBackground" Color="#FCFCFC" />
+
     </Application.Resources>
 
 </Application>

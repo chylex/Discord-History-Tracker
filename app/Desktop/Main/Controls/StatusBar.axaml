@@ -41,17 +41,17 @@
         <Rectangle />
         <StackPanel Orientation="Vertical">
             <TextBlock Classes="label">Servers</TextBlock>
-            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalServers, StringFormat={}{0:n0}}" />
+            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalServers, Converter={StaticResource NumberValueConverter}}" />
         </StackPanel>
         <Rectangle />
         <StackPanel Orientation="Vertical">
             <TextBlock Classes="label">Channels</TextBlock>
-            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalChannels, StringFormat={}{0:n0}}" />
+            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalChannels, Converter={StaticResource NumberValueConverter}}" />
         </StackPanel>
         <Rectangle />
         <StackPanel Orientation="Vertical">
             <TextBlock Classes="label">Messages</TextBlock>
-            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalMessages, StringFormat={}{0:n0}}" />
+            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalMessages, Converter={StaticResource NumberValueConverter}}" />
         </StackPanel>
     </StackPanel>
 

@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
+using DHT.Desktop.Common;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Models;
 using DHT.Desktop.Resources;
@@ -45,7 +46,7 @@ namespace DHT.Desktop.Main.Pages {
 		}
 
 		private void UpdateStatistics() {
-			ExportedMessageText = "Will export " + db.CountMessages(FilterModel.CreateFilter()) + " out of " + db.Statistics.TotalMessages + " message(s).";
+			ExportedMessageText = "Will export " + db.CountMessages(FilterModel.CreateFilter()).Format() + " out of " + db.Statistics.TotalMessages.Format() + " message(s).";
 			OnPropertyChanged(nameof(ExportedMessageText));
 		}
 

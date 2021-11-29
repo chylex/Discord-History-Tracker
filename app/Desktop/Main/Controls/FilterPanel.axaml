@@ -35,7 +35,7 @@
     <WrapPanel>
         <StackPanel>
             <CheckBox IsChecked="{Binding FilterByDate}">Filter by Date</CheckBox>
-            <Grid ColumnDefinitions="Auto, 4, 140" RowDefinitions="Auto, 4, Auto" Margin="4 0">
+            <Grid ColumnDefinitions="Auto, 4, 125" RowDefinitions="Auto, 4, Auto" Margin="4 0">
                 <Label Grid.Row="0" Grid.Column="0">From:</Label>
                 <CalendarDatePicker Grid.Row="0" Grid.Column="2" x:Name="StartDatePicker" IsEnabled="{Binding FilterByDate}" SelectedDateChanged="CalendarDatePicker_OnSelectedDateChanged" />
                 <Label Grid.Row="2" Grid.Column="0">To:</Label>

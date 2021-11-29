@@ -5,6 +5,7 @@ using Avalonia;
 namespace DHT.Desktop {
 	internal static class Program {
 		public static string Version { get; }
+		public static CultureInfo Culture { get; }
 
 		static Program() {
 			Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "";
@@ -12,6 +13,7 @@ namespace DHT.Desktop {
 				Version = Version[..^2];
 			}
 
+			Culture = CultureInfo.CurrentCulture;
 			CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 			CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
 			CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;

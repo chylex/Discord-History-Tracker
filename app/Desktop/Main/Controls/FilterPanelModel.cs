@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs;
 using DHT.Desktop.Models;
 using DHT.Server.Data;
@@ -190,13 +191,13 @@ namespace DHT.Desktop.Main.Controls {
 		private void UpdateChannelFilterLabel() {
 			long total = db.Statistics.TotalChannels;
 			long included = FilterByChannel ? IncludedChannels.Count : total;
-			ChannelFilterLabel = "Selected " + included + " / " + total + (total == 1 ? " channel." : " channels.");
+			ChannelFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("channel") + ".";
 		}
 
 		private void UpdateUserFilterLabel() {
 			long total = db.Statistics.TotalUsers;
 			long included = FilterByUser ? IncludedUsers.Count : total;
-			UserFilterLabel = "Selected " + included + " / " + total + (total == 1 ? " user." : " users.");
+			UserFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("user") + ".";
 		}
 
 		public MessageFilter CreateFilter() {

@@ -133,24 +133,20 @@ namespace DHT.Desktop.Main.Pages {
 			long newChannels = newStatistics.TotalChannels - oldStatistics.TotalChannels;
 			long newMessages = newStatistics.TotalMessages - oldStatistics.TotalMessages;
 
-			string Pluralize(long count, string text) {
-				return count + "\u00A0" + (count == 1 ? text : text + "s");
-			}
-
 			StringBuilder message = new StringBuilder();
 			message.Append("Processed ");
 
 			if (successful == total) {
-				message.Append(Pluralize(successful, "database file"));
+				message.Append(successful.Pluralize("database file"));
 			}
 			else {
-				message.Append(successful).Append(" out of ").Append(Pluralize(total, "database file"));
+				message.Append(successful.Format()).Append(" out of ").Append(total.Pluralize("database file"));
 			}
 
 			message.Append(" and added:\n\n  \u2022 ");
-			message.Append(Pluralize(newServers, "server")).Append("\n  \u2022 ");
-			message.Append(Pluralize(newChannels, "channel")).Append("\n  \u2022 ");
-			message.Append(Pluralize(newMessages, "message"));
+			message.Append(newServers.Pluralize("server")).Append("\n  \u2022 ");
+			message.Append(newChannels.Pluralize("channel")).Append("\n  \u2022 ");
+			message.Append(newMessages.Pluralize("message"));
 
 			await Dialog.ShowOk(dialog, "Database Merge", message.ToString());
 		}

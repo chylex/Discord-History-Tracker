@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia.Threading;
+using DHT.Desktop.Common;
 using DHT.Desktop.Models;
 
 namespace DHT.Desktop.Dialogs {
@@ -55,7 +56,7 @@ namespace DHT.Desktop.Dialogs {
 			async Task IProgressCallback.Update(string message, int finishedItems, int totalItems) {
 				await Dispatcher.UIThread.InvokeAsync(() => {
 					model.Message = message;
-					model.Items = finishedItems + " / " + totalItems;
+					model.Items = finishedItems.Format() + " / " + totalItems.Format();
 					model.Progress = 100 * finishedItems / totalItems;
 				});
 			}
