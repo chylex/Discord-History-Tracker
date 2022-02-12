@@ -7,6 +7,36 @@ var DISCORD = (function(){
     return getMessageOuterElement().querySelector("[class*='scroller-']");
   };
   
+  var getMessageElements = function() {
+    return getMessageOuterElement().querySelectorAll("[class*='message-']");
+  };
+  
+  var getReactProps = function(ele) {
+    var keys = Object.keys(ele || {});
+    var key = keys.find(key => key.startsWith("__reactInternalInstance"));
+    
+    if (key){
+      return ele[key].memoizedProps;
+    }
+    
+    key = keys.find(key => key.startsWith("__reactProps$"));
+    return key ? ele[key] : null;
+  };
+  
+  var getMessageElementProps = function(ele) {
+    const props = getReactProps(ele);
+    
+    if (props.children && props.children.length >= 4) {
+      const childProps = props.children[3].props;
+      
+      if ("message" in childProps && "channel" in childProps) {
+        return childProps;
+      }
+    }
+    
+    return null;
+  };
+  
   var observerTimer = 0, waitingForCleanup = 0;
   
   return {
@@ -60,15 +90,7 @@ var DISCORD = (function(){
      * Returns internal React state object of an element.
      */
     getReactProps: function(ele){
-      var keys = Object.keys(ele || {});
-      var key = keys.find(key => key.startsWith("__reactInternalInstance"));
-      
-      if (key){
-        return ele[key].memoizedProps;
-      }
-      
-      key = keys.find(key => key.startsWith("__reactProps$"));
-      return key ? ele[key] : null;
+      return getReactProps(ele);
     },
     
     /*
@@ -76,83 +98,75 @@ var DISCORD = (function(){
      * For types DM and GROUP, the server and channel names are identical.
      * For SERVER type, the channel has to be in view, otherwise Discord unloads it.
      */
-    getSelectedChannel: function(){
-      try{
-        var obj;
-        var channelListEle = DOM.queryReactClass("privateChannels");
+    getSelectedChannel: function() {
+      try {
+        let obj;
         
-        if (channelListEle){
-          var channel = DOM.queryReactClass("selected", channelListEle);
+        for (const ele of getMessageElements()) {
+          const props = getMessageElementProps(ele);
           
-          if (!channel || !("href" in channel) || !channel.href.includes("/@me/")){
-            return null;
+          if (props != null) {
+            obj = props.channel;
+            break;
           }
+        }
+        
+        if (!obj) {
+          return null;
+        }
+        
+        var dms = DOM.queryReactClass("privateChannels");
+        
+        if (dms){
+          let name;
           
-          var linkSplit = channel.href.split("/");
-          var link = linkSplit[linkSplit.length-1];
-          
-          if (!(/^\d+$/.test(link))){
-            return null;
-          }
-          
-          var name;
-          
-          for(let ele of channel.querySelectorAll("[class^='name-'] *")){
-            let node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
+          for (const ele of dms.querySelectorAll("[class*='channel-'] [class*='selected-'] [class^='name-'] *, [class*='channel-'][class*='selected-'] [class^='name-'] *")) {
+            const node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
             
-            if (node){
+            if (node) {
               name = node.nodeValue;
               break;
             }
           }
           
-          if (!name){
+          if (!name) {
             return null;
           }
           
-          var icon = channel.querySelector("img[class*='avatar']");
-          var iconParent = icon && icon.closest("foreignObject");
-          var iconMask = iconParent && iconParent.getAttribute("mask");
+          let type;
           
-          obj = {
+          // https://discord.com/developers/docs/resources/channel#channel-object-channel-types
+          switch (obj.type) {
+            case 1: type = "DM"; break;
+            case 3: type = "GROUP"; break;
+            default: return null;
+          }
+          
+          return {
             "server": name,
             "channel": name,
-            "id": link,
-            "type": (iconMask && iconMask.includes("#svg-mask-avatar-default")) ? "GROUP" : "DM",
+            "id": obj.id,
+            "type": type,
             "extra": {}
           };
         }
-        else{
-          channelListEle = document.getElementById("channels");
-          
-          var channel = channelListEle.querySelector("[class*='modeSelected']").parentElement;
-          var props = DISCORD.getReactProps(channel).children.props;
-          
-          if (!props){
-            return null;
-          }
-          
-          var channelObj = props.channel || props.children().props.channel;
-          
-          if (!channelObj){
-            return null;
-          }
-          
-          obj = {
+        else if (obj.guild_id) {
+          return {
             "server": document.querySelector("nav header > h1").innerText,
-            "channel": channelObj.name,
-            "id": channelObj.id,
+            "channel": obj.name,
+            "id": obj.id,
             "type": "SERVER",
             "extra": {
-              "position": channelObj.position,
-              "topic": channelObj.topic,
-              "nsfw": channelObj.nsfw
+              "position": obj.position,
+              "topic": obj.topic,
+              "nsfw": obj.nsfw
             }
           };
         }
-        
-        return obj.channel.length === 0 ? null : obj;
-      }catch(e){
+        else {
+          return null;
+        }
+      } catch(e) {
         console.error(e);
         return null;
       }
