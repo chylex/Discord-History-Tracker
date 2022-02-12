@@ -37,53 +37,102 @@ var DISCORD = (function(){
     return null;
   };
   
-  var observerTimer = 0, waitingForCleanup = 0;
+  var hasMoreMessages = function() {
+    return document.querySelector("#messagesNavigationDescription + [class^=container]") === null;
+  };
+  
+  var getMessages = function() {
+    try {
+      const messages = [];
+      
+      for (const ele of getMessageElements()) {
+        const props = getMessageElementProps(ele);
+        
+        if (props != null) {
+          messages.push(props.message);
+        }
+      }
+      
+      return messages;
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  };
   
   return {
-    /*
-     * Sets up a callback hook to trigger whenever the list of messages is updated. The callback is given a boolean value that is true if there are more messages to load.
+    /**
+     * Calls the provided function with a list of messages whenever the currently loaded messages change,
+     * or with `false` if there are no more messages.
      */
-    setupMessageUpdateCallback: function(callback){
-      var onTimerFinished = function(){
-        let view = getMessageOuterElement();
+    setupMessageCallback: function(callback) {
+      let skipsLeft = 0;
+      let waitForCleanup = false;
+      let hasReachedStart = false;
+      const previousMessages = new Set();
+  
+      const intervalId = window.setInterval(() => {
+        if (skipsLeft > 0) {
+          --skipsLeft;
+          return;
+        }
+      
+        const view = getMessageOuterElement();
+      
+        if (!view) {
+          skipsLeft = 2;
+          return;
+        }
+      
+        const anyMessage = DOM.queryReactClass("message", getMessageOuterElement());
+        const messageCount = anyMessage ? anyMessage.parentElement.children.length : 0;
+      
+        if (messageCount > 300) {
+          if (waitForCleanup) {
+            return;
+          }
         
-        if (!view){
-          restartTimer(500);
+          skipsLeft = 3;
+          waitForCleanup = true;
+        
+          window.setTimeout(() => {
+            const view = getMessageScrollerElement();
+            view.scrollTop = view.scrollHeight / 2;
+          }, 1);
         }
-        else{
-          let anyMessage = getMessageOuterElement().querySelector("[class*='message-']");
-          let messages = anyMessage ? anyMessage.parentElement.children.length : 0;
-          
-          if (messages < 100){
-            waitingForCleanup = 0;
-          }
-          
-          if (waitingForCleanup > 0){
-            --waitingForCleanup;
-            restartTimer(750);
-          }
-          else{
-            if (messages > 300){
-              waitingForCleanup = 6;
-              
-              DOM.setTimer(() => {
-                let view = getMessageScrollerElement();
-                view.scrollTop = view.scrollHeight/2;
-              }, 1);
-            }
-            
-            callback();
-            restartTimer(200);
+        else {
+          waitForCleanup = false;
+        }
+      
+        const messages = getMessages();
+        let hasChanged = false;
+      
+        for (const message of messages) {
+          if (!previousMessages.has(message.id)) {
+            hasChanged = true;
+            break;
           }
         }
-      };
       
-      var restartTimer = function(delay){
-        observerTimer = DOM.setTimer(onTimerFinished, delay);
-      };
+        if (!hasChanged) {
+          if (!hasReachedStart && !hasMoreMessages()) {
+            hasReachedStart = true;
+            callback(false);
+          }
+          
+          return;
+        }
       
-      onTimerFinished();
-      window.DHT_ON_UNLOAD.push(() => window.clearInterval(observerTimer));
+        previousMessages.clear();
+        for (const message of messages) {
+          previousMessages.add(message.id);
+        }
+        
+        hasReachedStart = false;
+        callback(messages);
+      }, 200);
+  
+      window.DHT_ON_UNLOAD.push(() => window.clearInterval(intervalId));
     },
     
     /*
@@ -176,32 +225,7 @@ var DISCORD = (function(){
      * Returns an array containing currently loaded messages.
      */
     getMessages: function(){
-      try{
-        var scroller = getMessageScrollerElement();
-        var props = DISCORD.getReactProps(scroller);
-        var wrappers;
-        
-        try{
-          wrappers = props.children.props.children.props.children.props.children.find(ele => Array.isArray(ele));
-        }catch(e){ // old version compatibility
-          wrappers = props.children.find(ele => Array.isArray(ele));
-        }
-        
-        var messages = [];
-        
-        for(let obj of wrappers){
-          let nested = obj.props;
-        
-          if (nested && nested.message){
-            messages.push(nested.message);
-          }
-        }
-        
-        return messages;
-      }catch(e){
-        console.error(e);
-        return null;
-      }
+      return getMessages();
     },
     
     /*
@@ -213,7 +237,7 @@ var DISCORD = (function(){
      * Returns true if there are more messages available or if they're still loading.
      */
     hasMoreMessages: function(){
-      return document.querySelector("#messagesNavigationDescription + [class^=container]") === null;
+      return hasMoreMessages();
     },
     
     /*

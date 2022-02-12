@@ -30,7 +30,7 @@ let stopTrackingDelayed = function(callback){
   }, 200); // give the user visual feedback after clicking the button before switching off
 };
 
-DISCORD.setupMessageUpdateCallback(() => {
+DISCORD.setupMessageCallback(messages => {
   if (STATE.isTracking() && ignoreMessageCallback.size === 0){
     let info = DISCORD.getSelectedChannel();
     
@@ -41,27 +41,21 @@ DISCORD.setupMessageUpdateCallback(() => {
     
     STATE.addDiscordChannel(info.server, info.type, info.id, info.channel, info.extra);
     
-    let messages = DISCORD.getMessages();
-    
-    if (messages == null){
-      stopTrackingDelayed();
-      return;
-    }
-    else if (!messages.length){
+     if (messages !== false && !messages.length){
       DISCORD.loadOlderMessages();
       return;
     }
     
-    let hasUpdatedFile = STATE.addDiscordMessages(info.id, messages);
+    let hasUpdatedFile = messages !== false && STATE.addDiscordMessages(info.id, messages);
     
     if (SETTINGS.autoscroll){
       let action = null;
       
-      if (!hasUpdatedFile && !STATE.isMessageFresh(messages[0].id)){
-        action = SETTINGS.afterSavedMsg;
-      }
-      else if (!DISCORD.hasMoreMessages()){
+      if (messages === false) {
         action = SETTINGS.afterFirstMsg;
+      }
+      else if (!hasUpdatedFile && !STATE.isMessageFresh(messages[0].id)){
+        action = SETTINGS.afterSavedMsg;
       }
       
       if (action === null){
