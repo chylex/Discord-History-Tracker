@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.31
+// @version      v.31a
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -21,68 +21,139 @@ var DISCORD = (function(){
     return getMessageOuterElement().querySelector("[class*='scroller-']");
   };
   
-  var observerTimer = 0, waitingForCleanup = 0;
+  var getMessageElements = function() {
+    return getMessageOuterElement().querySelectorAll("[class*='message-']");
+  };
+  
+  var getReactProps = function(ele) {
+    var keys = Object.keys(ele || {});
+    var key = keys.find(key => key.startsWith("__reactInternalInstance"));
+    
+    if (key){
+      return ele[key].memoizedProps;
+    }
+    
+    key = keys.find(key => key.startsWith("__reactProps$"));
+    return key ? ele[key] : null;
+  };
+  
+  var getMessageElementProps = function(ele) {
+    const props = getReactProps(ele);
+    
+    if (props.children && props.children.length >= 4) {
+      const childProps = props.children[3].props;
+      
+      if ("message" in childProps && "channel" in childProps) {
+        return childProps;
+      }
+    }
+    
+    return null;
+  };
+  
+  var hasMoreMessages = function() {
+    return document.querySelector("#messagesNavigationDescription + [class^=container]") === null;
+  };
+  
+  var getMessages = function() {
+    try {
+      const messages = [];
+      
+      for (const ele of getMessageElements()) {
+        const props = getMessageElementProps(ele);
+        
+        if (props != null) {
+          messages.push(props.message);
+        }
+      }
+      
+      return messages;
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  };
   
   return {
-    /*
-     * Sets up a callback hook to trigger whenever the list of messages is updated. The callback is given a boolean value that is true if there are more messages to load.
+    /**
+     * Calls the provided function with a list of messages whenever the currently loaded messages change,
+     * or with `false` if there are no more messages.
      */
-    setupMessageUpdateCallback: function(callback){
-      var onTimerFinished = function(){
-        let view = getMessageOuterElement();
+    setupMessageCallback: function(callback) {
+      let skipsLeft = 0;
+      let waitForCleanup = false;
+      let hasReachedStart = false;
+      const previousMessages = new Set();
+  
+      const intervalId = window.setInterval(() => {
+        if (skipsLeft > 0) {
+          --skipsLeft;
+          return;
+        }
+      
+        const view = getMessageOuterElement();
+      
+        if (!view) {
+          skipsLeft = 2;
+          return;
+        }
+      
+        const anyMessage = DOM.queryReactClass("message", getMessageOuterElement());
+        const messageCount = anyMessage ? anyMessage.parentElement.children.length : 0;
+      
+        if (messageCount > 300) {
+          if (waitForCleanup) {
+            return;
+          }
         
-        if (!view){
-          restartTimer(500);
+          skipsLeft = 3;
+          waitForCleanup = true;
+        
+          window.setTimeout(() => {
+            const view = getMessageScrollerElement();
+            view.scrollTop = view.scrollHeight / 2;
+          }, 1);
         }
-        else{
-          let anyMessage = getMessageOuterElement().querySelector("[class*='message-']");
-          let messages = anyMessage ? anyMessage.parentElement.children.length : 0;
-          
-          if (messages < 100){
-            waitingForCleanup = 0;
-          }
-          
-          if (waitingForCleanup > 0){
-            --waitingForCleanup;
-            restartTimer(750);
-          }
-          else{
-            if (messages > 300){
-              waitingForCleanup = 6;
-              
-              DOM.setTimer(() => {
-                let view = getMessageScrollerElement();
-                view.scrollTop = view.scrollHeight/2;
-              }, 1);
-            }
-            
-            callback();
-            restartTimer(200);
+        else {
+          waitForCleanup = false;
+        }
+      
+        const messages = getMessages();
+        let hasChanged = false;
+      
+        for (const message of messages) {
+          if (!previousMessages.has(message.id)) {
+            hasChanged = true;
+            break;
           }
         }
-      };
       
-      var restartTimer = function(delay){
-        observerTimer = DOM.setTimer(onTimerFinished, delay);
-      };
+        if (!hasChanged) {
+          if (!hasReachedStart && !hasMoreMessages()) {
+            hasReachedStart = true;
+            callback(false);
+          }
+          
+          return;
+        }
       
-      onTimerFinished();
-      window.DHT_ON_UNLOAD.push(() => window.clearInterval(observerTimer));
+        previousMessages.clear();
+        for (const message of messages) {
+          previousMessages.add(message.id);
+        }
+        
+        hasReachedStart = false;
+        callback(messages);
+      }, 200);
+  
+      window.DHT_ON_UNLOAD.push(() => window.clearInterval(intervalId));
     },
     
     /*
      * Returns internal React state object of an element.
      */
     getReactProps: function(ele){
-      var keys = Object.keys(ele || {});
-      var key = keys.find(key => key.startsWith("__reactInternalInstance"));
-      
-      if (key){
-        return ele[key].memoizedProps;
-      }
-      
-      key = keys.find(key => key.startsWith("__reactProps$"));
-      return key ? ele[key] : null;
+      return getReactProps(ele);
     },
     
     /*
@@ -90,83 +161,75 @@ var DISCORD = (function(){
      * For types DM and GROUP, the server and channel names are identical.
      * For SERVER type, the channel has to be in view, otherwise Discord unloads it.
      */
-    getSelectedChannel: function(){
-      try{
-        var obj;
-        var channelListEle = DOM.queryReactClass("privateChannels");
+    getSelectedChannel: function() {
+      try {
+        let obj;
         
-        if (channelListEle){
-          var channel = DOM.queryReactClass("selected", channelListEle);
+        for (const ele of getMessageElements()) {
+          const props = getMessageElementProps(ele);
           
-          if (!channel || !("href" in channel) || !channel.href.includes("/@me/")){
-            return null;
+          if (props != null) {
+            obj = props.channel;
+            break;
           }
+        }
+        
+        if (!obj) {
+          return null;
+        }
+        
+        var dms = DOM.queryReactClass("privateChannels");
+        
+        if (dms){
+          let name;
           
-          var linkSplit = channel.href.split("/");
-          var link = linkSplit[linkSplit.length-1];
-          
-          if (!(/^\d+$/.test(link))){
-            return null;
-          }
-          
-          var name;
-          
-          for(let ele of channel.querySelectorAll("[class^='name-'] *")){
-            let node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
+          for (const ele of dms.querySelectorAll("[class*='channel-'] [class*='selected-'] [class^='name-'] *, [class*='channel-'][class*='selected-'] [class^='name-'] *")) {
+            const node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
             
-            if (node){
+            if (node) {
               name = node.nodeValue;
               break;
             }
           }
           
-          if (!name){
+          if (!name) {
             return null;
           }
           
-          var icon = channel.querySelector("img[class*='avatar']");
-          var iconParent = icon && icon.closest("foreignObject");
-          var iconMask = iconParent && iconParent.getAttribute("mask");
+          let type;
           
-          obj = {
+          // https://discord.com/developers/docs/resources/channel#channel-object-channel-types
+          switch (obj.type) {
+            case 1: type = "DM"; break;
+            case 3: type = "GROUP"; break;
+            default: return null;
+          }
+          
+          return {
             "server": name,
             "channel": name,
-            "id": link,
-            "type": (iconMask && iconMask.includes("#svg-mask-avatar-default")) ? "GROUP" : "DM",
+            "id": obj.id,
+            "type": type,
             "extra": {}
           };
         }
-        else{
-          channelListEle = document.getElementById("channels");
-          
-          var channel = channelListEle.querySelector("[class*='modeSelected']").parentElement;
-          var props = DISCORD.getReactProps(channel).children.props;
-          
-          if (!props){
-            return null;
-          }
-          
-          var channelObj = props.channel || props.children().props.channel;
-          
-          if (!channelObj){
-            return null;
-          }
-          
-          obj = {
+        else if (obj.guild_id) {
+          return {
             "server": document.querySelector("nav header > h1").innerText,
-            "channel": channelObj.name,
-            "id": channelObj.id,
+            "channel": obj.name,
+            "id": obj.id,
             "type": "SERVER",
             "extra": {
-              "position": channelObj.position,
-              "topic": channelObj.topic,
-              "nsfw": channelObj.nsfw
+              "position": obj.position,
+              "topic": obj.topic,
+              "nsfw": obj.nsfw
             }
           };
         }
-        
-        return obj.channel.length === 0 ? null : obj;
-      }catch(e){
+        else {
+          return null;
+        }
+      } catch(e) {
         console.error(e);
         return null;
       }
@@ -176,32 +239,7 @@ var DISCORD = (function(){
      * Returns an array containing currently loaded messages.
      */
     getMessages: function(){
-      try{
-        var scroller = getMessageScrollerElement();
-        var props = DISCORD.getReactProps(scroller);
-        var wrappers;
-        
-        try{
-          wrappers = props.children.props.children.props.children.props.children.find(ele => Array.isArray(ele));
-        }catch(e){ // old version compatibility
-          wrappers = props.children.find(ele => Array.isArray(ele));
-        }
-        
-        var messages = [];
-        
-        for(let obj of wrappers){
-          let nested = obj.props;
-        
-          if (nested && nested.message){
-            messages.push(nested.message);
-          }
-        }
-        
-        return messages;
-      }catch(e){
-        console.error(e);
-        return null;
-      }
+      return getMessages();
     },
     
     /*
@@ -213,7 +251,7 @@ var DISCORD = (function(){
      * Returns true if there are more messages available or if they're still loading.
      */
     hasMoreMessages: function(){
-      return document.querySelector("#messagesNavigationDescription + [class^=container]") === null;
+      return hasMoreMessages();
     },
     
     /*
@@ -273,11 +311,15 @@ var DISCORD = (function(){
         if (nextChannel === null){
           return false;
         }
-        else{
-          nextChannel.children[0].click();
-          nextChannel.scrollIntoView(true);
-          return true;
+        
+        const nextChannelLink = nextChannel.querySelector("a[href^='/channels/']");
+        if (!nextChannelLink) {
+          return false;
         }
+  
+        nextChannelLink.click();
+        nextChannel.scrollIntoView(true);
+        return true;
       }
     }
   };
@@ -594,7 +636,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.31, released 3 April 2021</sub>
+<sub>v.31a, released 12 Feb 2022</sub>
 </p>`);
       
       // elements
@@ -1214,7 +1256,7 @@ let stopTrackingDelayed = function(callback){
   }, 200); // give the user visual feedback after clicking the button before switching off
 };
 
-DISCORD.setupMessageUpdateCallback(() => {
+DISCORD.setupMessageCallback(messages => {
   if (STATE.isTracking() && ignoreMessageCallback.size === 0){
     let info = DISCORD.getSelectedChannel();
     
@@ -1225,27 +1267,21 @@ DISCORD.setupMessageUpdateCallback(() => {
     
     STATE.addDiscordChannel(info.server, info.type, info.id, info.channel, info.extra);
     
-    let messages = DISCORD.getMessages();
-    
-    if (messages == null){
-      stopTrackingDelayed();
-      return;
-    }
-    else if (!messages.length){
+     if (messages !== false && !messages.length){
       DISCORD.loadOlderMessages();
       return;
     }
     
-    let hasUpdatedFile = STATE.addDiscordMessages(info.id, messages);
+    let hasUpdatedFile = messages !== false && STATE.addDiscordMessages(info.id, messages);
     
     if (SETTINGS.autoscroll){
       let action = null;
       
-      if (!hasUpdatedFile && !STATE.isMessageFresh(messages[0].id)){
-        action = SETTINGS.afterSavedMsg;
-      }
-      else if (!DISCORD.hasMoreMessages()){
+      if (messages === false) {
         action = SETTINGS.afterFirstMsg;
+      }
+      else if (!hasUpdatedFile && !STATE.isMessageFresh(messages[0].id)){
+        action = SETTINGS.afterSavedMsg;
       }
       
       if (action === null){
