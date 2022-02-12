@@ -26,14 +26,13 @@ class DISCORD {
 	
 	/**
 	 * Calls the provided function with a list of messages whenever the currently loaded messages change.
-	 * Returns a setInterval handle.
 	 */
 	static setupMessageCallback(callback) {
 		let skipsLeft = 0;
 		let waitForCleanup = false;
 		const previousMessages = new Set();
 		
-		return window.setInterval(() => {
+		const timer = window.setInterval(() => {
 			if (skipsLeft > 0) {
 				--skipsLeft;
 				return;
@@ -88,6 +87,8 @@ class DISCORD {
 			
 			callback(messages);
 		}, 200);
+		
+		window.DHT_ON_UNLOAD.push(() => window.clearInterval(timer));
 	}
 	
 	/**

@@ -125,8 +125,7 @@
 		}
 	};
 	
-	const callbackTimer = DISCORD.setupMessageCallback(onMessagesUpdated);
-	window.DHT_ON_UNLOAD.push(() => window.clearTimeout(callbackTimer));
+	DISCORD.setupMessageCallback(onMessagesUpdated);
 	
 	STATE.onTrackingStateChanged(enabled => {
 		if (enabled) {
