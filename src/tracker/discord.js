@@ -297,11 +297,15 @@ var DISCORD = (function(){
         if (nextChannel === null){
           return false;
         }
-        else{
-          nextChannel.children[0].click();
-          nextChannel.scrollIntoView(true);
-          return true;
+        
+        const nextChannelLink = nextChannel.querySelector("a[href^='/channels/']");
+        if (!nextChannelLink) {
+          return false;
         }
+  
+        nextChannelLink.click();
+        nextChannel.scrollIntoView(true);
+        return true;
       }
     }
   };
