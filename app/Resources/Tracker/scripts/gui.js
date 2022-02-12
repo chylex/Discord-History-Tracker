@@ -55,7 +55,8 @@ const GUI = (function() {
 			controller.ui.btnClose.addEventListener("click", () => {
 				this.hideController();
 				window.DHT_ON_UNLOAD.forEach(f => f());
-				window.DHT_LOADED = false;
+				delete window.DHT_ON_UNLOAD;
+				delete window.DHT_LOADED;
 			});
 			
 			STATE.onTrackingStateChanged(isTracking => {
