@@ -157,7 +157,7 @@ class DISCORD {
 			if (dms) {
 				let name;
 				
-				for (const ele of dms.querySelectorAll("[class*='channel-'][class*='selected-'] [class^='name-'] *")) {
+				for (const ele of dms.querySelectorAll("[class*='channel-'] [class*='selected-'] [class^='name-'] *, [class*='channel-'][class*='selected-'] [class^='name-'] *")) {
 					const node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
 					
 					if (node) {
