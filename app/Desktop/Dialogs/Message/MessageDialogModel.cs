@@ -1,5 +1,5 @@
 namespace DHT.Desktop.Dialogs.Message {
-	public class MessageDialogModel {
+	sealed class MessageDialogModel {
 		public string Title { get; init; } = "";
 		public string Message { get; init; } = "";
 

@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml;
 using DHT.Desktop.Dialogs.Message;
 
 namespace DHT.Desktop.Dialogs.CheckBox {
-	public class CheckBoxDialog : Window {
+	sealed class CheckBoxDialog : Window {
 		public CheckBoxDialog() {
 			InitializeComponent();
 			#if DEBUG

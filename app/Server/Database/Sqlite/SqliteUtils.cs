@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
-	public static class SqliteUtils {
+	static class SqliteUtils {
 		public static SqliteCommand Command(this SqliteConnection conn, string sql) {
 			var cmd = conn.CreateCommand();
 			cmd.CommandText = sql;
@@ -12,7 +12,7 @@ namespace DHT.Server.Database.Sqlite {
 
 		public static SqliteCommand Insert(this SqliteConnection conn, string tableName, string[] columns) {
 			string columnNames = string.Join(',', columns);
-			string columnParams = string.Join(',', columns.Select(c => ':' + c));
+			string columnParams = string.Join(',', columns.Select(static c => ':' + c));
 
 			return conn.Command("INSERT INTO " + tableName + " (" + columnNames + ")" +
 			                    "VALUES (" + columnParams + ")");
@@ -20,8 +20,8 @@ namespace DHT.Server.Database.Sqlite {
 
 		public static SqliteCommand Upsert(this SqliteConnection conn, string tableName, string[] columns) {
 			string columnNames = string.Join(',', columns);
-			string columnParams = string.Join(',', columns.Select(c => ':' + c));
-			string columnUpdates = string.Join(',', columns.Skip(1).Select(c => c + " = excluded." + c));
+			string columnParams = string.Join(',', columns.Select(static c => ':' + c));
+			string columnUpdates = string.Join(',', columns.Skip(1).Select(static c => c + " = excluded." + c));
 
 			return conn.Command("INSERT INTO " + tableName + " (" + columnNames + ")" +
 			                    "VALUES (" + columnParams + ")" +

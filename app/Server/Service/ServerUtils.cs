@@ -10,8 +10,8 @@ namespace DHT.Server.Service {
 		public static int FindAvailablePort(int min, int max) {
 			var properties = IPGlobalProperties.GetIPGlobalProperties();
 			var occupied = new HashSet<int>();
-			occupied.UnionWith(properties.GetActiveTcpListeners().Select(tcp => tcp.Port));
-			occupied.UnionWith(properties.GetActiveTcpConnections().Select(tcp => tcp.LocalEndPoint.Port));
+			occupied.UnionWith(properties.GetActiveTcpListeners().Select(static tcp => tcp.Port));
+			occupied.UnionWith(properties.GetActiveTcpConnections().Select(static tcp => tcp.LocalEndPoint.Port));
 
 			for (int port = min; port < max; port++) {
 				if (!occupied.Contains(port)) {

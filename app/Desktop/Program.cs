@@ -4,7 +4,7 @@ using Avalonia;
 using DHT.Utils.Resources;
 
 namespace DHT.Desktop {
-	internal static class Program {
+	static class Program {
 		public static string Version { get; }
 		public static CultureInfo Culture { get; }
 		public static ResourceLoader Resources { get; }

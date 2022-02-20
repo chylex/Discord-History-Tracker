@@ -6,7 +6,7 @@ using DHT.Server.Database;
 using DHT.Server.Service;
 
 namespace DHT.Desktop.Main {
-	public class MainContentScreenModel : IDisposable {
+	sealed class MainContentScreenModel : IDisposable {
 		public DatabasePage DatabasePage { get; }
 		private DatabasePageModel DatabasePageModel { get; }
 
@@ -19,8 +19,12 @@ namespace DHT.Desktop.Main {
 		public StatusBarModel StatusBarModel { get; }
 
 		public event EventHandler? DatabaseClosed {
-			add { DatabasePageModel.DatabaseClosed += value; }
-			remove { DatabasePageModel.DatabaseClosed -= value; }
+			add {
+				DatabasePageModel.DatabaseClosed += value;
+			}
+			remove {
+				DatabasePageModel.DatabaseClosed -= value;
+			}
 		}
 
 		[Obsolete("Designer")]
@@ -51,7 +55,6 @@ namespace DHT.Desktop.Main {
 
 		public void Dispose() {
 			TrackingPageModel.Dispose();
-			GC.SuppressFinalize(this);
 		}
 	}
 }

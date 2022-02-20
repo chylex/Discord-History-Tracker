@@ -10,7 +10,7 @@ using DHT.Server.Database;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main {
-	public class MainWindowModel : BaseModel {
+	sealed class MainWindowModel : BaseModel {
 		private const string DefaultTitle = "Discord History Tracker";
 
 		public string Title { get; private set; } = DefaultTitle;

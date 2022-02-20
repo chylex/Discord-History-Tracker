@@ -1,9 +1,9 @@
 namespace DHT.Server.Data {
 	public readonly struct Attachment {
-		public ulong Id { get; init; }
-		public string Name { get; init; }
-		public string? Type { get; init; }
-		public string Url { get; init; }
-		public ulong Size { get; init; }
+		public ulong Id { get; internal init; }
+		public string Name { get; internal init; }
+		public string? Type { get; internal init; }
+		public string Url { get; internal init; }
+		public ulong Size { get; internal init; }
 	}
 }

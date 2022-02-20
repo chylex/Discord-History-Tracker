@@ -124,7 +124,7 @@ namespace DHT.Server.Database.Export {
 		private static dynamic GenerateMessageList(List<Message> includedMessages, Dictionary<ulong, int> userIndices) {
 			var data = new Dictionary<string, Dictionary<string, dynamic>>();
 
-			foreach (var grouping in includedMessages.GroupBy(message => message.Channel)) {
+			foreach (var grouping in includedMessages.GroupBy(static message => message.Channel)) {
 				var channel = grouping.Key.ToString();
 				var channelData = new Dictionary<string, dynamic>();
 
@@ -146,17 +146,17 @@ namespace DHT.Server.Database.Export {
 					}
 
 					if (!message.Attachments.IsEmpty) {
-						obj.a = message.Attachments.Select(attachment => new {
+						obj.a = message.Attachments.Select(static attachment => new {
 							url = attachment.Url
 						}).ToArray();
 					}
 
 					if (!message.Embeds.IsEmpty) {
-						obj.e = message.Embeds.Select(embed => embed.Json).ToArray();
+						obj.e = message.Embeds.Select(static embed => embed.Json).ToArray();
 					}
 
 					if (!message.Reactions.IsEmpty) {
-						obj.re = message.Reactions.Select(reaction => {
+						obj.re = message.Reactions.Select(static reaction => {
 							dynamic r = new ExpandoObject();
 
 							if (reaction.EmojiId != null) {

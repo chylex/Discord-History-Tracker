@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Main.Controls {
-	public class FilterPanel : UserControl {
+	sealed class FilterPanel : UserControl {
 		private CalendarDatePicker StartDatePicker => this.FindControl<CalendarDatePicker>("StartDatePicker");
 		private CalendarDatePicker EndDatePicker => this.FindControl<CalendarDatePicker>("EndDatePicker");
 

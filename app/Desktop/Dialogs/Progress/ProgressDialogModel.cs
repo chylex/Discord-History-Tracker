@@ -5,7 +5,7 @@ using DHT.Desktop.Common;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Dialogs.Progress {
-	public class ProgressDialogModel : BaseModel {
+	sealed class ProgressDialogModel : BaseModel {
 		public string Title { get; init; } = "";
 
 		private string message = "";
@@ -46,7 +46,7 @@ namespace DHT.Desktop.Dialogs.Progress {
 
 		public delegate Task TaskRunner(IProgressCallback callback);
 
-		private class Callback : IProgressCallback {
+		private sealed class Callback : IProgressCallback {
 			private readonly ProgressDialogModel model;
 
 			public Callback(ProgressDialogModel model) {

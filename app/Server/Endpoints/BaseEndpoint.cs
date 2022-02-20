@@ -4,12 +4,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DHT.Server.Database;
 using DHT.Server.Service;
+using DHT.Utils.Http;
 using DHT.Utils.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 
 namespace DHT.Server.Endpoints {
-	public abstract class BaseEndpoint {
+	abstract class BaseEndpoint {
 		private static readonly Log Log = Log.ForType<BaseEndpoint>();
 
 		protected IDatabaseFile Db { get; }

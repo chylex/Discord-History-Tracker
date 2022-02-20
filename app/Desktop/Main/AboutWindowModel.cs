@@ -1,7 +1,7 @@
 using System.Diagnostics;
 
 namespace DHT.Desktop.Main {
-	public class AboutWindowModel {
+	sealed class AboutWindowModel {
 		public void ShowOfficialWebsite() {
 			OpenUrl("https://dht.chylex.com");
 		}

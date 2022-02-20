@@ -12,7 +12,7 @@ using DHT.Utils.Models;
 using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages {
-	public class TrackingPageModel : BaseModel, IDisposable {
+	sealed class TrackingPageModel : BaseModel, IDisposable {
 		private static readonly Log Log = Log.ForType<TrackingPageModel>();
 
 		internal static string ServerPort { get; set; } = ServerUtils.FindAvailablePort(50000, 60000).ToString();
@@ -76,7 +76,6 @@ namespace DHT.Desktop.Main.Pages {
 			ServerLauncher.ServerManagementExceptionCaught -= ServerLauncherOnServerManagementExceptionCaught;
 			ServerLauncher.ServerStatusChanged -= ServerLauncherOnServerStatusChanged;
 			ServerLauncher.Stop();
-			GC.SuppressFinalize(this);
 		}
 
 		private async Task<bool> StartServer() {

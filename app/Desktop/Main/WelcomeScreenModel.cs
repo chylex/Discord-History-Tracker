@@ -8,7 +8,7 @@ using DHT.Server.Database;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main {
-	public class WelcomeScreenModel : BaseModel {
+	sealed class WelcomeScreenModel : BaseModel {
 		public string Version => Program.Version;
 
 		public IDatabaseFile? Db { get; private set; }

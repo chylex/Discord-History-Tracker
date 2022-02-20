@@ -1,7 +1,7 @@
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Dialogs.CheckBox {
-	public class CheckBoxItem : BaseModel {
+	class CheckBoxItem : BaseModel {
 		public string Title { get; init; } = "";
 		public object? Item { get; init; } = null;
 
@@ -13,7 +13,7 @@ namespace DHT.Desktop.Dialogs.CheckBox {
 		}
 	}
 
-	public class CheckBoxItem<T> : CheckBoxItem {
+	sealed class CheckBoxItem<T> : CheckBoxItem {
 		public new T Item { get; }
 
 		public CheckBoxItem(T item) {

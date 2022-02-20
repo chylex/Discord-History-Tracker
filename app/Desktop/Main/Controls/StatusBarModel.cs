@@ -3,7 +3,7 @@ using DHT.Server.Database;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Controls {
-	public class StatusBarModel : BaseModel {
+	sealed class StatusBarModel : BaseModel {
 		public DatabaseStatistics DatabaseStatistics { get; }
 
 		private Status status = Status.Stopped;

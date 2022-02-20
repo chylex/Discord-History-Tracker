@@ -14,7 +14,7 @@ using DHT.Server.Database;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Controls {
-	public class FilterPanelModel : BaseModel {
+	sealed class FilterPanelModel : BaseModel {
 		private static readonly HashSet<string> FilterProperties = new () {
 			nameof(FilterByDate),
 			nameof(StartDate),
@@ -58,7 +58,7 @@ namespace DHT.Desktop.Main.Controls {
 		}
 
 		public HashSet<ulong> IncludedChannels {
-			get => includedChannels ?? db.GetAllChannels().Select(channel => channel.Id).ToHashSet();
+			get => includedChannels ?? db.GetAllChannels().Select(static channel => channel.Id).ToHashSet();
 			set => Change(ref includedChannels, value);
 		}
 
@@ -68,7 +68,7 @@ namespace DHT.Desktop.Main.Controls {
 		}
 
 		public HashSet<ulong> IncludedUsers {
-			get => includedUsers ?? db.GetAllUsers().Select(user => user.Id).ToHashSet();
+			get => includedUsers ?? db.GetAllUsers().Select(static user => user.Id).ToHashSet();
 			set => Change(ref includedUsers, value);
 		}
 
@@ -126,7 +126,7 @@ namespace DHT.Desktop.Main.Controls {
 		}
 
 		public async void OpenChannelFilterDialog() {
-			var servers = db.GetAllServers().ToDictionary(server => server.Id);
+			var servers = db.GetAllServers().ToDictionary(static server => server.Id);
 			var items = new List<CheckBoxItem<ulong>>();
 			var included = IncludedChannels;
 
@@ -222,7 +222,7 @@ namespace DHT.Desktop.Main.Controls {
 		}
 
 		private static async Task<HashSet<ulong>?> OpenIdFilterDialog(Window window, string title, List<CheckBoxItem<ulong>> items) {
-			items.Sort((item1, item2) => item1.Title.CompareTo(item2.Title));
+			items.Sort(static (item1, item2) => item1.Title.CompareTo(item2.Title));
 
 			var model = new CheckBoxDialogModel<ulong>(items) {
 				Title = title
@@ -231,7 +231,7 @@ namespace DHT.Desktop.Main.Controls {
 			var dialog = new CheckBoxDialog { DataContext = model };
 			var result = await dialog.ShowDialog<DialogResult.OkCancel>(window);
 
-			return result == DialogResult.OkCancel.Ok ? model.SelectedItems.Select(item => item.Item).ToHashSet() : null;
+			return result == DialogResult.OkCancel.Ok ? model.SelectedItems.Select(static item => item.Item).ToHashSet() : null;
 		}
 	}
 }

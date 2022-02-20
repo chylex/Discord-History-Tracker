@@ -8,14 +8,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace DHT.Server.Service {
-	public class Startup {
+	sealed class Startup {
 		public void ConfigureServices(IServiceCollection services) {
-			services.Configure<JsonOptions>(options => {
+			services.Configure<JsonOptions>(static options => {
 				options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
 			});
 
-			services.AddCors(cors => {
-				cors.AddDefaultPolicy(builder => {
+			services.AddCors(static cors => {
+				cors.AddDefaultPolicy(static builder => {
 					builder.WithOrigins("https://discord.com", "https://discordapp.com").AllowCredentials().AllowAnyMethod().AllowAnyHeader();
 				});
 			});

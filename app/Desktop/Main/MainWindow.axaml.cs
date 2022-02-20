@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 using JetBrains.Annotations;
 
 namespace DHT.Desktop.Main {
-	public class MainWindow : Window {
+	sealed class MainWindow : Window {
 		[UsedImplicitly]
 		public MainWindow() {
 			InitializeComponent(Arguments.Empty);

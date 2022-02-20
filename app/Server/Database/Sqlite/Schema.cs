@@ -4,7 +4,7 @@ using DHT.Server.Database.Exceptions;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
-	internal class Schema {
+	sealed class Schema {
 		internal const int Version = 2;
 
 		private readonly SqliteConnection conn;

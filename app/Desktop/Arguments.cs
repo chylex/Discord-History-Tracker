@@ -2,7 +2,7 @@ using System;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop {
-	public class Arguments {
+	sealed class Arguments {
 		private static readonly Log Log = Log.ForType<Arguments>();
 
 		public static Arguments Empty => new(Array.Empty<string>());

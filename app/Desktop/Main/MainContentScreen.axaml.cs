@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Main {
-	public class MainContentScreen : UserControl {
+	sealed class MainContentScreen : UserControl {
 		public MainContentScreen() {
 			InitializeComponent();
 		}

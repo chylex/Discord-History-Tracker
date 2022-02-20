@@ -16,7 +16,7 @@ using DHT.Utils.Models;
 using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages {
-	public class ViewerPageModel : BaseModel {
+	sealed class ViewerPageModel : BaseModel {
 		public string ExportedMessageText { get; private set; } = "";
 
 		public bool DatabaseToolFilterModeKeep { get; set; } = true;

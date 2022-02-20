@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace DHT.Server.Database {
-	public class DatabaseStatistics : INotifyPropertyChanged {
+	public sealed class DatabaseStatistics : INotifyPropertyChanged {
 		private long totalServers;
 		private long totalChannels;
 		private long totalUsers;

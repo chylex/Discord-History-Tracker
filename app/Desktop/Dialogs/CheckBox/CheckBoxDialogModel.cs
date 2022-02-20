@@ -5,7 +5,7 @@ using System.Linq;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Dialogs.CheckBox {
-	public class CheckBoxDialogModel : BaseModel {
+	class CheckBoxDialogModel : BaseModel {
 		public string Title { get; init; } = "";
 
 		private IReadOnlyList<CheckBoxItem> items = Array.Empty<CheckBoxItem>();
@@ -28,8 +28,8 @@ namespace DHT.Desktop.Dialogs.CheckBox {
 
 		private bool pauseCheckEvents = false;
 
-		public bool AreAllSelected => Items.All(item => item.Checked);
-		public bool AreNoneSelected => Items.All(item => !item.Checked);
+		public bool AreAllSelected => Items.All(static item => item.Checked);
+		public bool AreNoneSelected => Items.All(static item => !item.Checked);
 
 		public void SelectAll() => SetAllChecked(true);
 		public void SelectNone() => SetAllChecked(false);
@@ -57,10 +57,10 @@ namespace DHT.Desktop.Dialogs.CheckBox {
 		}
 	}
 
-	public class CheckBoxDialogModel<T> : CheckBoxDialogModel {
+	sealed class CheckBoxDialogModel<T> : CheckBoxDialogModel {
 		public new IReadOnlyList<CheckBoxItem<T>> Items { get; }
 
-		public IEnumerable<CheckBoxItem<T>> SelectedItems => Items.Where(item => item.Checked);
+		public IEnumerable<CheckBoxItem<T>> SelectedItems => Items.Where(static item => item.Checked);
 
 		public CheckBoxDialogModel(IEnumerable<CheckBoxItem<T>> items) {
 			this.Items = new List<CheckBoxItem<T>>(items);

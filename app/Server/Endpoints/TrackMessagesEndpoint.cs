@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
-using DHT.Server.Json;
 using DHT.Server.Service;
+using DHT.Utils.Http;
 using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints {
-	public class TrackMessagesEndpoint : BaseEndpoint {
+	sealed class TrackMessagesEndpoint : BaseEndpoint {
 		public TrackMessagesEndpoint(IDatabaseFile db, ServerParameters parameters) : base(db, parameters) {}
 
 		protected override async Task<(HttpStatusCode, object?)> Respond(HttpContext ctx) {

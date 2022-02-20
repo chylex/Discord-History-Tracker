@@ -1,5 +1,5 @@
 namespace DHT.Desktop.Common {
-	public static class TextFormat {
+	static class TextFormat {
 		public static string Format(this int number) {
 			return number.ToString("N0", Program.Culture);
 		}

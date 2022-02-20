@@ -3,12 +3,12 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database;
-using DHT.Server.Json;
 using DHT.Server.Service;
+using DHT.Utils.Http;
 using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints {
-	public class TrackChannelEndpoint : BaseEndpoint {
+	sealed class TrackChannelEndpoint : BaseEndpoint {
 		public TrackChannelEndpoint(IDatabaseFile db, ServerParameters parameters) : base(db, parameters) {}
 
 		protected override async Task<(HttpStatusCode, object?)> Respond(HttpContext ctx) {

@@ -1,8 +1,7 @@
 using System.Net;
 using System.Text.Json;
-using DHT.Server.Service;
 
-namespace DHT.Server.Json {
+namespace DHT.Utils.Http {
 	public static class JsonExtensions {
 		public static bool HasKey(this JsonElement json, string key) {
 			return json.TryGetProperty(key, out _);

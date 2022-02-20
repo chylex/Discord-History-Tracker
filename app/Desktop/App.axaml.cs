@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 using DHT.Desktop.Main;
 
 namespace DHT.Desktop {
-	public class App : Application {
+	sealed class App : Application {
 		public override void Initialize() {
 			AvaloniaXamlLoader.Load(this);
 		}

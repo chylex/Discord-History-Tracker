@@ -9,7 +9,7 @@ using DHT.Utils.Collections;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
-	public class SqliteDatabaseFile : IDatabaseFile {
+	public sealed class SqliteDatabaseFile : IDatabaseFile {
 		public static async Task<SqliteDatabaseFile?> OpenOrCreate(string path, Func<Task<bool>> checkCanUpgradeSchemas) {
 			string connectionString = new SqliteConnectionStringBuilder {
 				DataSource = path,
@@ -39,7 +39,6 @@ namespace DHT.Server.Database.Sqlite {
 
 		public void Dispose() {
 			conn.Dispose();
-			GC.SuppressFinalize(this);
 		}
 
 		public void AddServer(Data.Server server) {

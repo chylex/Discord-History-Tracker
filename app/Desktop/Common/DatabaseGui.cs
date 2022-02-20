@@ -10,7 +10,7 @@ using DHT.Server.Database.Sqlite;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Common {
-	public static class DatabaseGui {
+	static class DatabaseGui {
 		private static readonly Log Log = Log.ForType(typeof(DatabaseGui));
 
 		private const string DatabaseFileInitialName = "archive.dht";

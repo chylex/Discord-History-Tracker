@@ -13,7 +13,7 @@ using DHT.Utils.Logging;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Pages {
-	public class DatabasePageModel : BaseModel {
+	sealed class DatabasePageModel : BaseModel {
 		private static readonly Log Log = Log.ForType<DatabasePageModel>();
 
 		public IDatabaseFile Db { get; }

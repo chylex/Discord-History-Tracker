@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using DHT.Server.Data.Filters;
 
 namespace DHT.Server.Database.Sqlite {
-	public static class SqliteMessageFilter {
+	static class SqliteMessageFilter {
 		public static string GenerateWhereClause(this MessageFilter? filter, bool invert = false) {
 			if (filter == null) {
 				return "";

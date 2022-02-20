@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 
 namespace DHT.Server.Database {
-	public class DummyDatabaseFile : IDatabaseFile {
+	public sealed class DummyDatabaseFile : IDatabaseFile {
 		public static DummyDatabaseFile Instance { get; } = new();
 
 		public string Path => "";
@@ -42,8 +41,6 @@ namespace DHT.Server.Database {
 
 		public void RemoveMessages(MessageFilter filter, MessageFilterRemovalMode mode) {}
 
-		public void Dispose() {
-			GC.SuppressFinalize(this);
-		}
+		public void Dispose() {}
 	}
 }

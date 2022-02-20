@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 namespace DHT.Utils.Collections {
-	public class MultiDictionary<TKey, TValue> where TKey : notnull {
+	public sealed class MultiDictionary<TKey, TValue> where TKey : notnull {
 		private readonly Dictionary<TKey, List<TValue>> dict = new();
 
 		public void Add(TKey key, TValue value) {

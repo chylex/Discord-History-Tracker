@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 
 namespace DHT.Desktop.Dialogs.Message {
-	public static class Dialog {
+	static class Dialog {
 		public static async Task ShowOk(Window owner, string title, string message) {
 			if (!Dispatcher.UIThread.CheckAccess()) {
 				await Dispatcher.UIThread.InvokeAsync(() => ShowOk(owner, title, message));

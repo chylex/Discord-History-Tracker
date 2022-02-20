@@ -72,7 +72,7 @@ namespace DHT.Server.Service {
 			void SetKestrelOptions(KestrelServerOptions options) {
 				options.Limits.MaxRequestBodySize = null;
 				options.Limits.MinResponseDataRate = null;
-				options.ListenLocalhost(port, listenOptions => listenOptions.Protocols = HttpProtocols.Http1);
+				options.ListenLocalhost(port, static listenOptions => listenOptions.Protocols = HttpProtocols.Http1);
 			}
 
 			Server = WebHost.CreateDefaultBuilder()

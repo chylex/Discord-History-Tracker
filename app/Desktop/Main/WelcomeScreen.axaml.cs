@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Main {
-	public class WelcomeScreen : UserControl {
+	sealed class WelcomeScreen : UserControl {
 		public WelcomeScreen() {
 			InitializeComponent();
 		}

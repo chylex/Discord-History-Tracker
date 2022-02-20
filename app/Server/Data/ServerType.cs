@@ -24,7 +24,7 @@ namespace DHT.Server.Data {
 			};
 		}
 
-		public static string ToJsonViewerString(ServerType? type) {
+		internal static string ToJsonViewerString(ServerType? type) {
 			return type switch {
 				ServerType.Server        => "server",
 				ServerType.Group         => "group",

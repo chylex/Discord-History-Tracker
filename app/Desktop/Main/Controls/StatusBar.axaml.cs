@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Main.Controls {
-	public class StatusBar : UserControl {
+	sealed class StatusBar : UserControl {
 		public StatusBar() {
 			InitializeComponent();
 		}

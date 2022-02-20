@@ -1,8 +1,8 @@
 using System;
 using System.Net;
 
-namespace DHT.Server.Service {
-	public class HttpException : Exception {
+namespace DHT.Utils.Http {
+	public sealed class HttpException : Exception {
 		public HttpStatusCode StatusCode { get; }
 
 		public HttpException(HttpStatusCode statusCode, string message) : base(message) {

@@ -5,7 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Main.Pages {
-	public class TrackingPage : UserControl {
+	sealed class TrackingPage : UserControl {
 		private bool isCopyingScript;
 
 		public TrackingPage() {

@@ -1,5 +1,5 @@
 namespace DHT.Server.Service {
-	public struct ServerParameters {
+	readonly struct ServerParameters {
 		public string Token { get; init; }
 	}
 }

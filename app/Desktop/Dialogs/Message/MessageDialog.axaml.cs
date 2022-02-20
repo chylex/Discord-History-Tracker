@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Dialogs.Message {
-	public class MessageDialog : Window {
+	sealed class MessageDialog : Window {
 		public MessageDialog() {
 			InitializeComponent();
 			#if DEBUG
