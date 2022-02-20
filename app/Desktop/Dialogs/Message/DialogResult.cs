@@ -1,6 +1,6 @@
 using System;
 
-namespace DHT.Desktop.Dialogs {
+namespace DHT.Desktop.Dialogs.Message {
 	public static class DialogResult {
 		public enum All {
 			Ok,

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using System.Threading.Tasks;
-using DHT.Server.Collections;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
+using DHT.Utils.Collections;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {

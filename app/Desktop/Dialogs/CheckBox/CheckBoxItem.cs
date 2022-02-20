@@ -1,6 +1,6 @@
-using DHT.Desktop.Models;
+using DHT.Utils.Models;
 
-namespace DHT.Desktop.Dialogs {
+namespace DHT.Desktop.Dialogs.CheckBox {
 	public class CheckBoxItem : BaseModel {
 		public string Title { get; init; } = "";
 		public object? Item { get; init; } = null;

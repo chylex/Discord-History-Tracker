@@ -5,14 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Common;
-using DHT.Desktop.Dialogs;
-using DHT.Desktop.Models;
+using DHT.Desktop.Dialogs.Message;
+using DHT.Desktop.Dialogs.Progress;
 using DHT.Server.Database;
-using DHT.Server.Logging;
 using DHT.Server.Service;
+using DHT.Utils.Logging;
+using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Pages {
 	public class DatabasePageModel : BaseModel {
+		private static readonly Log Log = Log.ForType<DatabasePageModel>();
+
 		public IDatabaseFile Db { get; }
 
 		public event EventHandler? DatabaseClosed;

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using DHT.Desktop.Models;
+using DHT.Utils.Models;
 
-namespace DHT.Desktop.Dialogs {
+namespace DHT.Desktop.Dialogs.CheckBox {
 	public class CheckBoxDialogModel : BaseModel {
 		public string Title { get; init; } = "";
 

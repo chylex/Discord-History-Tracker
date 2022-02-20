@@ -2,16 +2,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:dialogs="clr-namespace:DHT.Desktop.Dialogs"
+        xmlns:namespace="clr-namespace:DHT.Desktop.Dialogs.CheckBox"
         mc:Ignorable="d" d:DesignWidth="500"
-        x:Class="DHT.Desktop.Dialogs.CheckBoxDialog"
+        x:Class="DHT.Desktop.Dialogs.CheckBox.CheckBoxDialog"
         Title="{Binding Title}"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
         Width="500" SizeToContent="Height" CanResize="False"
         WindowStartupLocation="CenterOwner">
 
     <Window.DataContext>
-        <dialogs:CheckBoxDialogModel />
+        <namespace:CheckBoxDialogModel />
     </Window.DataContext>
 
     <Window.Styles>

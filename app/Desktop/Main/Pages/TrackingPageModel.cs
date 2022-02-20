@@ -3,16 +3,18 @@ using System.Threading.Tasks;
 using System.Web;
 using Avalonia;
 using Avalonia.Controls;
-using DHT.Desktop.Dialogs;
+using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Controls;
-using DHT.Desktop.Models;
-using DHT.Desktop.Resources;
 using DHT.Server.Database;
-using DHT.Server.Logging;
 using DHT.Server.Service;
+using DHT.Utils.Logging;
+using DHT.Utils.Models;
+using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages {
 	public class TrackingPageModel : BaseModel, IDisposable {
+		private static readonly Log Log = Log.ForType<TrackingPageModel>();
+
 		internal static string ServerPort { get; set; } = ServerUtils.FindAvailablePort(50000, 60000).ToString();
 		internal static string ServerToken { get; set; } = ServerUtils.GenerateRandomToken(20);
 
@@ -106,12 +108,12 @@ namespace DHT.Desktop.Main.Pages {
 		}
 
 		public async Task OnClickCopyTrackingScript() {
-			string bootstrap = await ResourceLoader.ReadTextAsync("Tracker/bootstrap.js");
+			string bootstrap = await Resources.ReadTextAsync("Tracker/bootstrap.js");
 			string script = bootstrap.Replace("= 0; /*[PORT]*/", "= " + ServerPort + ";")
 			                         .Replace("/*[TOKEN]*/", HttpUtility.JavaScriptStringEncode(ServerToken))
-			                         .Replace("/*[IMPORTS]*/", await ResourceLoader.ReadJoinedAsync("Tracker/scripts/", '\n'))
-			                         .Replace("/*[CSS-CONTROLLER]*/", await ResourceLoader.ReadTextAsync("Tracker/styles/controller.css"))
-			                         .Replace("/*[CSS-SETTINGS]*/", await ResourceLoader.ReadTextAsync("Tracker/styles/settings.css"));
+			                         .Replace("/*[IMPORTS]*/", await Resources.ReadJoinedAsync("Tracker/scripts/", '\n'))
+			                         .Replace("/*[CSS-CONTROLLER]*/", await Resources.ReadTextAsync("Tracker/styles/controller.css"))
+			                         .Replace("/*[CSS-SETTINGS]*/", await Resources.ReadTextAsync("Tracker/styles/settings.css"));
 
 			await Application.Current.Clipboard.SetTextAsync(script);
 		}

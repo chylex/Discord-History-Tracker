@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace DHT.Server.Collections {
+namespace DHT.Utils.Collections {
 	public class MultiDictionary<TKey, TValue> where TKey : notnull {
 		private readonly Dictionary<TKey, List<TValue>> dict = new();
 

@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
-namespace DHT.Desktop.Models {
+namespace DHT.Utils.Models {
 	public abstract class BaseModel : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 

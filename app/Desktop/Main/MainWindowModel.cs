@@ -4,10 +4,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using DHT.Desktop.Dialogs;
+using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Pages;
-using DHT.Desktop.Models;
 using DHT.Server.Database;
+using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main {
 	public class MainWindowModel : BaseModel {

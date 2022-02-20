@@ -2,9 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:dialogs="clr-namespace:DHT.Desktop.Dialogs"
+        xmlns:namespace="clr-namespace:DHT.Desktop.Dialogs.Progress"
         mc:Ignorable="d" d:DesignWidth="500"
-        x:Class="DHT.Desktop.Dialogs.ProgressDialog"
+        x:Class="DHT.Desktop.Dialogs.Progress.ProgressDialog"
         Title="{Binding Title}"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
         Opened="Loaded"
@@ -13,7 +13,7 @@
         WindowStartupLocation="CenterOwner">
 
     <Window.DataContext>
-        <dialogs:ProgressDialogModel />
+        <namespace:ProgressDialogModel />
     </Window.DataContext>
 
     <Window.Styles>

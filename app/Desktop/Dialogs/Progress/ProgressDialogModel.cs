@@ -2,9 +2,9 @@ using System;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using DHT.Desktop.Common;
-using DHT.Desktop.Models;
+using DHT.Utils.Models;
 
-namespace DHT.Desktop.Dialogs {
+namespace DHT.Desktop.Dialogs.Progress {
 	public class ProgressDialogModel : BaseModel {
 		public string Title { get; init; } = "";
 

@@ -1,6 +1,6 @@
 using System;
-using DHT.Desktop.Models;
 using DHT.Server.Database;
+using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Controls {
 	public class StatusBarModel : BaseModel {

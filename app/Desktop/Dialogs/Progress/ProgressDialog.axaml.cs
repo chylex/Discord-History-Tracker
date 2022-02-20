@@ -5,7 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace DHT.Desktop.Dialogs {
+namespace DHT.Desktop.Dialogs.Progress {
 	public class ProgressDialog : Window {
 		private bool isFinished = false;
 

@@ -3,9 +3,9 @@ using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Common;
-using DHT.Desktop.Dialogs;
-using DHT.Desktop.Models;
+using DHT.Desktop.Dialogs.Message;
 using DHT.Server.Database;
+using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main {
 	public class WelcomeScreenModel : BaseModel {

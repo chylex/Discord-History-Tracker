@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
 using DHT.Desktop.Common;
-using DHT.Desktop.Dialogs;
+using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Controls;
-using DHT.Desktop.Models;
-using DHT.Desktop.Resources;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Server.Database.Export;
+using DHT.Utils.Models;
+using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages {
 	public class ViewerPageModel : BaseModel {
@@ -65,10 +65,10 @@ namespace DHT.Desktop.Main.Pages {
 
 		private async Task<string> GenerateViewerContents() {
 			string json = ViewerJsonExport.Generate(db, FilterModel.CreateFilter());
-
-			string index = await ResourceLoader.ReadTextAsync("Viewer/index.html");
-			string viewer = index.Replace("/*[JS]*/", await ResourceLoader.ReadJoinedAsync("Viewer/scripts/", '\n'))
-			                     .Replace("/*[CSS]*/", await ResourceLoader.ReadJoinedAsync("Viewer/styles/", '\n'))
+			
+			string index = await Resources.ReadTextAsync("Viewer/index.html");
+			string viewer = index.Replace("/*[JS]*/", await Resources.ReadJoinedAsync("Viewer/scripts/", '\n'))
+			                     .Replace("/*[CSS]*/", await Resources.ReadJoinedAsync("Viewer/styles/", '\n'))
 			                     .Replace("/*[ARCHIVE]*/", HttpUtility.JavaScriptStringEncode(json));
 			return viewer;
 		}

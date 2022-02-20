@@ -1,8 +1,10 @@
 using System;
-using DHT.Server.Logging;
+using DHT.Utils.Logging;
 
 namespace DHT.Desktop {
 	public class Arguments {
+		private static readonly Log Log = Log.ForType<Arguments>();
+
 		public static Arguments Empty => new(Array.Empty<string>());
 
 		public string? DatabaseFile { get; }

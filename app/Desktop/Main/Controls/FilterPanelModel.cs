@@ -6,11 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Common;
-using DHT.Desktop.Dialogs;
-using DHT.Desktop.Models;
+using DHT.Desktop.Dialogs.CheckBox;
+using DHT.Desktop.Dialogs.Message;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
+using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Controls {
 	public class FilterPanelModel : BaseModel {

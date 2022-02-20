@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using DHT.Server.Database;
-using DHT.Server.Logging;
+using DHT.Utils.Logging;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DHT.Server.Service {
 	public static class ServerLauncher {
+		private static readonly Log Log = Log.ForType(typeof(ServerLauncher));
+		
 		private static IWebHost? Server { get; set; } = null;
 
 		public static bool IsRunning { get; private set; }

@@ -34,7 +34,15 @@
       <DependentUpon>MainWindow.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Dialogs\MessageDialog.axaml.cs">
+    <Compile Update="Dialogs\CheckBox\CheckBoxDialog.axaml.cs">
+      <DependentUpon>CheckBoxDialog.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Dialogs\Progress\ProgressDialog.axaml.cs">
+      <DependentUpon>ProgressDialog.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Dialogs\Message\MessageDialog.axaml.cs">
       <DependentUpon>MessageDialog.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>

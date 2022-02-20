@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using DHT.Desktop.Dialogs;
+using DHT.Desktop.Dialogs.Message;
 using DHT.Server.Database;
 using DHT.Server.Database.Exceptions;
 using DHT.Server.Database.Sqlite;
-using DHT.Server.Logging;
+using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Common {
 	public static class DatabaseGui {
+		private static readonly Log Log = Log.ForType(typeof(DatabaseGui));
+
 		private const string DatabaseFileInitialName = "archive.dht";
 
 		private static readonly List<FileDialogFilter> DatabaseFileDialogFilter = new() {
