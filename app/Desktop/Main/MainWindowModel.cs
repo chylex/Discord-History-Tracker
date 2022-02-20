@@ -11,6 +11,10 @@ using DHT.Server.Database;
 
 namespace DHT.Desktop.Main {
 	public class MainWindowModel : BaseModel {
+		private const string DefaultTitle = "Discord History Tracker";
+
+		public string Title { get; private set; } = DefaultTitle;
+
 		public WelcomeScreen WelcomeScreen { get; }
 		private WelcomeScreenModel WelcomeScreenModel { get; }
 
@@ -76,10 +80,12 @@ namespace DHT.Desktop.Main {
 				db = WelcomeScreenModel.Db;
 
 				if (db == null) {
+					Title = DefaultTitle;
 					MainContentScreenModel = null;
 					MainContentScreen = null;
 				}
 				else {
+					Title = Path.GetFileName(db.Path) + " - " + DefaultTitle;
 					MainContentScreenModel = new MainContentScreenModel(window, db);
 					MainContentScreenModel.Initialize();
 					MainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
@@ -89,6 +95,7 @@ namespace DHT.Desktop.Main {
 
 				OnPropertyChanged(nameof(ShowWelcomeScreen));
 				OnPropertyChanged(nameof(ShowMainContentScreen));
+				OnPropertyChanged(nameof(Title));
 
 				window.Focus();
 			}
