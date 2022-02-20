@@ -19,7 +19,7 @@
     <StackPanel Spacing="10">
         <DockPanel>
             <Button Command="{Binding CloseDatabase}" DockPanel.Dock="Right">Close Database</Button>
-            <TextBox Text="{Binding Db.Path}" Width="NaN" Margin="0 0 10 0" IsEnabled="True" />
+            <TextBox Text="{Binding Db.Path}" Width="NaN" Margin="0 0 10 0" IsReadOnly="True" />
         </DockPanel>
         <WrapPanel>
             <Button Command="{Binding OpenDatabaseFolder}">Open Database Folder</Button>
