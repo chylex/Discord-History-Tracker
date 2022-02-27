@@ -4,6 +4,7 @@ using System.Web;
 using Avalonia;
 using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
+using DHT.Desktop.Discord;
 using DHT.Desktop.Main.Controls;
 using DHT.Server.Database;
 using DHT.Server.Service;
@@ -40,14 +41,36 @@ namespace DHT.Desktop.Main.Pages {
 
 		public bool HasMadeChanges => ServerPort != InputPort || ServerToken != InputToken;
 
-		private bool isToggleButtonEnabled = true;
+		private bool isToggleTrackingButtonEnabled = true;
 
 		public bool IsToggleButtonEnabled {
-			get => isToggleButtonEnabled;
-			set => Change(ref isToggleButtonEnabled, value);
+			get => isToggleTrackingButtonEnabled;
+			set => Change(ref isToggleTrackingButtonEnabled, value);
 		}
 
-		public string ToggleButtonText => ServerLauncher.IsRunning ? "Pause Tracking" : "Resume Tracking";
+		public string ToggleTrackingButtonText => ServerLauncher.IsRunning ? "Pause Tracking" : "Resume Tracking";
+
+		private bool areDevToolsEnabled;
+
+		private bool AreDevToolsEnabled {
+			get => areDevToolsEnabled;
+			set {
+				Change(ref areDevToolsEnabled, value);
+				OnPropertyChanged(nameof(ToggleAppDevToolsButtonText));
+			}
+		}
+
+		public bool IsToggleAppDevToolsButtonEnabled { get; private set; } = true;
+
+		public string ToggleAppDevToolsButtonText {
+			get {
+				if (!IsToggleAppDevToolsButtonEnabled) {
+					return "Unavailable";
+				}
+				
+				return AreDevToolsEnabled ? "Disable Ctrl+Shift+I" : "Enable Ctrl+Shift+I";
+			}
+		}
 
 		public event EventHandler<StatusBarModel.Status>? ServerStatusChanged;
 
@@ -62,7 +85,7 @@ namespace DHT.Desktop.Main.Pages {
 			this.db = db;
 		}
 
-		public void Initialize() {
+		public async Task Initialize() {
 			ServerLauncher.ServerStatusChanged += ServerLauncherOnServerStatusChanged;
 			ServerLauncher.ServerManagementExceptionCaught += ServerLauncherOnServerManagementExceptionCaught;
 
@@ -70,12 +93,32 @@ namespace DHT.Desktop.Main.Pages {
 				string token = ServerToken;
 				ServerLauncher.Relaunch(port, token, db);
 			}
+
+			bool? devToolsEnabled = await DiscordAppSettings.AreDevToolsEnabled();
+			if (devToolsEnabled.HasValue) {
+				AreDevToolsEnabled = devToolsEnabled.Value;
+			}
+			else {
+				IsToggleAppDevToolsButtonEnabled = false;
+				OnPropertyChanged(nameof(IsToggleAppDevToolsButtonEnabled));
+			}
 		}
 
 		public void Dispose() {
 			ServerLauncher.ServerManagementExceptionCaught -= ServerLauncherOnServerManagementExceptionCaught;
 			ServerLauncher.ServerStatusChanged -= ServerLauncherOnServerStatusChanged;
 			ServerLauncher.Stop();
+		}
+
+		private void ServerLauncherOnServerStatusChanged(object? sender, EventArgs e) {
+			ServerStatusChanged?.Invoke(this, ServerLauncher.IsRunning ? StatusBarModel.Status.Ready : StatusBarModel.Status.Stopped);
+			OnPropertyChanged(nameof(ToggleTrackingButtonText));
+			IsToggleButtonEnabled = true;
+		}
+
+		private async void ServerLauncherOnServerManagementExceptionCaught(object? sender, Exception ex) {
+			Log.Error(ex);
+			await Dialog.ShowOk(window, "Server Error", ex.Message);
 		}
 
 		private async Task<bool> StartServer() {
@@ -96,7 +139,7 @@ namespace DHT.Desktop.Main.Pages {
 			ServerLauncher.Stop();
 		}
 
-		public async Task<bool> OnClickToggleButton() {
+		public async Task<bool> OnClickToggleTrackingButton() {
 			if (ServerLauncher.IsRunning) {
 				StopServer();
 				return true;
@@ -134,15 +177,42 @@ namespace DHT.Desktop.Main.Pages {
 			InputToken = ServerToken;
 		}
 
-		private void ServerLauncherOnServerStatusChanged(object? sender, EventArgs e) {
-			ServerStatusChanged?.Invoke(this, ServerLauncher.IsRunning ? StatusBarModel.Status.Ready : StatusBarModel.Status.Stopped);
-			OnPropertyChanged(nameof(ToggleButtonText));
-			IsToggleButtonEnabled = true;
-		}
+		public async void OnClickToggleAppDevTools() {
+			const string DialogTitle = "Discord App Settings File";
+			
+			bool oldState = AreDevToolsEnabled;
+			bool newState = !oldState;
 
-		private async void ServerLauncherOnServerManagementExceptionCaught(object? sender, Exception ex) {
-			Log.Error(ex);
-			await Dialog.ShowOk(window, "Server Error", ex.Message);
+			switch (await DiscordAppSettings.ConfigureDevTools(newState)) {
+				case SettingsJsonResult.Success:
+					AreDevToolsEnabled = newState;
+					await Dialog.ShowOk(window, DialogTitle, "Ctrl+Shift+I was " + (newState ? "enabled." : "disabled.") + " Restart the Discord app for the change to take effect.");
+					break;
+				
+				case SettingsJsonResult.AlreadySet:
+					await Dialog.ShowOk(window, DialogTitle, "Ctrl+Shift+I is already " + (newState ? "enabled." : "disabled."));
+					AreDevToolsEnabled = newState;
+					break;
+
+				case SettingsJsonResult.FileNotFound:
+					await Dialog.ShowOk(window, DialogTitle, "Cannot find the settings file:\n" + DiscordAppSettings.JsonFilePath);
+					break;
+
+				case SettingsJsonResult.ReadError:
+					await Dialog.ShowOk(window, DialogTitle, "Cannot read the settings file:\n" + DiscordAppSettings.JsonFilePath);
+					break;
+
+				case SettingsJsonResult.InvalidJson:
+					await Dialog.ShowOk(window, DialogTitle, "Unknown format of the settings file:\n" + DiscordAppSettings.JsonFilePath);
+					break;
+
+				case SettingsJsonResult.WriteError:
+					await Dialog.ShowOk(window, DialogTitle, "Cannot save the settings file:\n" + DiscordAppSettings.JsonFilePath);
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 		}
 	}
 }

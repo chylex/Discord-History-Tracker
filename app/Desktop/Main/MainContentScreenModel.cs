@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Main.Pages;
@@ -45,8 +46,8 @@ namespace DHT.Desktop.Main {
 			StatusBarModel.CurrentStatus = ServerLauncher.IsRunning ? StatusBarModel.Status.Ready : StatusBarModel.Status.Stopped;
 		}
 
-		public void Initialize() {
-			TrackingPageModel.Initialize();
+		public async Task Initialize() {
+			await TrackingPageModel.Initialize();
 		}
 
 		private void TrackingPageModelOnServerStatusChanged(object? sender, StatusBarModel.Status e) {

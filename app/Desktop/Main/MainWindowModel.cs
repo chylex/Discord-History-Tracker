@@ -69,7 +69,7 @@ namespace DHT.Desktop.Main {
 			}
 		}
 
-		private void WelcomeScreenModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
+		private async void WelcomeScreenModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
 			if (e.PropertyName == nameof(WelcomeScreenModel.Db)) {
 				if (MainContentScreenModel != null) {
 					MainContentScreenModel.DatabaseClosed -= MainContentScreenModelOnDatabaseClosed;
@@ -87,7 +87,7 @@ namespace DHT.Desktop.Main {
 				else {
 					Title = Path.GetFileName(db.Path) + " - " + DefaultTitle;
 					MainContentScreenModel = new MainContentScreenModel(window, db);
-					MainContentScreenModel.Initialize();
+					await MainContentScreenModel.Initialize();
 					MainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
 					MainContentScreen = new MainContentScreen { DataContext = MainContentScreenModel };
 					OnPropertyChanged(nameof(MainContentScreen));
