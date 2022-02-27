@@ -12,10 +12,9 @@
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <AssemblyName>DiscordHistoryTracker</AssemblyName>
-    <Version>33.1.0.0</Version>
-    <AssemblyVersion>$(Version)</AssemblyVersion>
-    <FileVersion>$(Version)</FileVersion>
-    <PackageVersion>$(Version)</PackageVersion>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,6 +27,9 @@
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
     <PackageReference Include="Avalonia.Diagnostics" Version="0.10.12" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" Link="Version.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Windows\MainWindow.axaml.cs">
