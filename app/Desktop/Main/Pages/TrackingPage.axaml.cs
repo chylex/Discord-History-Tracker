@@ -1,11 +1,13 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Main.Pages {
-	sealed class TrackingPage : UserControl {
+	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
+	public sealed class TrackingPage : UserControl {
 		private bool isCopyingScript;
 
 		public TrackingPage() {

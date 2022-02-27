@@ -1,16 +1,18 @@
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using JetBrains.Annotations;
 
 namespace DHT.Desktop.Main {
-	sealed class MainWindow : Window {
+	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
+	public sealed class MainWindow : Window {
 		[UsedImplicitly]
 		public MainWindow() {
 			InitializeComponent(Arguments.Empty);
 		}
 
-		public MainWindow(Arguments args) {
+		internal MainWindow(Arguments args) {
 			InitializeComponent(args);
 		}
 

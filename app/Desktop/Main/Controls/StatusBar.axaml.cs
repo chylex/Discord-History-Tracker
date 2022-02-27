@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Main.Controls {
-	sealed class StatusBar : UserControl {
+	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
+	public sealed class StatusBar : UserControl {
 		public StatusBar() {
 			InitializeComponent();
 		}

@@ -1,12 +1,14 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Dialogs.Progress {
-	sealed class ProgressDialog : Window {
+	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
+	public sealed class ProgressDialog : Window {
 		private bool isFinished = false;
 
 		public ProgressDialog() {

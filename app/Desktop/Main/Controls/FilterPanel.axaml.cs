@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Main.Controls {
-	sealed class FilterPanel : UserControl {
+	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
+	public sealed class FilterPanel : UserControl {
 		private CalendarDatePicker StartDatePicker => this.FindControl<CalendarDatePicker>("StartDatePicker");
 		private CalendarDatePicker EndDatePicker => this.FindControl<CalendarDatePicker>("EndDatePicker");
 

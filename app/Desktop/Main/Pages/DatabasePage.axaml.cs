@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Main.Pages {
-	sealed class DatabasePage : UserControl {
+	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
+	public sealed class DatabasePage : UserControl {
 		public DatabasePage() {
 			InitializeComponent();
 		}

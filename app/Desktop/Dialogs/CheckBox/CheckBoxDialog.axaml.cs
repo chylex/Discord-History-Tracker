@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -5,7 +6,8 @@ using Avalonia.Markup.Xaml;
 using DHT.Desktop.Dialogs.Message;
 
 namespace DHT.Desktop.Dialogs.CheckBox {
-	sealed class CheckBoxDialog : Window {
+	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
+	public sealed class CheckBoxDialog : Window {
 		public CheckBoxDialog() {
 			InitializeComponent();
 			#if DEBUG
