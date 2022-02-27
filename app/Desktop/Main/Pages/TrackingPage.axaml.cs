@@ -24,9 +24,7 @@ namespace DHT.Desktop.Main.Pages {
 				var originalText = button.Content;
 				button.MinWidth = button.Bounds.Width;
 
-				await model.OnClickCopyTrackingScript();
-
-				if (!isCopyingScript) {
+				if (await model.OnClickCopyTrackingScript() && !isCopyingScript) {
 					isCopyingScript = true;
 					button.Content = "Script Copied!";
 

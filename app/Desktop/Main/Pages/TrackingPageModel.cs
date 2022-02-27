@@ -67,7 +67,7 @@ namespace DHT.Desktop.Main.Pages {
 				if (!IsToggleAppDevToolsButtonEnabled) {
 					return "Unavailable";
 				}
-				
+
 				return AreDevToolsEnabled ? "Disable Ctrl+Shift+I" : "Enable Ctrl+Shift+I";
 			}
 		}
@@ -149,7 +149,7 @@ namespace DHT.Desktop.Main.Pages {
 			}
 		}
 
-		public async Task OnClickCopyTrackingScript() {
+		public async Task<bool> OnClickCopyTrackingScript() {
 			string bootstrap = await Resources.ReadTextAsync("Tracker/bootstrap.js");
 			string script = bootstrap.Replace("= 0; /*[PORT]*/", "= " + ServerPort + ";")
 			                         .Replace("/*[TOKEN]*/", HttpUtility.JavaScriptStringEncode(ServerToken))
@@ -157,7 +157,19 @@ namespace DHT.Desktop.Main.Pages {
 			                         .Replace("/*[CSS-CONTROLLER]*/", await Resources.ReadTextAsync("Tracker/styles/controller.css"))
 			                         .Replace("/*[CSS-SETTINGS]*/", await Resources.ReadTextAsync("Tracker/styles/settings.css"));
 
-			await Application.Current.Clipboard.SetTextAsync(script);
+			var clipboard = Application.Current?.Clipboard;
+			if (clipboard == null) {
+				await Dialog.ShowOk(window, "Copy Tracking Script", "Clipboard is not available on this system.");
+				return false;
+			}
+
+			try {
+				await clipboard.SetTextAsync(script);
+				return true;
+			} catch {
+				await Dialog.ShowOk(window, "Copy Tracking Script", "An error occurred while copying to clipboard.");
+				return false;
+			}
 		}
 
 		public void OnClickRandomizeToken() {
@@ -179,7 +191,7 @@ namespace DHT.Desktop.Main.Pages {
 
 		public async void OnClickToggleAppDevTools() {
 			const string DialogTitle = "Discord App Settings File";
-			
+
 			bool oldState = AreDevToolsEnabled;
 			bool newState = !oldState;
 
@@ -188,7 +200,7 @@ namespace DHT.Desktop.Main.Pages {
 					AreDevToolsEnabled = newState;
 					await Dialog.ShowOk(window, DialogTitle, "Ctrl+Shift+I was " + (newState ? "enabled." : "disabled.") + " Restart the Discord app for the change to take effect.");
 					break;
-				
+
 				case SettingsJsonResult.AlreadySet:
 					await Dialog.ShowOk(window, DialogTitle, "Ctrl+Shift+I is already " + (newState ? "enabled." : "disabled."));
 					AreDevToolsEnabled = newState;
