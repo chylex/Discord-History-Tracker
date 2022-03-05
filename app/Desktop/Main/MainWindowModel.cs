@@ -10,7 +10,7 @@ using DHT.Server.Database;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main {
-	sealed class MainWindowModel : BaseModel {
+	sealed class MainWindowModel : BaseModel, IDisposable {
 		private const string DefaultTitle = "Discord History Tracker";
 
 		public string Title { get; private set; } = DefaultTitle;
@@ -103,6 +103,11 @@ namespace DHT.Desktop.Main {
 
 		private void MainContentScreenModelOnDatabaseClosed(object? sender, EventArgs e) {
 			WelcomeScreenModel.CloseDatabase();
+		}
+
+		public void Dispose() {
+			MainContentScreenModel?.Dispose();
+			db?.Dispose();
 		}
 	}
 }

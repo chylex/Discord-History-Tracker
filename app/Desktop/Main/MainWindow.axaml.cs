@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
@@ -23,6 +24,12 @@ namespace DHT.Desktop.Main {
 			#if DEBUG
 			this.AttachDevTools();
 			#endif
+		}
+
+		public void OnClosed(object? sender, EventArgs e) {
+			if (DataContext is IDisposable disposable) {
+				disposable.Dispose();
+			}
 		}
 	}
 }
