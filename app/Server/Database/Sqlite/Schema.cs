@@ -26,7 +26,7 @@ namespace DHT.Server.Database.Sqlite {
 		public async Task<bool> Setup(Func<Task<bool>> checkCanUpgradeSchemas) {
 			Execute(@"CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT)");
 
-			var dbVersionStr = Sql("SELECT value FROM metadata WHERE key = 'version'").ExecuteScalar();
+			var dbVersionStr = conn.SelectScalar("SELECT value FROM metadata WHERE key = 'version'");
 			if (dbVersionStr == null) {
 				InitializeSchemas();
 			}
