@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace DHT.Server.Service {
 	public static class ServerLauncher {
 		private static readonly Log Log = Log.ForType(typeof(ServerLauncher));
-		
+
 		private static IWebHost? Server { get; set; } = null;
 
 		public static bool IsRunning { get; private set; }
@@ -29,6 +29,7 @@ namespace DHT.Server.Service {
 			try {
 				if (ManagementThread == null) {
 					ManagementThread = new Thread(RunManagementThread) {
+						Name = "DHT server management thread",
 						IsBackground = true
 					};
 					ManagementThread.Start();
