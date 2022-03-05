@@ -14,13 +14,19 @@ namespace DHT.Desktop {
 		public Arguments(string[] args) {
 			for (int i = 0; i < args.Length; i++) {
 				string key = args[i];
+				string value;
 
-				if (i >= args.Length - 1) {
+				if (i == 0 && !key.StartsWith('-')) {
+					value = key;
+					key = "-db";
+				}
+				else if (i >= args.Length - 1) {
 					Log.Warn("Missing value for command line argument: " + key);
 					continue;
 				}
-
-				string value = args[++i];
+				else {
+					value = args[++i];
+				}
 
 				switch (key) {
 					case "-db":
