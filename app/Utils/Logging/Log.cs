@@ -1,8 +1,18 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace DHT.Utils.Logging {
 	public sealed class Log {
+		public static bool IsDebugEnabled { get; set; }
+
+		static Log() {
+			#if DEBUG
+			IsDebugEnabled = true;
+			#endif
+		}
+
 		public static Log ForType<T>() {
 			return ForType(typeof(T));
 		}
@@ -11,18 +21,53 @@ namespace DHT.Utils.Logging {
 			return new Log(type.Name);
 		}
 
-		private readonly string tag;
+		public static Log ForType<T>(string context) {
+			return ForType(typeof(T), context);
+		}
 
-		private Log(string tag) {
+		public static Log ForType(Type type, string context) {
+			return new Log(type.Name, context);
+		}
+
+		private readonly string tag;
+		private readonly string? context;
+
+		private Log(string tag, string? context = null) {
 			this.tag = tag;
+			this.context = context;
+		}
+
+		private void FormatTags(StringBuilder builder) {
+			builder.Append('[').Append(tag).Append("] ");
+
+			if (context != null) {
+				builder.Append('[').Append(context).Append("] ");
+			}
 		}
 
 		private void LogLevel(ConsoleColor color, string level, string text) {
+			ConsoleColor prevColor = Console.ForegroundColor;
 			Console.ForegroundColor = color;
+
+			StringBuilder builder = new StringBuilder();
+
 			foreach (string line in text.Replace("\r", "").Split('\n')) {
-				string formatted = $"[{level}] [{tag}] {line}";
+				builder.Clear();
+				builder.Append('[').Append(level).Append("] ");
+				FormatTags(builder);
+				builder.Append(line);
+
+				string formatted = builder.ToString();
 				Console.WriteLine(formatted);
 				Trace.WriteLine(formatted);
+			}
+
+			Console.ForegroundColor = prevColor;
+		}
+
+		public void Debug(string message) {
+			if (IsDebugEnabled) {
+				LogLevel(ConsoleColor.Gray, "DEBUG", message);
 			}
 		}
 

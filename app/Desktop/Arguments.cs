@@ -14,6 +14,13 @@ namespace DHT.Desktop {
 		public Arguments(string[] args) {
 			for (int i = 0; i < args.Length; i++) {
 				string key = args[i];
+
+				switch (key) {
+					case "-debug":
+						Log.IsDebugEnabled = true;
+						continue;
+				}
+
 				string value;
 
 				if (i == 0 && !key.StartsWith('-')) {
