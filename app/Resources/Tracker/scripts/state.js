@@ -304,6 +304,7 @@ const STATE = (function() {
 					});
 				}
 				
+				obj["raw"] = JSON.stringify(msg);
 				return obj;
 			}));
 			

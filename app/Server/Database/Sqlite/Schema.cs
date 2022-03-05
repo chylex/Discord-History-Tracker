@@ -5,7 +5,7 @@ using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
 	sealed class Schema {
-		internal const int Version = 2;
+		internal const int Version = 3;
 
 		private readonly SqliteConnection conn;
 
@@ -97,6 +97,8 @@ namespace DHT.Server.Database.Sqlite {
 					emoji_flags INTEGER NOT NULL,
 					count INTEGER NOT NULL)");
 
+			CreateMessagesRawTable();
+
 			Execute("CREATE INDEX attachments_message_ix ON attachments(message_id)");
 			Execute("CREATE INDEX embeds_message_ix ON embeds(message_id)");
 			Execute("CREATE INDEX reactions_message_ix ON reactions(message_id)");
@@ -110,6 +112,16 @@ namespace DHT.Server.Database.Sqlite {
 			if (dbVersion <= 1) {
 				Execute("ALTER TABLE channels ADD parent_id INTEGER");
 			}
+
+			if (dbVersion <= 2) {
+				CreateMessagesRawTable();
+			}
+		}
+
+		private void CreateMessagesRawTable() {
+			Execute(@"CREATE TABLE messages_raw (
+			        message_id INTEGER PRIMARY KEY NOT NULL,
+			        json BLOB)");
 		}
 	}
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Utils.Collections;
+using DHT.Utils.Compression;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
@@ -157,6 +158,10 @@ namespace DHT.Server.Database.Sqlite {
 				"message_id", "sender_id", "channel_id", "text", "timestamp", "edit_timestamp", "replied_to_id"
 			});
 
+			using var messageRawCmd = conn.Upsert("messages_raw", new[] {
+				"message_id", "json"
+			});
+
 			using var deleteAttachmentsCmd = conn.Command("DELETE FROM attachments WHERE message_id = :message_id");
 			using var attachmentCmd = conn.Insert("attachments", new[] {
 				"message_id", "attachment_id", "name", "type", "url", "size"
@@ -180,6 +185,10 @@ namespace DHT.Server.Database.Sqlite {
 			messageParams.Add(":timestamp", SqliteType.Integer);
 			messageParams.Add(":edit_timestamp", SqliteType.Integer);
 			messageParams.Add(":replied_to_id", SqliteType.Integer);
+
+			var messageRawParams = messageRawCmd.Parameters;
+			messageRawParams.Add(":message_id", SqliteType.Integer);
+			messageRawParams.Add(":json", SqliteType.Blob);
 
 			var deleteAttachmentsParams = deleteAttachmentsCmd.Parameters;
 			deleteAttachmentsParams.Add(":message_id", SqliteType.Integer);
@@ -209,6 +218,8 @@ namespace DHT.Server.Database.Sqlite {
 			reactionParams.Add(":emoji_flags", SqliteType.Integer);
 			reactionParams.Add(":count", SqliteType.Integer);
 
+			var brotli = new Brotli(4096);
+
 			foreach (var message in messages) {
 				object messageId = message.Id;
 
@@ -220,6 +231,12 @@ namespace DHT.Server.Database.Sqlite {
 				messageParams.Set(":edit_timestamp", message.EditTimestamp);
 				messageParams.Set(":replied_to_id", message.RepliedToId);
 				messageCmd.ExecuteNonQuery();
+
+				if (message.RawJson is {} json) {
+					messageRawParams.Set(":message_id", messageId);
+					messageRawParams.Set(":json", brotli.Compress(Encoding.UTF8.GetBytes(json)));
+					messageRawCmd.ExecuteNonQuery();
+				}
 
 				deleteAttachmentsParams.Set(":message_id", messageId);
 				deleteAttachmentsCmd.ExecuteNonQuery();

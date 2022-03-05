@@ -12,5 +12,6 @@ namespace DHT.Server.Data {
 		public ImmutableArray<Attachment> Attachments { get; internal init; }
 		public ImmutableArray<Embed> Embeds { get; internal init; }
 		public ImmutableArray<Reaction> Reactions { get; internal init; }
+		public string? RawJson { get; internal init; }
 	}
 }
