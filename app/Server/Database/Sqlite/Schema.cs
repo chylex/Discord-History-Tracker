@@ -5,7 +5,7 @@ using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
 	sealed class Schema {
-		internal const int Version = 2;
+		internal const int Version = 3;
 
 		private readonly SqliteConnection conn;
 
@@ -97,6 +97,9 @@ namespace DHT.Server.Database.Sqlite {
 					emoji_flags INTEGER NOT NULL,
 					count INTEGER NOT NULL)");
 
+			CreateMessageEditTimestampTable();
+			CreateMessageRepliedToTable();
+
 			Execute("CREATE INDEX attachments_message_ix ON attachments(message_id)");
 			Execute("CREATE INDEX embeds_message_ix ON embeds(message_id)");
 			Execute("CREATE INDEX reactions_message_ix ON reactions(message_id)");
@@ -104,11 +107,40 @@ namespace DHT.Server.Database.Sqlite {
 			Execute("INSERT INTO metadata (key, value) VALUES ('version', " + Version + ")");
 		}
 
+		private void CreateMessageEditTimestampTable() {
+			Execute(@"CREATE TABLE edit_timestamps (
+			        message_id INTEGER PRIMARY KEY NOT NULL,
+			        edit_timestamp INTEGER NOT NULL)");
+		}
+
+		private void CreateMessageRepliedToTable() {
+			Execute(@"CREATE TABLE replied_to (
+			        message_id INTEGER PRIMARY KEY NOT NULL,
+			        replied_to_id INTEGER NOT NULL)");
+		}
+
 		private void UpgradeSchemas(int dbVersion) {
 			Execute("UPDATE metadata SET value = " + Version + " WHERE key = 'version'");
 
 			if (dbVersion <= 1) {
 				Execute("ALTER TABLE channels ADD parent_id INTEGER");
+			}
+
+			if (dbVersion <= 2) {
+				CreateMessageEditTimestampTable();
+				CreateMessageRepliedToTable();
+
+				Execute(@"INSERT INTO edit_timestamps (message_id, edit_timestamp)
+						SELECT message_id, edit_timestamp FROM messages
+						WHERE edit_timestamp IS NOT NULL");
+
+				Execute(@"INSERT INTO replied_to (message_id, replied_to_id)
+						SELECT message_id, replied_to_id FROM messages
+						WHERE replied_to_id IS NOT NULL");
+
+				Execute("ALTER TABLE messages DROP COLUMN replied_to_id");
+				Execute("ALTER TABLE messages DROP COLUMN edit_timestamp");
+				Execute("VACUUM");
 			}
 		}
 	}

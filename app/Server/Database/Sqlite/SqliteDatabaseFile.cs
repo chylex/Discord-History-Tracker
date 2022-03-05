@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Utils.Collections;
+using DHT.Utils.Logging;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
@@ -25,9 +26,11 @@ namespace DHT.Server.Database.Sqlite {
 		public string Path { get; }
 		public DatabaseStatistics Statistics { get; }
 
+		private readonly Log log;
 		private readonly SqliteConnection conn;
 
 		private SqliteDatabaseFile(string path, SqliteConnection conn) {
+			this.log = Log.ForType(typeof(SqliteDatabaseFile), System.IO.Path.GetFileName(path));
 			this.conn = conn;
 			this.Path = path;
 			this.Statistics = new DatabaseStatistics();
@@ -56,6 +59,7 @@ namespace DHT.Server.Database.Sqlite {
 		}
 
 		public List<Data.Server> GetAllServers() {
+			var perf = log.Start();
 			var list = new List<Data.Server>();
 
 			using var cmd = conn.Command("SELECT id, name, type FROM servers");
@@ -69,6 +73,7 @@ namespace DHT.Server.Database.Sqlite {
 				});
 			}
 
+			perf.End();
 			return list;
 		}
 
@@ -137,6 +142,7 @@ namespace DHT.Server.Database.Sqlite {
 		}
 
 		public List<User> GetAllUsers() {
+			var perf = log.Start();
 			var list = new List<User>();
 
 			using var cmd = conn.Command("SELECT id, name, avatar_url, discriminator FROM users");
@@ -151,10 +157,20 @@ namespace DHT.Server.Database.Sqlite {
 				});
 			}
 
+			perf.End();
 			return list;
 		}
 
 		public void AddMessages(Message[] messages) {
+			static SqliteCommand DeleteByMessageId(SqliteConnection conn, string tableName) {
+				return conn.Delete(tableName, ("message_id", SqliteType.Integer));
+			}
+
+			static void ExecuteDeleteByMessageId(SqliteCommand cmd, object id) {
+				cmd.Set(":message_id", id);
+				cmd.ExecuteNonQuery();
+			}
+
 			using var tx = conn.BeginTransaction();
 
 			using var messageCmd = conn.Upsert("messages", new[] {
@@ -162,14 +178,25 @@ namespace DHT.Server.Database.Sqlite {
 				("sender_id", SqliteType.Integer),
 				("channel_id", SqliteType.Integer),
 				("text", SqliteType.Text),
-				("timestamp", SqliteType.Integer),
-				("edit_timestamp", SqliteType.Integer),
-				("replied_to_id", SqliteType.Integer)
+				("timestamp", SqliteType.Integer)
 			});
 
-			using var deleteAttachmentsCmd = conn.Delete("attachments", ("message_id", SqliteType.Integer));
-			using var deleteEmbedsCmd = conn.Delete("embeds", ("message_id", SqliteType.Integer));
-			using var deleteReactionsCmd = conn.Delete("reactions", ("message_id", SqliteType.Integer));
+			using var deleteEditTimestampCmd = DeleteByMessageId(conn, "edit_timestamps");
+			using var deleteRepliedToCmd = DeleteByMessageId(conn, "replied_to");
+
+			using var deleteAttachmentsCmd = DeleteByMessageId(conn, "attachments");
+			using var deleteEmbedsCmd = DeleteByMessageId(conn, "embeds");
+			using var deleteReactionsCmd = DeleteByMessageId(conn, "reactions");
+
+			using var editTimestampCmd = conn.Insert("edit_timestamps", new [] {
+				("message_id", SqliteType.Integer),
+				("edit_timestamp", SqliteType.Integer)
+			});
+
+			using var repliedToCmd = conn.Insert("replied_to", new [] {
+				("message_id", SqliteType.Integer),
+				("replied_to_id", SqliteType.Integer)
+			});
 
 			using var attachmentCmd = conn.Insert("attachments", new[] {
 				("message_id", SqliteType.Integer),
@@ -201,18 +228,26 @@ namespace DHT.Server.Database.Sqlite {
 				messageCmd.Set(":channel_id", message.Channel);
 				messageCmd.Set(":text", message.Text);
 				messageCmd.Set(":timestamp", message.Timestamp);
-				messageCmd.Set(":edit_timestamp", message.EditTimestamp);
-				messageCmd.Set(":replied_to_id", message.RepliedToId);
 				messageCmd.ExecuteNonQuery();
 
-				deleteAttachmentsCmd.Set(":message_id", messageId);
-				deleteAttachmentsCmd.ExecuteNonQuery();
+				ExecuteDeleteByMessageId(deleteEditTimestampCmd, messageId);
+				ExecuteDeleteByMessageId(deleteRepliedToCmd, messageId);
 
-				deleteEmbedsCmd.Set(":message_id", messageId);
-				deleteEmbedsCmd.ExecuteNonQuery();
+				ExecuteDeleteByMessageId(deleteAttachmentsCmd, messageId);
+				ExecuteDeleteByMessageId(deleteEmbedsCmd, messageId);
+				ExecuteDeleteByMessageId(deleteReactionsCmd, messageId);
 
-				deleteReactionsCmd.Set(":message_id", messageId);
-				deleteReactionsCmd.ExecuteNonQuery();
+				if (message.EditTimestamp is {} timestamp) {
+					editTimestampCmd.Set(":message_id", messageId);
+					editTimestampCmd.Set(":edit_timestamp", timestamp);
+					editTimestampCmd.ExecuteNonQuery();
+				}
+
+				if (message.RepliedToId is {} repliedToId) {
+					repliedToCmd.Set(":message_id", messageId);
+					repliedToCmd.Set(":replied_to_id", repliedToId);
+					repliedToCmd.ExecuteNonQuery();
+				}
 
 				if (!message.Attachments.IsEmpty) {
 					foreach (var attachment in message.Attachments) {
@@ -258,13 +293,18 @@ namespace DHT.Server.Database.Sqlite {
 		}
 
 		public List<Message> GetMessages(MessageFilter? filter = null) {
+			var perf = log.Start();
+			var list = new List<Message>();
+
 			var attachments = GetAllAttachments();
 			var embeds = GetAllEmbeds();
 			var reactions = GetAllReactions();
 
-			var list = new List<Message>();
-
-			using var cmd = conn.Command("SELECT message_id, sender_id, channel_id, text, timestamp, edit_timestamp, replied_to_id FROM messages" + filter.GenerateWhereClause());
+			using var cmd = conn.Command(@"
+SELECT m.message_id, m.sender_id, m.channel_id, m.text, m.timestamp, et.edit_timestamp, rt.replied_to_id
+FROM messages m
+LEFT JOIN edit_timestamps et ON m.message_id = et.message_id
+LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereClause("m"));
 			using var reader = cmd.ExecuteReader();
 
 			while (reader.Read()) {
@@ -284,6 +324,7 @@ namespace DHT.Server.Database.Sqlite {
 				});
 			}
 
+			perf.End();
 			return list;
 		}
 

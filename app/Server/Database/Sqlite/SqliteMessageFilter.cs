@@ -4,31 +4,35 @@ using DHT.Server.Data.Filters;
 
 namespace DHT.Server.Database.Sqlite {
 	static class SqliteMessageFilter {
-		public static string GenerateWhereClause(this MessageFilter? filter, bool invert = false) {
+		public static string GenerateWhereClause(this MessageFilter? filter, string? tableAlias = null, bool invert = false) {
 			if (filter == null) {
 				return "";
+			}
+
+			if (tableAlias != null) {
+				tableAlias += ".";
 			}
 
 			List<string> conditions = new();
 
 			if (filter.StartDate != null) {
-				conditions.Add("timestamp >= " + new DateTimeOffset(filter.StartDate.Value).ToUnixTimeMilliseconds());
+				conditions.Add(tableAlias + "timestamp >= " + new DateTimeOffset(filter.StartDate.Value).ToUnixTimeMilliseconds());
 			}
 
 			if (filter.EndDate != null) {
-				conditions.Add("timestamp <= " + new DateTimeOffset(filter.EndDate.Value).ToUnixTimeMilliseconds());
+				conditions.Add(tableAlias + "timestamp <= " + new DateTimeOffset(filter.EndDate.Value).ToUnixTimeMilliseconds());
 			}
 
 			if (filter.ChannelIds != null) {
-				conditions.Add("channel_id IN (" + string.Join(",", filter.ChannelIds) + ")");
+				conditions.Add(tableAlias + "channel_id IN (" + string.Join(",", filter.ChannelIds) + ")");
 			}
 
 			if (filter.UserIds != null) {
-				conditions.Add("sender_id IN (" + string.Join(",", filter.UserIds) + ")");
+				conditions.Add(tableAlias + "sender_id IN (" + string.Join(",", filter.UserIds) + ")");
 			}
 
 			if (filter.MessageIds != null) {
-				conditions.Add("message_id IN (" + string.Join(",", filter.MessageIds) + ")");
+				conditions.Add(tableAlias + "message_id IN (" + string.Join(",", filter.MessageIds) + ")");
 			}
 
 			if (conditions.Count == 0) {
