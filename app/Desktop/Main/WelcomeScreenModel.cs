@@ -8,7 +8,7 @@ using DHT.Server.Database;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main {
-	sealed class WelcomeScreenModel : BaseModel {
+	sealed class WelcomeScreenModel : BaseModel, IDisposable {
 		public string Version => Program.Version;
 
 		public IDatabaseFile? Db { get; private set; }
@@ -52,8 +52,7 @@ namespace DHT.Desktop.Main {
 		}
 
 		public void CloseDatabase() {
-			Db = null;
-
+			Dispose();
 			OnPropertyChanged(nameof(Db));
 			OnPropertyChanged(nameof(HasDatabase));
 		}
@@ -64,6 +63,11 @@ namespace DHT.Desktop.Main {
 
 		public void Exit() {
 			window.Close();
+		}
+
+		public void Dispose() {
+			Db?.Dispose();
+			Db = null;
 		}
 	}
 }

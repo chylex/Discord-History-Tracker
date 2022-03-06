@@ -106,8 +106,10 @@ namespace DHT.Desktop.Main {
 		}
 
 		public void Dispose() {
+			WelcomeScreenModel.Dispose();
 			MainContentScreenModel?.Dispose();
 			db?.Dispose();
+			db = null;
 		}
 	}
 }
