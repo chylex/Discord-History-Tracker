@@ -87,8 +87,8 @@ namespace DHT.Utils.Logging {
 			LogLevel(ConsoleColor.Red, "ERROR", e.ToString());
 		}
 
-		public Perf Start([CallerMemberName] string callerMemberName = "") {
-			return Perf.Start(this, callerMemberName);
+		public Perf Start(string? context = null, [CallerMemberName] string callerMemberName = "") {
+			return Perf.Start(this, context, callerMemberName);
 		}
 	}
 }

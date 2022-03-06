@@ -1,11 +1,14 @@
 using System;
 using System.Threading.Tasks;
 using DHT.Server.Database.Exceptions;
+using DHT.Utils.Logging;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
 	sealed class Schema {
 		internal const int Version = 3;
+
+		private static readonly Log Log = Log.ForType<Schema>();
 
 		private readonly SqliteConnection conn;
 
@@ -120,10 +123,13 @@ namespace DHT.Server.Database.Sqlite {
 		}
 
 		private void UpgradeSchemas(int dbVersion) {
+			var perf = Log.Start("from version " + dbVersion);
+
 			Execute("UPDATE metadata SET value = " + Version + " WHERE key = 'version'");
 
 			if (dbVersion <= 1) {
 				Execute("ALTER TABLE channels ADD parent_id INTEGER");
+				perf.Step("Upgrade to version 2");
 			}
 
 			if (dbVersion <= 2) {
@@ -140,8 +146,14 @@ namespace DHT.Server.Database.Sqlite {
 
 				Execute("ALTER TABLE messages DROP COLUMN replied_to_id");
 				Execute("ALTER TABLE messages DROP COLUMN edit_timestamp");
+
+				perf.Step("Upgrade to version 3");
+
 				Execute("VACUUM");
+				perf.Step("Vacuum");
 			}
+
+			perf.End();
 		}
 	}
 }

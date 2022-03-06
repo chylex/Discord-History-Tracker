@@ -334,6 +334,8 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 				return;
 			}
 
+			var perf = log.Start();
+
 			// Rider is being stupid...
 			StringBuilder build = new StringBuilder()
 			                      .Append("DELETE ")
@@ -344,6 +346,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			cmd.ExecuteNonQuery();
 
 			UpdateMessageStatistics();
+			perf.End();
 		}
 
 		private MultiDictionary<ulong, Attachment> GetAllAttachments() {

@@ -31,18 +31,21 @@ namespace DHT.Server.Database.Export {
 				}
 			}
 
-			var opts = new JsonSerializerOptions();
-			opts.Converters.Add(new ViewerJsonSnowflakeSerializer());
-
 			var users = GenerateUserList(db, includedUserIds, out var userindex, out var userIndices);
 			var servers = GenerateServerList(db, includedServerIds, out var serverindex);
 			var channels = GenerateChannelList(includedChannels, serverindex);
+
+			perf.Step("Collect database data");
+
+			var opts = new JsonSerializerOptions();
+			opts.Converters.Add(new ViewerJsonSnowflakeSerializer());
 
 			var json = JsonSerializer.Serialize(new {
 				meta = new { users, userindex, servers, channels },
 				data = GenerateMessageList(includedMessages, userIndices)
 			}, opts);
 
+			perf.Step("Serialize to JSON");
 			perf.End();
 			return json;
 		}
