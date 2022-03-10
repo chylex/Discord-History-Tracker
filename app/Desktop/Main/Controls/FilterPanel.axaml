@@ -15,6 +15,9 @@
             <Setter Property="Margin" Value="0 20 40 0" />
             <Setter Property="Spacing" Value="4" />
         </Style>
+        <Style Selector="WrapPanel > StackPanel:nth-last-child(1)">
+            <Setter Property="Margin" Value="0 20 0 0" />
+        </Style>
         <Style Selector="Grid > Label">
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
