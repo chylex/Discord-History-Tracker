@@ -93,11 +93,12 @@ namespace DHT.Server.Service {
 			if (Server != null) {
 				Log.Info("Stopping server...");
 				Server.StopAsync().Wait();
+				Server.Dispose();
+				Server = null;
 
 				Log.Info("Server stopped");
 				IsRunning = false;
 				ServerStatusChanged?.Invoke(null, EventArgs.Empty);
-				Server = null;
 			}
 		}
 
