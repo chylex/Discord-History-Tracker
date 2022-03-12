@@ -55,7 +55,7 @@
             <Setter Property="Padding" Value="0" />
         </Style>
         <Style Selector="ContentPresenter.page">
-            <Setter Property="Margin" Value="15 21" />
+            <Setter Property="Margin" Value="15 21 20 21" />
         </Style>
     </UserControl.Styles>
 

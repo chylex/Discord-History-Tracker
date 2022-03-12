@@ -1,74 +1,41 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:common="clr-namespace:DHT.Desktop.Common"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              x:Class="DHT.Desktop.App">
 
     <Application.Styles>
 
         <FluentTheme Mode="Light" />
 
+        <Style Selector="Button, CheckBox, RadioButton, Expander /template/ ToggleButton#ExpanderHeader">
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
         <Style Selector="Button">
             <Setter Property="Padding" Value="10 7 10 6" />
-            <Setter Property="Background" Value="#DDDDDD" />
-            <Setter Property="BorderBrush" Value="#999999" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-        </Style>
-        <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="TextBlock.Foreground" Value="#060606" />
-            <Setter Property="Background" Value="#DDDDDD" />
-            <Setter Property="BorderBrush" Value="#999999" />
-        </Style>
-        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E7E7E7" />
-            <Setter Property="BorderBrush" Value="#A2A2A2" />
-            <Setter Property="CornerRadius" Value="0" />
         </Style>
         <Style Selector="Button:pressed">
             <Setter Property="RenderTransform" Value="none" />
         </Style>
-        <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#EBEBEB" />
-            <Setter Property="BorderBrush" Value="#A5A5A5" />
-            <Setter Property="CornerRadius" Value="0" />
-        </Style>
-        <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="TextBlock.Foreground" Value="#7A7A7A" />
-            <Setter Property="Background" Value="#E9E9E9" />
-            <Setter Property="BorderBrush" Value="#BFBFBF" />
-        </Style>
 
         <Style Selector="TextBox">
-            <Setter Property="BorderBrush" Value="#999999" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="SelectionBrush" Value="#72C0FF" />
-            <Setter Property="Background" Value="#F4F4F4" />
             <Setter Property="Padding" Value="6 0" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-        </Style>
-        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="BorderBrush" Value="#999999" />
-            <Setter Property="Background" Value="#F8F8F8" />
-        </Style>
-        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-            <Setter Property="BorderBrush" Value="#546A9F" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="#FBFBFB" />
-        </Style>
-        <Style Selector="TextBox:disabled /template/ Border#PART_BorderElement">
-            <Setter Property="BorderBrush" Value="#999999" />
-            <Setter Property="Background" Value="#BBBBBB" />
         </Style>
         <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-
-        <Style Selector="Expander">
-            <Setter Property="CornerRadius" Value="0" />
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
+        <Style Selector="TextBox:disabled"><!-- TODO bug in Avalonia (https://github.com/AvaloniaUI/Avalonia/pull/7792) -->
+            <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
+        </Style>
+
         <Style Selector="Expander /template/ ToggleButton#ExpanderHeader">
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="Template">
@@ -108,6 +75,30 @@
                 </ControlTemplate>
             </Setter>
         </Style>
+        <Style Selector="Expander:expanded /template/ ToggleButton#ExpanderHeader /template/ Border#ExpandCollapseChevronBorder">
+            <Style.Animations>
+                <Animation FillMode="Both" Duration="0:0:0.0625">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="180" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RotateTransform.Angle" Value="180" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="Expander:not(:expanded) /template/ ToggleButton#ExpanderHeader /template/ Border#ExpandCollapseChevronBorder">
+            <Style.Animations>
+                <Animation FillMode="Both" Duration="0:0:0.0625">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="0" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RotateTransform.Angle" Value="0" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
 
     </Application.Styles>
 
@@ -115,9 +106,61 @@
 
         <common:NumberValueConverter x:Key="NumberValueConverter" />
 
+        <system:Double x:Key="ControlContentThemeFontSize">14</system:Double>
+        <CornerRadius x:Key="ControlCornerRadius">0</CornerRadius>
+
+        <Color x:Key="SystemAccentColor">#3C5F95</Color>
+        <Color x:Key="SystemAccentColorDark1">#3C5F95</Color>
+        <Color x:Key="SystemAccentColorDark2">#3C5F95</Color>
+        <Color x:Key="SystemAccentColorDark3">#3C5F95</Color>
+        <Color x:Key="SystemAccentColorLight1">#3C5F95</Color>
+        <Color x:Key="SystemAccentColorLight2">#3C5F95</Color>
+        <Color x:Key="SystemAccentColorLight3">#3C5F95</Color>
+
+        <system:Double x:Key="ScrollBarSize">14</system:Double>
+        <TransformOperations x:Key="VerticalSmallScrollThumbScaleTransform">scaleX(0.5) translateX(-3px)</TransformOperations>
+        <TransformOperations x:Key="HorizontalSmallScrollThumbScaleTransform">scaleY(0.5) translateY(-3px)</TransformOperations>
+        <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="#8F8F8F" />
+
+        <SolidColorBrush x:Key="ButtonBorderBrush" Color="#3C5F95" />
+        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#0E2B59" />
+        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#061742" />
+        <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="#9B9B9B" />
+        <SolidColorBrush x:Key="ButtonBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#F6F9FD" />
+        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#EDF3FD" />
+        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ButtonForeground" Color="#112961" />
+        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#050E41" />
+        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#010320" />
+        <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#8C8C8C" />
+
+        <SolidColorBrush x:Key="TextControlBorderBrush" Color="#515151" />
+        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#000000" />
+        <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#3C5F95" />
+        <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="#9B9B9B" />
+        <SolidColorBrush x:Key="TextControlBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#F8FCFF" />
+        <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="TextControlForeground" Color="#000000" />
+        <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#000000" />
+        <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#000000" />
+        <SolidColorBrush x:Key="TextControlForegroundDisabled" Color="#8C8C8C" />
+        <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#DEE9F8" />
+        <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#AAAAAA" />
+        <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#AAAAAA" />
+        <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#AAAAAA" />
+        <SolidColorBrush x:Key="TextControlPlaceholderForegroundDisabled" Color="#AAAAAA" />
+
         <Thickness x:Key="ExpanderHeaderPadding">15,0</Thickness>
         <Thickness x:Key="ExpanderContentPadding">15</Thickness>
-        <SolidColorBrush x:Key="ExpanderDropDownBackground" Color="#FCFCFC" />
+        <SolidColorBrush x:Key="ExpanderBorderBrush" Color="#697DAB" />
+        <SolidColorBrush x:Key="ExpanderBackground" Color="#697DAB" />
+        <SolidColorBrush x:Key="ExpanderForeground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderChevronForeground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderDropDownBorderBrush" Color="#697DAB" />
+        <SolidColorBrush x:Key="ExpanderDropDownBackground" Color="#FFFFFF" />
 
     </Application.Resources>
 
