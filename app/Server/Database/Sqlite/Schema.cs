@@ -77,9 +77,7 @@ namespace DHT.Server.Database.Sqlite {
 			        sender_id INTEGER NOT NULL,
 			        channel_id INTEGER NOT NULL,
 			        text TEXT NOT NULL,
-			        timestamp INTEGER NOT NULL,
-			        edit_timestamp INTEGER,
-			        replied_to_id INTEGER)");
+			        timestamp INTEGER NOT NULL)");
 
 			Execute(@"CREATE TABLE attachments (
 			        message_id INTEGER NOT NULL,
