@@ -15,14 +15,13 @@ namespace DHT.Desktop.Main {
 
 		public string Title { get; private set; } = DefaultTitle;
 
-		public WelcomeScreen WelcomeScreen { get; }
-		private WelcomeScreenModel WelcomeScreenModel { get; }
+		public UserControl CurrentScreen { get; private set; }
+		
+		private readonly WelcomeScreen welcomeScreen;
+		private readonly WelcomeScreenModel welcomeScreenModel;
 
-		public MainContentScreen? MainContentScreen { get; private set; }
-		private MainContentScreenModel? MainContentScreenModel { get; set; }
-
-		public bool ShowWelcomeScreen => db == null;
-		public bool ShowMainContentScreen => db != null;
+		private MainContentScreen? mainContentScreen;
+		private MainContentScreenModel? mainContentScreenModel;
 
 		private readonly Window window;
 
@@ -34,10 +33,11 @@ namespace DHT.Desktop.Main {
 		public MainWindowModel(Window window, Arguments args) {
 			this.window = window;
 
-			WelcomeScreenModel = new WelcomeScreenModel(window);
-			WelcomeScreen = new WelcomeScreen { DataContext = WelcomeScreenModel };
+			welcomeScreenModel = new WelcomeScreenModel(window);
+			welcomeScreen = new WelcomeScreen { DataContext = welcomeScreenModel };
+			CurrentScreen = welcomeScreen;
 
-			WelcomeScreenModel.PropertyChanged += WelcomeScreenModelOnPropertyChanged;
+			welcomeScreenModel.PropertyChanged += WelcomeScreenModelOnPropertyChanged;
 
 			var dbFile = args.DatabaseFile;
 			if (!string.IsNullOrWhiteSpace(dbFile)) {
@@ -50,7 +50,7 @@ namespace DHT.Desktop.Main {
 					}
 
 					if (File.Exists(dbFile)) {
-						await WelcomeScreenModel.OpenOrCreateDatabaseFromPath(dbFile);
+						await welcomeScreenModel.OpenOrCreateDatabaseFromPath(dbFile);
 					}
 					else {
 						await Dialog.ShowOk(window, "Database Error", "Database file not found:\n" + dbFile);
@@ -70,31 +70,31 @@ namespace DHT.Desktop.Main {
 		}
 
 		private async void WelcomeScreenModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
-			if (e.PropertyName == nameof(WelcomeScreenModel.Db)) {
-				if (MainContentScreenModel != null) {
-					MainContentScreenModel.DatabaseClosed -= MainContentScreenModelOnDatabaseClosed;
-					MainContentScreenModel.Dispose();
+			if (e.PropertyName == nameof(welcomeScreenModel.Db)) {
+				if (mainContentScreenModel != null) {
+					mainContentScreenModel.DatabaseClosed -= MainContentScreenModelOnDatabaseClosed;
+					mainContentScreenModel.Dispose();
 				}
 
 				db?.Dispose();
-				db = WelcomeScreenModel.Db;
+				db = welcomeScreenModel.Db;
 
 				if (db == null) {
 					Title = DefaultTitle;
-					MainContentScreenModel = null;
-					MainContentScreen = null;
+					mainContentScreenModel = null;
+					mainContentScreen = null;
+					CurrentScreen = welcomeScreen;
 				}
 				else {
 					Title = Path.GetFileName(db.Path) + " - " + DefaultTitle;
-					MainContentScreenModel = new MainContentScreenModel(window, db);
-					await MainContentScreenModel.Initialize();
-					MainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
-					MainContentScreen = new MainContentScreen { DataContext = MainContentScreenModel };
-					OnPropertyChanged(nameof(MainContentScreen));
+					mainContentScreenModel = new MainContentScreenModel(window, db);
+					await mainContentScreenModel.Initialize();
+					mainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
+					mainContentScreen = new MainContentScreen { DataContext = mainContentScreenModel };
+					CurrentScreen = mainContentScreen;
 				}
 
-				OnPropertyChanged(nameof(ShowWelcomeScreen));
-				OnPropertyChanged(nameof(ShowMainContentScreen));
+				OnPropertyChanged(nameof(CurrentScreen));
 				OnPropertyChanged(nameof(Title));
 
 				window.Focus();
@@ -102,12 +102,12 @@ namespace DHT.Desktop.Main {
 		}
 
 		private void MainContentScreenModelOnDatabaseClosed(object? sender, EventArgs e) {
-			WelcomeScreenModel.CloseDatabase();
+			welcomeScreenModel.CloseDatabase();
 		}
 
 		public void Dispose() {
-			WelcomeScreenModel.Dispose();
-			MainContentScreenModel?.Dispose();
+			welcomeScreenModel.Dispose();
+			mainContentScreenModel?.Dispose();
 			db?.Dispose();
 			db = null;
 		}

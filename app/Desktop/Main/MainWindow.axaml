@@ -17,7 +17,6 @@
     </Design.DataContext>
 
     <Panel>
-        <ContentPresenter Content="{Binding WelcomeScreen}" IsVisible="{Binding ShowWelcomeScreen}" />
-        <ContentPresenter Content="{Binding MainContentScreen}" IsVisible="{Binding ShowMainContentScreen}" />
+        <ContentPresenter Content="{Binding CurrentScreen}" />
     </Panel>
 </Window>

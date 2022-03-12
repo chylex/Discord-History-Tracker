@@ -1,8 +1,7 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using DHT.Utils.Models;
 
 namespace DHT.Server.Database {
-	public sealed class DatabaseStatistics : INotifyPropertyChanged {
+	public sealed class DatabaseStatistics : BaseModel {
 		private long totalServers;
 		private long totalChannels;
 		private long totalUsers;
@@ -10,29 +9,22 @@ namespace DHT.Server.Database {
 
 		public long TotalServers {
 			get => totalServers;
-			internal set => Change(out totalServers, value);
+			internal set => Change(ref totalServers, value);
 		}
 
 		public long TotalChannels {
 			get => totalChannels;
-			internal set => Change(out totalChannels, value);
+			internal set => Change(ref totalChannels, value);
 		}
 
 		public long TotalUsers {
 			get => totalUsers;
-			internal set => Change(out totalUsers, value);
+			internal set => Change(ref totalUsers, value);
 		}
 
 		public long TotalMessages {
 			get => totalMessages;
-			internal set => Change(out totalMessages, value);
-		}
-
-		public event PropertyChangedEventHandler? PropertyChanged;
-
-		private void Change<T>(out T field, T value, [CallerMemberName] string? propertyName = null) {
-			field = value;
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+			internal set => Change(ref totalMessages, value);
 		}
 
 		public DatabaseStatistics Clone() {

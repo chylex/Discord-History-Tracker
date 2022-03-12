@@ -16,7 +16,7 @@ using DHT.Utils.Models;
 using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages {
-	sealed class ViewerPageModel : BaseModel {
+	sealed class ViewerPageModel : BaseModel, IDisposable {
 		public string ExportedMessageText { get; private set; } = "";
 
 		public bool DatabaseToolFilterModeKeep { get; set; } = true;
@@ -41,10 +41,15 @@ namespace DHT.Desktop.Main.Pages {
 			this.window = window;
 			this.db = db;
 
-			this.FilterModel = new FilterPanelModel(window, db);
-			this.FilterModel.FilterPropertyChanged += OnFilterPropertyChanged;
-			this.db.Statistics.PropertyChanged += OnDbStatisticsChanged;
+			FilterModel = new FilterPanelModel(window, db);
+			FilterModel.FilterPropertyChanged += OnFilterPropertyChanged;
+			db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 			UpdateStatistics();
+		}
+
+		public void Dispose() {
+			db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
+			FilterModel.Dispose();
 		}
 
 		private void OnFilterPropertyChanged(object? sender, PropertyChangedEventArgs e) {

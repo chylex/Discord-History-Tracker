@@ -56,6 +56,7 @@ namespace DHT.Desktop.Main {
 
 		public void Dispose() {
 			TrackingPageModel.Dispose();
+			ViewerPageModel.Dispose();
 		}
 	}
 }

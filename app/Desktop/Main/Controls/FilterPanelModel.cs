@@ -14,7 +14,7 @@ using DHT.Server.Database;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Controls {
-	sealed class FilterPanelModel : BaseModel {
+	sealed class FilterPanelModel : BaseModel, IDisposable {
 		private static readonly HashSet<string> FilterProperties = new () {
 			nameof(FilterByDate),
 			nameof(StartDate),
@@ -101,6 +101,10 @@ namespace DHT.Desktop.Main.Controls {
 
 			PropertyChanged += OnPropertyChanged;
 			db.Statistics.PropertyChanged += OnDbStatisticsChanged;
+		}
+
+		public void Dispose() {
+			db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
 		}
 
 		private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
