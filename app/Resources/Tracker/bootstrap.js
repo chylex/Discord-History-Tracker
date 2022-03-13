@@ -42,6 +42,10 @@
 		stopTrackingDelayed(() => isSending = false);
 	};
 	
+	const isNoAction = function(action) {
+		return action === null || action === CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
+	};
+	
 	const onTrackingContinued = function(anyNewMessages) {
 		if (!STATE.isTracking()) {
 			return;
@@ -59,14 +63,14 @@
 		if (SETTINGS.autoscroll) {
 			let action = null;
 			
-			if (!anyNewMessages) {
-				action = SETTINGS.afterSavedMsg;
-			}
-			else if (!DISCORD.hasMoreMessages()) {
+			if (!DISCORD.hasMoreMessages()) {
 				action = SETTINGS.afterFirstMsg;
 			}
+			if (isNoAction(action) && !anyNewMessages) {
+				action = SETTINGS.afterSavedMsg;
+			}
 			
-			if (action === null || action === CONSTANTS.AUTOSCROLL_ACTION_NOTHING) {
+			if (isNoAction(action)) {
 				DISCORD.loadOlderMessages();
 			}
 			else if (action === CONSTANTS.AUTOSCROLL_ACTION_PAUSE || (action === CONSTANTS.AUTOSCROLL_ACTION_SWITCH && !DISCORD.selectNextTextChannel())) {
