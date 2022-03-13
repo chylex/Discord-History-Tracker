@@ -117,8 +117,8 @@
 		
 		try {
 			if (!messages.length) {
-				DISCORD.loadOlderMessages();
 				isSending = false;
+				onTrackingContinued(false);
 			}
 			else {
 				const anyNewMessages = await STATE.addDiscordMessages(info.id, messages);

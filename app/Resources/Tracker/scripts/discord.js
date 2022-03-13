@@ -67,14 +67,7 @@ class DISCORD {
 			}
 			
 			const messages = this.getMessages();
-			let hasChanged = false;
-			
-			for (const message of messages) {
-				if (!previousMessages.has(message.id)) {
-					hasChanged = true;
-					break;
-				}
-			}
+			const hasChanged = messages.some(message => !previousMessages.has(message.id)) || !this.hasMoreMessages();
 			
 			if (!hasChanged) {
 				return;
@@ -140,16 +133,27 @@ class DISCORD {
 		try {
 			let obj;
 			
-			for (const ele of this.getMessageElements()) {
-				const props = this.getMessageElementProps(ele);
+			try {
+				for (const child of DOM.getReactProps(DOM.queryReactClass("chatContent")).children) {
+					if (child && child.props && child.props.channel) {
+						obj = child.props.channel;
+						break;
+					}
+				}
+			} catch (e) {
+				console.error("[DHT] Error retrieving selected channel from 'chatContent' element.", e);
 				
-				if (props != null) {
-					obj = props.channel;
-					break;
+				for (const ele of this.getMessageElements()) {
+					const props = this.getMessageElementProps(ele);
+					
+					if (props != null) {
+						obj = props.channel;
+						break;
+					}
 				}
 			}
 			
-			if (!obj) {
+			if (!obj || typeof obj.id !== "string") {
 				return null;
 			}
 			
@@ -215,7 +219,7 @@ class DISCORD {
 				return null;
 			}
 		} catch (e) {
-			console.error(e);
+			console.error("[DHT] Error retrieving selected channel.", e);
 			return null;
 		}
 	}
