@@ -5,46 +5,57 @@ using System.Text;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
+using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Collections;
 using DHT.Utils.Logging;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
 	public sealed class SqliteDatabaseFile : IDatabaseFile {
+		private const int DefaultPoolSize = 5;
+
 		public static async Task<SqliteDatabaseFile?> OpenOrCreate(string path, Func<Task<bool>> checkCanUpgradeSchemas) {
-			string connectionString = new SqliteConnectionStringBuilder {
+			var connectionString = new SqliteConnectionStringBuilder {
 				DataSource = path,
-				Mode = SqliteOpenMode.ReadWriteCreate
-			}.ToString();
+				Mode = SqliteOpenMode.ReadWriteCreate,
+			};
 
-			var conn = new SqliteConnection(connectionString);
-			conn.Open();
+			var pool = new SqliteConnectionPool(connectionString, DefaultPoolSize);
 
-			return await new Schema(conn).Setup(checkCanUpgradeSchemas) ? new SqliteDatabaseFile(path, conn) : null;
+			using (var conn = pool.Take()) {
+				if (!await new Schema(conn).Setup(checkCanUpgradeSchemas)) {
+					return null;
+				}
+			}
+
+			return new SqliteDatabaseFile(path, pool);
 		}
 
 		public string Path { get; }
 		public DatabaseStatistics Statistics { get; }
 
 		private readonly Log log;
-		private readonly SqliteConnection conn;
+		private readonly SqliteConnectionPool pool;
 
-		private SqliteDatabaseFile(string path, SqliteConnection conn) {
+		private SqliteDatabaseFile(string path, SqliteConnectionPool pool) {
 			this.log = Log.ForType(typeof(SqliteDatabaseFile), System.IO.Path.GetFileName(path));
-			this.conn = conn;
+			this.pool = pool;
 			this.Path = path;
 			this.Statistics = new DatabaseStatistics();
-			UpdateServerStatistics();
-			UpdateChannelStatistics();
-			UpdateUserStatistics();
-			UpdateMessageStatistics();
+
+			using var conn = pool.Take();
+			UpdateServerStatistics(conn);
+			UpdateChannelStatistics(conn);
+			UpdateUserStatistics(conn);
+			UpdateMessageStatistics(conn);
 		}
 
 		public void Dispose() {
-			conn.Dispose();
+			pool.Dispose();
 		}
 
 		public void AddServer(Data.Server server) {
+			using var conn = pool.Take();
 			using var cmd = conn.Upsert("servers", new[] {
 				("id", SqliteType.Integer),
 				("name", SqliteType.Text),
@@ -55,13 +66,14 @@ namespace DHT.Server.Database.Sqlite {
 			cmd.Set(":name", server.Name);
 			cmd.Set(":type", ServerTypes.ToString(server.Type));
 			cmd.ExecuteNonQuery();
-			UpdateServerStatistics();
+			UpdateServerStatistics(conn);
 		}
 
 		public List<Data.Server> GetAllServers() {
 			var perf = log.Start();
 			var list = new List<Data.Server>();
 
+			using var conn = pool.Take();
 			using var cmd = conn.Command("SELECT id, name, type FROM servers");
 			using var reader = cmd.ExecuteReader();
 
@@ -78,6 +90,7 @@ namespace DHT.Server.Database.Sqlite {
 		}
 
 		public void AddChannel(Channel channel) {
+			using var conn = pool.Take();
 			using var cmd = conn.Upsert("channels", new[] {
 				("id", SqliteType.Integer),
 				("server", SqliteType.Integer),
@@ -96,12 +109,13 @@ namespace DHT.Server.Database.Sqlite {
 			cmd.Set(":topic", channel.Topic);
 			cmd.Set(":nsfw", channel.Nsfw);
 			cmd.ExecuteNonQuery();
-			UpdateChannelStatistics();
+			UpdateChannelStatistics(conn);
 		}
 
 		public List<Channel> GetAllChannels() {
 			var list = new List<Channel>();
 
+			using var conn = pool.Take();
 			using var cmd = conn.Command("SELECT id, server, name, parent_id, position, topic, nsfw FROM channels");
 			using var reader = cmd.ExecuteReader();
 
@@ -121,6 +135,7 @@ namespace DHT.Server.Database.Sqlite {
 		}
 
 		public void AddUsers(User[] users) {
+			using var conn = pool.Take();
 			using var tx = conn.BeginTransaction();
 			using var cmd = conn.Upsert("users", new[] {
 				("id", SqliteType.Integer),
@@ -138,13 +153,14 @@ namespace DHT.Server.Database.Sqlite {
 			}
 
 			tx.Commit();
-			UpdateUserStatistics();
+			UpdateUserStatistics(conn);
 		}
 
 		public List<User> GetAllUsers() {
 			var perf = log.Start();
 			var list = new List<User>();
 
+			using var conn = pool.Take();
 			using var cmd = conn.Command("SELECT id, name, avatar_url, discriminator FROM users");
 			using var reader = cmd.ExecuteReader();
 
@@ -162,7 +178,7 @@ namespace DHT.Server.Database.Sqlite {
 		}
 
 		public void AddMessages(Message[] messages) {
-			static SqliteCommand DeleteByMessageId(SqliteConnection conn, string tableName) {
+			static SqliteCommand DeleteByMessageId(ISqliteConnection conn, string tableName) {
 				return conn.Delete(tableName, ("message_id", SqliteType.Integer));
 			}
 
@@ -171,6 +187,7 @@ namespace DHT.Server.Database.Sqlite {
 				cmd.ExecuteNonQuery();
 			}
 
+			using var conn = pool.Take();
 			using var tx = conn.BeginTransaction();
 
 			using var messageCmd = conn.Upsert("messages", new[] {
@@ -282,10 +299,11 @@ namespace DHT.Server.Database.Sqlite {
 			}
 
 			tx.Commit();
-			UpdateMessageStatistics();
+			UpdateMessageStatistics(conn);
 		}
 
 		public int CountMessages(MessageFilter? filter = null) {
+			using var conn = pool.Take();
 			using var cmd = conn.Command("SELECT COUNT(*) FROM messages" + filter.GenerateWhereClause());
 			using var reader = cmd.ExecuteReader();
 
@@ -300,6 +318,7 @@ namespace DHT.Server.Database.Sqlite {
 			var embeds = GetAllEmbeds();
 			var reactions = GetAllReactions();
 
+			using var conn = pool.Take();
 			using var cmd = conn.Command(@"
 SELECT m.message_id, m.sender_id, m.channel_id, m.text, m.timestamp, et.edit_timestamp, rt.replied_to_id
 FROM messages m
@@ -342,16 +361,18 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			                      .Append("FROM messages")
 			                      .Append(whereClause);
 
+			using var conn = pool.Take();
 			using var cmd = conn.Command(build.ToString());
 			cmd.ExecuteNonQuery();
 
-			UpdateMessageStatistics();
+			UpdateMessageStatistics(conn);
 			perf.End();
 		}
 
 		private MultiDictionary<ulong, Attachment> GetAllAttachments() {
 			var dict = new MultiDictionary<ulong, Attachment>();
 
+			using var conn = pool.Take();
 			using var cmd = conn.Command("SELECT message_id, attachment_id, name, type, url, size FROM attachments");
 			using var reader = cmd.ExecuteReader();
 
@@ -373,6 +394,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 		private MultiDictionary<ulong, Embed> GetAllEmbeds() {
 			var dict = new MultiDictionary<ulong, Embed>();
 
+			using var conn = pool.Take();
 			using var cmd = conn.Command("SELECT message_id, json FROM embeds");
 			using var reader = cmd.ExecuteReader();
 
@@ -390,6 +412,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 		private MultiDictionary<ulong, Reaction> GetAllReactions() {
 			var dict = new MultiDictionary<ulong, Reaction>();
 
+			using var conn = pool.Take();
 			using var cmd = conn.Command("SELECT message_id, emoji_id, emoji_name, emoji_flags, count FROM reactions");
 			using var reader = cmd.ExecuteReader();
 
@@ -407,19 +430,19 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			return dict;
 		}
 
-		private void UpdateServerStatistics() {
+		private void UpdateServerStatistics(ISqliteConnection conn) {
 			Statistics.TotalServers = conn.SelectScalar("SELECT COUNT(*) FROM servers") as long? ?? 0;
 		}
 
-		private void UpdateChannelStatistics() {
+		private void UpdateChannelStatistics(ISqliteConnection conn) {
 			Statistics.TotalChannels = conn.SelectScalar("SELECT COUNT(*) FROM channels") as long? ?? 0;
 		}
 
-		private void UpdateUserStatistics() {
+		private void UpdateUserStatistics(ISqliteConnection conn) {
 			Statistics.TotalUsers = conn.SelectScalar("SELECT COUNT(*) FROM users") as long? ?? 0;
 		}
 
-		private void UpdateMessageStatistics() {
+		private void UpdateMessageStatistics(ISqliteConnection conn) {
 			Statistics.TotalMessages = conn.SelectScalar("SELECT COUNT(*) FROM messages") as long? ?? 0L;
 		}
 	}

@@ -2,20 +2,24 @@ using System;
 using System.Linq;
 using Microsoft.Data.Sqlite;
 
-namespace DHT.Server.Database.Sqlite {
-	static class SqliteUtils {
-		public static SqliteCommand Command(this SqliteConnection conn, string sql) {
-			var cmd = conn.CreateCommand();
+namespace DHT.Server.Database.Sqlite.Utils {
+	static class SqliteExtensions {
+		public static SqliteCommand Command(this ISqliteConnection conn, string sql) {
+			var cmd = conn.InnerConnection.CreateCommand();
 			cmd.CommandText = sql;
 			return cmd;
 		}
 
-		public static object? SelectScalar(this SqliteConnection conn, string sql) {
+		public static SqliteTransaction BeginTransaction(this ISqliteConnection conn) {
+			return conn.InnerConnection.BeginTransaction();
+		}
+
+		public static object? SelectScalar(this ISqliteConnection conn, string sql) {
 			using var cmd = conn.Command(sql);
 			return cmd.ExecuteScalar();
 		}
 
-		public static SqliteCommand Insert(this SqliteConnection conn, string tableName, (string Name, SqliteType Type)[] columns) {
+		public static SqliteCommand Insert(this ISqliteConnection conn, string tableName, (string Name, SqliteType Type)[] columns) {
 			string columnNames = string.Join(',', columns.Select(static c => c.Name));
 			string columnParams = string.Join(',', columns.Select(static c => ':' + c.Name));
 
@@ -26,7 +30,7 @@ namespace DHT.Server.Database.Sqlite {
 			return cmd;
 		}
 
-		public static SqliteCommand Upsert(this SqliteConnection conn, string tableName, (string Name, SqliteType Type)[] columns) {
+		public static SqliteCommand Upsert(this ISqliteConnection conn, string tableName, (string Name, SqliteType Type)[] columns) {
 			string columnNames = string.Join(',', columns.Select(static c => c.Name));
 			string columnParams = string.Join(',', columns.Select(static c => ':' + c.Name));
 			string columnUpdates = string.Join(',', columns.Skip(1).Select(static c => c.Name + " = excluded." + c.Name));
@@ -40,7 +44,7 @@ namespace DHT.Server.Database.Sqlite {
 			return cmd;
 		}
 
-		public static SqliteCommand Delete(this SqliteConnection conn, string tableName, (string Name, SqliteType Type) column) {
+		public static SqliteCommand Delete(this ISqliteConnection conn, string tableName, (string Name, SqliteType Type) column) {
 			var cmd = conn.Command("DELETE FROM " + tableName + " WHERE " + column.Name + " = :" + column.Name);
 			CreateParameters(cmd, new [] { column });
 			return cmd;

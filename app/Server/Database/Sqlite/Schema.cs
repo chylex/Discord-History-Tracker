@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using DHT.Server.Database.Exceptions;
+using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
-using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
 	sealed class Schema {
@@ -10,20 +10,14 @@ namespace DHT.Server.Database.Sqlite {
 
 		private static readonly Log Log = Log.ForType<Schema>();
 
-		private readonly SqliteConnection conn;
+		private readonly ISqliteConnection conn;
 
-		public Schema(SqliteConnection conn) {
+		public Schema(ISqliteConnection conn) {
 			this.conn = conn;
 		}
 
-		private SqliteCommand Sql(string sql) {
-			var cmd = conn.CreateCommand();
-			cmd.CommandText = sql;
-			return cmd;
-		}
-
 		private void Execute(string sql) {
-			Sql(sql).ExecuteNonQuery();
+			conn.Command(sql).ExecuteNonQuery();
 		}
 
 		public async Task<bool> Setup(Func<Task<bool>> checkCanUpgradeSchemas) {
