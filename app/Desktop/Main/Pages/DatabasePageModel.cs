@@ -8,7 +8,6 @@ using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
 using DHT.Server.Database;
-using DHT.Server.Service;
 using DHT.Utils.Logging;
 using DHT.Utils.Models;
 
@@ -76,7 +75,6 @@ namespace DHT.Desktop.Main.Pages {
 		}
 
 		public void CloseDatabase() {
-			ServerLauncher.Stop();
 			DatabaseClosed?.Invoke(this, EventArgs.Empty);
 		}
 

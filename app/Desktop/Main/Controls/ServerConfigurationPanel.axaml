@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
+             mc:Ignorable="d"
+             x:Class="DHT.Desktop.Main.Controls.ServerConfigurationPanel">
+
+    <Design.DataContext>
+        <controls:ServerConfigurationPanelModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="FontFamily" Value="Consolas,Courier" />
+            <Setter Property="FontSize" Value="15" />
+        </Style>
+        <Style Selector="WrapPanel > StackPanel">
+            <Setter Property="Orientation" Value="Vertical" />
+            <Setter Property="Margin" Value="0 0 10 10" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel>
+        <Button Command="{Binding OnClickToggleServerButton}" Content="{Binding ToggleServerButtonText}" IsEnabled="{Binding IsToggleServerButtonEnabled}" />
+        <TextBlock TextWrapping="Wrap" Margin="0 15">
+            The following settings determine how the tracking script communicates with this application. If you change them, you will have to copy and apply the tracking script again.
+        </TextBlock>
+        <WrapPanel>
+            <StackPanel>
+                <Label Target="Port">Port</Label>
+                <TextBox x:Name="Port" Width="70" Text="{Binding InputPort}" />
+            </StackPanel>
+            <StackPanel>
+                <Label Target="Token">Token</Label>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox x:Name="Token" Width="200" Text="{Binding InputToken}" />
+                </StackPanel>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Bottom">
+                <Button Command="{Binding OnClickRandomizeToken}">Randomize Token</Button>
+            </StackPanel>
+        </WrapPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button IsEnabled="{Binding HasMadeChanges}" Command="{Binding OnClickApplyChanges}">Apply &amp; Restart</Button>
+            <Button IsEnabled="{Binding HasMadeChanges}" Command="{Binding OnClickCancelChanges}">Cancel</Button>
+        </StackPanel>
+    </StackPanel>
+
+</UserControl>

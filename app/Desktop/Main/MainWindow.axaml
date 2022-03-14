@@ -8,7 +8,7 @@
         Title="{Binding Title}"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
         Width="800" Height="500"
-        MinWidth="480" MinHeight="240"
+        MinWidth="480" MinHeight="260"
         WindowStartupLocation="CenterScreen"
         Closed="OnClosed">
 

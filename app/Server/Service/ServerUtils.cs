@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace DHT.Server.Service {
 	public static class ServerUtils {
-		public static int FindAvailablePort(int min, int max) {
+		public static ushort FindAvailablePort(ushort min, ushort max) {
 			var properties = IPGlobalProperties.GetIPGlobalProperties();
 			var occupied = new HashSet<int>();
 			occupied.UnionWith(properties.GetActiveTcpListeners().Select(static tcp => tcp.Port));
@@ -15,7 +15,7 @@ namespace DHT.Server.Service {
 
 			for (int port = min; port < max; port++) {
 				if (!occupied.Contains(port)) {
-					return port;
+					return (ushort) port;
 				}
 			}
 

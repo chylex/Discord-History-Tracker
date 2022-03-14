@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
-using DHT.Desktop.Main.Pages;
+using DHT.Desktop.Server;
 using DHT.Server.Database;
 using DHT.Utils.Models;
 
@@ -61,11 +61,11 @@ namespace DHT.Desktop.Main {
 			}
 
 			if (args.ServerPort != null) {
-				TrackingPageModel.ServerPort = args.ServerPort.ToString()!;
+				ServerManager.Port = args.ServerPort.Value;
 			}
 
 			if (args.ServerToken != null) {
-				TrackingPageModel.ServerToken = args.ServerToken;
+				ServerManager.Token = args.ServerToken;
 			}
 		}
 

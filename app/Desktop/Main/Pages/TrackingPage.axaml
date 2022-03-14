@@ -10,55 +10,14 @@
         <pages:TrackingPageModel />
     </Design.DataContext>
 
-    <UserControl.Styles>
-        <Style Selector="TextBox">
-            <Setter Property="FontFamily" Value="Consolas,Courier" />
-            <Setter Property="FontSize" Value="15" />
-        </Style>
-        <Style Selector="WrapPanel > StackPanel">
-            <Setter Property="Orientation" Value="Vertical" />
-            <Setter Property="Margin" Value="0 0 10 10" />
-        </Style>
-        <Style Selector="Expander">
-            <Setter Property="Margin" Value="0 5 0 0" />
-        </Style>
-    </UserControl.Styles>
-
     <StackPanel Spacing="10">
         <TextBlock TextWrapping="Wrap">
             To start tracking messages, copy the tracking script and paste it into the console of either the Discord app, or your browser. The console is usually opened by pressing Ctrl+Shift+I.
         </TextBlock>
         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="10">
             <Button x:Name="CopyTrackingScript" Click="CopyTrackingScriptButton_OnClick">Copy Tracking Script</Button>
-            <Button Command="{Binding OnClickToggleTrackingButton}" Content="{Binding ToggleTrackingButtonText}" IsEnabled="{Binding IsToggleButtonEnabled}" />
         </StackPanel>
-        <Expander Header="Advanced Tracking Settings">
-            <StackPanel Spacing="10">
-                <TextBlock TextWrapping="Wrap">
-                    The following settings determine how the tracking script communicates with this application. If you change them, you will have to copy and apply the tracking script again.
-                </TextBlock>
-                <WrapPanel>
-                    <StackPanel>
-                        <Label Target="Port">Port</Label>
-                        <TextBox x:Name="Port" Width="70" Text="{Binding InputPort}" />
-                    </StackPanel>
-                    <StackPanel>
-                        <Label Target="Token">Token</Label>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBox x:Name="Token" Width="200" Text="{Binding InputToken}" />
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel VerticalAlignment="Bottom">
-                        <Button Command="{Binding OnClickRandomizeToken}">Randomize Token</Button>
-                    </StackPanel>
-                </WrapPanel>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button IsEnabled="{Binding HasMadeChanges}" Command="{Binding OnClickApplyChanges}">Apply &amp; Restart</Button>
-                    <Button IsEnabled="{Binding HasMadeChanges}" Command="{Binding OnClickCancelChanges}">Cancel</Button>
-                </StackPanel>
-            </StackPanel>
-        </Expander>
-        <TextBlock TextWrapping="Wrap" Margin="0 10 0 0">
+        <TextBlock TextWrapping="Wrap" Margin="0 5 0 0">
             By default, the Discord app does not allow opening the console. The button below will change a hidden setting in the Discord app that controls whether the Ctrl+Shift+I shortcut is enabled.
         </TextBlock>
         <Button DockPanel.Dock="Right" Command="{Binding OnClickToggleAppDevTools}" Content="{Binding ToggleAppDevToolsButtonText}" IsEnabled="{Binding IsToggleAppDevToolsButtonEnabled}" />
