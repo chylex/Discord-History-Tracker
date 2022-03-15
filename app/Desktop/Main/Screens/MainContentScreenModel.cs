@@ -9,7 +9,7 @@ using DHT.Server.Database;
 using DHT.Server.Service;
 using DHT.Utils.Logging;
 
-namespace DHT.Desktop.Main {
+namespace DHT.Desktop.Main.Screens {
 	sealed class MainContentScreenModel : IDisposable {
 		private static readonly Log Log = Log.ForType<MainContentScreenModel>();
 

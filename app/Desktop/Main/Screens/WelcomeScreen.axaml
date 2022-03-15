@@ -2,12 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:main="clr-namespace:DHT.Desktop.Main"
+             xmlns:screens="clr-namespace:DHT.Desktop.Main.Screens"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DHT.Desktop.Main.WelcomeScreen">
+             x:Class="DHT.Desktop.Main.Screens.WelcomeScreen">
 
     <Design.DataContext>
-        <main:WelcomeScreenModel />
+        <screens:WelcomeScreenModel />
     </Design.DataContext>
 
     <UserControl.Background>

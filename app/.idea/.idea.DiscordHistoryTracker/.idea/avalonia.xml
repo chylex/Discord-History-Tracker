@@ -11,13 +11,13 @@
         <entry key="Desktop/Main/Controls/FilterPanel.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Controls/ServerConfigurationPanel.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Controls/StatusBar.axaml" value="Desktop/Desktop.csproj" />
-        <entry key="Desktop/Main/MainContentScreen.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/MainWindow.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Pages/AdvancedPage.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Pages/DatabasePage.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Pages/TrackingPage.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Pages/ViewerPage.axaml" value="Desktop/Desktop.csproj" />
-        <entry key="Desktop/Main/WelcomeScreen.axaml" value="Desktop/Desktop.csproj" />
+        <entry key="Desktop/Main/Screens/MainContentScreen.axaml" value="Desktop/Desktop.csproj" />
+        <entry key="Desktop/Main/Screens/WelcomeScreen.axaml" value="Desktop/Desktop.csproj" />
       </map>
     </option>
   </component>

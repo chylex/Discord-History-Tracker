@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
+using DHT.Desktop.Main.Screens;
 using DHT.Desktop.Server;
 using DHT.Server.Database;
 using DHT.Utils.Models;

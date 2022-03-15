@@ -7,7 +7,7 @@ using DHT.Desktop.Dialogs.Message;
 using DHT.Server.Database;
 using DHT.Utils.Models;
 
-namespace DHT.Desktop.Main {
+namespace DHT.Desktop.Main.Screens {
 	sealed class WelcomeScreenModel : BaseModel, IDisposable {
 		public string Version => Program.Version;
 

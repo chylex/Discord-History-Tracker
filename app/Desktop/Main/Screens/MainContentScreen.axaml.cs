@@ -2,10 +2,10 @@ using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace DHT.Desktop.Main {
+namespace DHT.Desktop.Main.Screens {
 	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
-	public sealed class WelcomeScreen : UserControl {
-		public WelcomeScreen() {
+	public sealed class MainContentScreen : UserControl {
+		public MainContentScreen() {
 			InitializeComponent();
 		}
 
