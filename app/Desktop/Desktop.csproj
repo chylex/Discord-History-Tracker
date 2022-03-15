@@ -3,6 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <AssemblyName>DiscordHistoryTracker</AssemblyName>
     <RootNamespace>DHT.Desktop</RootNamespace>
     <PackageId>DiscordHistoryTracker</PackageId>
     <Authors>chylex</Authors>
@@ -11,7 +12,6 @@
     <ApplicationIcon>./Resources/icon.ico</ApplicationIcon>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <AssemblyName>DiscordHistoryTracker</AssemblyName>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>

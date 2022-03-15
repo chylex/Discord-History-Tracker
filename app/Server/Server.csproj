@@ -3,6 +3,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>DHT.Server</RootNamespace>
     <Nullable>enable</Nullable>
+    <AssemblyName>DiscordHistoryTracker.Server</AssemblyName>
     <PackageId>DiscordHistoryTrackerServer</PackageId>
     <Authors>chylex</Authors>
     <Company>DiscordHistoryTracker</Company>
