@@ -23,54 +23,37 @@
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.13" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.13" />
-    <ProjectReference Include="..\Server\Server.csproj" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
     <PackageReference Include="Avalonia.Diagnostics" Version="0.10.13" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Server\Server.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\Version.cs" Link="Version.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Windows\MainWindow.axaml.cs">
-      <DependentUpon>MainWindow.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Dialogs\CheckBox\CheckBoxDialog.axaml.cs">
-      <DependentUpon>CheckBoxDialog.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Dialogs\Progress\ProgressDialog.axaml.cs">
-      <DependentUpon>ProgressDialog.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Dialogs\Message\MessageDialog.axaml.cs">
-      <DependentUpon>MessageDialog.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <UpToDateCheckInput Remove="Pages\DatabasePage.axaml" />
-    <UpToDateCheckInput Remove="Pages\TrackingPage.axaml" />
-    <UpToDateCheckInput Remove="Pages\ViewerPage.axaml" />
-  </ItemGroup>
-  <ItemGroup>
+    <AvaloniaResource Include="Resources/icon.ico" />
     <EmbeddedResource Include="../Resources/Tracker/bootstrap.js">
       <LogicalName>Tracker\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
       <Link>Resources/Tracker/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
     </EmbeddedResource>
     <EmbeddedResource Include="../Resources/Tracker/scripts.min/**">
       <LogicalName>Tracker\scripts\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
       <Link>Resources/Tracker/scripts/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
     </EmbeddedResource>
     <EmbeddedResource Include="../Resources/Tracker/styles/**">
       <LogicalName>Tracker\styles\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
       <Link>Resources/Tracker/styles/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
     </EmbeddedResource>
     <EmbeddedResource Include="../Resources/Viewer/**">
       <LogicalName>Viewer\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
       <Link>Resources/Viewer/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
     </EmbeddedResource>
-    <AvaloniaResource Include="Resources/icon.ico" />
   </ItemGroup>
 </Project>

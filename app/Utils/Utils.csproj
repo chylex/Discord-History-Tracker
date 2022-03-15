@@ -11,10 +11,6 @@
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>none</DebugType>
-  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="10.3.0" />
   </ItemGroup>
