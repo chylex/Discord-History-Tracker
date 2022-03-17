@@ -12,10 +12,20 @@
     </Design.DataContext>
 
     <UserControl.Styles>
+        <Style Selector="Border.statusBar">
+            <Setter Property="Background" Value="#3C4F79" />
+        </Style>
+        <Style Selector="TextBlock.invisibleTabItem">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="SemiLight" />
+            <Setter Property="Margin" Value="17 0" />
+            <Setter Property="Opacity" Value="0" />
+        </Style>
         <Style Selector="TabControl ItemsPresenter > Grid">
             <Setter Property="Background" Value="#546A9F" />
         </Style>
         <Style Selector="TabItem">
+            <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Foreground" Value="#E9E9E9" />
             <Setter Property="FontSize" Value="20" />
         </Style>
@@ -23,10 +33,11 @@
             <Setter Property="Margin" Value="5 0" />
         </Style>
         <Style Selector="TabItem:pointerover">
-            <Setter Property="Background" Value="#1F2E45" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="#455785" />
         </Style>
         <Style Selector="TabItem:pointerover /template/ Border">
-            <Setter Property="Background" Value="#1F2E45" />
+            <Setter Property="Background" Value="#455785" />
         </Style>
         <Style Selector="TabItem:pointerover > TextBlock">
             <Setter Property="Foreground" Value="#E9E9E9" />
@@ -60,43 +71,37 @@
     </UserControl.Styles>
 
     <DockPanel>
-        <TabControl x:Name="TabControl" TabStripPlacement="Left">
+        <Border Classes="statusBar" DockPanel.Dock="Bottom">
+            <DockPanel>
+                <TextBlock Classes="invisibleTabItem" DockPanel.Dock="Left">Advanced</TextBlock>
+                <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Right" />
+            </DockPanel>
+        </Border>
+        <TabControl x:Name="TabControl" TabStripPlacement="Left" DockPanel.Dock="Top">
             <TabControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <Grid ColumnDefinitions="Auto" RowDefinitions="Auto,Auto,Auto,*,Auto,43" />
+                    <Grid ColumnDefinitions="Auto" RowDefinitions="Auto,Auto,Auto,*,Auto" />
                 </ItemsPanelTemplate>
             </TabControl.ItemsPanel>
             <TabItem x:Name="TabDatabase" Header="Database" Classes="first" Grid.Row="0">
-                <DockPanel>
-                    <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Bottom" />
-                    <ScrollViewer>
-                        <ContentPresenter Content="{Binding DatabasePage}" Classes="page" />
-                    </ScrollViewer>
-                </DockPanel>
+                <ScrollViewer>
+                    <ContentPresenter Content="{Binding DatabasePage}" Classes="page" />
+                </ScrollViewer>
             </TabItem>
             <TabItem x:Name="TabTracking" Header="Tracking" DockPanel.Dock="Top" Grid.Row="1">
-                <DockPanel>
-                    <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Bottom" />
-                    <ScrollViewer>
-                        <ContentPresenter Content="{Binding TrackingPage}" Classes="page" />
-                    </ScrollViewer>
-                </DockPanel>
+                <ScrollViewer>
+                    <ContentPresenter Content="{Binding TrackingPage}" Classes="page" />
+                </ScrollViewer>
             </TabItem>
             <TabItem x:Name="TabViewer" Header="Viewer" DockPanel.Dock="Top" Grid.Row="2">
-                <DockPanel>
-                    <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Bottom" />
-                    <ScrollViewer>
-                        <ContentPresenter Content="{Binding ViewerPage}" Classes="page" />
-                    </ScrollViewer>
-                </DockPanel>
+                <ScrollViewer>
+                    <ContentPresenter Content="{Binding ViewerPage}" Classes="page" />
+                </ScrollViewer>
             </TabItem>
             <TabItem x:Name="TabAdvanced" Header="Advanced" DockPanel.Dock="Bottom" Grid.Row="4">
-                <DockPanel>
-                    <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Bottom" />
-                    <ScrollViewer>
-                        <ContentPresenter Content="{Binding AdvancedPage}" Classes="page" />
-                    </ScrollViewer>
-                </DockPanel>
+                <ScrollViewer>
+                    <ContentPresenter Content="{Binding AdvancedPage}" Classes="page" />
+                </ScrollViewer>
             </TabItem>
         </TabControl>
     </DockPanel>

@@ -11,32 +11,35 @@
     </Design.DataContext>
 
     <UserControl.Background>
-        <SolidColorBrush>#546A9F</SolidColorBrush>
+        <SolidColorBrush>#3C4F79</SolidColorBrush>
     </UserControl.Background>
 
     <UserControl.Styles>
         <Style Selector="StackPanel > TextBlock">
-            <Setter Property="Foreground" Value="#E0E0E0" />
+            <Setter Property="Foreground" Value="#E7E7E7" />
         </Style>
         <Style Selector="StackPanel > TextBlock.label">
             <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiLight" />
         </Style>
         <Style Selector="StackPanel > TextBlock.value">
             <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiLight" />
             <Setter Property="TextAlignment" Value="Right" />
+            <Setter Property="Margin" Value="0 1" />
         </Style>
         <Style Selector="StackPanel > Rectangle">
-            <Setter Property="Margin" Value="14 0" />
-            <Setter Property="Stroke" Value="#3B5287" />
+            <Setter Property="Margin" Value="14 1" />
+            <Setter Property="Stroke" Value="#697899" />
             <Setter Property="StrokeThickness" Value="2" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
         </Style>
     </UserControl.Styles>
 
-    <StackPanel Orientation="Horizontal" Margin="4 3">
+    <StackPanel Orientation="Horizontal" Margin="6 3">
         <StackPanel Orientation="Vertical" Width="65">
             <TextBlock Classes="label">Status</TextBlock>
-            <TextBlock FontSize="12" Margin="0 2 0 0" Text="{Binding StatusText}" />
+            <TextBlock FontSize="12" Margin="0 3 0 0" Text="{Binding StatusText}" />
         </StackPanel>
         <Rectangle />
         <StackPanel Orientation="Vertical">
