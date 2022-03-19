@@ -1,9 +1,19 @@
-# Python 3
+#!/usr/bin/env python3
 
 import glob
 import os
+import shutil
+import sys
 
-uglifyjs = os.path.abspath("../lib/uglifyjs")
+if os.name == "nt":
+    uglifyjs = os.path.abspath("../lib/uglifyjs.cmd")
+else:
+    uglifyjs = "uglifyjs"
+
+if shutil.which(uglifyjs) is None:
+    print("Cannot find executable: {0}".format(uglifyjs))
+    sys.exit(1)
+
 input_dir = os.path.abspath("./Resources/Tracker/scripts")
 output_dir = os.path.abspath("./Resources/Tracker/scripts.min")
 
