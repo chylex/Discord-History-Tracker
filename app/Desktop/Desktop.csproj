@@ -23,9 +23,7 @@
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.13" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.13" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.13" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.13" Condition=" '$(Configuration)' == 'Debug' " />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Server\Server.csproj" />
@@ -40,7 +38,12 @@
       <Link>Resources/Tracker/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <Visible>false</Visible>
     </EmbeddedResource>
-    <EmbeddedResource Include="../Resources/Tracker/scripts.min/**">
+    <EmbeddedResource Include="../Resources/Tracker/scripts/**" Condition=" '$(Configuration)' == 'Debug' ">
+      <LogicalName>Tracker\scripts\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+      <Link>Resources/Tracker/scripts/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(ProjectDir)bin/.res/scripts/**" Condition=" '$(Configuration)' == 'Release' ">
       <LogicalName>Tracker\scripts\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
       <Link>Resources/Tracker/scripts/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <Visible>false</Visible>
@@ -56,4 +59,11 @@
       <Visible>false</Visible>
     </EmbeddedResource>
   </ItemGroup>
+  <Target Name="MinifyResources" BeforeTargets="PrepareForBuild" Condition=" '$(Configuration)' == 'Release' ">
+    <ItemGroup>
+      <UpToDateCheckInput Include="$(ProjectDir)../Resources/Tracker/scripts/**" Visible="false" />
+    </ItemGroup>
+    <RemoveDir Directories="$(ProjectDir)bin/.res/scripts" />
+    <Exec Command="$(ProjectDir)../Resources/minify.py" WorkingDirectory="$(ProjectDir)../Resources" IgnoreExitCode="false" />
+  </Target>
 </Project>
