@@ -211,7 +211,7 @@ namespace DHT.Desktop.Main.Controls {
 
 			if (FilterByDate) {
 				filter.StartDate = StartDate;
-				filter.EndDate = EndDate;
+				filter.EndDate = EndDate?.AddDays(1).AddMilliseconds(-1);
 			}
 
 			if (FilterByChannel) {
