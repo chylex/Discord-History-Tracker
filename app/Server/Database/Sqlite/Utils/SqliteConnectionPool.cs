@@ -24,7 +24,14 @@ namespace DHT.Server.Database.Sqlite.Utils {
 			for (int i = 0; i < poolSize; i++) {
 				var conn = new SqliteConnection(connectionString);
 				conn.Open();
-				free.Add(new PooledConnection(this, conn));
+				
+				var pooledConn = new PooledConnection(this, conn);
+				
+				using (var cmd = pooledConn.Command("PRAGMA journal_mode=WAL")) {
+					cmd.ExecuteNonQuery();
+				}
+				
+				free.Add(pooledConn);
 			}
 
 			used = new List<PooledConnection>(poolSize);
