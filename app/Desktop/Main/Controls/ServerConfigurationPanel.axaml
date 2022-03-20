@@ -33,9 +33,7 @@
             </StackPanel>
             <StackPanel>
                 <Label Target="Token">Token</Label>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="Token" Width="200" Text="{Binding InputToken}" />
-                </StackPanel>
+                <TextBox x:Name="Token" Width="200" Text="{Binding InputToken}" />
             </StackPanel>
             <StackPanel VerticalAlignment="Bottom">
                 <Button Command="{Binding OnClickRandomizeToken}">Randomize Token</Button>

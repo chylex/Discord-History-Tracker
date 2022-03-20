@@ -88,17 +88,17 @@
                     <ContentPresenter Content="{Binding DatabasePage}" Classes="page" />
                 </ScrollViewer>
             </TabItem>
-            <TabItem x:Name="TabTracking" Header="Tracking" DockPanel.Dock="Top" Grid.Row="1">
+            <TabItem x:Name="TabTracking" Header="Tracking" Grid.Row="1">
                 <ScrollViewer>
                     <ContentPresenter Content="{Binding TrackingPage}" Classes="page" />
                 </ScrollViewer>
             </TabItem>
-            <TabItem x:Name="TabViewer" Header="Viewer" DockPanel.Dock="Top" Grid.Row="2">
+            <TabItem x:Name="TabViewer" Header="Viewer" Grid.Row="2">
                 <ScrollViewer>
                     <ContentPresenter Content="{Binding ViewerPage}" Classes="page" />
                 </ScrollViewer>
             </TabItem>
-            <TabItem x:Name="TabAdvanced" Header="Advanced" DockPanel.Dock="Bottom" Grid.Row="4">
+            <TabItem x:Name="TabAdvanced" Header="Advanced" Grid.Row="4">
                 <ScrollViewer>
                     <ContentPresenter Content="{Binding AdvancedPage}" Classes="page" />
                 </ScrollViewer>
