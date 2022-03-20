@@ -232,16 +232,21 @@ class DISCORD {
 		
 		if (dms) {
 			const currentChannel = DOM.queryReactClass("selected", dms);
-			const nextChannel = currentChannel && currentChannel.nextElementSibling;
+			const currentChannelContainer = currentChannel && currentChannel.closest("[class*='channel-']");
+			const nextChannel = currentChannelContainer && currentChannelContainer.nextElementSibling;
 			
-			if (!nextChannel || !nextChannel.getAttribute("class").includes("channel-") || !("href" in nextChannel) || !nextChannel.href.includes("/@me/")) {
+			if (!nextChannel || !nextChannel.getAttribute("class").includes("channel-")) {
 				return false;
 			}
-			else {
-				nextChannel.click();
-				nextChannel.scrollIntoView(true);
-				return true;
+			
+			const nextChannelLink = nextChannel.querySelector("a[href*='/@me/']");
+			if (!nextChannelLink) {
+				return false;
 			}
+			
+			nextChannelLink.click();
+			nextChannelLink.scrollIntoView(true);
+			return true;
 		}
 		else {
 			const channelListEle = document.getElementById("channels");
