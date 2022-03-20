@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:DHT.Desktop.Main.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DHT.Desktop.Main.Pages.DebugPage">
+    
+    <Design.DataContext>
+        <pages:DebugPageModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="FontFamily" Value="Consolas,Courier" />
+            <Setter Property="FontSize" Value="15" />
+        </Style>
+        <Style Selector="WrapPanel > StackPanel">
+            <Setter Property="Orientation" Value="Vertical" />
+            <Setter Property="Margin" Value="0 0 10 10" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Orientation="Vertical" Spacing="10">
+        <Expander Header="Generate Random Data" IsExpanded="True">
+            <WrapPanel>
+                <StackPanel>
+                    <Label Target="Channels">Channels</Label>
+                    <TextBox x:Name="Channels" Width="100" Text="{Binding GenerateChannels}" />
+                </StackPanel>
+                <StackPanel>
+                    <Label Target="Users">Users</Label>
+                    <TextBox x:Name="Users" Width="100" Text="{Binding GenerateUsers}" />
+                </StackPanel>
+                <StackPanel>
+                    <Label Target="Messages">Messages</Label>
+                    <TextBox x:Name="Messages" Width="100" Text="{Binding GenerateMessages}" />
+                </StackPanel>
+                <StackPanel VerticalAlignment="Bottom">
+                    <Button Command="{Binding OnClickAddRandomDataToDatabase}">Add to Database</Button>
+                </StackPanel>
+            </WrapPanel>
+        </Expander>
+    </StackPanel>
+</UserControl>

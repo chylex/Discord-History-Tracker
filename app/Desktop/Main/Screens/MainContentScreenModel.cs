@@ -25,6 +25,15 @@ namespace DHT.Desktop.Main.Screens {
 		public AdvancedPage AdvancedPage { get; }
 		private AdvancedPageModel AdvancedPageModel { get; }
 
+		public DebugPage? DebugPage { get; }
+		
+		#if DEBUG
+		public bool HasDebugPage => true;
+		private DebugPageModel DebugPageModel { get; }
+		#else
+		public bool HasDebugPage => false;
+		#endif
+
 		public StatusBarModel StatusBarModel { get; }
 
 		public event EventHandler? DatabaseClosed {
@@ -35,7 +44,7 @@ namespace DHT.Desktop.Main.Screens {
 				DatabasePageModel.DatabaseClosed -= value;
 			}
 		}
-		
+
 		private readonly Window window;
 		private readonly ServerManager serverManager;
 
@@ -45,9 +54,9 @@ namespace DHT.Desktop.Main.Screens {
 		public MainContentScreenModel(Window window, IDatabaseFile db) {
 			this.window = window;
 			this.serverManager = new ServerManager(db);
-			
+
 			ServerLauncher.ServerManagementExceptionCaught += ServerLauncherOnServerManagementExceptionCaught;
-			
+
 			DatabasePageModel = new DatabasePageModel(window, db);
 			DatabasePage = new DatabasePage { DataContext = DatabasePageModel };
 
@@ -56,15 +65,22 @@ namespace DHT.Desktop.Main.Screens {
 
 			ViewerPageModel = new ViewerPageModel(window, db);
 			ViewerPage = new ViewerPage { DataContext = ViewerPageModel };
-			
+
 			AdvancedPageModel = new AdvancedPageModel(window, serverManager);
 			AdvancedPage = new AdvancedPage { DataContext = AdvancedPageModel };
 
-			StatusBarModel = new StatusBarModel(db.Statistics);
+			#if DEBUG
+			DebugPageModel = new DebugPageModel(window, db);
+			DebugPage = new DebugPage { DataContext = DebugPageModel };
+			#else
+			DebugPage = null;
+			#endif
 			
+			StatusBarModel = new StatusBarModel(db.Statistics);
+
 			AdvancedPageModel.ServerConfigurationModel.ServerStatusChanged += OnServerStatusChanged;
 			DatabaseClosed += OnDatabaseClosed;
-			
+
 			StatusBarModel.CurrentStatus = serverManager.IsRunning ? StatusBarModel.Status.Ready : StatusBarModel.Status.Stopped;
 		}
 
