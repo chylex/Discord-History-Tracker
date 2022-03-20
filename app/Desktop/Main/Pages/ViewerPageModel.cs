@@ -34,6 +34,8 @@ namespace DHT.Desktop.Main.Pages {
 		private readonly Window window;
 		private readonly IDatabaseFile db;
 
+		private bool isPageVisible = false;
+		
 		[Obsolete("Designer")]
 		public ViewerPageModel() : this(null!, DummyDatabaseFile.Instance) {}
 
@@ -52,13 +54,20 @@ namespace DHT.Desktop.Main.Pages {
 			FilterModel.Dispose();
 		}
 
+		public void SetPageVisible(bool isPageVisible) {
+			this.isPageVisible = isPageVisible;
+			if (isPageVisible) {
+				UpdateStatistics();
+			}
+		}
+
 		private void OnFilterPropertyChanged(object? sender, PropertyChangedEventArgs e) {
 			UpdateStatistics();
 			HasFilters = FilterModel.HasAnyFilters;
 		}
 
 		private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
-			if (e.PropertyName == nameof(DatabaseStatistics.TotalMessages)) {
+			if (isPageVisible && e.PropertyName == nameof(DatabaseStatistics.TotalMessages)) {
 				UpdateStatistics();
 			}
 		}

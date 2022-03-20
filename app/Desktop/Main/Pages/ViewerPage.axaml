@@ -5,7 +5,9 @@
              xmlns:pages="clr-namespace:DHT.Desktop.Main.Pages"
              xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DHT.Desktop.Main.Pages.ViewerPage">
+             x:Class="DHT.Desktop.Main.Pages.ViewerPage"
+             AttachedToVisualTree="OnAttachedToVisualTree"
+             DetachedFromVisualTree="OnDetachedFromVisualTree">
 
     <Design.DataContext>
         <pages:ViewerPageModel />
