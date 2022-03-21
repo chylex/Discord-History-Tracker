@@ -35,7 +35,7 @@ namespace DHT.Desktop.Main.Pages {
 		private readonly IDatabaseFile db;
 
 		private bool isPageVisible = false;
-		
+
 		[Obsolete("Designer")]
 		public ViewerPageModel() : this(null!, DummyDatabaseFile.Instance) {}
 
@@ -46,7 +46,6 @@ namespace DHT.Desktop.Main.Pages {
 			FilterModel = new FilterPanelModel(window, db);
 			FilterModel.FilterPropertyChanged += OnFilterPropertyChanged;
 			db.Statistics.PropertyChanged += OnDbStatisticsChanged;
-			UpdateStatistics();
 		}
 
 		public void Dispose() {
@@ -73,13 +72,17 @@ namespace DHT.Desktop.Main.Pages {
 		}
 
 		private void UpdateStatistics() {
-			ExportedMessageText = "Will export " + db.CountMessages(FilterModel.CreateFilter()).Format() + " out of " + db.Statistics.TotalMessages.Format() + " message(s).";
+			var filter = FilterModel.CreateFilter();
+			var allMessagesCount = db.Statistics.TotalMessages?.Format() ?? "?";
+			var filteredMessagesCount = filter.IsEmpty ? allMessagesCount : db.CountMessages(filter).Format();
+
+			ExportedMessageText = "Will export " + filteredMessagesCount + " out of " + allMessagesCount + " message(s).";
 			OnPropertyChanged(nameof(ExportedMessageText));
 		}
 
 		private async Task<string> GenerateViewerContents() {
 			string json = ViewerJsonExport.Generate(db, FilterModel.CreateFilter());
-			
+
 			string index = await Resources.ReadTextAsync("Viewer/index.html");
 			string viewer = index.Replace("/*[JS]*/", await Resources.ReadJoinedAsync("Viewer/scripts/", '\n'))
 			                     .Replace("/*[CSS]*/", await Resources.ReadJoinedAsync("Viewer/styles/", '\n'))

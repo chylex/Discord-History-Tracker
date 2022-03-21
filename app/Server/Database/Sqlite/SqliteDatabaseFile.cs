@@ -46,11 +46,13 @@ namespace DHT.Server.Database.Sqlite {
 			this.Path = path;
 			this.Statistics = new DatabaseStatistics();
 
-			using var conn = pool.Take();
-			UpdateServerStatistics(conn);
-			UpdateChannelStatistics(conn);
-			UpdateUserStatistics(conn);
-			UpdateMessageStatistics(conn);
+			using (var conn = pool.Take()) {
+				UpdateServerStatistics(conn);
+				UpdateChannelStatistics(conn);
+				UpdateUserStatistics(conn);
+			}
+
+			messageStatisticsThread.RequestUpdate();
 		}
 
 		public void Dispose() {

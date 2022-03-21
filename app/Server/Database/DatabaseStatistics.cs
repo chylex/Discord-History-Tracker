@@ -5,7 +5,7 @@ namespace DHT.Server.Database {
 		private long totalServers;
 		private long totalChannels;
 		private long totalUsers;
-		private long totalMessages;
+		private long? totalMessages;
 
 		public long TotalServers {
 			get => totalServers;
@@ -22,7 +22,7 @@ namespace DHT.Server.Database {
 			internal set => Change(ref totalUsers, value);
 		}
 
-		public long TotalMessages {
+		public long? TotalMessages {
 			get => totalMessages;
 			internal set => Change(ref totalMessages, value);
 		}
