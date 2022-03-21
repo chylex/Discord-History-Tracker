@@ -53,9 +53,12 @@ namespace DHT.Desktop.Main.Pages {
 			await progressDialog.ShowDialog(window);
 		}
 		
-		private const int BatchSize = 100;
+		private const int BatchSize = 500;
 		
 		private async Task GenerateRandomData(int channelCount, int userCount, int messageCount, IProgressCallback callback) {
+			int batchCount = (messageCount + BatchSize - 1) / BatchSize;
+			await callback.Update("Adding messages in batches of " + BatchSize, 0, batchCount);
+
 			var rand = new Random();
 			var server = new DHT.Server.Data.Server {
 				Id = RandomId(rand),
@@ -87,9 +90,6 @@ namespace DHT.Desktop.Main.Pages {
 				db.AddChannel(channel);
 			}
 			
-			int batchCount = (messageCount + BatchSize - 1) / BatchSize;
-			await callback.Update("Adding messages in batches of 100", 0, batchCount);
-
 			var now = DateTimeOffset.Now;
 			int batchIndex = 0;
 			
@@ -119,8 +119,8 @@ namespace DHT.Desktop.Main.Pages {
 				
 				db.AddMessages(messages);
 				
-				messageCount -= 100;
-				await callback.Update("Adding messages in batches of 100", ++batchIndex, batchCount);
+				messageCount -= BatchSize;
+				await callback.Update("Adding messages in batches of " + BatchSize, ++batchIndex, batchCount);
 			}
 		}
 
