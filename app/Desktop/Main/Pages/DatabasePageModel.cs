@@ -92,6 +92,8 @@ namespace DHT.Desktop.Main.Pages {
 			}
 
 			var oldStatistics = target.Statistics.Clone();
+			var oldMessageCount = target.CountMessages();
+
 			int successful = 0;
 			int finished = 0;
 
@@ -132,7 +134,7 @@ namespace DHT.Desktop.Main.Pages {
 			var newStatistics = target.Statistics;
 			long newServers = newStatistics.TotalServers - oldStatistics.TotalServers;
 			long newChannels = newStatistics.TotalChannels - oldStatistics.TotalChannels;
-			long newMessages = newStatistics.TotalMessages - oldStatistics.TotalMessages;
+			long newMessages = target.CountMessages() - oldMessageCount;
 
 			StringBuilder message = new StringBuilder();
 			message.Append("Processed ");
