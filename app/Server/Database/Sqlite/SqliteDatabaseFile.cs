@@ -436,6 +436,12 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			return dict;
 		}
 
+		public void Vacuum() {
+			using var conn = pool.Take();
+			using var cmd = conn.Command("VACUUM");
+			cmd.ExecuteNonQuery();
+		}
+
 		private void UpdateServerStatistics(ISqliteConnection conn) {
 			Statistics.TotalServers = conn.SelectScalar("SELECT COUNT(*) FROM servers") as long? ?? 0;
 		}

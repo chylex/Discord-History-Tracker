@@ -41,6 +41,8 @@ namespace DHT.Server.Database {
 
 		public void RemoveMessages(MessageFilter filter, MessageFilterRemovalMode mode) {}
 
+		public void Vacuum() {}
+
 		public void Dispose() {}
 	}
 }

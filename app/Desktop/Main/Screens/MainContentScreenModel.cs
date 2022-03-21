@@ -26,7 +26,7 @@ namespace DHT.Desktop.Main.Screens {
 		private AdvancedPageModel AdvancedPageModel { get; }
 
 		public DebugPage? DebugPage { get; }
-		
+
 		#if DEBUG
 		public bool HasDebugPage => true;
 		private DebugPageModel DebugPageModel { get; }
@@ -66,7 +66,7 @@ namespace DHT.Desktop.Main.Screens {
 			ViewerPageModel = new ViewerPageModel(window, db);
 			ViewerPage = new ViewerPage { DataContext = ViewerPageModel };
 
-			AdvancedPageModel = new AdvancedPageModel(window, serverManager);
+			AdvancedPageModel = new AdvancedPageModel(window, db, serverManager);
 			AdvancedPage = new AdvancedPage { DataContext = AdvancedPageModel };
 
 			#if DEBUG
@@ -75,7 +75,7 @@ namespace DHT.Desktop.Main.Screens {
 			#else
 			DebugPage = null;
 			#endif
-			
+
 			StatusBarModel = new StatusBarModel(db.Statistics);
 
 			AdvancedPageModel.ServerConfigurationModel.ServerStatusChanged += OnServerStatusChanged;

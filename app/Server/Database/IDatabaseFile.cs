@@ -21,5 +21,7 @@ namespace DHT.Server.Database {
 		int CountMessages(MessageFilter? filter = null);
 		List<Message> GetMessages(MessageFilter? filter = null);
 		void RemoveMessages(MessageFilter filter, MessageFilterRemovalMode mode);
+
+		void Vacuum();
 	}
 }
