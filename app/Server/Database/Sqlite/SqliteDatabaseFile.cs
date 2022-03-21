@@ -36,10 +36,13 @@ namespace DHT.Server.Database.Sqlite {
 
 		private readonly Log log;
 		private readonly SqliteConnectionPool pool;
+		private readonly SqliteMessageStatisticsThread messageStatisticsThread;
 
 		private SqliteDatabaseFile(string path, SqliteConnectionPool pool) {
 			this.log = Log.ForType(typeof(SqliteDatabaseFile), System.IO.Path.GetFileName(path));
 			this.pool = pool;
+			this.messageStatisticsThread = new SqliteMessageStatisticsThread(pool, UpdateMessageStatistics);
+
 			this.Path = path;
 			this.Statistics = new DatabaseStatistics();
 
@@ -51,6 +54,7 @@ namespace DHT.Server.Database.Sqlite {
 		}
 
 		public void Dispose() {
+			messageStatisticsThread.Dispose();
 			pool.Dispose();
 		}
 
@@ -299,7 +303,7 @@ namespace DHT.Server.Database.Sqlite {
 			}
 
 			tx.Commit();
-			UpdateMessageStatistics(conn);
+			messageStatisticsThread.RequestUpdate();
 		}
 
 		public int CountMessages(MessageFilter? filter = null) {
