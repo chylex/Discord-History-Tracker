@@ -128,7 +128,77 @@ code {
   padding-left: 12px;
 }
 
+.downloads {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -6px;
+}
+
+.downloads a {
+  flex: 1 1 0;
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: 225px;
+  margin: 6px;
+  padding: 11px 16px;
+  opacity: 0.825;
+  color: #fff;
+  background-color: #4e5a5e;
+  text-align: center;
+  text-decoration: none;
+  transition: opacity .125s ease;
+}
+
+.downloads a:hover {
+  opacity: 1;
+}
+
+.downloads a span {
+  vertical-align: baseline;
+}
+
+.downloads a span.arch {
+  margin: 0 2px;
+  font-size: 14px;
+  color: #eaeaea;
+}
+
+.downloads svg {
+  margin: 1px 4px;
+  vertical-align: -25%;
+}
+
+.downloads svg.icon-large {
+  margin-top: 0;
+  vertical-align: -20%;
+}
+
+.icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+}
+
 .links {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+footer {
+  color: #d0d0d0;
+  font-size: 17px;
+  margin-top: 36px;
+  padding-top: 8px;
+  border-top: 1px dashed #b2b2b2;
+}
+
+footer p {
+  margin: 4px 0;
+}
+
+#svg-definitions {
+  display: none;
 }
