@@ -64,6 +64,6 @@
       <UpToDateCheckInput Include="$(ProjectDir)../Resources/Tracker/scripts/**" Visible="false" />
     </ItemGroup>
     <RemoveDir Directories="$(ProjectDir)bin/.res/scripts" />
-    <Exec Command="$(ProjectDir)../Resources/minify.py" WorkingDirectory="$(ProjectDir)../Resources" IgnoreExitCode="false" />
+    <Exec Command="python $(ProjectDir)../Resources/minify.py" WorkingDirectory="$(ProjectDir)../Resources" IgnoreExitCode="false" />
   </Target>
 </Project>
