@@ -193,7 +193,7 @@ class DISCORD {
 			else if (obj.guild_id) {
 				const server = {
 					"id": obj.guild_id,
-					"name": document.querySelector("nav header > h1").innerText,
+					"name": document.querySelector("nav header h1[class*='name-']").innerText,
 					"type": "SERVER"
 				};
 				
