@@ -19,14 +19,35 @@ Folder organization:
 * `lib/` contains utilities required to build the project
 * `web/` contains source code of the [official website](https://dht.chylex.com), which can be used as a template when making your own website
 
-To start editing source code for the desktop app, open `app/DiscordHistoryTracker.sln` in [Visual Studio](https://visualstudio.microsoft.com/downloads/) or [Rider](https://www.jetbrains.com/rider/).
+To start editing source code for the desktop app, install the [.NET 5 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/5.0), and then open `app/DiscordHistoryTracker.sln` in [Visual Studio](https://visualstudio.microsoft.com/downloads/) or [Rider](https://www.jetbrains.com/rider/).
 
 ### Building
 
 To build a `Debug` version of the desktop app, there are no additional requirements.
 
-To build a `Release` version of the desktop app, you will need [Python 3](https://www.python.org/downloads), which is used by the build process to launch `app/Resources/minify.py` script.
+To build a `Release` version of the desktop app, follow the instructions for your operating system.
 
-When creating `Release` builds on systems other than 64-bit Windows, you will also need [Node + npm](https://nodejs.org/en), and [uglify-js](https://www.npmjs.com/package/uglify-js) installed globally (`npm install uglify-js -g`). On 64-bit Windows, both Node and uglify-js are already included in the `lib/` folder for convenience.
+#### Release – Windows (64-bit)
 
-To create `Release` builds ready for distribution, run the `app/build.bat` script on Windows, or `app/build.sh` script on other operating systems. This will create self-contained executables for each major operating system, and a portable version that works on all other systems but requires .NET 5 to be installed. All builds are placed in the `app/bin` folder.
+1. Install [Python 3](https://www.python.org/downloads), and ensure the `python` executable is in your `PATH`
+2. Install [Powershell 5](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows) or newer (on Windows 10, the included version of Powershell should be enough)
+
+The `lib/` folder contains an installation of [Node](https://nodejs.org/en) and [uglify-js](https://www.npmjs.com/package/uglify-js), which are used to minify the tracking script. This installation will only work on 64-bit Windows; building on 32-bit Windows is not supported, but you can try.
+
+Run the `app/build.bat` script, and read the [Distribution](#distribution) section below.
+
+#### Release – Other Operating Systems
+
+1. Install [Python 3](https://www.python.org/downloads), and ensure the `python` executable exists and launches Python 3
+   - On Debian and derivatives, you can install `python-is-python3`
+   - On other distributions, you can create a link manually, for ex. `ln -s /usr/bin/python3 /usr/bin/python`
+   - If you don't want `python` to mean Python 3, then edit `Desktop.csproj` and change `python` to `python3`
+2. Install [Node + npm](https://nodejs.org/en)
+3. Install [uglify-js](https://www.npmjs.com/package/uglify-js) globally (`npm install -g uglify-js`)
+4. Install the `zip` package from your repository
+
+Run the `app/build.sh` script, and read the [Distribution](#distribution) section below.
+
+#### Distribution
+
+The mentioned build scripts will prepare `Release` builds ready for distribution. Once the script finishes, the `app/bin` folder will contain self-contained executables for each major operating system, and a portable version that works on all other systems but requires .NET 5 to be installed.
