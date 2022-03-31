@@ -51,3 +51,5 @@ Run the `app/build.sh` script, and read the [Distribution](#distribution) sectio
 #### Distribution
 
 The mentioned build scripts will prepare `Release` builds ready for distribution. Once the script finishes, the `app/bin` folder will contain self-contained executables for each major operating system, and a portable version that works on all other systems but requires .NET 5 to be installed.
+
+Note that when building on Windows, the generated `.zip` files for Linux and Mac will not have correct file permissions, so it will not be possible to run them by double-clicking `DiscordHistoryTracker`. I tried using Python to re-create the archives with correct file permissions, but found that Linux `zip` tools could not see them. The only working solution is building the Windows + portable version on Windows, and Linux + Mac version on Linux.
