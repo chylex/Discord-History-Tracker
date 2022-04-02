@@ -201,7 +201,7 @@ var DISCORD = (function(){
         }
         else if (obj.guild_id) {
           return {
-            "server": document.querySelector("nav header > h1").innerText,
+            "server": document.querySelector("nav header h1[class*='name-']").innerText,
             "channel": obj.name,
             "id": obj.id,
             "type": "SERVER",
