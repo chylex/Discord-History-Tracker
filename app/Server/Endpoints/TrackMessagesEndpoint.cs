@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
@@ -8,6 +9,7 @@ using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Server.Service;
+using DHT.Utils.Collections;
 using DHT.Utils.Http;
 using Microsoft.AspNetCore.Http;
 
@@ -53,12 +55,16 @@ namespace DHT.Server.Endpoints {
 			Reactions = json.HasKey("reactions") ? ReadReactions(json.RequireArray("reactions", path + ".reactions"), path + ".reactions[]").ToImmutableArray() : ImmutableArray<Reaction>.Empty
 		};
 
+		[SuppressMessage("ReSharper", "ConvertToLambdaExpression")]
 		private static IEnumerable<Attachment> ReadAttachments(JsonElement.ArrayEnumerator array, string path) => array.Select(ele => new Attachment {
 			Id = ele.RequireSnowflake("id", path),
 			Name = ele.RequireString("name", path),
 			Type = ele.HasKey("type") ? ele.RequireString("type", path) : null,
 			Url = ele.RequireString("url", path),
 			Size = (ulong) ele.RequireLong("size", path)
+		}).DistinctByKeyStable(static attachment => {
+			// Some Discord messages have duplicate attachments with the same id for unknown reasons.
+			return attachment.Id;
 		});
 
 		private static IEnumerable<Embed> ReadEmbeds(JsonElement.ArrayEnumerator array, string path) => array.Select(ele => new Embed {
