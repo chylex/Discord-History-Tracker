@@ -83,8 +83,8 @@ var GUI = (function(){
       // styles
       
       controller.styles = DOM.createStyle(`
-#app-mount > div[class*="app-"] { margin-bottom: 48px !important; }
-#dht-ctrl { position: absolute; bottom: 0; width: 100%; height: 48px; background-color: #FFF; }
+#app-mount div[class*="app-"] { margin-bottom: 48px !important; }
+#dht-ctrl { position: absolute; bottom: 0; width: 100%; height: 48px; background-color: #FFF; z-index: 1000000; }
 #dht-ctrl button { height: 32px; margin: 8px 0 8px 8px; font-size: 16px; padding: 0 12px; background-color: #7289DA; color: #FFF; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.75); }
 #dht-ctrl button:disabled { background-color: #7A7A7A; cursor: default; }
 #dht-ctrl-close { margin: 8px 8px 8px 0 !important; float: right; }
@@ -192,8 +192,8 @@ ${btn("close", "X")}`);
       // styles
       
       settings.styles = DOM.createStyle(`
-#dht-cfg-overlay { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #000; opacity: 0.5; display: block; z-index: 1000; }
-#dht-cfg { position: absolute; left: 50%; top: 50%; width: 800px; height: 262px; margin-left: -400px; margin-top: -131px; padding: 8px; background-color: #fff; z-index: 1001; }
+#dht-cfg-overlay { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #000; opacity: 0.5; display: block; z-index: 1000001; }
+#dht-cfg { position: absolute; left: 50%; top: 50%; width: 800px; height: 262px; margin-left: -400px; margin-top: -131px; padding: 8px; background-color: #fff; z-index: 1000002; }
 #dht-cfg-note { margin-top: 22px; }
 #dht-cfg sub { color: #666; font-size: 13px; }`);
       
