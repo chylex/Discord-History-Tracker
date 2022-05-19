@@ -34,8 +34,8 @@
 
     <StackPanel Margin="20">
         <ScrollViewer MaxHeight="400">
-            <ItemsControl Items="{Binding Items}">
-                <ItemsControl.ItemTemplate>
+            <ItemsRepeater Items="{Binding Items}">
+                <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
                         <CheckBox IsChecked="{Binding Checked}">
                             <Label>
@@ -43,8 +43,8 @@
                             </Label>
                         </CheckBox>
                     </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
         </ScrollViewer>
         <Panel Classes="buttons">
             <WrapPanel Classes="left">
