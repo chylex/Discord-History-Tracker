@@ -7,7 +7,7 @@
   background-color: #000;
   opacity: 0.5;
   display: block;
-  z-index: 1000;
+  z-index: 1000001;
 }
 
 #dht-cfg {
@@ -20,7 +20,7 @@
   margin-top: -131px;
   padding: 8px;
   background-color: #fff;
-  z-index: 1001;
+  z-index: 1000002;
 }
 
 #dht-cfg-note {
