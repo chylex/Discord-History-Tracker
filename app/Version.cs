@@ -7,6 +7,6 @@ using DHT.Utils;
 
 namespace DHT.Utils {
 	static class Version {
-		public const string Tag = "35.2.0.0";
+		public const string Tag = "35.3.0.0";
 	}
 }
