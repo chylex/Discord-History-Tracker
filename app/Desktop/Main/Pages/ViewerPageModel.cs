@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
@@ -51,14 +52,41 @@ namespace DHT.Desktop.Main.Pages {
 			HasFilters = FilterModel.HasAnyFilters;
 		}
 
-		private async Task<string> GenerateViewerContents() {
-			string json = ViewerJsonExport.Generate(db, FilterModel.CreateFilter());
+		private async Task WriteViewerFile(string path) {
+			const string ArchiveTag = "/*[ARCHIVE]*/";
 
-			string index = await Resources.ReadTextAsync("Viewer/index.html");
-			string viewer = index.Replace("/*[JS]*/", await Resources.ReadJoinedAsync("Viewer/scripts/", '\n'))
-			                     .Replace("/*[CSS]*/", await Resources.ReadJoinedAsync("Viewer/styles/", '\n'))
-			                     .Replace("/*[ARCHIVE]*/", HttpUtility.JavaScriptStringEncode(json));
-			return viewer;
+			string indexFile = await Resources.ReadTextAsync("Viewer/index.html");
+			string viewerTemplate = indexFile.Replace("/*[JS]*/", await Resources.ReadJoinedAsync("Viewer/scripts/", '\n'))
+			                                 .Replace("/*[CSS]*/", await Resources.ReadJoinedAsync("Viewer/styles/", '\n'));
+			
+			int viewerArchiveTagStart = viewerTemplate.IndexOf(ArchiveTag);
+			int viewerArchiveTagEnd = viewerArchiveTagStart + ArchiveTag.Length;
+
+			string jsonTempFile = path + ".tmp";
+
+			await using (var jsonStream = new FileStream(jsonTempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)) {
+				await ViewerJsonExport.Generate(jsonStream, db, FilterModel.CreateFilter());
+
+				char[] jsonBuffer = new char[Math.Min(32768, jsonStream.Position)];
+				jsonStream.Position = 0;
+
+				await using (var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read))
+				await using (var outputWriter = new StreamWriter(outputStream, Encoding.UTF8)) {
+					await outputWriter.WriteAsync(viewerTemplate[..viewerArchiveTagStart]);
+
+					using (var jsonReader = new StreamReader(jsonStream, Encoding.UTF8)) {
+						int readBytes;
+						while ((readBytes = await jsonReader.ReadAsync(jsonBuffer, 0, jsonBuffer.Length)) > 0) {
+							string jsonChunk = new string(jsonBuffer, 0, readBytes);
+							await outputWriter.WriteAsync(HttpUtility.JavaScriptStringEncode(jsonChunk));
+						}
+					}
+
+					await outputWriter.WriteAsync(viewerTemplate[viewerArchiveTagEnd..]);
+				}
+			}
+
+			File.Delete(jsonTempFile);
 		}
 
 		public async void OnClickOpenViewer() {
@@ -73,7 +101,7 @@ namespace DHT.Desktop.Main.Pages {
 			}
 
 			Directory.CreateDirectory(rootPath);
-			await File.WriteAllTextAsync(fullPath, await GenerateViewerContents());
+			await WriteViewerFile(fullPath);
 
 			Process.Start(new ProcessStartInfo(fullPath) { UseShellExecute = true });
 		}
@@ -93,7 +121,7 @@ namespace DHT.Desktop.Main.Pages {
 
 			string? path = await dialog;
 			if (!string.IsNullOrEmpty(path)) {
-				await File.WriteAllTextAsync(path, await GenerateViewerContents());
+				await WriteViewerFile(path);
 			}
 		}
 

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Utils.Logging;
@@ -9,7 +11,7 @@ namespace DHT.Server.Database.Export {
 	public static class ViewerJsonExport {
 		private static readonly Log Log = Log.ForType(typeof(ViewerJsonExport));
 
-		public static string Generate(IDatabaseFile db, MessageFilter? filter = null) {
+		public static async Task Generate(Stream stream, IDatabaseFile db, MessageFilter? filter = null) {
 			var perf = Log.Start();
 
 			var includedUserIds = new HashSet<ulong>();
@@ -37,17 +39,20 @@ namespace DHT.Server.Database.Export {
 
 			perf.Step("Collect database data");
 
+			var value = new {
+				meta = new { users, userindex, servers, channels },
+				data = GenerateMessageList(includedMessages, userIndices)
+			};
+			
+			perf.Step("Generate value object");
+			
 			var opts = new JsonSerializerOptions();
 			opts.Converters.Add(new ViewerJsonSnowflakeSerializer());
 
-			var json = JsonSerializer.Serialize(new {
-				meta = new { users, userindex, servers, channels },
-				data = GenerateMessageList(includedMessages, userIndices)
-			}, opts);
+			await JsonSerializer.SerializeAsync(stream, value, opts);
 
 			perf.Step("Serialize to JSON");
 			perf.End();
-			return json;
 		}
 
 		private static object GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds, out List<string> userindex, out Dictionary<ulong, object> userIndices) {
@@ -159,8 +164,8 @@ namespace DHT.Server.Database.Export {
 					}
 
 					if (!message.Attachments.IsEmpty) {
-						obj["a"] = message.Attachments.Select(static attachment => new {
-							url = attachment.Url
+						obj["a"] = message.Attachments.Select(static attachment => new Dictionary<string, object> {
+							{ "url", attachment.Url }
 						}).ToArray();
 					}
 
