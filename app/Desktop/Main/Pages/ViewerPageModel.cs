@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -18,6 +19,8 @@ using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages {
 	sealed class ViewerPageModel : BaseModel, IDisposable {
+		public static readonly ConcurrentBag<string> TemporaryFiles = new ();
+		
 		public bool DatabaseToolFilterModeKeep { get; set; } = true;
 		public bool DatabaseToolFilterModeRemove { get; set; } = false;
 
@@ -100,6 +103,8 @@ namespace DHT.Desktop.Main.Pages {
 				fullPath = Path.Combine(rootPath, filenameBase + "-" + counter + ".html");
 			}
 
+			TemporaryFiles.Add(fullPath);
+			
 			Directory.CreateDirectory(rootPath);
 			await WriteViewerFile(fullPath);
 
