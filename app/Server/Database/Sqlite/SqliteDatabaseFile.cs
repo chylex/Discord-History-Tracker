@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Collections;
 using DHT.Utils.Logging;
+using DHT.Utils.Tasks;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite {
@@ -36,12 +38,12 @@ namespace DHT.Server.Database.Sqlite {
 
 		private readonly Log log;
 		private readonly SqliteConnectionPool pool;
-		private readonly SqliteMessageStatisticsThread messageStatisticsThread;
+		private readonly AsyncValueComputer<long>.Single totalMessagesComputer;
 
 		private SqliteDatabaseFile(string path, SqliteConnectionPool pool) {
 			this.log = Log.ForType(typeof(SqliteDatabaseFile), System.IO.Path.GetFileName(path));
 			this.pool = pool;
-			this.messageStatisticsThread = new SqliteMessageStatisticsThread(pool, UpdateMessageStatistics);
+			this.totalMessagesComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateMessageStatistics).WithOutdatedResults().BuildWithComputer(ComputeMessageStatistics);
 
 			this.Path = path;
 			this.Statistics = new DatabaseStatistics();
@@ -52,11 +54,10 @@ namespace DHT.Server.Database.Sqlite {
 				UpdateUserStatistics(conn);
 			}
 
-			messageStatisticsThread.RequestUpdate();
+			totalMessagesComputer.Recompute();
 		}
 
 		public void Dispose() {
-			messageStatisticsThread.Dispose();
 			pool.Dispose();
 		}
 
@@ -193,119 +194,121 @@ namespace DHT.Server.Database.Sqlite {
 				cmd.ExecuteNonQuery();
 			}
 
-			using var conn = pool.Take();
-			using var tx = conn.BeginTransaction();
+			using (var conn = pool.Take()) {
+				using var tx = conn.BeginTransaction();
 
-			using var messageCmd = conn.Upsert("messages", new[] {
-				("message_id", SqliteType.Integer),
-				("sender_id", SqliteType.Integer),
-				("channel_id", SqliteType.Integer),
-				("text", SqliteType.Text),
-				("timestamp", SqliteType.Integer)
-			});
+				using var messageCmd = conn.Upsert("messages", new[] {
+					("message_id", SqliteType.Integer),
+					("sender_id", SqliteType.Integer),
+					("channel_id", SqliteType.Integer),
+					("text", SqliteType.Text),
+					("timestamp", SqliteType.Integer)
+				});
 
-			using var deleteEditTimestampCmd = DeleteByMessageId(conn, "edit_timestamps");
-			using var deleteRepliedToCmd = DeleteByMessageId(conn, "replied_to");
+				using var deleteEditTimestampCmd = DeleteByMessageId(conn, "edit_timestamps");
+				using var deleteRepliedToCmd = DeleteByMessageId(conn, "replied_to");
 
-			using var deleteAttachmentsCmd = DeleteByMessageId(conn, "attachments");
-			using var deleteEmbedsCmd = DeleteByMessageId(conn, "embeds");
-			using var deleteReactionsCmd = DeleteByMessageId(conn, "reactions");
+				using var deleteAttachmentsCmd = DeleteByMessageId(conn, "attachments");
+				using var deleteEmbedsCmd = DeleteByMessageId(conn, "embeds");
+				using var deleteReactionsCmd = DeleteByMessageId(conn, "reactions");
 
-			using var editTimestampCmd = conn.Insert("edit_timestamps", new [] {
-				("message_id", SqliteType.Integer),
-				("edit_timestamp", SqliteType.Integer)
-			});
+				using var editTimestampCmd = conn.Insert("edit_timestamps", new [] {
+					("message_id", SqliteType.Integer),
+					("edit_timestamp", SqliteType.Integer)
+				});
 
-			using var repliedToCmd = conn.Insert("replied_to", new [] {
-				("message_id", SqliteType.Integer),
-				("replied_to_id", SqliteType.Integer)
-			});
+				using var repliedToCmd = conn.Insert("replied_to", new [] {
+					("message_id", SqliteType.Integer),
+					("replied_to_id", SqliteType.Integer)
+				});
 
-			using var attachmentCmd = conn.Insert("attachments", new[] {
-				("message_id", SqliteType.Integer),
-				("attachment_id", SqliteType.Integer),
-				("name", SqliteType.Text),
-				("type", SqliteType.Text),
-				("url", SqliteType.Text),
-				("size", SqliteType.Integer)
-			});
+				using var attachmentCmd = conn.Insert("attachments", new[] {
+					("message_id", SqliteType.Integer),
+					("attachment_id", SqliteType.Integer),
+					("name", SqliteType.Text),
+					("type", SqliteType.Text),
+					("url", SqliteType.Text),
+					("size", SqliteType.Integer)
+				});
 
-			using var embedCmd = conn.Insert("embeds", new[] {
-				("message_id", SqliteType.Integer),
-				("json", SqliteType.Text)
-			});
+				using var embedCmd = conn.Insert("embeds", new[] {
+					("message_id", SqliteType.Integer),
+					("json", SqliteType.Text)
+				});
 
-			using var reactionCmd = conn.Insert("reactions", new[] {
-				("message_id", SqliteType.Integer),
-				("emoji_id", SqliteType.Integer),
-				("emoji_name", SqliteType.Text),
-				("emoji_flags", SqliteType.Integer),
-				("count", SqliteType.Integer)
-			});
+				using var reactionCmd = conn.Insert("reactions", new[] {
+					("message_id", SqliteType.Integer),
+					("emoji_id", SqliteType.Integer),
+					("emoji_name", SqliteType.Text),
+					("emoji_flags", SqliteType.Integer),
+					("count", SqliteType.Integer)
+				});
 
-			foreach (var message in messages) {
-				object messageId = message.Id;
+				foreach (var message in messages) {
+					object messageId = message.Id;
 
-				messageCmd.Set(":message_id", messageId);
-				messageCmd.Set(":sender_id", message.Sender);
-				messageCmd.Set(":channel_id", message.Channel);
-				messageCmd.Set(":text", message.Text);
-				messageCmd.Set(":timestamp", message.Timestamp);
-				messageCmd.ExecuteNonQuery();
+					messageCmd.Set(":message_id", messageId);
+					messageCmd.Set(":sender_id", message.Sender);
+					messageCmd.Set(":channel_id", message.Channel);
+					messageCmd.Set(":text", message.Text);
+					messageCmd.Set(":timestamp", message.Timestamp);
+					messageCmd.ExecuteNonQuery();
 
-				ExecuteDeleteByMessageId(deleteEditTimestampCmd, messageId);
-				ExecuteDeleteByMessageId(deleteRepliedToCmd, messageId);
+					ExecuteDeleteByMessageId(deleteEditTimestampCmd, messageId);
+					ExecuteDeleteByMessageId(deleteRepliedToCmd, messageId);
 
-				ExecuteDeleteByMessageId(deleteAttachmentsCmd, messageId);
-				ExecuteDeleteByMessageId(deleteEmbedsCmd, messageId);
-				ExecuteDeleteByMessageId(deleteReactionsCmd, messageId);
+					ExecuteDeleteByMessageId(deleteAttachmentsCmd, messageId);
+					ExecuteDeleteByMessageId(deleteEmbedsCmd, messageId);
+					ExecuteDeleteByMessageId(deleteReactionsCmd, messageId);
 
-				if (message.EditTimestamp is {} timestamp) {
-					editTimestampCmd.Set(":message_id", messageId);
-					editTimestampCmd.Set(":edit_timestamp", timestamp);
-					editTimestampCmd.ExecuteNonQuery();
-				}
+					if (message.EditTimestamp is {} timestamp) {
+						editTimestampCmd.Set(":message_id", messageId);
+						editTimestampCmd.Set(":edit_timestamp", timestamp);
+						editTimestampCmd.ExecuteNonQuery();
+					}
 
-				if (message.RepliedToId is {} repliedToId) {
-					repliedToCmd.Set(":message_id", messageId);
-					repliedToCmd.Set(":replied_to_id", repliedToId);
-					repliedToCmd.ExecuteNonQuery();
-				}
+					if (message.RepliedToId is {} repliedToId) {
+						repliedToCmd.Set(":message_id", messageId);
+						repliedToCmd.Set(":replied_to_id", repliedToId);
+						repliedToCmd.ExecuteNonQuery();
+					}
 
-				if (!message.Attachments.IsEmpty) {
-					foreach (var attachment in message.Attachments) {
-						attachmentCmd.Set(":message_id", messageId);
-						attachmentCmd.Set(":attachment_id", attachment.Id);
-						attachmentCmd.Set(":name", attachment.Name);
-						attachmentCmd.Set(":type", attachment.Type);
-						attachmentCmd.Set(":url", attachment.Url);
-						attachmentCmd.Set(":size", attachment.Size);
-						attachmentCmd.ExecuteNonQuery();
+					if (!message.Attachments.IsEmpty) {
+						foreach (var attachment in message.Attachments) {
+							attachmentCmd.Set(":message_id", messageId);
+							attachmentCmd.Set(":attachment_id", attachment.Id);
+							attachmentCmd.Set(":name", attachment.Name);
+							attachmentCmd.Set(":type", attachment.Type);
+							attachmentCmd.Set(":url", attachment.Url);
+							attachmentCmd.Set(":size", attachment.Size);
+							attachmentCmd.ExecuteNonQuery();
+						}
+					}
+
+					if (!message.Embeds.IsEmpty) {
+						foreach (var embed in message.Embeds) {
+							embedCmd.Set(":message_id", messageId);
+							embedCmd.Set(":json", embed.Json);
+							embedCmd.ExecuteNonQuery();
+						}
+					}
+
+					if (!message.Reactions.IsEmpty) {
+						foreach (var reaction in message.Reactions) {
+							reactionCmd.Set(":message_id", messageId);
+							reactionCmd.Set(":emoji_id", reaction.EmojiId);
+							reactionCmd.Set(":emoji_name", reaction.EmojiName);
+							reactionCmd.Set(":emoji_flags", (int) reaction.EmojiFlags);
+							reactionCmd.Set(":count", reaction.Count);
+							reactionCmd.ExecuteNonQuery();
+						}
 					}
 				}
 
-				if (!message.Embeds.IsEmpty) {
-					foreach (var embed in message.Embeds) {
-						embedCmd.Set(":message_id", messageId);
-						embedCmd.Set(":json", embed.Json);
-						embedCmd.ExecuteNonQuery();
-					}
-				}
-
-				if (!message.Reactions.IsEmpty) {
-					foreach (var reaction in message.Reactions) {
-						reactionCmd.Set(":message_id", messageId);
-						reactionCmd.Set(":emoji_id", reaction.EmojiId);
-						reactionCmd.Set(":emoji_name", reaction.EmojiName);
-						reactionCmd.Set(":emoji_flags", (int) reaction.EmojiFlags);
-						reactionCmd.Set(":count", reaction.Count);
-						reactionCmd.ExecuteNonQuery();
-					}
-				}
+				tx.Commit();
 			}
 
-			tx.Commit();
-			messageStatisticsThread.RequestUpdate();
+			totalMessagesComputer.Recompute();
 		}
 
 		public int CountMessages(MessageFilter? filter = null) {
@@ -367,11 +370,12 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			                      .Append("FROM messages")
 			                      .Append(whereClause);
 
-			using var conn = pool.Take();
-			using var cmd = conn.Command(build.ToString());
-			cmd.ExecuteNonQuery();
+			using (var conn = pool.Take()) {
+				using var cmd = conn.Command(build.ToString());
+				cmd.ExecuteNonQuery();
+			}
 
-			UpdateMessageStatistics(conn);
+			totalMessagesComputer.Recompute();
 			perf.End();
 		}
 
@@ -454,8 +458,13 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			Statistics.TotalUsers = conn.SelectScalar("SELECT COUNT(*) FROM users") as long? ?? 0;
 		}
 
-		private void UpdateMessageStatistics(ISqliteConnection conn) {
-			Statistics.TotalMessages = conn.SelectScalar("SELECT COUNT(*) FROM messages") as long? ?? 0L;
+		private long ComputeMessageStatistics(CancellationToken token) {
+			using var conn = pool.Take();
+			return conn.SelectScalar("SELECT COUNT(*) FROM messages") as long? ?? 0L;
+		}
+
+		private void UpdateMessageStatistics(long totalMessages) {
+			Statistics.TotalMessages = totalMessages;
 		}
 	}
 }
