@@ -109,7 +109,7 @@ namespace DHT.Desktop.Main.Pages {
 		public async void OnClickSaveViewer() {
 			var dialog = new SaveFileDialog {
 				Title = "Save Viewer",
-				InitialFileName = "archive.html",
+				InitialFileName = Path.GetFileNameWithoutExtension(db.Path) + ".html",
 				Directory = Path.GetDirectoryName(db.Path),
 				Filters = new List<FileDialogFilter> {
 					new() {
