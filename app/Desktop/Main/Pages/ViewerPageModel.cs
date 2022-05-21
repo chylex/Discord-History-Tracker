@@ -17,8 +17,6 @@ using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages {
 	sealed class ViewerPageModel : BaseModel, IDisposable {
-		public string ExportedMessageText { get; private set; } = "";
-
 		public bool DatabaseToolFilterModeKeep { get; set; } = true;
 		public bool DatabaseToolFilterModeRemove { get; set; } = false;
 
@@ -34,8 +32,6 @@ namespace DHT.Desktop.Main.Pages {
 		private readonly Window window;
 		private readonly IDatabaseFile db;
 
-		private bool isPageVisible = false;
-
 		[Obsolete("Designer")]
 		public ViewerPageModel() : this(null!, DummyDatabaseFile.Instance) {}
 
@@ -45,39 +41,14 @@ namespace DHT.Desktop.Main.Pages {
 
 			FilterModel = new FilterPanelModel(window, db);
 			FilterModel.FilterPropertyChanged += OnFilterPropertyChanged;
-			db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 		}
 
 		public void Dispose() {
-			db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
 			FilterModel.Dispose();
 		}
 
-		public void SetPageVisible(bool isPageVisible) {
-			this.isPageVisible = isPageVisible;
-			if (isPageVisible) {
-				UpdateStatistics();
-			}
-		}
-
 		private void OnFilterPropertyChanged(object? sender, PropertyChangedEventArgs e) {
-			UpdateStatistics();
 			HasFilters = FilterModel.HasAnyFilters;
-		}
-
-		private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
-			if (isPageVisible && e.PropertyName == nameof(DatabaseStatistics.TotalMessages)) {
-				UpdateStatistics();
-			}
-		}
-
-		private void UpdateStatistics() {
-			var filter = FilterModel.CreateFilter();
-			var allMessagesCount = db.Statistics.TotalMessages?.Format() ?? "?";
-			var filteredMessagesCount = filter.IsEmpty ? allMessagesCount : db.CountMessages(filter).Format();
-
-			ExportedMessageText = "Will export " + filteredMessagesCount + " out of " + allMessagesCount + " message(s).";
-			OnPropertyChanged(nameof(ExportedMessageText));
 		}
 
 		private async Task<string> GenerateViewerContents() {

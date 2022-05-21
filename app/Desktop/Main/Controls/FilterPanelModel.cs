@@ -12,6 +12,7 @@ using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Utils.Models;
+using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Controls {
 	sealed class FilterPanelModel : BaseModel, IDisposable {
@@ -24,6 +25,8 @@ namespace DHT.Desktop.Main.Controls {
 			nameof(FilterByUser),
 			nameof(IncludedUsers)
 		};
+
+		public string FilterStatisticsText { get; private set; } = "";
 
 		public event PropertyChangedEventHandler? FilterPropertyChanged;
 
@@ -89,13 +92,20 @@ namespace DHT.Desktop.Main.Controls {
 		private readonly Window window;
 		private readonly IDatabaseFile db;
 
+		private readonly AsyncValueComputer<long> exportedMessageCountComputer;
+		private long? exportedMessageCount;
+		private long? totalMessageCount;
+
 		[Obsolete("Designer")]
 		public FilterPanelModel() : this(null!, DummyDatabaseFile.Instance) {}
 
 		public FilterPanelModel(Window window, IDatabaseFile db) {
 			this.window = window;
 			this.db = db;
+			
+			this.exportedMessageCountComputer = AsyncValueComputer<long>.WithResultProcessor(SetExportedMessageCount).Build();
 
+			UpdateFilterStatisticsText();
 			UpdateChannelFilterLabel();
 			UpdateUserFilterLabel();
 
@@ -109,6 +119,7 @@ namespace DHT.Desktop.Main.Controls {
 
 		private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
 			if (e.PropertyName != null && FilterProperties.Contains(e.PropertyName)) {
+				UpdateFilterStatistics();
 				FilterPropertyChanged?.Invoke(sender, e);
 			}
 
@@ -121,12 +132,42 @@ namespace DHT.Desktop.Main.Controls {
 		}
 
 		private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
-			if (e.PropertyName == nameof(DatabaseStatistics.TotalChannels)) {
+			if (e.PropertyName == nameof(DatabaseStatistics.TotalMessages)) {
+				totalMessageCount = db.Statistics.TotalMessages;
+				UpdateFilterStatistics();
+			}
+			else if (e.PropertyName == nameof(DatabaseStatistics.TotalChannels)) {
 				UpdateChannelFilterLabel();
 			}
 			else if (e.PropertyName == nameof(DatabaseStatistics.TotalUsers)) {
 				UpdateUserFilterLabel();
 			}
+		}
+
+		private void UpdateFilterStatistics() {
+			var filter = CreateFilter();
+			if (filter.IsEmpty) {
+				exportedMessageCount = totalMessageCount;
+				UpdateFilterStatisticsText();
+			}
+			else {
+				exportedMessageCount = null;
+				UpdateFilterStatisticsText();
+				exportedMessageCountComputer.Compute(_ => db.CountMessages(filter));
+			}
+		}
+
+		private void SetExportedMessageCount(long exportedMessageCount) {
+			this.exportedMessageCount = exportedMessageCount;
+			UpdateFilterStatisticsText();
+		}
+		
+		private void UpdateFilterStatisticsText() {
+			var exportedMessageCountStr = exportedMessageCount?.Format() ?? "(...)";
+			var totalMessageCountStr = totalMessageCount?.Format() ?? "(...)";
+			
+			FilterStatisticsText = "Will export " + exportedMessageCountStr + " out of " + totalMessageCountStr + " message" + (totalMessageCount is null or > 0 ? "s." : ".");
+			OnPropertyChanged(nameof(FilterStatisticsText));
 		}
 
 		public async void OpenChannelFilterDialog() {

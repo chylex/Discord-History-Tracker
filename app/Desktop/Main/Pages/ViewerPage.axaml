@@ -5,9 +5,7 @@
              xmlns:pages="clr-namespace:DHT.Desktop.Main.Pages"
              xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DHT.Desktop.Main.Pages.ViewerPage"
-             AttachedToVisualTree="OnAttachedToVisualTree"
-             DetachedFromVisualTree="OnDetachedFromVisualTree">
+             x:Class="DHT.Desktop.Main.Pages.ViewerPage">
 
     <Design.DataContext>
         <pages:ViewerPageModel />
@@ -24,8 +22,7 @@
             <Button Command="{Binding OnClickOpenViewer}" Margin="0 0 5 0">Open Viewer</Button>
             <Button Command="{Binding OnClickSaveViewer}" Margin="5 0 0 0">Save Viewer</Button>
         </StackPanel>
-        <TextBlock Text="{Binding ExportedMessageText}" Margin="0 20 0 0" />
-        <controls:FilterPanel DataContext="{Binding FilterModel}" />
+        <controls:FilterPanel DataContext="{Binding FilterModel}" Margin="0 20 0 0" />
         <Expander Header="Database Tools">
             <StackPanel Orientation="Vertical" Spacing="10">
                 <StackPanel Orientation="Vertical" Spacing="4">
