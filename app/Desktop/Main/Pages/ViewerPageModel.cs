@@ -31,7 +31,7 @@ namespace DHT.Desktop.Main.Pages {
 			set => Change(ref hasFilters, value);
 		}
 
-		private FilterPanelModel FilterModel { get; }
+		private MessageFilterPanelModel FilterModel { get; }
 
 		private readonly Window window;
 		private readonly IDatabaseFile db;
@@ -43,7 +43,7 @@ namespace DHT.Desktop.Main.Pages {
 			this.window = window;
 			this.db = db;
 
-			FilterModel = new FilterPanelModel(window, db);
+			FilterModel = new MessageFilterPanelModel(window, db);
 			FilterModel.FilterPropertyChanged += OnFilterPropertyChanged;
 		}
 

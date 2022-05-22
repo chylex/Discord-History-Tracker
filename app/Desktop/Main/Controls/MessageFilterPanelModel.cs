@@ -15,7 +15,7 @@ using DHT.Utils.Models;
 using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Controls {
-	sealed class FilterPanelModel : BaseModel, IDisposable {
+	sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		private static readonly HashSet<string> FilterProperties = new () {
 			nameof(FilterByDate),
 			nameof(StartDate),
@@ -97,9 +97,9 @@ namespace DHT.Desktop.Main.Controls {
 		private long? totalMessageCount;
 
 		[Obsolete("Designer")]
-		public FilterPanelModel() : this(null!, DummyDatabaseFile.Instance) {}
+		public MessageFilterPanelModel() : this(null!, DummyDatabaseFile.Instance) {}
 
-		public FilterPanelModel(Window window, IDatabaseFile db) {
+		public MessageFilterPanelModel(Window window, IDatabaseFile db) {
 			this.window = window;
 			this.db = db;
 			

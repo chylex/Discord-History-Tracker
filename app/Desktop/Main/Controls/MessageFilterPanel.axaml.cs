@@ -4,11 +4,11 @@ using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Main.Controls {
 	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
-	public sealed class FilterPanel : UserControl {
+	public sealed class MessageFilterPanel : UserControl {
 		private CalendarDatePicker StartDatePicker => this.FindControl<CalendarDatePicker>("StartDatePicker");
 		private CalendarDatePicker EndDatePicker => this.FindControl<CalendarDatePicker>("EndDatePicker");
 
-		public FilterPanel() {
+		public MessageFilterPanel() {
 			InitializeComponent();
 		}
 
@@ -25,7 +25,7 @@ namespace DHT.Desktop.Main.Controls {
 		}
 
 		public void CalendarDatePicker_OnSelectedDateChanged(object? sender, SelectionChangedEventArgs e) {
-			if (DataContext is FilterPanelModel model) {
+			if (DataContext is MessageFilterPanelModel model) {
 				model.StartDate = StartDatePicker.SelectedDate;
 				model.EndDate = EndDatePicker.SelectedDate;
 			}

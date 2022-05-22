@@ -4,10 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
              mc:Ignorable="d"
-             x:Class="DHT.Desktop.Main.Controls.FilterPanel">
+             x:Class="DHT.Desktop.Main.Controls.MessageFilterPanel">
 
     <Design.DataContext>
-        <controls:FilterPanelModel />
+        <controls:MessageFilterPanelModel />
     </Design.DataContext>
 
     <UserControl.Styles>
