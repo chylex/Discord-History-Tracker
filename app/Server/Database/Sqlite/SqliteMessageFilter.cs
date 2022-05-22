@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using DHT.Server.Data.Filters;
+using DHT.Server.Database.Sqlite.Utils;
 
 namespace DHT.Server.Database.Sqlite {
 	static class SqliteMessageFilter {
@@ -9,42 +9,29 @@ namespace DHT.Server.Database.Sqlite {
 				return "";
 			}
 
-			if (tableAlias != null) {
-				tableAlias += ".";
-			}
-
-			List<string> conditions = new();
+			var where = new SqliteWhereGenerator(tableAlias, invert);
 
 			if (filter.StartDate != null) {
-				conditions.Add(tableAlias + "timestamp >= " + new DateTimeOffset(filter.StartDate.Value).ToUnixTimeMilliseconds());
+				where.AddCondition("timestamp >= " + new DateTimeOffset(filter.StartDate.Value).ToUnixTimeMilliseconds());
 			}
 
 			if (filter.EndDate != null) {
-				conditions.Add(tableAlias + "timestamp <= " + new DateTimeOffset(filter.EndDate.Value).ToUnixTimeMilliseconds());
+				where.AddCondition("timestamp <= " + new DateTimeOffset(filter.EndDate.Value).ToUnixTimeMilliseconds());
 			}
 
 			if (filter.ChannelIds != null) {
-				conditions.Add(tableAlias + "channel_id IN (" + string.Join(",", filter.ChannelIds) + ")");
+				where.AddCondition("channel_id IN (" + string.Join(",", filter.ChannelIds) + ")");
 			}
 
 			if (filter.UserIds != null) {
-				conditions.Add(tableAlias + "sender_id IN (" + string.Join(",", filter.UserIds) + ")");
+				where.AddCondition("sender_id IN (" + string.Join(",", filter.UserIds) + ")");
 			}
 
 			if (filter.MessageIds != null) {
-				conditions.Add(tableAlias + "message_id IN (" + string.Join(",", filter.MessageIds) + ")");
+				where.AddCondition("message_id IN (" + string.Join(",", filter.MessageIds) + ")");
 			}
 
-			if (conditions.Count == 0) {
-				return "";
-			}
-
-			if (invert) {
-				return " WHERE NOT (" + string.Join(" AND ", conditions) + ")";
-			}
-			else {
-				return " WHERE " + string.Join(" AND ", conditions);
-			}
+			return where.Generate();
 		}
 	}
 }
