@@ -105,6 +105,7 @@
     <Application.Resources>
 
         <common:NumberValueConverter x:Key="NumberValueConverter" />
+        <common:BytesValueConverter x:Key="BytesValueConverter" />
 
         <system:Double x:Key="ControlContentThemeFontSize">14</system:Double>
         <CornerRadius x:Key="ControlCornerRadius">0</CornerRadius>
