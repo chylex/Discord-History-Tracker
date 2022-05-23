@@ -8,11 +8,13 @@
         <entry key="Desktop/Dialogs/Message/MessageDialog.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Dialogs/Progress/ProgressDialog.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/AboutWindow.axaml" value="Desktop/Desktop.csproj" />
+        <entry key="Desktop/Main/Controls/AttachmentFilterPanel.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Controls/MessageFilterPanel.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Controls/ServerConfigurationPanel.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Controls/StatusBar.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/MainWindow.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Pages/AdvancedPage.axaml" value="Desktop/Desktop.csproj" />
+        <entry key="Desktop/Main/Pages/AttachmentsPage.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Pages/DatabasePage.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Pages/DebugPage.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Pages/TrackingPage.axaml" value="Desktop/Desktop.csproj" />

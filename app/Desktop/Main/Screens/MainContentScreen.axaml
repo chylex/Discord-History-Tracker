@@ -73,14 +73,14 @@
     <DockPanel>
         <Border Classes="statusBar" DockPanel.Dock="Bottom">
             <DockPanel>
-                <TextBlock Classes="invisibleTabItem" DockPanel.Dock="Left">Advanced</TextBlock>
+                <TextBlock Classes="invisibleTabItem" DockPanel.Dock="Left">Attachments</TextBlock>
                 <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Right" />
             </DockPanel>
         </Border>
         <TabControl x:Name="TabControl" TabStripPlacement="Left" DockPanel.Dock="Top">
             <TabControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <Grid ColumnDefinitions="Auto" RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" />
+                    <Grid ColumnDefinitions="Auto" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" />
                 </ItemsPanelTemplate>
             </TabControl.ItemsPanel>
             <TabItem x:Name="TabDatabase" Header="Database" Classes="first" Grid.Row="0">
@@ -93,17 +93,22 @@
                     <ContentPresenter Content="{Binding TrackingPage}" Classes="page" />
                 </ScrollViewer>
             </TabItem>
-            <TabItem x:Name="TabViewer" Header="Viewer" Grid.Row="2">
+            <TabItem x:Name="TabAttachments" Header="Attachments" Grid.Row="2">
+                <ScrollViewer>
+                    <ContentPresenter Content="{Binding AttachmentsPage}" Classes="page" />
+                </ScrollViewer>
+            </TabItem>
+            <TabItem x:Name="TabViewer" Header="Viewer" Grid.Row="3">
                 <ScrollViewer>
                     <ContentPresenter Content="{Binding ViewerPage}" Classes="page" />
                 </ScrollViewer>
             </TabItem>
-            <TabItem x:Name="TabAdvanced" Header="Advanced" Grid.Row="4">
+            <TabItem x:Name="TabAdvanced" Header="Advanced" Grid.Row="5">
                 <ScrollViewer>
                     <ContentPresenter Content="{Binding AdvancedPage}" Classes="page" />
                 </ScrollViewer>
             </TabItem>
-            <TabItem x:Name="TabDebug" Header="Debug" Grid.Row="5" IsVisible="{Binding HasDebugPage}">
+            <TabItem x:Name="TabDebug" Header="Debug" Grid.Row="6" IsVisible="{Binding HasDebugPage}">
                 <ScrollViewer>
                     <ContentPresenter Content="{Binding DebugPage}" Classes="page" />
                 </ScrollViewer>

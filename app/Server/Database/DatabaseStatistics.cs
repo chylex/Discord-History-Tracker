@@ -6,6 +6,7 @@ namespace DHT.Server.Database {
 		private long totalChannels;
 		private long totalUsers;
 		private long? totalMessages;
+		private long? totalAttachments;
 
 		public long TotalServers {
 			get => totalServers;
@@ -27,12 +28,18 @@ namespace DHT.Server.Database {
 			internal set => Change(ref totalMessages, value);
 		}
 
+		public long? TotalAttachments {
+			get => totalAttachments;
+			internal set => Change(ref totalAttachments, value);
+		}
+
 		public DatabaseStatistics Clone() {
 			return new DatabaseStatistics {
 				totalServers = totalServers,
 				totalChannels = totalChannels,
 				totalUsers = TotalUsers,
-				totalMessages = totalMessages
+				totalMessages = totalMessages,
+				totalAttachments = totalAttachments
 			};
 		}
 	}

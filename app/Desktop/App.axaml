@@ -7,6 +7,7 @@
     <Application.Styles>
 
         <FluentTheme Mode="Light" />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Default.xaml"/>
 
         <Style Selector="Button, CheckBox, RadioButton, Expander /template/ ToggleButton#ExpanderHeader">
             <Setter Property="Cursor" Value="Hand" />
@@ -155,7 +156,7 @@
         <SolidColorBrush x:Key="TextControlPlaceholderForegroundDisabled" Color="#AAAAAA" />
 
         <Thickness x:Key="ExpanderHeaderPadding">15,0</Thickness>
-        <Thickness x:Key="ExpanderContentPadding">15</Thickness>
+        <Thickness x:Key="ExpanderContentPadding">12</Thickness>
         <SolidColorBrush x:Key="ExpanderBorderBrush" Color="#697DAB" />
         <SolidColorBrush x:Key="ExpanderBackground" Color="#697DAB" />
         <SolidColorBrush x:Key="ExpanderForeground" Color="#FFFFFF" />

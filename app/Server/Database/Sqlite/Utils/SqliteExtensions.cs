@@ -56,6 +56,10 @@ namespace DHT.Server.Database.Sqlite.Utils {
 			}
 		}
 
+		public static void AddAndSet(this SqliteCommand cmd, string key, SqliteType type, object? value) {
+			cmd.Parameters.Add(key, type).Value = value ?? DBNull.Value;
+		}
+
 		public static void Set(this SqliteCommand cmd, string key, object? value) {
 			cmd.Parameters[key].Value = value ?? DBNull.Value;
 		}

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using DHT.Server.Data;
+using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
+using DHT.Server.Download;
 
 namespace DHT.Server.Database {
 	public sealed class DummyDatabaseFile : IDatabaseFile {
@@ -40,6 +42,24 @@ namespace DHT.Server.Database {
 		}
 
 		public void RemoveMessages(MessageFilter filter, FilterRemovalMode mode) {}
+
+		public int CountAttachments(AttachmentFilter? filter = null) {
+			return new();
+		}
+
+		public void AddDownloads(IEnumerable<Data.Download> downloads) {}
+
+		public void EnqueueDownloadItems(AttachmentFilter? filter = null) {}
+		
+		public List<DownloadItem> GetEnqueuedDownloadItems(int count) {
+			return new();
+		}
+
+		public void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode) {}
+
+		public DownloadStatusStatistics GetDownloadStatusStatistics() {
+			return new();
+		}
 
 		public void Vacuum() {}
 

@@ -4,8 +4,10 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Threading.Tasks;
 using DHT.Server.Data;
+using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database.Sqlite.Utils;
+using DHT.Server.Download;
 using DHT.Utils.Collections;
 using DHT.Utils.Logging;
 using DHT.Utils.Tasks;
@@ -38,11 +40,14 @@ namespace DHT.Server.Database.Sqlite {
 		private readonly Log log;
 		private readonly SqliteConnectionPool pool;
 		private readonly AsyncValueComputer<long>.Single totalMessagesComputer;
+		private readonly AsyncValueComputer<long>.Single totalAttachmentsComputer;
 
 		private SqliteDatabaseFile(string path, SqliteConnectionPool pool) {
 			this.log = Log.ForType(typeof(SqliteDatabaseFile), System.IO.Path.GetFileName(path));
 			this.pool = pool;
+			
 			this.totalMessagesComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateMessageStatistics).WithOutdatedResults().BuildWithComputer(ComputeMessageStatistics);
+			this.totalAttachmentsComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateAttachmentStatistics).WithOutdatedResults().BuildWithComputer(ComputeAttachmentStatistics);
 
 			this.Path = path;
 			this.Statistics = new DatabaseStatistics();
@@ -54,6 +59,7 @@ namespace DHT.Server.Database.Sqlite {
 			}
 
 			totalMessagesComputer.Recompute();
+			totalAttachmentsComputer.Recompute();
 		}
 
 		public void Dispose() {
@@ -192,6 +198,8 @@ namespace DHT.Server.Database.Sqlite {
 				cmd.Set(":message_id", id);
 				cmd.ExecuteNonQuery();
 			}
+			
+			bool addedAttachments = false;
 
 			using (var conn = pool.Take()) {
 				using var tx = conn.BeginTransaction();
@@ -273,6 +281,8 @@ namespace DHT.Server.Database.Sqlite {
 					}
 
 					if (!message.Attachments.IsEmpty) {
+						addedAttachments = true;
+						
 						foreach (var attachment in message.Attachments) {
 							attachmentCmd.Set(":message_id", messageId);
 							attachmentCmd.Set(":attachment_id", attachment.Id);
@@ -308,6 +318,10 @@ namespace DHT.Server.Database.Sqlite {
 			}
 
 			totalMessagesComputer.Recompute();
+
+			if (addedAttachments) {
+				totalAttachmentsComputer.Recompute();
+			}
 		}
 
 		public int CountMessages(MessageFilter? filter = null) {
@@ -357,25 +371,123 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 
 		public void RemoveMessages(MessageFilter filter, FilterRemovalMode mode) {
 			var whereClause = filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching);
-			if (string.IsNullOrEmpty(whereClause)) {
-				return;
+			
+			if (!string.IsNullOrEmpty(whereClause)) {
+				var perf = log.Start();
+				
+				DeleteFromTable("messages", whereClause);
+				totalMessagesComputer.Recompute();
+				
+				perf.End();
 			}
+		}
 
-			var perf = log.Start();
+		public int CountAttachments(AttachmentFilter? filter = null) {
+			using var conn = pool.Take();
+			using var cmd = conn.Command("SELECT COUNT(*) FROM attachments a" + filter.GenerateWhereClause("a"));
+			using var reader = cmd.ExecuteReader();
 
-			// Rider is being stupid...
-			StringBuilder build = new StringBuilder()
-			                      .Append("DELETE ")
-			                      .Append("FROM messages")
-			                      .Append(whereClause);
+			return reader.Read() ? reader.GetInt32(0) : 0;
+		}
 
-			using (var conn = pool.Take()) {
-				using var cmd = conn.Command(build.ToString());
+		public void AddDownloads(IEnumerable<Data.Download> downloads) {
+			using var conn = pool.Take();
+			using var tx = conn.BeginTransaction();
+
+			using var cmd = conn.Upsert("downloads", new[] {
+				("url", SqliteType.Text),
+				("status", SqliteType.Integer),
+				("size", SqliteType.Integer),
+				("blob", SqliteType.Blob)
+			});
+
+			foreach (var download in downloads) {
+				cmd.Set(":url", download.Url);
+				cmd.Set(":status", (int) download.Status);
+				cmd.Set(":size", download.Size);
+				cmd.Set(":blob", download.Data);
 				cmd.ExecuteNonQuery();
 			}
 
-			totalMessagesComputer.Recompute();
-			perf.End();
+			tx.Commit();
+		}
+
+		public void EnqueueDownloadItems(AttachmentFilter? filter = null) {
+			using var conn = pool.Take();
+			using var cmd = conn.Command("INSERT INTO downloads (url, status, size) SELECT a.url, :enqueued, a.size FROM attachments a" + filter.GenerateWhereClause("a"));
+			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
+			cmd.ExecuteNonQuery();
+		}
+
+		public List<DownloadItem> GetEnqueuedDownloadItems(int count) {
+			var list = new List<DownloadItem>();
+			
+			using var conn = pool.Take();
+			using var cmd = conn.Command("SELECT url, size FROM downloads WHERE status = :enqueued LIMIT :limit");
+			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
+			cmd.AddAndSet(":limit", SqliteType.Integer, Math.Max(0, count));
+			
+			using var reader = cmd.ExecuteReader();
+			
+			while (reader.Read()) {
+				list.Add(new DownloadItem {
+					Url = reader.GetString(0),
+					Size = reader.GetUint64(1)
+				});
+			}
+			
+			return list;
+		}
+
+		public void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode) {
+			var whereClause = filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching);
+			
+			if (!string.IsNullOrEmpty(whereClause)) {
+				DeleteFromTable("downloads", whereClause);
+			}
+		}
+
+		public DownloadStatusStatistics GetDownloadStatusStatistics() {
+			static void LoadUndownloadedStatistics(ISqliteConnection conn, DownloadStatusStatistics result) {
+				using var cmd = conn.Command("SELECT IFNULL(COUNT(filtered.size), 0), IFNULL(SUM(filtered.size), 0) FROM (SELECT DISTINCT a.url, a.size FROM attachments a  WHERE a.url NOT IN (SELECT d.url FROM downloads d)) filtered");
+				using var reader = cmd.ExecuteReader();
+
+				if (reader.Read()) {
+					result.SkippedCount = reader.GetInt32(0);
+					result.SkippedSize = reader.GetUint64(1);
+				}
+			}
+
+			static void LoadSuccessStatistics(ISqliteConnection conn, DownloadStatusStatistics result) {
+				using var cmd = conn.Command(@"SELECT
+IFNULL(SUM(CASE WHEN status = :enqueued THEN 1 ELSE 0 END), 0),
+IFNULL(SUM(CASE WHEN status = :enqueued THEN size ELSE 0 END), 0),
+IFNULL(SUM(CASE WHEN status = :success THEN 1 ELSE 0 END), 0),
+IFNULL(SUM(CASE WHEN status = :success THEN size ELSE 0 END), 0),
+IFNULL(SUM(CASE WHEN status != :enqueued AND status != :success THEN 1 ELSE 0 END), 0),
+IFNULL(SUM(CASE WHEN status != :enqueued AND status != :success THEN size ELSE 0 END), 0)
+FROM downloads");
+				cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
+				cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
+				
+				using var reader = cmd.ExecuteReader();
+
+				if (reader.Read()) {
+					result.EnqueuedCount = reader.GetInt32(0);
+					result.EnqueuedSize = reader.GetUint64(1);
+					result.SuccessfulCount = reader.GetInt32(2);
+					result.SuccessfulSize = reader.GetUint64(3);
+					result.FailedCount = reader.GetInt32(4);
+					result.FailedSize = reader.GetUint64(5);
+				}
+			}
+
+			var result = new DownloadStatusStatistics();
+
+			using var conn = pool.Take();
+			LoadUndownloadedStatistics(conn, result);
+			LoadSuccessStatistics(conn, result);
+			return result;
 		}
 
 		private MultiDictionary<ulong, Attachment> GetAllAttachments() {
@@ -439,6 +551,19 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			return dict;
 		}
 
+		private void DeleteFromTable(string table, string whereClause) {
+			// Rider is being stupid...
+			StringBuilder build = new StringBuilder()
+			                      .Append("DELETE ")
+			                      .Append("FROM ")
+			                      .Append(table)
+			                      .Append(whereClause);
+
+			using var conn = pool.Take();
+			using var cmd = conn.Command(build.ToString());
+			cmd.ExecuteNonQuery();
+		}
+
 		public void Vacuum() {
 			using var conn = pool.Take();
 			using var cmd = conn.Command("VACUUM");
@@ -464,6 +589,15 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 
 		private void UpdateMessageStatistics(long totalMessages) {
 			Statistics.TotalMessages = totalMessages;
+		}
+
+		private long ComputeAttachmentStatistics() {
+			using var conn = pool.Take();
+			return conn.SelectScalar("SELECT COUNT(*) FROM attachments") as long? ?? 0L;
+		}
+
+		private void UpdateAttachmentStatistics(long totalAttachments) {
+			Statistics.TotalAttachments = totalAttachments;
 		}
 	}
 }
