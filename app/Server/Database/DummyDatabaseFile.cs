@@ -39,7 +39,7 @@ namespace DHT.Server.Database {
 			return new();
 		}
 
-		public void RemoveMessages(MessageFilter filter, MessageFilterRemovalMode mode) {}
+		public void RemoveMessages(MessageFilter filter, FilterRemovalMode mode) {}
 
 		public void Vacuum() {}
 

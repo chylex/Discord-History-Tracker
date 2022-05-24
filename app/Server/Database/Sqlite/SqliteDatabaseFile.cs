@@ -356,8 +356,8 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			return list;
 		}
 
-		public void RemoveMessages(MessageFilter filter, MessageFilterRemovalMode mode) {
-			var whereClause = filter.GenerateWhereClause(invert: mode == MessageFilterRemovalMode.KeepMatching);
+		public void RemoveMessages(MessageFilter filter, FilterRemovalMode mode) {
+			var whereClause = filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching);
 			if (string.IsNullOrEmpty(whereClause)) {
 				return;
 			}

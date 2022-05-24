@@ -135,12 +135,12 @@ namespace DHT.Desktop.Main.Pages {
 
 			if (DatabaseToolFilterModeKeep) {
 				if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Keep Matching Messages in This Database", db.CountMessages(filter).Pluralize("message") + " will be kept, and the rest will be removed from this database. This action cannot be undone. Proceed?")) {
-					db.RemoveMessages(filter, MessageFilterRemovalMode.KeepMatching);
+					db.RemoveMessages(filter, FilterRemovalMode.KeepMatching);
 				}
 			}
 			else if (DatabaseToolFilterModeRemove) {
 				if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Remove Matching Messages in This Database", db.CountMessages(filter).Pluralize("message") + " will be removed from this database. This action cannot be undone. Proceed?")) {
-					db.RemoveMessages(filter, MessageFilterRemovalMode.RemoveMatching);
+					db.RemoveMessages(filter, FilterRemovalMode.RemoveMatching);
 				}
 			}
 		}

@@ -1,5 +1,5 @@
 namespace DHT.Server.Data.Filters {
-	public enum MessageFilterRemovalMode {
+	public enum FilterRemovalMode {
 		KeepMatching,
 		RemoveMatching
 	}
