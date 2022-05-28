@@ -24,7 +24,7 @@
     <StackPanel>
         <Button Command="{Binding OnClickToggleServerButton}" Content="{Binding ToggleServerButtonText}" IsEnabled="{Binding IsToggleServerButtonEnabled}" />
         <TextBlock TextWrapping="Wrap" Margin="0 15">
-            The following settings determine how the tracking script communicates with this application. If you change them, you will have to copy and apply the tracking script again.
+            The following settings determine how the tracking script communicates with this application. If you change them, you will have to copy/paste the tracking script again.
         </TextBlock>
         <WrapPanel>
             <StackPanel>
