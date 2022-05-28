@@ -13,6 +13,7 @@ namespace DHT.Server.Database.Sqlite.Utils {
 		}
 
 		private readonly object monitor = new ();
+		private readonly Random rand = new ();
 		private volatile bool isDisposed;
 
 		private readonly BlockingCollection<PooledConnection> free = new (new ConcurrentStack<PooledConnection>());
@@ -49,7 +50,7 @@ namespace DHT.Server.Database.Sqlite.Utils {
 			while (conn == null) {
 				ThrowIfDisposed();
 				lock (monitor) {
-					if (free.TryTake(out conn, TimeSpan.FromMilliseconds(100))) {
+					if (free.TryTake(out conn, TimeSpan.FromMilliseconds(rand.Next(100, 200)))) {
 						used.Add(conn);
 						break;
 					}
