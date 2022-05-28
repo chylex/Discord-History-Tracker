@@ -153,7 +153,7 @@ namespace DHT.Desktop.Main.Controls {
 			else {
 				exportedMessageCount = null;
 				UpdateFilterStatisticsText();
-				exportedMessageCountComputer.Compute(_ => db.CountMessages(filter));
+				exportedMessageCountComputer.Compute(() => db.CountMessages(filter));
 			}
 		}
 

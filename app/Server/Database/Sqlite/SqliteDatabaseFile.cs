@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
@@ -458,7 +457,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			Statistics.TotalUsers = conn.SelectScalar("SELECT COUNT(*) FROM users") as long? ?? 0;
 		}
 
-		private long ComputeMessageStatistics(CancellationToken token) {
+		private long ComputeMessageStatistics() {
 			using var conn = pool.Take();
 			return conn.SelectScalar("SELECT COUNT(*) FROM messages") as long? ?? 0L;
 		}

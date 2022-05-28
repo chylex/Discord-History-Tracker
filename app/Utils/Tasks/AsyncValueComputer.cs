@@ -11,8 +11,10 @@ namespace DHT.Utils.Tasks {
 
 		private readonly object stateLock = new ();
 
-		private CancellationTokenSource? currentCancellationTokenSource;
-		private Func<CancellationToken, TValue>? currentComputeFunction;
+		private SoftHardCancellationToken? currentCancellationTokenSource;
+		private bool wasHardCancelled = false;
+		
+		private Func<TValue>? currentComputeFunction;
 		private bool hasComputeFunctionChanged = false;
 
 		private AsyncValueComputer(Action<TValue> resultProcessor, TaskScheduler resultTaskScheduler, bool processOutdatedResults) {
@@ -21,12 +23,21 @@ namespace DHT.Utils.Tasks {
 			this.processOutdatedResults = processOutdatedResults;
 		}
 
-		public void Compute(Func<CancellationToken, TValue> func) {
+		public void Cancel() {
 			lock (stateLock) {
+				wasHardCancelled = true;
+				currentCancellationTokenSource?.RequestHardCancellation();
+			}
+		}
+
+		public void Compute(Func<TValue> func) {
+			lock (stateLock) {
+				wasHardCancelled = false;
+				
 				if (currentComputeFunction != null) {
 					currentComputeFunction = func;
 					hasComputeFunctionChanged = true;
-					currentCancellationTokenSource?.Cancel();
+					currentCancellationTokenSource?.RequestSoftCancellation();
 				}
 				else {
 					EnqueueComputation(func);
@@ -35,23 +46,22 @@ namespace DHT.Utils.Tasks {
 		}
 
 		[SuppressMessage("ReSharper", "MethodSupportsCancellation")]
-		private void EnqueueComputation(Func<CancellationToken, TValue> func) {
-			var cancellationTokenSource = new CancellationTokenSource();
-			var cancellationToken = cancellationTokenSource.Token;
+		private void EnqueueComputation(Func<TValue> func) {
+			var cancellationTokenSource = new SoftHardCancellationToken();
 
-			currentCancellationTokenSource?.Cancel();
+			currentCancellationTokenSource?.RequestSoftCancellation();
 			currentCancellationTokenSource = cancellationTokenSource;
 			currentComputeFunction = func;
 			hasComputeFunctionChanged = false;
 
-			var task = Task.Run(() => func(cancellationToken));
-			
+			var task = Task.Run(func);
+
 			task.ContinueWith(t => {
-				if (processOutdatedResults || !cancellationToken.IsCancellationRequested) {
+				if (!cancellationTokenSource.IsCancelled(processOutdatedResults)) {
 					resultProcessor(t.Result);
 				}
 			}, CancellationToken.None, TaskContinuationOptions.NotOnFaulted, resultTaskScheduler);
-			
+
 			task.ContinueWith(_ => {
 				lock (stateLock) {
 					cancellationTokenSource.Dispose();
@@ -60,11 +70,12 @@ namespace DHT.Utils.Tasks {
 						currentCancellationTokenSource = null;
 					}
 
-					if (hasComputeFunctionChanged) {
+					if (hasComputeFunctionChanged && !wasHardCancelled) {
 						EnqueueComputation(currentComputeFunction);
 					}
 					else {
 						currentComputeFunction = null;
+						hasComputeFunctionChanged = false;
 					}
 				}
 			});
@@ -72,9 +83,9 @@ namespace DHT.Utils.Tasks {
 
 		public sealed class Single {
 			private readonly AsyncValueComputer<TValue> baseComputer;
-			private readonly Func<CancellationToken, TValue> resultComputer;
+			private readonly Func<TValue> resultComputer;
 
-			internal Single(AsyncValueComputer<TValue> baseComputer, Func<CancellationToken, TValue> resultComputer) {
+			internal Single(AsyncValueComputer<TValue> baseComputer, Func<TValue> resultComputer) {
 				this.baseComputer = baseComputer;
 				this.resultComputer = resultComputer;
 			}
@@ -107,7 +118,7 @@ namespace DHT.Utils.Tasks {
 				return new AsyncValueComputer<TValue>(resultProcessor, resultTaskScheduler, processOutdatedResults);
 			}
 
-			public Single BuildWithComputer(Func<CancellationToken, TValue> resultComputer) {
+			public Single BuildWithComputer(Func<TValue> resultComputer) {
 				return new Single(Build(), resultComputer);
 			}
 		}
