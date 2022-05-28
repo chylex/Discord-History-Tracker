@@ -169,7 +169,7 @@ namespace DHT.Desktop.Main.Controls {
 			var exportedMessageCountStr = exportedMessageCount?.Format() ?? "(...)";
 			var totalMessageCountStr = totalMessageCount?.Format() ?? "(...)";
 			
-			FilterStatisticsText = verb + " " + exportedMessageCountStr + " out of " + totalMessageCountStr + " message" + (totalMessageCount is null or > 0 ? "s." : ".");
+			FilterStatisticsText = verb + " " + exportedMessageCountStr + " out of " + totalMessageCountStr + " message" + (totalMessageCount is null or 0 ? "." : "s.");
 			OnPropertyChanged(nameof(FilterStatisticsText));
 		}
 
