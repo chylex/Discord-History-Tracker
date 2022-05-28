@@ -13,16 +13,16 @@
 
     <UserControl.Styles>
         <Style Selector="Expander">
-            <Setter Property="Margin" Value="0 25 0 0" />
+            <Setter Property="Margin" Value="0 5 0 0" />
         </Style>
     </UserControl.Styles>
 
-    <StackPanel Orientation="Vertical">
+    <StackPanel Orientation="Vertical" Spacing="20">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
             <Button Command="{Binding OnClickOpenViewer}" Margin="0 0 5 0">Open Viewer</Button>
             <Button Command="{Binding OnClickSaveViewer}" Margin="5 0 0 0">Save Viewer</Button>
         </StackPanel>
-        <controls:MessageFilterPanel DataContext="{Binding FilterModel}" Margin="0 20 0 0" />
+        <controls:MessageFilterPanel DataContext="{Binding FilterModel}" />
         <Expander Header="Database Tools">
             <StackPanel Orientation="Vertical" Spacing="10">
                 <StackPanel Orientation="Vertical" Spacing="4">

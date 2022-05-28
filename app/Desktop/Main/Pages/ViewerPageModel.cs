@@ -43,7 +43,7 @@ namespace DHT.Desktop.Main.Pages {
 			this.window = window;
 			this.db = db;
 
-			FilterModel = new MessageFilterPanelModel(window, db);
+			FilterModel = new MessageFilterPanelModel(window, db, "Will export");
 			FilterModel.FilterPropertyChanged += OnFilterPropertyChanged;
 		}
 

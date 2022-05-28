@@ -91,6 +91,7 @@ namespace DHT.Desktop.Main.Controls {
 
 		private readonly Window window;
 		private readonly IDatabaseFile db;
+		private readonly string verb;
 
 		private readonly AsyncValueComputer<long> exportedMessageCountComputer;
 		private long? exportedMessageCount;
@@ -99,13 +100,14 @@ namespace DHT.Desktop.Main.Controls {
 		[Obsolete("Designer")]
 		public MessageFilterPanelModel() : this(null!, DummyDatabaseFile.Instance) {}
 
-		public MessageFilterPanelModel(Window window, IDatabaseFile db) {
+		public MessageFilterPanelModel(Window window, IDatabaseFile db, string verb = "Matches") {
 			this.window = window;
 			this.db = db;
+			this.verb = verb;
 			
 			this.exportedMessageCountComputer = AsyncValueComputer<long>.WithResultProcessor(SetExportedMessageCount).Build();
 
-			UpdateFilterStatisticsText();
+			UpdateFilterStatistics();
 			UpdateChannelFilterLabel();
 			UpdateUserFilterLabel();
 
@@ -147,6 +149,7 @@ namespace DHT.Desktop.Main.Controls {
 		private void UpdateFilterStatistics() {
 			var filter = CreateFilter();
 			if (filter.IsEmpty) {
+				exportedMessageCountComputer.Cancel();
 				exportedMessageCount = totalMessageCount;
 				UpdateFilterStatisticsText();
 			}
@@ -166,7 +169,7 @@ namespace DHT.Desktop.Main.Controls {
 			var exportedMessageCountStr = exportedMessageCount?.Format() ?? "(...)";
 			var totalMessageCountStr = totalMessageCount?.Format() ?? "(...)";
 			
-			FilterStatisticsText = "Will export " + exportedMessageCountStr + " out of " + totalMessageCountStr + " message" + (totalMessageCount is null or > 0 ? "s." : ".");
+			FilterStatisticsText = verb + " " + exportedMessageCountStr + " out of " + totalMessageCountStr + " message" + (totalMessageCount is null or > 0 ? "s." : ".");
 			OnPropertyChanged(nameof(FilterStatisticsText));
 		}
 
