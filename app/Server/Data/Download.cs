@@ -3,10 +3,6 @@ using System.Net;
 
 namespace DHT.Server.Data {
 	public readonly struct Download {
-		internal static Download NewEnqueued(string url, ulong size) {
-			return new Download(url, DownloadStatus.Enqueued, size);
-		}
-
 		internal static Download NewSuccess(string url, byte[] data) {
 			return new Download(url, DownloadStatus.Success, (ulong) Math.Max(data.LongLength, 0), data);
 		}
@@ -20,11 +16,15 @@ namespace DHT.Server.Data {
 		public ulong Size { get; }
 		public byte[]? Data { get; }
 
-		private Download(string url, DownloadStatus status, ulong size, byte[]? data = null) {
+		internal Download(string url, DownloadStatus status, ulong size, byte[]? data = null) {
 			Url = url;
 			Status = status;
 			Size = size;
 			Data = data;
+		}
+
+		internal Download WithData(byte[] data) {
+			return new Download(Url, Status, Size, data);
 		}
 	}
 }

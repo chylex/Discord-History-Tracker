@@ -51,7 +51,15 @@ namespace DHT.Server.Database {
 			return new();
 		}
 
-		public void AddDownloads(IEnumerable<Data.Download> downloads) {}
+		public List<Data.Download> GetDownloadsWithoutData() {
+			return new();
+		}
+
+		public Data.Download GetDownloadWithData(Data.Download download) {
+			return download;
+		}
+
+		public void AddDownload(Data.Download download) {}
 
 		public void EnqueueDownloadItems(AttachmentFilter? filter = null) {}
 		

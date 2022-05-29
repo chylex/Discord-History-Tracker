@@ -92,9 +92,9 @@ namespace DHT.Server.Download {
 							Log.Debug("Downloading " + url + "...");
 
 							try {
-								db.AddDownloads(new [] { Data.Download.NewSuccess(url, client.DownloadData(url)) });
+								db.AddDownload(Data.Download.NewSuccess(url, client.DownloadData(url)));
 							} catch (WebException e) {
-								db.AddDownloads(new [] { Data.Download.NewFailure(url, e.Response is HttpWebResponse response ? response.StatusCode : null, item.Size) });
+								db.AddDownload(Data.Download.NewFailure(url, e.Response is HttpWebResponse response ? response.StatusCode : null, item.Size));
 								Log.Error(e);
 							} finally {
 								parameters.FireOnItemFinished(item);

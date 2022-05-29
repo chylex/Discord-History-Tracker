@@ -46,6 +46,7 @@ namespace DHT.Server.Database.Sqlite {
 		private readonly SqliteConnectionPool pool;
 		private readonly AsyncValueComputer<long>.Single totalMessagesComputer;
 		private readonly AsyncValueComputer<long>.Single totalAttachmentsComputer;
+		private readonly AsyncValueComputer<long>.Single totalDownloadsComputer;
 
 		private SqliteDatabaseFile(string path, SqliteConnectionPool pool) {
 			this.log = Log.ForType(typeof(SqliteDatabaseFile), System.IO.Path.GetFileName(path));
@@ -53,6 +54,7 @@ namespace DHT.Server.Database.Sqlite {
 			
 			this.totalMessagesComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateMessageStatistics).WithOutdatedResults().BuildWithComputer(ComputeMessageStatistics);
 			this.totalAttachmentsComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateAttachmentStatistics).WithOutdatedResults().BuildWithComputer(ComputeAttachmentStatistics);
+			this.totalDownloadsComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateDownloadStatistics).WithOutdatedResults().BuildWithComputer(ComputeDownloadStatistics);
 
 			this.Path = path;
 			this.Statistics = new DatabaseStatistics();
@@ -65,6 +67,7 @@ namespace DHT.Server.Database.Sqlite {
 
 			totalMessagesComputer.Recompute();
 			totalAttachmentsComputer.Recompute();
+			totalDownloadsComputer.Recompute();
 		}
 
 		public void Dispose() {
@@ -404,10 +407,8 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			return reader.Read() ? reader.GetInt32(0) : 0;
 		}
 
-		public void AddDownloads(IEnumerable<Data.Download> downloads) {
+		public void AddDownload(Data.Download download) {
 			using var conn = pool.Take();
-			using var tx = conn.BeginTransaction();
-
 			using var cmd = conn.Upsert("downloads", new[] {
 				("url", SqliteType.Text),
 				("status", SqliteType.Integer),
@@ -415,15 +416,46 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 				("blob", SqliteType.Blob)
 			});
 
-			foreach (var download in downloads) {
-				cmd.Set(":url", download.Url);
-				cmd.Set(":status", (int) download.Status);
-				cmd.Set(":size", download.Size);
-				cmd.Set(":blob", download.Data);
-				cmd.ExecuteNonQuery();
-			}
+			cmd.Set(":url", download.Url);
+			cmd.Set(":status", (int) download.Status);
+			cmd.Set(":size", download.Size);
+			cmd.Set(":blob", download.Data);
+			cmd.ExecuteNonQuery();
+			
+			totalDownloadsComputer.Recompute();
+		}
 
-			tx.Commit();
+		public List<Data.Download> GetDownloadsWithoutData() {
+			var list = new List<Data.Download>();
+			
+			using var conn = pool.Take();
+			using var cmd = conn.Command("SELECT url, status, size FROM downloads");
+			using var reader = cmd.ExecuteReader();
+			
+			while (reader.Read()) {
+				string url = reader.GetString(0);
+				var status = (DownloadStatus) reader.GetInt32(1);
+				ulong size = reader.GetUint64(2);
+				
+				list.Add(new Data.Download(url, status, size));
+			}
+			
+			return list;
+		}
+
+		public Data.Download GetDownloadWithData(Data.Download download) {
+			using var conn = pool.Take();
+			using var cmd = conn.Command("SELECT blob FROM downloads WHERE url = :url");
+			cmd.AddAndSet(":url", SqliteType.Text, download.Url);
+			
+			using var reader = cmd.ExecuteReader();
+
+			if (reader.Read() && !reader.IsDBNull(0)) {
+				return download.WithData((byte[]) reader["blob"]);
+			}
+			else {
+				return download;
+			}
 		}
 
 		public void EnqueueDownloadItems(AttachmentFilter? filter = null) {
@@ -612,6 +644,15 @@ FROM downloads");
 
 		private void UpdateAttachmentStatistics(long totalAttachments) {
 			Statistics.TotalAttachments = totalAttachments;
+		}
+
+		private long ComputeDownloadStatistics() {
+			using var conn = pool.Take();
+			return conn.SelectScalar("SELECT COUNT(*) FROM downloads") as long? ?? 0L;
+		}
+
+		private void UpdateDownloadStatistics(long totalDownloads) {
+			Statistics.TotalDownloads = totalDownloads;
 		}
 	}
 }

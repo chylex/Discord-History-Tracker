@@ -87,6 +87,9 @@ namespace DHT.Desktop.Main.Pages {
 					downloadStatisticsComputer.Recompute();
 				}
 			}
+			else if (e.PropertyName == nameof(DatabaseStatistics.TotalDownloads)) {
+				downloadStatisticsComputer.Recompute();
+			}
 		}
 
 		private void EnqueueDownloadItems() {

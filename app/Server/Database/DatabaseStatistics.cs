@@ -11,6 +11,7 @@ namespace DHT.Server.Database {
 		private long totalUsers;
 		private long? totalMessages;
 		private long? totalAttachments;
+		private long? totalDownloads;
 
 		public long TotalServers {
 			get => totalServers;
@@ -35,6 +36,11 @@ namespace DHT.Server.Database {
 		public long? TotalAttachments {
 			get => totalAttachments;
 			internal set => Change(ref totalAttachments, value);
+		}
+
+		public long? TotalDownloads {
+			get => totalDownloads;
+			internal set => Change(ref totalDownloads, value);
 		}
 	}
 }

@@ -27,7 +27,10 @@ namespace DHT.Server.Database {
 
 		int CountAttachments(AttachmentFilter? filter = null);
 
-		void AddDownloads(IEnumerable<Data.Download> downloads);
+		void AddDownload(Data.Download download);
+		List<Data.Download> GetDownloadsWithoutData();
+		Data.Download GetDownloadWithData(Data.Download download);
+		
 		void EnqueueDownloadItems(AttachmentFilter? filter = null);
 		List<DownloadItem> GetEnqueuedDownloadItems(int count);
 		void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode);
