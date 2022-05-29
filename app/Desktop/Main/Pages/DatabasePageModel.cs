@@ -2,8 +2,10 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
@@ -56,6 +58,10 @@ namespace DHT.Desktop.Main.Pages {
 			}
 		}
 
+		public void CloseDatabase() {
+			DatabaseClosed?.Invoke(this, EventArgs.Empty);
+		}
+
 		public async void MergeWithDatabase() {
 			var fileDialog = DatabaseGui.NewOpenDatabaseFileDialog();
 			fileDialog.Directory = Path.GetDirectoryName(Db.Path);
@@ -74,10 +80,6 @@ namespace DHT.Desktop.Main.Pages {
 			await progressDialog.ShowDialog(window);
 		}
 
-		public void CloseDatabase() {
-			DatabaseClosed?.Invoke(this, EventArgs.Empty);
-		}
-
 		private static async Task MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
 			int total = paths.Length;
 
@@ -90,9 +92,29 @@ namespace DHT.Desktop.Main.Pages {
 
 				return DialogResult.YesNo.Yes == upgradeResult;
 			}
+			
+			await PerformImport(target, paths, dialog, callback, "Database Merge", "Database Error", "database file", async path => {
+				SynchronizationContext? prevSyncContext = SynchronizationContext.Current;
+				SynchronizationContext.SetSynchronizationContext(new AvaloniaSynchronizationContext());
+				IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, dialog, CheckCanUpgradeDatabase);
+				SynchronizationContext.SetSynchronizationContext(prevSyncContext);
+				
+				if (db == null) {
+					return false;
+				}
 
-			var oldStatistics = target.Statistics.Clone();
-			var oldMessageCount = target.CountMessages();
+				try {
+					target.AddFrom(db);
+					return true;
+				} finally {
+					db.Dispose();
+				}
+			});
+		}
+
+		private static async Task PerformImport(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback, string neutralDialogTitle, string errorDialogTitle, string itemName, Func<string, Task<bool>> performImport) {
+			int total = paths.Length;
+			var oldStatistics = target.SnapshotStatistics();
 
 			int successful = 0;
 			int finished = 0;
@@ -102,56 +124,53 @@ namespace DHT.Desktop.Main.Pages {
 				++finished;
 
 				if (!File.Exists(path)) {
-					await Dialog.ShowOk(dialog, "Database Error", "Database '" + Path.GetFileName(path) + "' no longer exists.");
-					continue;
-				}
-
-				IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, dialog, CheckCanUpgradeDatabase);
-				if (db == null) {
+					await Dialog.ShowOk(dialog, errorDialogTitle, "File '" + Path.GetFileName(path) + "' no longer exists.");
 					continue;
 				}
 
 				try {
-					target.AddFrom(db);
+					if (await performImport(path)) {
+						++successful;
+					}
 				} catch (Exception ex) {
 					Log.Error(ex);
-					await Dialog.ShowOk(dialog, "Database Error", "Database '" + Path.GetFileName(path) + "' could not be merged: " + ex.Message);
-					continue;
-				} finally {
-					db.Dispose();
+					await Dialog.ShowOk(dialog, errorDialogTitle, "File '" + Path.GetFileName(path) + "' could not be imported: " + ex.Message);
 				}
-
-				++successful;
 			}
 
 			await callback.Update("Done", finished, total);
 
 			if (successful == 0) {
-				await Dialog.ShowOk(dialog, "Database Merge", "Nothing was merged.");
+				await Dialog.ShowOk(dialog, neutralDialogTitle, "Nothing was imported.");
 				return;
 			}
 
-			var newStatistics = target.Statistics;
+			await Dialog.ShowOk(dialog, neutralDialogTitle, GetImportDialogMessage(oldStatistics, target.SnapshotStatistics(), successful, total, itemName));
+		}
+
+		private static string GetImportDialogMessage(DatabaseStatisticsSnapshot oldStatistics, DatabaseStatisticsSnapshot newStatistics, int successfulItems, int totalItems, string itemName) {
 			long newServers = newStatistics.TotalServers - oldStatistics.TotalServers;
 			long newChannels = newStatistics.TotalChannels - oldStatistics.TotalChannels;
-			long newMessages = target.CountMessages() - oldMessageCount;
+			long newUsers = newStatistics.TotalUsers - oldStatistics.TotalUsers;
+			long newMessages = newStatistics.TotalMessages - oldStatistics.TotalMessages;
 
 			StringBuilder message = new StringBuilder();
 			message.Append("Processed ");
 
-			if (successful == total) {
-				message.Append(successful.Pluralize("database file"));
+			if (successfulItems == totalItems) {
+				message.Append(successfulItems.Pluralize(itemName));
 			}
 			else {
-				message.Append(successful.Format()).Append(" out of ").Append(total.Pluralize("database file"));
+				message.Append(successfulItems.Format()).Append(" out of ").Append(totalItems.Pluralize(itemName));
 			}
 
 			message.Append(" and added:\n\n  \u2022 ");
 			message.Append(newServers.Pluralize("server")).Append("\n  \u2022 ");
 			message.Append(newChannels.Pluralize("channel")).Append("\n  \u2022 ");
+			message.Append(newUsers.Pluralize("user")).Append("\n  \u2022 ");
 			message.Append(newMessages.Pluralize("message"));
 
-			await Dialog.ShowOk(dialog, "Database Merge", message.ToString());
+			return message.ToString();
 		}
 	}
 }

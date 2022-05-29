@@ -13,6 +13,10 @@ namespace DHT.Server.Database {
 
 		private DummyDatabaseFile() {}
 
+		public DatabaseStatisticsSnapshot SnapshotStatistics() {
+			return new();
+		}
+
 		public void AddServer(Data.Server server) {}
 
 		public List<Data.Server> GetAllServers() {

@@ -66,6 +66,15 @@ namespace DHT.Server.Database.Sqlite {
 			pool.Dispose();
 		}
 
+		public DatabaseStatisticsSnapshot SnapshotStatistics() {
+			return new DatabaseStatisticsSnapshot {
+				TotalServers = Statistics.TotalServers,
+				TotalChannels = Statistics.TotalChannels,
+				TotalUsers = Statistics.TotalUsers,
+				TotalMessages = ComputeMessageStatistics()
+			};
+		}
+
 		public void AddServer(Data.Server server) {
 			using var conn = pool.Take();
 			using var cmd = conn.Upsert("servers", new[] {

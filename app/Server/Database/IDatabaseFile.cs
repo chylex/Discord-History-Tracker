@@ -9,6 +9,7 @@ namespace DHT.Server.Database {
 	public interface IDatabaseFile : IDisposable {
 		string Path { get; }
 		DatabaseStatistics Statistics { get; }
+		DatabaseStatisticsSnapshot SnapshotStatistics();
 
 		void AddServer(Data.Server server);
 		List<Data.Server> GetAllServers();
