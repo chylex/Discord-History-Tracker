@@ -24,6 +24,7 @@
         <WrapPanel>
             <Button Command="{Binding OpenDatabaseFolder}">Open Database Folder</Button>
             <Button Command="{Binding MergeWithDatabase}">Merge with Database(s)...</Button>
+            <Button Command="{Binding ImportLegacyArchive}">Import Legacy Archive(s)...</Button>
         </WrapPanel>
     </StackPanel>
 

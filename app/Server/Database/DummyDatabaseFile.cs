@@ -45,6 +45,10 @@ namespace DHT.Server.Database {
 			return new();
 		}
 
+		public HashSet<ulong> GetMessageIds(MessageFilter? filter = null) {
+			return new();
+		}
+
 		public void RemoveMessages(MessageFilter filter, FilterRemovalMode mode) {}
 
 		public int CountAttachments(AttachmentFilter? filter = null) {

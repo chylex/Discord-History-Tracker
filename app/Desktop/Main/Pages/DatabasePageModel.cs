@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +11,10 @@ using Avalonia.Threading;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
+using DHT.Desktop.Dialogs.TextBox;
+using DHT.Server.Data;
 using DHT.Server.Database;
+using DHT.Server.Database.Import;
 using DHT.Utils.Logging;
 using DHT.Utils.Models;
 
@@ -92,13 +97,13 @@ namespace DHT.Desktop.Main.Pages {
 
 				return DialogResult.YesNo.Yes == upgradeResult;
 			}
-			
+
 			await PerformImport(target, paths, dialog, callback, "Database Merge", "Database Error", "database file", async path => {
 				SynchronizationContext? prevSyncContext = SynchronizationContext.Current;
 				SynchronizationContext.SetSynchronizationContext(new AvaloniaSynchronizationContext());
 				IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, dialog, CheckCanUpgradeDatabase);
 				SynchronizationContext.SetSynchronizationContext(prevSyncContext);
-				
+
 				if (db == null) {
 					return false;
 				}
@@ -110,6 +115,73 @@ namespace DHT.Desktop.Main.Pages {
 					db.Dispose();
 				}
 			});
+		}
+
+		public async void ImportLegacyArchive() {
+			var fileDialog = new OpenFileDialog {
+				Title = "Open Legacy DHT Archive",
+				Directory = Path.GetDirectoryName(Db.Path),
+				AllowMultiple = true
+			};
+
+			string[]? paths = await fileDialog.ShowAsync(window);
+			if (paths == null || paths.Length == 0) {
+				return;
+			}
+
+			ProgressDialog progressDialog = new ProgressDialog();
+			progressDialog.DataContext = new ProgressDialogModel(async callback => await ImportLegacyArchiveFromPaths(Db, paths, progressDialog, callback)) {
+				Title = "Legacy Archive Import"
+			};
+
+			await progressDialog.ShowDialog(window);
+		}
+
+		private static async Task ImportLegacyArchiveFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
+			var fakeSnowflake = new FakeSnowflake();
+
+			await PerformImport(target, paths, dialog, callback, "Legacy Archive Import", "Legacy Archive Error", "archive file", async path => {
+				await using var jsonStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+				
+				return await LegacyArchiveImport.Read(jsonStream, target, fakeSnowflake, async servers => {
+					SynchronizationContext? prevSyncContext = SynchronizationContext.Current;
+					SynchronizationContext.SetSynchronizationContext(new AvaloniaSynchronizationContext());
+					Dictionary<DHT.Server.Data.Server, ulong>? result = await Dispatcher.UIThread.InvokeAsync(() => AskForServerIds(dialog, servers));
+					SynchronizationContext.SetSynchronizationContext(prevSyncContext);
+					return result;
+				});
+			});
+		}
+
+		private static async Task<Dictionary<DHT.Server.Data.Server, ulong>?> AskForServerIds(Window window, DHT.Server.Data.Server[] servers) {
+			static bool IsValidSnowflake(string value) {
+				return string.IsNullOrEmpty(value) || ulong.TryParse(value, out _);
+			}
+			
+			var items = new List<TextBoxItem<DHT.Server.Data.Server>>();
+
+			foreach (var server in servers.OrderBy(static server => server.Type).ThenBy(static server => server.Name)) {
+				items.Add(new TextBoxItem<DHT.Server.Data.Server>(server) {
+					Title = server.Name + " (" + ServerTypes.ToNiceString(server.Type) + ")",
+					ValidityCheck = IsValidSnowflake
+				});
+			}
+
+			var model = new TextBoxDialogModel<DHT.Server.Data.Server>(items) {
+				Title = "Imported Server IDs",
+				Description = "Please fill in the IDs of servers and direct messages. First enable Developer Mode in Discord, then right-click each server or direct message, click 'Copy ID', and paste it into the input field. If a server no longer exists, leave its input field empty to use a random ID."
+			};
+
+			var dialog = new TextBoxDialog { DataContext = model };
+			var result = await dialog.ShowDialog<DialogResult.OkCancel>(window);
+
+			if (result != DialogResult.OkCancel.Ok) {
+				return null;
+			}
+
+			return model.ValidItems
+			            .Where(static item => !string.IsNullOrEmpty(item.Value))
+			            .ToDictionary(static item => item.Item, static item => ulong.Parse(item.Value));
 		}
 
 		private static async Task PerformImport(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback, string neutralDialogTitle, string errorDialogTitle, string itemName, Func<string, Task<bool>> performImport) {

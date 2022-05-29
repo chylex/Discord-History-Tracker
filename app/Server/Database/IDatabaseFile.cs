@@ -23,6 +23,7 @@ namespace DHT.Server.Database {
 		void AddMessages(Message[] messages);
 		int CountMessages(MessageFilter? filter = null);
 		List<Message> GetMessages(MessageFilter? filter = null);
+		HashSet<ulong> GetMessageIds(MessageFilter? filter = null);
 		void RemoveMessages(MessageFilter filter, FilterRemovalMode mode);
 
 		int CountAttachments(AttachmentFilter? filter = null);

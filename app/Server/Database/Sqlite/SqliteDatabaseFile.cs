@@ -386,6 +386,22 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			return list;
 		}
 
+		public HashSet<ulong> GetMessageIds(MessageFilter? filter = null) {
+			var perf = log.Start();
+			var ids = new HashSet<ulong>();
+
+			using var conn = pool.Take();
+			using var cmd = conn.Command("SELECT message_id FROM messages" + filter.GenerateWhereClause());
+			using var reader = cmd.ExecuteReader();
+
+			while (reader.Read()) {
+				ids.Add(reader.GetUint64(0));
+			}
+
+			perf.End();
+			return ids;
+		}
+
 		public void RemoveMessages(MessageFilter filter, FilterRemovalMode mode) {
 			var whereClause = filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching);
 			

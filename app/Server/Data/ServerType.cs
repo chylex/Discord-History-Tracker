@@ -24,6 +24,15 @@ namespace DHT.Server.Data {
 			};
 		}
 
+		public static string ToNiceString(ServerType? type) {
+			return type switch {
+				ServerType.Server        => "Server",
+				ServerType.Group         => "Group",
+				ServerType.DirectMessage => "DM",
+				_                        => "Unknown"
+			};
+		}
+
 		internal static string ToJsonViewerString(ServerType? type) {
 			return type switch {
 				ServerType.Server        => "server",
