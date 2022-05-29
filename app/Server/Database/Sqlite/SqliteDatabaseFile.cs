@@ -24,14 +24,19 @@ namespace DHT.Server.Database.Sqlite {
 			};
 
 			var pool = new SqliteConnectionPool(connectionString, DefaultPoolSize);
+			bool wasOpened;
 
 			using (var conn = pool.Take()) {
-				if (!await new Schema(conn).Setup(checkCanUpgradeSchemas)) {
-					return null;
-				}
+				wasOpened = await new Schema(conn).Setup(checkCanUpgradeSchemas);
 			}
 
-			return new SqliteDatabaseFile(path, pool);
+			if (wasOpened) {
+				return new SqliteDatabaseFile(path, pool);
+			}
+			else {
+				pool.Dispose();
+				return null;
+			}
 		}
 
 		public string Path { get; }
