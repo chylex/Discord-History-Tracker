@@ -2,6 +2,10 @@
   margin-bottom: 48px !important;
 }
 
+#app-mount div[class*="app-"] > div[class*="app-"] {
+  margin-bottom: 0 !important;
+}
+
 #dht-ctrl {
   position: absolute;
   bottom: 0;
