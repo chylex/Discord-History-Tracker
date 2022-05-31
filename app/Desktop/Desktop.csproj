@@ -31,6 +31,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Version.cs" Link="Version.cs" />
+    <Compile Update="Dialogs\TextBox\TextBoxDialog.axaml.cs">
+      <DependentUpon>CheckBoxDialog.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <AvaloniaResource Include="Resources/icon.ico" />

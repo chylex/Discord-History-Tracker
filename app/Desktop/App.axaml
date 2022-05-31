@@ -7,7 +7,7 @@
     <Application.Styles>
 
         <FluentTheme Mode="Light" />
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Default.xaml"/>
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Default.xaml" />
 
         <Style Selector="Button, CheckBox, RadioButton, Expander /template/ ToggleButton#ExpanderHeader">
             <Setter Property="Cursor" Value="Hand" />
@@ -35,6 +35,20 @@
         </Style>
         <Style Selector="TextBox:disabled"><!-- TODO bug in Avalonia (https://github.com/AvaloniaUI/Avalonia/pull/7792) -->
             <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
+        </Style>
+        <Style Selector="TextBox:error DataValidationErrors">
+            <Style.Resources>
+                <ControlTemplate x:Key="InlineDataValidationContentTemplate" TargetType="DataValidationErrors">
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Padding="{TemplateBinding Padding}"
+                                      Background="{TemplateBinding Background}"
+                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                      CornerRadius="{TemplateBinding CornerRadius}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                </ControlTemplate>
+            </Style.Resources>
+            <Setter Property="Template" Value="{StaticResource InlineDataValidationContentTemplate}" />
         </Style>
 
         <Style Selector="Expander /template/ ToggleButton#ExpanderHeader">
