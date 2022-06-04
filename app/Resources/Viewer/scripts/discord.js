@@ -128,12 +128,12 @@ const DISCORD = (function() {
 			
 			// noinspection HtmlUnknownTarget
 			templateEmbedImage = new TEMPLATE([
-				"<a href='{url}' class='embed thumbnail'><img src='{src}' alt='(image attachment not found)'></a><br>"
+				"<a href='{url}' class='embed thumbnail'><img src='{src}' alt='(image attachment is loading...)' onerror='DISCORD.handleImageLoadError(this)'></a><br>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
 			templateEmbedImageWithSize = new TEMPLATE([
-				"<a href='{url}' class='embed thumbnail'><img src='{src}' width='{width}' height='{height}' alt='(image attachment not found)'></a><br>"
+				"<a href='{url}' class='embed thumbnail'><img src='{src}' width='{width}' height='{height}' alt='(image attachment is loading...)' onerror='DISCORD.handleImageLoadError(this)'></a><br>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
@@ -162,6 +162,12 @@ const DISCORD = (function() {
 			templateReactionCustom = new TEMPLATE([
 				"<span class='reaction-wrapper'><img src='https://cdn.discordapp.com/emojis/{id}.{ext}' alt=':{n}:' title=':{n}:' class='reaction-emoji-custom'><span class='count'>{c}</span></span>"
 			].join(""));
+		},
+		
+		handleImageLoadError(ele) {
+			// noinspection JSUnusedGlobalSymbols
+			ele.onerror = null;
+			ele.setAttribute("alt", "(image attachment not found)");
 		},
 		
 		isImageAttachment(attachment) {
