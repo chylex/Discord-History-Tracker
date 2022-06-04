@@ -413,7 +413,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 
 		public int CountAttachments(AttachmentFilter? filter = null) {
 			using var conn = pool.Take();
-			using var cmd = conn.Command("SELECT COUNT(*) FROM attachments a" + filter.GenerateWhereClause("a"));
+			using var cmd = conn.Command("SELECT COUNT(DISTINCT url) FROM attachments a" + filter.GenerateWhereClause("a"));
 			using var reader = cmd.ExecuteReader();
 
 			return reader.Read() ? reader.GetInt32(0) : 0;
@@ -472,7 +472,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 
 		public void EnqueueDownloadItems(AttachmentFilter? filter = null) {
 			using var conn = pool.Take();
-			using var cmd = conn.Command("INSERT INTO downloads (url, status, size) SELECT a.url, :enqueued, a.size FROM attachments a" + filter.GenerateWhereClause("a"));
+			using var cmd = conn.Command("INSERT INTO downloads (url, status, size) SELECT a.url, :enqueued, MAX(a.size) FROM attachments a" + filter.GenerateWhereClause("a") + " GROUP BY a.url");
 			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
 			cmd.ExecuteNonQuery();
 		}
@@ -504,7 +504,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 
 		public DownloadStatusStatistics GetDownloadStatusStatistics() {
 			static void LoadUndownloadedStatistics(ISqliteConnection conn, DownloadStatusStatistics result) {
-				using var cmd = conn.Command("SELECT IFNULL(COUNT(filtered.size), 0), IFNULL(SUM(filtered.size), 0) FROM (SELECT DISTINCT a.url, a.size FROM attachments a  WHERE a.url NOT IN (SELECT d.url FROM downloads d)) filtered");
+				using var cmd = conn.Command("SELECT IFNULL(COUNT(size), 0), IFNULL(SUM(size), 0) FROM (SELECT MAX(a.size) size FROM attachments a WHERE a.url NOT IN (SELECT d.url FROM downloads d) GROUP BY a.url)");
 				using var reader = cmd.ExecuteReader();
 
 				if (reader.Read()) {
@@ -648,7 +648,7 @@ FROM downloads");
 
 		private long ComputeAttachmentStatistics() {
 			using var conn = pool.Take();
-			return conn.SelectScalar("SELECT COUNT(*) FROM attachments") as long? ?? 0L;
+			return conn.SelectScalar("SELECT COUNT(DISTINCT url) FROM attachments") as long? ?? 0L;
 		}
 
 		private void UpdateAttachmentStatistics(long totalAttachments) {
