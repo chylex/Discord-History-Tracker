@@ -1,7 +1,7 @@
 const DISCORD = (function() {
 	const regex = {
 		formatBold: /\*\*([\s\S]+?)\*\*(?!\*)/g,
-		formatItalic: /(.)?\*([\s\S]+?)\*(?!\*)/g,
+		formatItalic: /(.)?([_*])([\s\S]+?)\2(?!\2)/g,
 		formatUnderline: /__([\s\S]+?)__(?!_)/g,
 		formatStrike: /~~([\s\S]+?)~~(?!~)/g,
 		formatCodeInline: /(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/g,
@@ -9,7 +9,7 @@ const DISCORD = (function() {
 		formatUrl: /(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,
 		formatUrlNoEmbed: /<(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])>/ig,
 		specialEscapedBacktick: /\\`/g,
-		specialEscapedSingle: /\\([*\\])/g,
+		specialEscapedSingle: /\\([*_\\])/g,
 		specialEscapedDouble: /\\__|_\\_|\\_\\_|\\~~|~\\~|\\~\\~/g,
 		specialUnescaped: /([*_~\\])/g,
 		mentionRole: /&lt;@&(\d+?)&gt;/g,
@@ -47,8 +47,8 @@ const DISCORD = (function() {
 				.replace(regex.specialEscapedSingle, escapeHtmlMatch)
 				.replace(regex.specialEscapedDouble, full => full.replace(/\\/g, "").replace(/(.)/g, escapeHtmlMatch))
 				.replace(regex.formatBold, "<b>$1</b>")
-				.replace(regex.formatItalic, (full, pre, match) => pre === "\\" ? full : (pre || "") + "<i>" + match + "</i>")
 				.replace(regex.formatUnderline, "<u>$1</u>")
+				.replace(regex.formatItalic, (full, pre, char, match) => pre === "\\" ? full : (pre || "") + "<i>" + match + "</i>")
 				.replace(regex.formatStrike, "<s>$1</s>");
 		}
 		
