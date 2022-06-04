@@ -128,12 +128,12 @@ const DISCORD = (function() {
 			
 			// noinspection HtmlUnknownTarget
 			templateEmbedImage = new TEMPLATE([
-				"<a href='{url}' class='embed thumbnail'><img src='{src}' alt='(image attachment is loading...)' onerror='DISCORD.handleImageLoadError(this)'></a><br>"
+				"<a href='{url}' class='embed thumbnail loading'><img src='{src}' alt='' onload='DISCORD.handleImageLoad(this)' onerror='DISCORD.handleImageLoadError(this)'></a><br>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
 			templateEmbedImageWithSize = new TEMPLATE([
-				"<a href='{url}' class='embed thumbnail'><img src='{src}' width='{width}' height='{height}' alt='(image attachment is loading...)' onerror='DISCORD.handleImageLoadError(this)'></a><br>"
+				"<a href='{url}' class='embed thumbnail loading'><img src='{src}' width='{width}' height='{height}' alt='' onload='DISCORD.handleImageLoad(this)' onerror='DISCORD.handleImageLoadError(this)'></a><br>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
@@ -164,9 +164,14 @@ const DISCORD = (function() {
 			].join(""));
 		},
 		
+		handleImageLoad(ele) {
+			ele.parentElement.classList.remove("loading");
+		},
+		
 		handleImageLoadError(ele) {
 			// noinspection JSUnusedGlobalSymbols
 			ele.onerror = null;
+			ele.parentElement.classList.remove("loading");
 			ele.setAttribute("alt", "(image attachment not found)");
 		},
 		
