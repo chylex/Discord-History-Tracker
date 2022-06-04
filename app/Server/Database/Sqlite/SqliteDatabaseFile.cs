@@ -403,16 +403,12 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 		}
 
 		public void RemoveMessages(MessageFilter filter, FilterRemovalMode mode) {
-			var whereClause = filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching);
-			
-			if (!string.IsNullOrEmpty(whereClause)) {
-				var perf = log.Start();
-				
-				DeleteFromTable("messages", whereClause);
-				totalMessagesComputer.Recompute();
-				
-				perf.End();
-			}
+			var perf = log.Start();
+
+			DeleteFromTable("messages", filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching));
+			totalMessagesComputer.Recompute();
+
+			perf.End();
 		}
 
 		public int CountAttachments(AttachmentFilter? filter = null) {
@@ -502,11 +498,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 		}
 
 		public void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode) {
-			var whereClause = filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching);
-			
-			if (!string.IsNullOrEmpty(whereClause)) {
-				DeleteFromTable("downloads", whereClause);
-			}
+			DeleteFromTable("downloads", filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching));
 		}
 
 		public DownloadStatusStatistics GetDownloadStatusStatistics() {
