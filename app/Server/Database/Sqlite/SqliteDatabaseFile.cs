@@ -499,6 +499,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 
 		public void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode) {
 			DeleteFromTable("downloads", filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching));
+			totalDownloadsComputer.Recompute();
 		}
 
 		public DownloadStatusStatistics GetDownloadStatusStatistics() {

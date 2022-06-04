@@ -175,7 +175,6 @@ namespace DHT.Desktop.Main.Pages {
 			};
 
 			db.RemoveDownloadItems(allExceptFailedFilter, FilterRemovalMode.KeepMatching);
-			downloadStatisticsComputer.Recompute();
 
 			if (IsDownloading) {
 				EnqueueDownloadItems();
