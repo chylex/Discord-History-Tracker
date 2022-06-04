@@ -26,6 +26,7 @@ const DISCORD = (function() {
 	let templateUserAvatar;
 	let templateAttachmentDownload;
 	let templateEmbedImage;
+	let templateEmbedImageWithSize;
 	let templateEmbedRich;
 	let templateEmbedRichNoDescription;
 	let templateEmbedUrl;
@@ -62,6 +63,19 @@ const DISCORD = (function() {
 			.replace(regex.customEmojiAnimated, "<img src='https://cdn.discordapp.com/emojis/$2." + animatedEmojiExtension + "' alt=':$1:' title=':$1:' class='emoji'>");
 		
 		return "<p>" + processed + "</p>";
+	};
+	
+	const getImageEmbed = function(url, image) {
+		if (!SETTINGS.enableImagePreviews) {
+			return "";
+		}
+		
+		if (image.width && image.height) {
+			return templateEmbedImageWithSize.apply({ url, src: image.url, width: image.width, height: image.height });
+		}
+		else {
+			return templateEmbedImage.apply({ url, src: image.url });
+		}
 	};
 	
 	return {
@@ -115,6 +129,11 @@ const DISCORD = (function() {
 			// noinspection HtmlUnknownTarget
 			templateEmbedImage = new TEMPLATE([
 				"<a href='{url}' class='embed thumbnail'><img src='{src}' alt='(image attachment not found)'></a><br>"
+			].join(""));
+			
+			// noinspection HtmlUnknownTarget
+			templateEmbedImageWithSize = new TEMPLATE([
+				"<a href='{url}' class='embed thumbnail'><img src='{src}' width='{width}' height='{height}' alt='(image attachment not found)'></a><br>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
@@ -183,10 +202,10 @@ const DISCORD = (function() {
 							return templateEmbedUnsupported.apply(embed);
 						}
 						else if ("image" in embed && embed.image.url) {
-							return SETTINGS.enableImagePreviews ? templateEmbedImage.apply({ url: embed.url, src: embed.image.url }) : "";
+							return getImageEmbed(embed.url, embed.image);
 						}
 						else if ("thumbnail" in embed && embed.thumbnail.url) {
-							return SETTINGS.enableImagePreviews ? templateEmbedImage.apply({ url: embed.url, src: embed.thumbnail.url }) : "";
+							return getImageEmbed(embed.url, embed.thumbnail);
 						}
 						else if ("title" in embed && "description" in embed) {
 							return templateEmbedRich.apply(embed);
