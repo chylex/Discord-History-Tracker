@@ -9,7 +9,7 @@ using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Controls {
 	sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
-		public sealed record Unit(string Name, int Scale);
+		public sealed record Unit(string Name, uint Scale);
 
 		private static readonly Unit[] AllUnits = {
 			new ("B", 1),
@@ -26,7 +26,7 @@ namespace DHT.Desktop.Main.Controls {
 		public string FilterStatisticsText { get; private set; } = "";
 
 		private bool limitSize = false;
-		private int maximumSize = 0;
+		private ulong maximumSize = 0L;
 		private Unit maximumSizeUnit = AllUnits[0];
 
 		public bool LimitSize {
@@ -34,7 +34,7 @@ namespace DHT.Desktop.Main.Controls {
 			set => Change(ref limitSize, value);
 		}
 
-		public int MaximumSize {
+		public ulong MaximumSize {
 			get => maximumSize;
 			set => Change(ref maximumSize, value);
 		}
@@ -116,7 +116,11 @@ namespace DHT.Desktop.Main.Controls {
 			AttachmentFilter filter = new();
 
 			if (LimitSize) {
-				filter.MaxBytes = maximumSize * maximumSizeUnit.Scale;
+				try {
+					filter.MaxBytes = maximumSize * maximumSizeUnit.Scale;
+				} catch (ArithmeticException) {
+					// set no size limit, because the overflown size is larger than any file could possibly be
+				}
 			}
 
 			return filter;

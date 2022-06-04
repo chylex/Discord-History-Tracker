@@ -1,6 +1,6 @@
 namespace DHT.Server.Data.Filters {
 	public sealed class AttachmentFilter {
-		public long? MaxBytes { get; set; } = null;
+		public ulong? MaxBytes { get; set; } = null;
 
 		public DownloadItemRules? DownloadItemRule { get; set; } = null;
 
