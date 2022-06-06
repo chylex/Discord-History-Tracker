@@ -110,16 +110,20 @@ class DISCORD {
 			const messages = [];
 			
 			for (const ele of this.getMessageElements()) {
-				const props = this.getMessageElementProps(ele);
-				
-				if (props != null) {
-					messages.push(props.message);
+				try {
+					const props = this.getMessageElementProps(ele);
+					
+					if (props != null) {
+						messages.push(props.message);
+					}
+				} catch (e) {
+					console.error("[DHT] Error extracing message data, skipping it.", e, ele, DOM.tryGetReactProps(ele));
 				}
 			}
 			
 			return messages;
 		} catch (e) {
-			console.error(e);
+			console.error("[DHT] Error retrieving messages.", e);
 			return [];
 		}
 	}

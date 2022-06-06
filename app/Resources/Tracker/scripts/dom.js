@@ -71,4 +71,15 @@ class DOM {
 		key = keys.find(key => key.startsWith("__reactProps$"));
 		return key ? ele[key] : null;
 	}
+	
+	/**
+	 * Returns internal React state object of an element, or null if the retrieval throws.
+	 */
+	static tryGetReactProps(ele) {
+		try {
+			return this.getReactProps(ele);
+		} catch (e) {
+			return null;
+		}
+	}
 }
