@@ -91,11 +91,13 @@ class DISCORD {
 	static getMessageElementProps(ele) {
 		const props = DOM.getReactProps(ele);
 		
-		if (props.children && props.children.length >= 4) {
-			const childProps = props.children[3].props;
-			
-			if ("message" in childProps && "channel" in childProps) {
-				return childProps;
+		if (props.children && props.children.length) {
+			for (let i = 3; i < props.children.length; i++) {
+				const childProps = props.children[i].props;
+				
+				if (childProps && "message" in childProps && "channel" in childProps) {
+					return childProps;
+				}
 			}
 		}
 		
