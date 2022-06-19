@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.31c
+// @version      v.31d
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -37,14 +37,24 @@ var DISCORD = (function(){
     return key ? ele[key] : null;
   };
   
+  var tryGetReactProps = function(ele) {
+    try {
+      return this.getReactProps(ele);
+    } catch (ignore) {
+      return null;
+    }
+  };
+  
   var getMessageElementProps = function(ele) {
     const props = getReactProps(ele);
     
-    if (props.children && props.children.length >= 4) {
-      const childProps = props.children[3].props;
-      
-      if ("message" in childProps && "channel" in childProps) {
-        return childProps;
+    if (props.children && props.children.length) {
+      for (let i = 3; i < props.children.length; i++) {
+        const childProps = props.children[i].props;
+        
+        if (childProps && "message" in childProps && "channel" in childProps) {
+          return childProps;
+        }
       }
     }
     
@@ -58,18 +68,22 @@ var DISCORD = (function(){
   var getMessages = function() {
     try {
       const messages = [];
-      
+    
       for (const ele of getMessageElements()) {
-        const props = getMessageElementProps(ele);
+        try {
+          const props = getMessageElementProps(ele);
         
-        if (props != null) {
-          messages.push(props.message);
+          if (props != null) {
+            messages.push(props.message);
+          }
+        } catch (e) {
+          console.error("[DHT] Error extracing message data, skipping it.", e, ele, tryGetReactProps(ele));
         }
       }
-      
+    
       return messages;
     } catch (e) {
-      console.error(e);
+      console.error("[DHT] Error retrieving messages.", e);
       return [];
     }
   };
@@ -637,7 +651,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.31c, released 19 May 2022</sub>
+<sub>v.31d, released 19 June 2022</sub>
 </p>`);
       
       // elements
