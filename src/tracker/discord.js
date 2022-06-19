@@ -23,6 +23,14 @@ var DISCORD = (function(){
     return key ? ele[key] : null;
   };
   
+  var tryGetReactProps = function(ele) {
+    try {
+      return this.getReactProps(ele);
+    } catch (ignore) {
+      return null;
+    }
+  };
+  
   var getMessageElementProps = function(ele) {
     const props = getReactProps(ele);
     
@@ -46,18 +54,22 @@ var DISCORD = (function(){
   var getMessages = function() {
     try {
       const messages = [];
-      
+    
       for (const ele of getMessageElements()) {
-        const props = getMessageElementProps(ele);
+        try {
+          const props = getMessageElementProps(ele);
         
-        if (props != null) {
-          messages.push(props.message);
+          if (props != null) {
+            messages.push(props.message);
+          }
+        } catch (e) {
+          console.error("[DHT] Error extracing message data, skipping it.", e, ele, tryGetReactProps(ele));
         }
       }
-      
+    
       return messages;
     } catch (e) {
-      console.error(e);
+      console.error("[DHT] Error retrieving messages.", e);
       return [];
     }
   };
