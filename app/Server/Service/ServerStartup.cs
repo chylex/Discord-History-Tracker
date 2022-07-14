@@ -16,7 +16,7 @@ namespace DHT.Server.Service {
 
 			services.AddCors(static cors => {
 				cors.AddDefaultPolicy(static builder => {
-					builder.WithOrigins("https://discord.com", "https://discordapp.com").AllowCredentials().AllowAnyMethod().AllowAnyHeader();
+					builder.WithOrigins("https://discord.com", "https://discordapp.com", "https://ptb.discord.com", "https://canary.discord.com").AllowCredentials().AllowAnyMethod().AllowAnyHeader();
 				});
 			});
 		}
