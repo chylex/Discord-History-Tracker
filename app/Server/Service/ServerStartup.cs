@@ -9,6 +9,13 @@ using Microsoft.Extensions.Hosting;
 
 namespace DHT.Server.Service {
 	sealed class Startup {
+		private static readonly string[] AllowedOrigins = {
+			"https://discord.com",
+			"https://ptb.discord.com",
+			"https://canary.discord.com",
+			"https://discordapp.com"
+		};
+
 		public void ConfigureServices(IServiceCollection services) {
 			services.Configure<JsonOptions>(static options => {
 				options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
@@ -16,7 +23,7 @@ namespace DHT.Server.Service {
 
 			services.AddCors(static cors => {
 				cors.AddDefaultPolicy(static builder => {
-					builder.WithOrigins("https://discord.com", "https://discordapp.com", "https://ptb.discord.com", "https://canary.discord.com").AllowCredentials().AllowAnyMethod().AllowAnyHeader();
+					builder.WithOrigins(AllowedOrigins).AllowCredentials().AllowAnyMethod().AllowAnyHeader();
 				});
 			});
 		}
