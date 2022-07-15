@@ -11,7 +11,7 @@ namespace DHT.Server.Endpoints {
 	sealed class TrackChannelEndpoint : BaseEndpoint {
 		public TrackChannelEndpoint(IDatabaseFile db, ServerParameters parameters) : base(db, parameters) {}
 
-		protected override async Task<(HttpStatusCode, object?)> Respond(HttpContext ctx) {
+		protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
 			var root = await ReadJson(ctx);
 			var server = ReadServer(root.RequireObject("server"), "server");
 			var channel = ReadChannel(root.RequireObject("channel"), "channel", server.Id);
@@ -19,7 +19,7 @@ namespace DHT.Server.Endpoints {
 			Db.AddServer(server);
 			Db.AddChannel(channel);
 
-			return (HttpStatusCode.OK, null);
+			return HttpOutput.None;
 		}
 
 		private static Data.Server ReadServer(JsonElement json, string path) => new() {

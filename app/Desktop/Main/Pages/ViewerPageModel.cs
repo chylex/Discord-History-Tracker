@@ -11,9 +11,11 @@ using Avalonia.Controls;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Controls;
+using DHT.Desktop.Server;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Server.Database.Export;
+using DHT.Server.Database.Export.Strategy;
 using DHT.Utils.Models;
 using static DHT.Desktop.Program;
 
@@ -55,7 +57,7 @@ namespace DHT.Desktop.Main.Pages {
 			HasFilters = FilterModel.HasAnyFilters;
 		}
 
-		private async Task WriteViewerFile(string path) {
+		private async Task WriteViewerFile(string path, IViewerExportStrategy strategy) {
 			const string ArchiveTag = "/*[ARCHIVE]*/";
 
 			string indexFile = await Resources.ReadTextAsync("Viewer/index.html");
@@ -68,7 +70,7 @@ namespace DHT.Desktop.Main.Pages {
 			string jsonTempFile = path + ".tmp";
 
 			await using (var jsonStream = new FileStream(jsonTempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)) {
-				await ViewerJsonExport.Generate(jsonStream, db, FilterModel.CreateFilter());
+				await ViewerJsonExport.Generate(jsonStream, strategy, db, FilterModel.CreateFilter());
 
 				char[] jsonBuffer = new char[Math.Min(32768, jsonStream.Position)];
 				jsonStream.Position = 0;
@@ -106,7 +108,7 @@ namespace DHT.Desktop.Main.Pages {
 			TemporaryFiles.Add(fullPath);
 			
 			Directory.CreateDirectory(rootPath);
-			await WriteViewerFile(fullPath);
+			await WriteViewerFile(fullPath, new LiveViewerExportStrategy(ServerManager.Port, ServerManager.Token));
 
 			Process.Start(new ProcessStartInfo(fullPath) { UseShellExecute = true });
 		}
@@ -126,7 +128,7 @@ namespace DHT.Desktop.Main.Pages {
 
 			string? path = await dialog;
 			if (!string.IsNullOrEmpty(path)) {
-				await WriteViewerFile(path);
+				await WriteViewerFile(path, StandaloneViewerExportStrategy.Instance);
 			}
 		}
 

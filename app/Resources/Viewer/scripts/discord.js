@@ -129,7 +129,7 @@ const DISCORD = (function() {
 			
 			// noinspection HtmlUnknownTarget
 			templateAttachmentDownload = new TEMPLATE([
-				"<a href='{url}' class='embed download'>Download {filename}</a>"
+				"<a href='{url}' class='embed download'>Download {name}</a>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
@@ -240,19 +240,11 @@ const DISCORD = (function() {
 					}
 					
 					return value.map(attachment => {
-						const url = DOM.tryParseUrl(attachment.url);
-						
-						if (url != null && isImageUrl(url) && SETTINGS.enableImagePreviews) {
+						if (DISCORD.isImageAttachment(attachment) && SETTINGS.enableImagePreviews) {
 							return templateEmbedImage.apply({ url: attachment.url, src: attachment.url });
 						}
 						else {
-							const path = url == null ? attachment.url : url.pathname;
-							const sliced = path.split("/");
-							
-							return templateAttachmentDownload.apply({
-								"url": attachment.url,
-								"filename": sliced[sliced.length - 1]
-							});
+							return templateAttachmentDownload.apply(attachment);
 						}
 					}).join("");
 				}

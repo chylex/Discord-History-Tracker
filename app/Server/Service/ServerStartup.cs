@@ -34,13 +34,16 @@ namespace DHT.Server.Service {
 			app.UseCors();
 			app.UseEndpoints(endpoints => {
 				TrackChannelEndpoint trackChannel = new(db, parameters);
-				endpoints.MapPost("/track-channel", async context => await trackChannel.Handle(context));
+				endpoints.MapPost("/track-channel", async context => await trackChannel.HandlePost(context));
 
 				TrackUsersEndpoint trackUsers = new(db, parameters);
-				endpoints.MapPost("/track-users", async context => await trackUsers.Handle(context));
+				endpoints.MapPost("/track-users", async context => await trackUsers.HandlePost(context));
 
 				TrackMessagesEndpoint trackMessages = new(db, parameters);
-				endpoints.MapPost("/track-messages", async context => await trackMessages.Handle(context));
+				endpoints.MapPost("/track-messages", async context => await trackMessages.HandlePost(context));
+
+				GetAttachmentEndpoint getAttachment = new(db, parameters);
+				endpoints.MapGet("/get-attachment/{url}", async context => await getAttachment.HandleGet(context));
 			});
 		}
 	}

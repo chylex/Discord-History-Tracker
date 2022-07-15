@@ -63,6 +63,10 @@ namespace DHT.Server.Database {
 			return download;
 		}
 
+		public DownloadedAttachment? GetDownloadedAttachment(string url) {
+			return null;
+		}
+
 		public void AddDownload(Data.Download download) {}
 
 		public void EnqueueDownloadItems(AttachmentFilter? filter = null) {}

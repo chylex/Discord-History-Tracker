@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -5,13 +6,14 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
+using DHT.Server.Database.Export.Strategy;
 using DHT.Utils.Logging;
 
 namespace DHT.Server.Database.Export {
 	public static class ViewerJsonExport {
 		private static readonly Log Log = Log.ForType(typeof(ViewerJsonExport));
 
-		public static async Task Generate(Stream stream, IDatabaseFile db, MessageFilter? filter = null) {
+		public static async Task Generate(Stream stream, IViewerExportStrategy strategy, IDatabaseFile db, MessageFilter? filter = null) {
 			var perf = Log.Start();
 
 			var includedUserIds = new HashSet<ulong>();
@@ -41,7 +43,7 @@ namespace DHT.Server.Database.Export {
 
 			var value = new {
 				meta = new { users, userindex, servers, channels },
-				data = GenerateMessageList(includedMessages, userIndices)
+				data = GenerateMessageList(includedMessages, userIndices, strategy)
 			};
 			
 			perf.Step("Generate value object");
@@ -138,7 +140,7 @@ namespace DHT.Server.Database.Export {
 			return channels;
 		}
 
-		private static object GenerateMessageList(List<Message> includedMessages, Dictionary<ulong, object> userIndices) {
+		private static object GenerateMessageList( List<Message> includedMessages, Dictionary<ulong, object> userIndices, IViewerExportStrategy strategy) {
 			var data = new Dictionary<string, Dictionary<string, object>>();
 
 			foreach (var grouping in includedMessages.GroupBy(static message => message.Channel)) {
@@ -164,8 +166,9 @@ namespace DHT.Server.Database.Export {
 					}
 
 					if (!message.Attachments.IsEmpty) {
-						obj["a"] = message.Attachments.Select(static attachment => new Dictionary<string, object> {
-							{ "url", attachment.Url }
+						obj["a"] = message.Attachments.Select(attachment => new Dictionary<string, object> {
+							{ "url", strategy.GetAttachmentUrl(attachment) },
+							{ "name", Uri.TryCreate(attachment.Url, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.Url }
 						}).ToArray();
 					}
 

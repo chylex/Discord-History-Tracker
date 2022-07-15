@@ -11,7 +11,7 @@ namespace DHT.Server.Endpoints {
 	sealed class TrackUsersEndpoint : BaseEndpoint {
 		public TrackUsersEndpoint(IDatabaseFile db, ServerParameters parameters) : base(db, parameters) {}
 
-		protected override async Task<(HttpStatusCode, object?)> Respond(HttpContext ctx) {
+		protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
 			var root = await ReadJson(ctx);
 
 			if (root.ValueKind != JsonValueKind.Array) {
@@ -27,7 +27,7 @@ namespace DHT.Server.Endpoints {
 
 			Db.AddUsers(users);
 
-			return (HttpStatusCode.OK, null);
+			return HttpOutput.None;
 		}
 
 		private static User ReadUser(JsonElement json, string path) => new() {

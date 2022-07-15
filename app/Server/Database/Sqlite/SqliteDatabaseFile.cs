@@ -470,6 +470,28 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			}
 		}
 
+		public DownloadedAttachment? GetDownloadedAttachment(string url) {
+			using var conn = pool.Take();
+			using var cmd = conn.Command(@"
+SELECT a.type, d.blob FROM downloads d
+LEFT JOIN attachments a ON d.url = a.url
+WHERE d.url = :url AND d.status = :success AND d.blob IS NOT NULL");
+			
+			cmd.AddAndSet(":url", SqliteType.Text, url);
+			cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
+			
+			using var reader = cmd.ExecuteReader();
+
+			if (!reader.Read()) {
+				return null;
+			}
+			
+			return new DownloadedAttachment {
+				Type = reader.IsDBNull(0) ? null : reader.GetString(0),
+				Data = (byte[]) reader["blob"]
+			};
+		}
+
 		public void EnqueueDownloadItems(AttachmentFilter? filter = null) {
 			using var conn = pool.Take();
 			using var cmd = conn.Command("INSERT INTO downloads (url, status, size) SELECT a.url, :enqueued, MAX(a.size) FROM attachments a" + filter.GenerateWhereClause("a") + " GROUP BY a.url");

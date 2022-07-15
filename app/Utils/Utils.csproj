@@ -17,6 +17,9 @@
     <DebugType>none</DebugType>
   </PropertyGroup>
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="10.3.0" />
   </ItemGroup>
   <ItemGroup>

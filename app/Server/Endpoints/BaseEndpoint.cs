@@ -8,6 +8,7 @@ using DHT.Utils.Http;
 using DHT.Utils.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Extensions.Primitives;
 
 namespace DHT.Server.Endpoints {
 	abstract class BaseEndpoint {
@@ -21,26 +22,22 @@ namespace DHT.Server.Endpoints {
 			this.parameters = parameters;
 		}
 
-		public async Task Handle(HttpContext ctx) {
+		private async Task Handle(HttpContext ctx, StringValues token) {
 			var request = ctx.Request;
 			var response = ctx.Response;
 
 			Log.Info("Request: " + request.GetDisplayUrl() + " (" + request.ContentLength + " B)");
-
-			var requestToken = request.Headers["X-DHT-Token"];
-			if (requestToken.Count != 1 || requestToken[0] != parameters.Token) {
-				Log.Error("Token: " + (requestToken.Count == 1 ? requestToken[0] : "<missing>"));
+			
+			if (token.Count != 1 || token[0] != parameters.Token) {
+				Log.Error("Token: " + (token.Count == 1 ? token[0] : "<missing>"));
 				response.StatusCode = (int) HttpStatusCode.Forbidden;
 				return;
 			}
 
 			try {
-				var (statusCode, output) = await Respond(ctx);
-				response.StatusCode = (int) statusCode;
-
-				if (output != null) {
-					await response.WriteAsJsonAsync(output);
-				}
+				response.StatusCode = (int) HttpStatusCode.OK;
+				var output = await Respond(ctx);
+				await output.WriteTo(response);
 			} catch (HttpException e) {
 				Log.Error(e);
 				response.StatusCode = (int) e.StatusCode;
@@ -51,7 +48,15 @@ namespace DHT.Server.Endpoints {
 			}
 		}
 
-		protected abstract Task<(HttpStatusCode, object?)> Respond(HttpContext ctx);
+		public async Task HandleGet(HttpContext ctx) {
+			await Handle(ctx, ctx.Request.Query["token"]);
+		}
+
+		public async Task HandlePost(HttpContext ctx) {
+			await Handle(ctx, ctx.Request.Headers["X-DHT-Token"]);
+		}
+
+		protected abstract Task<IHttpOutput> Respond(HttpContext ctx);
 
 		protected static async Task<JsonElement> ReadJson(HttpContext ctx) {
 			return await ctx.Request.ReadFromJsonAsync<JsonElement?>() ?? throw new HttpException(HttpStatusCode.UnsupportedMediaType, "This endpoint only accepts JSON.");

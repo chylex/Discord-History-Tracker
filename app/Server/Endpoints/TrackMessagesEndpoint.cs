@@ -17,7 +17,7 @@ namespace DHT.Server.Endpoints {
 	sealed class TrackMessagesEndpoint : BaseEndpoint {
 		public TrackMessagesEndpoint(IDatabaseFile db, ServerParameters parameters) : base(db, parameters) {}
 
-		protected override async Task<(HttpStatusCode, object?)> Respond(HttpContext ctx) {
+		protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
 			var root = await ReadJson(ctx);
 
 			if (root.ValueKind != JsonValueKind.Array) {
@@ -39,7 +39,7 @@ namespace DHT.Server.Endpoints {
 
 			Db.AddMessages(messages);
 
-			return (HttpStatusCode.OK, anyNewMessages ? 1 : 0);
+			return new HttpOutput.Json(anyNewMessages ? 1 : 0);
 		}
 
 		private static Message ReadMessage(JsonElement json, string path) => new() {

@@ -31,7 +31,8 @@ namespace DHT.Server.Database {
 		void AddDownload(Data.Download download);
 		List<Data.Download> GetDownloadsWithoutData();
 		Data.Download GetDownloadWithData(Data.Download download);
-		
+		DownloadedAttachment? GetDownloadedAttachment(string url);
+
 		void EnqueueDownloadItems(AttachmentFilter? filter = null);
 		List<DownloadItem> GetEnqueuedDownloadItems(int count);
 		void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode);
