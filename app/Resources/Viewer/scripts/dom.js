@@ -51,4 +51,15 @@ class DOM {
 		const date = new Date(timestamp);
 		return date.toLocaleDateString() + ", " + date.toLocaleTimeString();
 	};
+	
+	/**
+	 * Parses a url string into a URL object and returns it. If the parsing fails, returns null.
+	 */
+	static tryParseUrl(url) {
+		try {
+			return new URL(url);
+		} catch (ignore) {
+			return null;
+		}
+	}
 }

@@ -78,6 +78,12 @@ const DISCORD = (function() {
 		}
 	};
 	
+	const isImageUrl = function(url) {
+		const dot = url.pathname.lastIndexOf(".");
+		const ext = dot === -1 ? "" : url.pathname.substring(dot).toLowerCase();
+		return ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg";
+	};
+	
 	return {
 		setup() {
 			templateChannelServer = new TEMPLATE([
@@ -176,9 +182,8 @@ const DISCORD = (function() {
 		},
 		
 		isImageAttachment(attachment) {
-			const dot = attachment.url.lastIndexOf(".");
-			const ext = dot === -1 ? "" : attachment.url.substring(dot).toLowerCase();
-			return ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg";
+			const url = DOM.tryParseUrl(attachment.url);
+			return url != null && isImageUrl(url);
 		},
 		
 		getChannelHTML(channel) { // noinspection FunctionWithInconsistentReturnsJS
@@ -235,11 +240,14 @@ const DISCORD = (function() {
 					}
 					
 					return value.map(attachment => {
-						if (this.isImageAttachment(attachment) && SETTINGS.enableImagePreviews) {
+						const url = DOM.tryParseUrl(attachment.url);
+						
+						if (url != null && isImageUrl(url) && SETTINGS.enableImagePreviews) {
 							return templateEmbedImage.apply({ url: attachment.url, src: attachment.url });
 						}
 						else {
-							const sliced = attachment.url.split("/");
+							const path = url == null ? attachment.url : url.pathname;
+							const sliced = path.split("/");
 							
 							return templateAttachmentDownload.apply({
 								"url": attachment.url,
