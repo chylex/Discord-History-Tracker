@@ -4,12 +4,26 @@ using Avalonia.Data.Converters;
 
 namespace DHT.Desktop.Common {
 	sealed class BytesValueConverter : IValueConverter {
-		private static readonly string[] Units = {
-			"B",
-			"kB",
-			"MB",
-			"GB",
-			"TB"
+		private sealed class Unit {
+			private readonly string label;
+			private readonly string numberFormat;
+			
+			public Unit(string label, int decimalPlaces) {
+				this.label = label;
+				this.numberFormat = "{0:n" + decimalPlaces + "}";
+			}
+			
+			public string Format(double size) {
+				return string.Format(Program.Culture, numberFormat, size) + " " + label;
+			}
+		}
+		
+		private static readonly Unit[] Units = {
+			new ("B", decimalPlaces: 0),
+			new ("kB", decimalPlaces: 0),
+			new ("MB", decimalPlaces: 1),
+			new ("GB", decimalPlaces: 1),
+			new ("TB", decimalPlaces: 1)
 		};
 
 		private const int Scale = 1000;
@@ -17,13 +31,7 @@ namespace DHT.Desktop.Common {
 		private static string Convert(ulong size) {
 			int power = size == 0L ? 0 : (int) Math.Log(size, Scale);
 			int unit = power >= Units.Length ? Units.Length - 1 : power;
-			if (unit == 0) {
-				return string.Format(Program.Culture, "{0:n0}", size) + " " + Units[unit];
-			}
-			else {
-				double humanReadableSize = size / Math.Pow(Scale, unit);
-				return string.Format(Program.Culture, "{0:n0}", humanReadableSize) + " " + Units[unit];
-			}
+			return Units[unit].Format(unit == 0 ? size : size / Math.Pow(Scale, unit));
 		}
 
 		public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) {
