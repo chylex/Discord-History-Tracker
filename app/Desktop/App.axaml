@@ -33,9 +33,6 @@
         <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
             <Setter Property="BorderThickness" Value="1" />
         </Style>
-        <Style Selector="TextBox:disabled"><!-- TODO bug in Avalonia (https://github.com/AvaloniaUI/Avalonia/pull/7792) -->
-            <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
-        </Style>
         <Style Selector="TextBox:error DataValidationErrors">
             <Style.Resources>
                 <ControlTemplate x:Key="InlineDataValidationContentTemplate" TargetType="DataValidationErrors">
