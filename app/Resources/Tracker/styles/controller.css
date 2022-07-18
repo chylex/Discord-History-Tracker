@@ -1,9 +1,5 @@
-#app-mount div[class*="app-"] {
-  margin-bottom: 48px !important;
-}
-
-#app-mount div[class*="app-"] > div[class*="app-"] {
-  margin-bottom: 0 !important;
+#app-mount {
+  height: calc(100% - 48px) !important;
 }
 
 #dht-ctrl {
