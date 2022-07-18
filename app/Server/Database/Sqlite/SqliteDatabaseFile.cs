@@ -252,7 +252,9 @@ namespace DHT.Server.Database.Sqlite {
 					("name", SqliteType.Text),
 					("type", SqliteType.Text),
 					("url", SqliteType.Text),
-					("size", SqliteType.Integer)
+					("size", SqliteType.Integer),
+					("width", SqliteType.Integer),
+					("height", SqliteType.Integer)
 				});
 
 				using var embedCmd = conn.Insert("embeds", new[] {
@@ -307,6 +309,8 @@ namespace DHT.Server.Database.Sqlite {
 							attachmentCmd.Set(":type", attachment.Type);
 							attachmentCmd.Set(":url", attachment.Url);
 							attachmentCmd.Set(":size", attachment.Size);
+							attachmentCmd.Set(":width", attachment.Width);
+							attachmentCmd.Set(":height", attachment.Height);
 							attachmentCmd.ExecuteNonQuery();
 						}
 					}
@@ -571,7 +575,7 @@ FROM downloads");
 			var dict = new MultiDictionary<ulong, Attachment>();
 
 			using var conn = pool.Take();
-			using var cmd = conn.Command("SELECT message_id, attachment_id, name, type, url, size FROM attachments");
+			using var cmd = conn.Command("SELECT message_id, attachment_id, name, type, url, size, width, height FROM attachments");
 			using var reader = cmd.ExecuteReader();
 
 			while (reader.Read()) {
@@ -582,7 +586,9 @@ FROM downloads");
 					Name = reader.GetString(2),
 					Type = reader.IsDBNull(3) ? null : reader.GetString(3),
 					Url = reader.GetString(4),
-					Size = reader.GetUint64(5)
+					Size = reader.GetUint64(5),
+					Width = reader.IsDBNull(6) ? null : reader.GetInt32(6),
+					Height = reader.IsDBNull(7) ? null : reader.GetInt32(7)
 				});
 			}
 

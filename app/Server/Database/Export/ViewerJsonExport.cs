@@ -166,9 +166,18 @@ namespace DHT.Server.Database.Export {
 					}
 
 					if (!message.Attachments.IsEmpty) {
-						obj["a"] = message.Attachments.Select(attachment => new Dictionary<string, object> {
-							{ "url", strategy.GetAttachmentUrl(attachment) },
-							{ "name", Uri.TryCreate(attachment.Url, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.Url }
+						obj["a"] = message.Attachments.Select(attachment => {
+							var a = new Dictionary<string, object> {
+								{ "url", strategy.GetAttachmentUrl(attachment) },
+								{ "name", Uri.TryCreate(attachment.Url, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.Url }
+							};
+
+							if (attachment.Width != null && attachment.Height != null) {
+								a["width"] = attachment.Width;
+								a["height"] = attachment.Height;
+							}
+							
+							return a;
 						}).ToArray();
 					}
 

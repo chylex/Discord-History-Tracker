@@ -251,6 +251,11 @@ const STATE = (function() {
 							mapped.type = attachment.content_type;
 						}
 						
+						if (attachment.width && attachment.height) {
+							mapped.width = attachment.width;
+							mapped.height = attachment.height;
+						}
+						
 						return mapped;
 					});
 				}

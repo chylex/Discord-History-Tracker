@@ -240,11 +240,14 @@ const DISCORD = (function() {
 					}
 					
 					return value.map(attachment => {
-						if (DISCORD.isImageAttachment(attachment) && SETTINGS.enableImagePreviews) {
-							return templateEmbedImage.apply({ url: attachment.url, src: attachment.url });
+						if (!DISCORD.isImageAttachment(attachment) || !SETTINGS.enableImagePreviews) {
+							return templateAttachmentDownload.apply(attachment);
+						}
+						else if ("width" in attachment && "height" in attachment) {
+							return templateEmbedImageWithSize.apply({ url: attachment.url, src: attachment.url, width: attachment.width, height: attachment.height });
 						}
 						else {
-							return templateAttachmentDownload.apply(attachment);
+							return templateEmbedImage.apply({ url: attachment.url, src: attachment.url });
 						}
 					}).join("");
 				}

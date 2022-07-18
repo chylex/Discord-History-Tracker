@@ -6,7 +6,7 @@ using DHT.Utils.Logging;
 
 namespace DHT.Server.Database.Sqlite {
 	sealed class Schema {
-		internal const int Version = 4;
+		internal const int Version = 5;
 
 		private static readonly Log Log = Log.ForType<Schema>();
 
@@ -79,7 +79,9 @@ namespace DHT.Server.Database.Sqlite {
 			        name TEXT NOT NULL,
 			        type TEXT,
 			        url TEXT NOT NULL,
-			        size INTEGER NOT NULL)");
+			        size INTEGER NOT NULL,
+			        width INTEGER,
+			        height INTEGER)");
 
 			Execute(@"CREATE TABLE embeds (
 			        message_id INTEGER NOT NULL,
@@ -157,6 +159,12 @@ namespace DHT.Server.Database.Sqlite {
 			if (dbVersion <= 3) {
 				CreateDownloadsTable();
 				perf.Step("Upgrade to version 4");
+			}
+
+			if (dbVersion <= 4) {
+				Execute("ALTER TABLE attachments ADD width INTEGER");
+				Execute("ALTER TABLE attachments ADD height INTEGER");
+				perf.Step("Upgrade to version 5");
 			}
 
 			perf.End();

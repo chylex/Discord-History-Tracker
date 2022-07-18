@@ -61,7 +61,9 @@ namespace DHT.Server.Endpoints {
 			Name = ele.RequireString("name", path),
 			Type = ele.HasKey("type") ? ele.RequireString("type", path) : null,
 			Url = ele.RequireString("url", path),
-			Size = (ulong) ele.RequireLong("size", path)
+			Size = (ulong) ele.RequireLong("size", path),
+			Width = ele.HasKey("width") ? ele.RequireInt("width", path) : null,
+			Height = ele.HasKey("height") ? ele.RequireInt("height", path) : null
 		}).DistinctByKeyStable(static attachment => {
 			// Some Discord messages have duplicate attachments with the same id for unknown reasons.
 			return attachment.Id;
