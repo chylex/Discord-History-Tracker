@@ -191,7 +191,7 @@ namespace DHT.Server.Database.Export {
 							r["a"] = reaction.EmojiFlags.HasFlag(EmojiFlags.Animated);
 							r["c"] = reaction.Count;
 							return r;
-						});
+						}).ToArray();
 					}
 
 					channelData[message.Id.ToString()] = obj;
