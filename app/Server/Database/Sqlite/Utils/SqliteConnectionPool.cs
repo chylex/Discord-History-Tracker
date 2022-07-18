@@ -45,22 +45,21 @@ namespace DHT.Server.Database.Sqlite.Utils {
 		}
 
 		public ISqliteConnection Take() {
-			PooledConnection? conn = null;
-			
-			while (conn == null) {
+			while (true) {
 				ThrowIfDisposed();
+				
 				lock (monitor) {
-					if (free.TryTake(out conn, TimeSpan.FromMilliseconds(rand.Next(100, 200)))) {
+					if (free.TryTake(out var conn)) {
 						used.Add(conn);
-						break;
+						return conn;
 					}
 					else {
 						Log.ForType<SqliteConnectionPool>().Warn("Thread " + Thread.CurrentThread.ManagedThreadId + " is starving for connections.");
 					}
 				}
+				
+				Thread.Sleep(TimeSpan.FromMilliseconds(rand.Next(100, 200)));
 			}
-
-			return conn;
 		}
 
 		private void Return(PooledConnection conn) {
