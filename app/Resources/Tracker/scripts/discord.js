@@ -197,9 +197,22 @@ class DISCORD {
 				return { server, channel };
 			}
 			else if (obj.guild_id) {
+				let guild;
+				
+				for (const child of DOM.getReactProps(document.querySelector("nav header [class*='headerContent-']")).children) {
+					if (child && child.props && child.props.guild) {
+						guild = child.props.guild;
+						break;
+					}
+				}
+				
+				if (!guild || typeof guild.name !== "string" || obj.guild_id !== guild.id) {
+					return null;
+				}
+				
 				const server = {
-					"id": obj.guild_id,
-					"name": document.querySelector("nav header h1[class*='name-']").innerText,
+					"id": guild.id,
+					"name": guild.name,
 					"type": "SERVER"
 				};
 				
