@@ -71,3 +71,4 @@ msSaveBlob
 messageReference
 message_id
 guild_id
+guild

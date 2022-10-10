@@ -214,8 +214,21 @@ var DISCORD = (function(){
           };
         }
         else if (obj.guild_id) {
+          let guild;
+  
+          for (const child of getReactProps(document.querySelector("nav header [class*='headerContent-']")).children) {
+            if (child && child.props && child.props.guild) {
+              guild = child.props.guild;
+              break;
+            }
+          }
+  
+          if (!guild || typeof guild.name !== "string" || obj.guild_id !== guild.id) {
+            return null;
+          }
+          
           return {
-            "server": document.querySelector("nav header h1[class*='name-']").innerText,
+            "server": guild.name,
             "channel": obj.name,
             "id": obj.id,
             "type": "SERVER",
