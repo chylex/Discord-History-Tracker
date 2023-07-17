@@ -26,11 +26,8 @@ namespace DHT.Desktop.Main.Screens {
 		}
 
 		public async void OpenOrCreateDatabase() {
-			var dialog = DatabaseGui.NewOpenOrCreateDatabaseFileDialog();
-			dialog.Directory = Path.GetDirectoryName(dbFilePath);
-
-			string? path = await dialog.ShowAsync(window);
-			if (!string.IsNullOrWhiteSpace(path)) {
+			var path = await DatabaseGui.NewOpenOrCreateDatabaseFileDialog(window, Path.GetDirectoryName(dbFilePath));
+			if (path != null) {
 				await OpenOrCreateDatabaseFromPath(path);
 			}
 		}

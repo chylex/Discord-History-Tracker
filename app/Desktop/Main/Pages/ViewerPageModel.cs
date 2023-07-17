@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -8,7 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using DHT.Desktop.Common;
+using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Server;
@@ -114,20 +115,14 @@ namespace DHT.Desktop.Main.Pages {
 		}
 
 		public async void OnClickSaveViewer() {
-			var dialog = new SaveFileDialog {
+			string? path = await window.StorageProvider.SaveFile(new FilePickerSaveOptions {
 				Title = "Save Viewer",
-				InitialFileName = Path.GetFileNameWithoutExtension(db.Path) + ".html",
-				Directory = Path.GetDirectoryName(db.Path),
-				Filters = new List<FileDialogFilter> {
-					new() {
-						Name = "Discord History Viewer",
-						Extensions = { "html" }
-					}
-				}
-			}.ShowAsync(window);
+				FileTypeChoices = new [] { FileDialogs.CreateFilter("Discord History Viewer", new string[] { "html" }) },
+				SuggestedFileName = Path.GetFileNameWithoutExtension(db.Path) + ".html",
+				SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, Path.GetDirectoryName(db.Path)),
+			});
 
-			string? path = await dialog;
-			if (!string.IsNullOrEmpty(path)) {
+			if (path != null) {
 				await WriteViewerFile(path, StandaloneViewerExportStrategy.Instance);
 			}
 		}

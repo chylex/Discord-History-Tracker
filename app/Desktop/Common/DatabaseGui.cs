@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
+using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Server.Database;
 using DHT.Server.Database.Exceptions;
@@ -15,27 +17,27 @@ namespace DHT.Desktop.Common {
 
 		private const string DatabaseFileInitialName = "archive.dht";
 
-		private static readonly List<FileDialogFilter> DatabaseFileDialogFilter = new() {
-			new FileDialogFilter {
-				Name = "Discord History Tracker Database",
-				Extensions = { "dht" }
-			}
+		private static readonly IReadOnlyList<FilePickerFileType> DatabaseFileDialogFilter = new List<FilePickerFileType> {
+			FileDialogs.CreateFilter("Discord History Tracker Database", new [] { "dht" })
 		};
 
-		public static OpenFileDialog NewOpenDatabaseFileDialog() {
-			return new OpenFileDialog {
+		public static async Task<string[]> NewOpenDatabaseFilesDialog(Window window, string? suggestedDirectory) {
+			return await window.StorageProvider.OpenFiles(new FilePickerOpenOptions {
 				Title = "Open Database File",
-				InitialFileName = DatabaseFileInitialName,
-				Filters = DatabaseFileDialogFilter
-			};
+				FileTypeFilter = DatabaseFileDialogFilter,
+				SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, suggestedDirectory),
+				AllowMultiple = true
+			});
 		}
 
-		public static SaveFileDialog NewOpenOrCreateDatabaseFileDialog() {
-			return new SaveFileDialog {
+		public static async Task<string?> NewOpenOrCreateDatabaseFileDialog(Window window, string? suggestedDirectory) {
+			return await window.StorageProvider.SaveFile(new FilePickerSaveOptions {
 				Title = "Open or Create Database File",
-				InitialFileName = DatabaseFileInitialName,
-				Filters = DatabaseFileDialogFilter
-			};
+				FileTypeChoices = DatabaseFileDialogFilter,
+				SuggestedFileName = DatabaseFileInitialName,
+				SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, suggestedDirectory),
+				ShowOverwritePrompt = false
+			});
 		}
 
 		public static async Task<IDatabaseFile?> TryOpenOrCreateDatabaseFromPath(string path, Window window, Func<Task<bool>> checkCanUpgradeDatabase) {

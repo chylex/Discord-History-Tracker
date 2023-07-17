@@ -7,8 +7,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using DHT.Desktop.Common;
+using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Dialogs.TextBox;
@@ -68,12 +70,8 @@ namespace DHT.Desktop.Main.Pages {
 		}
 
 		public async void MergeWithDatabase() {
-			var fileDialog = DatabaseGui.NewOpenDatabaseFileDialog();
-			fileDialog.Directory = Path.GetDirectoryName(Db.Path);
-			fileDialog.AllowMultiple = true;
-
-			string[]? paths = await fileDialog.ShowAsync(window);
-			if (paths == null || paths.Length == 0) {
+			var paths = await DatabaseGui.NewOpenDatabaseFilesDialog(window, Path.GetDirectoryName(Db.Path));
+			if (paths.Length == 0) {
 				return;
 			}
 
@@ -118,14 +116,13 @@ namespace DHT.Desktop.Main.Pages {
 		}
 
 		public async void ImportLegacyArchive() {
-			var fileDialog = new OpenFileDialog {
+			var paths = await window.StorageProvider.OpenFiles(new FilePickerOpenOptions {
 				Title = "Open Legacy DHT Archive",
-				Directory = Path.GetDirectoryName(Db.Path),
+				SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, Path.GetDirectoryName(Db.Path)),
 				AllowMultiple = true
-			};
-
-			string[]? paths = await fileDialog.ShowAsync(window);
-			if (paths == null || paths.Length == 0) {
+			});
+			
+			if (paths.Length == 0) {
 				return;
 			}
 
