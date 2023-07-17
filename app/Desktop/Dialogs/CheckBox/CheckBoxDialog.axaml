@@ -34,7 +34,7 @@
 
     <StackPanel Margin="20">
         <ScrollViewer MaxHeight="400">
-            <ItemsRepeater Items="{Binding Items}">
+            <ItemsRepeater ItemsSource="{Binding Items}">
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
                         <CheckBox IsChecked="{Binding Checked}">

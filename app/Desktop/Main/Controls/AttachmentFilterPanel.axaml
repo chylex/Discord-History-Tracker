@@ -36,7 +36,7 @@
                 <CheckBox IsChecked="{Binding LimitSize}">Limit Size</CheckBox>
                 <StackPanel Orientation="Horizontal">
                     <TextBox Text="{Binding MaximumSize}" IsEnabled="{Binding LimitSize}" HorizontalContentAlignment="Right" />
-                    <ComboBox IsEnabled="{Binding LimitSize}" Items="{Binding Units}" SelectedItem="{Binding MaximumSizeUnit}">
+                    <ComboBox IsEnabled="{Binding LimitSize}" ItemsSource="{Binding Units}" SelectedItem="{Binding MaximumSizeUnit}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Name}" />

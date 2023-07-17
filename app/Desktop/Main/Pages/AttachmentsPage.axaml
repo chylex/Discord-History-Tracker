@@ -38,7 +38,7 @@
         <controls:AttachmentFilterPanel DataContext="{Binding FilterModel}" IsEnabled="{Binding !DataContext.IsDownloading, RelativeSource={RelativeSource AncestorType=UserControl}}" />
         <StackPanel Orientation="Vertical" Spacing="12">
             <Expander Header="Download Status" IsExpanded="True">
-                <DataGrid Items="{Binding StatisticsRows}" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" IsReadOnly="True">
+                <DataGrid ItemsSource="{Binding StatisticsRows}" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" IsReadOnly="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="State" Binding="{Binding State}" Width="*" />
                         <DataGridTextColumn Header="Attachments" Binding="{Binding Items, Converter={StaticResource NumberValueConverter}}" Width="*" CellStyleClasses="right" />

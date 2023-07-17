@@ -33,6 +33,7 @@ namespace DHT.Desktop {
 		private static AppBuilder BuildAvaloniaApp() {
 			return AppBuilder.Configure<App>()
 			                 .UsePlatformDetect()
+			                 .WithInterFont()
 			                 .LogToTrace();
 		}
 	}

@@ -7,7 +7,7 @@
         x:Class="DHT.Desktop.Dialogs.Progress.ProgressDialog"
         Title="{Binding Title}"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
-        Opened="Loaded"
+        Opened="OnOpened"
         Closing="OnClosing"
         Width="500" SizeToContent="Height" CanResize="False"
         WindowStartupLocation="CenterOwner">

@@ -1,21 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 
 namespace DHT.Desktop.Dialogs.Message {
 	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
-	public sealed class MessageDialog : Window {
+	public sealed partial class MessageDialog : Window {
 		public MessageDialog() {
 			InitializeComponent();
-			#if DEBUG
-			this.AttachDevTools();
-			#endif
-		}
-
-		private void InitializeComponent() {
-			AvaloniaXamlLoader.Load(this);
 		}
 
 		public void ClickOk(object? sender, RoutedEventArgs e) {

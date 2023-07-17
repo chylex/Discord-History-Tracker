@@ -1,22 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using DHT.Desktop.Dialogs.Message;
 
 namespace DHT.Desktop.Dialogs.CheckBox {
 	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
-	public sealed class CheckBoxDialog : Window {
+	public sealed partial class CheckBoxDialog : Window {
 		public CheckBoxDialog() {
 			InitializeComponent();
-			#if DEBUG
-			this.AttachDevTools();
-			#endif
-		}
-
-		private void InitializeComponent() {
-			AvaloniaXamlLoader.Load(this);
 		}
 
 		public void ClickOk(object? sender, RoutedEventArgs e) {

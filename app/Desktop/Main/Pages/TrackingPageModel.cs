@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using System.Web;
-using Avalonia;
 using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Discord;
@@ -61,7 +60,7 @@ namespace DHT.Desktop.Main.Pages {
 			                         .Replace("/*[CSS-CONTROLLER]*/", await Resources.ReadTextAsync("Tracker/styles/controller.css"))
 			                         .Replace("/*[CSS-SETTINGS]*/", await Resources.ReadTextAsync("Tracker/styles/settings.css"));
 
-			var clipboard = Application.Current?.Clipboard;
+			var clipboard = window.Clipboard;
 			if (clipboard == null) {
 				await Dialog.ShowOk(window, "Copy Tracking Script", "Clipboard is not available on this system.");
 				return false;

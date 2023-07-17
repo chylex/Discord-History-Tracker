@@ -6,8 +6,8 @@
 
     <Application.Styles>
 
-        <FluentTheme Mode="Light" />
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Default.xaml" />
+        <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Simple.xaml" />
 
         <Style Selector="Button, CheckBox, RadioButton, Expander /template/ ToggleButton#ExpanderHeader">
             <Setter Property="Cursor" Value="Hand" />
@@ -48,70 +48,11 @@
             <Setter Property="Template" Value="{StaticResource InlineDataValidationContentTemplate}" />
         </Style>
 
-        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader">
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <Border x:Name="ToggleButtonBackground">
-                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="35">
-                            <Border x:Name="ExpandCollapseChevronBorder"
-                                    Grid.Column="0"
-                                    Width="35"
-                                    Height="35"
-                                    Margin="2,0"
-                                    RenderTransformOrigin="50%,50%">
-                                <Path x:Name="ExpandCollapseChevron"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"
-                                      RenderTransformOrigin="50%,50%"
-                                      Stretch="None"
-                                      Stroke="{DynamicResource ExpanderChevronForeground}"
-                                      StrokeThickness="1" />
-                                <Border.RenderTransform>
-                                    <RotateTransform />
-                                </Border.RenderTransform>
-                            </Border>
-                            <ContentPresenter x:Name="PART_ContentPresenter"
-                                              Grid.Column="1"
-                                              Margin="0"
-                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                              VerticalContentAlignment="Center"
-                                              Background="Transparent"
-                                              BorderBrush="Transparent"
-                                              BorderThickness="0"
-                                              Content="{TemplateBinding Content}"
-                                              ContentTemplate="{TemplateBinding ContentTemplate}"
-                                              TextBlock.Foreground="{DynamicResource ExpanderForeground}" />
-                        </Grid>
-                    </Border>
-                </ControlTemplate>
-            </Setter>
+        <Style Selector="Expander">
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>
-        <Style Selector="Expander:expanded /template/ ToggleButton#ExpanderHeader /template/ Border#ExpandCollapseChevronBorder">
-            <Style.Animations>
-                <Animation FillMode="Both" Duration="0:0:0.0625">
-                    <KeyFrame Cue="0%">
-                        <Setter Property="RotateTransform.Angle" Value="180" />
-                    </KeyFrame>
-                    <KeyFrame Cue="100%">
-                        <Setter Property="RotateTransform.Angle" Value="180" />
-                    </KeyFrame>
-                </Animation>
-            </Style.Animations>
-        </Style>
-        <Style Selector="Expander:not(:expanded) /template/ ToggleButton#ExpanderHeader /template/ Border#ExpandCollapseChevronBorder">
-            <Style.Animations>
-                <Animation FillMode="Both" Duration="0:0:0.0625">
-                    <KeyFrame Cue="0%">
-                        <Setter Property="RotateTransform.Angle" Value="0" />
-                    </KeyFrame>
-                    <KeyFrame Cue="100%">
-                        <Setter Property="RotateTransform.Angle" Value="0" />
-                    </KeyFrame>
-                </Animation>
-            </Style.Animations>
-        </Style>
-
+        
     </Application.Styles>
 
     <Application.Resources>
@@ -165,15 +106,29 @@
         <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#AAAAAA" />
         <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#AAAAAA" />
         <SolidColorBrush x:Key="TextControlPlaceholderForegroundDisabled" Color="#AAAAAA" />
-
+        
         <Thickness x:Key="ExpanderHeaderPadding">15,0</Thickness>
         <Thickness x:Key="ExpanderContentPadding">12</Thickness>
-        <SolidColorBrush x:Key="ExpanderBorderBrush" Color="#697DAB" />
-        <SolidColorBrush x:Key="ExpanderBackground" Color="#697DAB" />
-        <SolidColorBrush x:Key="ExpanderForeground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderHeaderBorderBrush" Color="#697DAB" />
+        <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPointerOver" Color="#697DAB" />
+        <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPressed" Color="#697DAB" />
+        <SolidColorBrush x:Key="ExpanderHeaderBorderBrushDisabled" Color="#697DAB" />
+        <SolidColorBrush x:Key="ExpanderHeaderBackground" Color="#697DAB" />
+        <SolidColorBrush x:Key="ExpanderHeaderBackgroundPointerOver" Color="#536794" />
+        <SolidColorBrush x:Key="ExpanderHeaderBackgroundPressed" Color="#47587F" />
+        <SolidColorBrush x:Key="ExpanderHeaderBackgroundDisabled" Color="#697DAB" />
+        <SolidColorBrush x:Key="ExpanderHeaderForeground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderHeaderForegroundPointerOver" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderHeaderForegroundPressed" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderHeaderForegroundDisabled" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderChevronBackground" Color="Transparent" />
+        <SolidColorBrush x:Key="ExpanderChevronBackgroundPointerOver" Color="#536794" />
+        <SolidColorBrush x:Key="ExpanderChevronBackgroundPressed" Color="#47587F" />
+        <SolidColorBrush x:Key="ExpanderChevronBackgroundDisabled" Color="Transparent" />
         <SolidColorBrush x:Key="ExpanderChevronForeground" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="ExpanderDropDownBorderBrush" Color="#697DAB" />
-        <SolidColorBrush x:Key="ExpanderDropDownBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderChevronForegroundPointerOver" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderChevronForegroundPressed" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderChevronForegroundDisabled" Color="#FFFFFF" />
 
     </Application.Resources>
 

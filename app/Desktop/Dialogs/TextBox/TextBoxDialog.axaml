@@ -31,7 +31,7 @@
         <ScrollViewer MaxHeight="400">
             <StackPanel Spacing="10">
                 <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
-                <ItemsRepeater Items="{Binding Items}">
+                <ItemsRepeater ItemsSource="{Binding Items}">
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate>
                             <DockPanel Margin="0 5 25 0">
