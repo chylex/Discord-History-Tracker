@@ -53,7 +53,7 @@ sealed class TrackMessagesEndpoint : BaseEndpoint {
 		RepliedToId = json.HasKey("repliedToId") ? json.RequireSnowflake("repliedToId", path) : null,
 		Attachments = json.HasKey("attachments") ? ReadAttachments(json.RequireArray("attachments", path + ".attachments"), path + ".attachments[]").ToImmutableArray() : ImmutableArray<Attachment>.Empty,
 		Embeds = json.HasKey("embeds") ? ReadEmbeds(json.RequireArray("embeds", path + ".embeds"), path + ".embeds[]").ToImmutableArray() : ImmutableArray<Embed>.Empty,
-		Reactions = json.HasKey("reactions") ? ReadReactions(json.RequireArray("reactions", path + ".reactions"), path + ".reactions[]").ToImmutableArray() : ImmutableArray<Reaction>.Empty
+		Reactions = json.HasKey("reactions") ? ReadReactions(json.RequireArray("reactions", path + ".reactions"), path + ".reactions[]").ToImmutableArray() : ImmutableArray<Reaction>.Empty,
 	};
 
 	[SuppressMessage("ReSharper", "ConvertToLambdaExpression")]
@@ -64,14 +64,14 @@ sealed class TrackMessagesEndpoint : BaseEndpoint {
 		Url = ele.RequireString("url", path),
 		Size = (ulong) ele.RequireLong("size", path),
 		Width = ele.HasKey("width") ? ele.RequireInt("width", path) : null,
-		Height = ele.HasKey("height") ? ele.RequireInt("height", path) : null
+		Height = ele.HasKey("height") ? ele.RequireInt("height", path) : null,
 	}).DistinctByKeyStable(static attachment => {
 		// Some Discord messages have duplicate attachments with the same id for unknown reasons.
 		return attachment.Id;
 	});
 
 	private static IEnumerable<Embed> ReadEmbeds(JsonElement.ArrayEnumerator array, string path) => array.Select(ele => new Embed {
-		Json = ele.ValueKind == JsonValueKind.String ? ele.ToString()! : throw new HttpException(HttpStatusCode.BadRequest, "Expected key '" + path + "' to be a string.")
+		Json = ele.ValueKind == JsonValueKind.String ? ele.ToString() : throw new HttpException(HttpStatusCode.BadRequest, "Expected key '" + path + "' to be a string.")
 	});
 
 	private static IEnumerable<Reaction> ReadReactions(JsonElement.ArrayEnumerator array, string path) => array.Select(ele => {
@@ -79,7 +79,7 @@ sealed class TrackMessagesEndpoint : BaseEndpoint {
 			EmojiId = ele.HasKey("id") ? ele.RequireSnowflake("id", path) : null,
 			EmojiName = ele.HasKey("name") ? ele.RequireString("name", path) : null,
 			EmojiFlags = ReadEmojiFlag(ele, "isAnimated", path, EmojiFlags.Animated),
-			Count = ele.RequireInt("count", path)
+			Count = ele.RequireInt("count", path),
 		};
 
 		if (reaction.EmojiId == null && reaction.EmojiName == null) {

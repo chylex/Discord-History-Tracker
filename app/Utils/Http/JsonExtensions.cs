@@ -28,7 +28,7 @@ public static class JsonExtensions {
 
 	public static string RequireString(this JsonElement json, string key, string path) {
 		if (json.TryGetProperty(key, out var result) && result.ValueKind == JsonValueKind.String) {
-			return result.ToString()!;
+			return result.ToString();
 		}
 		else {
 			throw new HttpException(HttpStatusCode.BadRequest, "Expected key '" + path + '.' + key + "' to be a string.");

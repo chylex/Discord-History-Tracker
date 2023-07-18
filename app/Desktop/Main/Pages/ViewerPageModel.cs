@@ -115,10 +115,14 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 		Process.Start(new ProcessStartInfo(fullPath) { UseShellExecute = true });
 	}
 
+	private static readonly FilePickerFileType[] ViewerFileTypes = {
+		FileDialogs.CreateFilter("Discord History Viewer", new string[] { "html" }),
+	};
+	
 	public async void OnClickSaveViewer() {
 		string? path = await window.StorageProvider.SaveFile(new FilePickerSaveOptions {
 			Title = "Save Viewer",
-			FileTypeChoices = new [] { FileDialogs.CreateFilter("Discord History Viewer", new string[] { "html" }) },
+			FileTypeChoices = ViewerFileTypes,
 			SuggestedFileName = Path.GetFileNameWithoutExtension(db.Path) + ".html",
 			SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, Path.GetDirectoryName(db.Path)),
 		});

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DHT.Server.Data;
 using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
@@ -6,6 +7,7 @@ using DHT.Server.Download;
 
 namespace DHT.Server.Database;
 
+[SuppressMessage("ReSharper", "ArrangeObjectCreationWhenTypeNotEvident")]
 public sealed class DummyDatabaseFile : IDatabaseFile {
 	public static DummyDatabaseFile Instance { get; } = new();
 

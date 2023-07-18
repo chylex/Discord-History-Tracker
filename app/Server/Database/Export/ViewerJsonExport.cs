@@ -44,7 +44,7 @@ public static class ViewerJsonExport {
 
 		var value = new {
 			meta = new { users, userindex, servers, channels },
-			data = GenerateMessageList(includedMessages, userIndices, strategy)
+			data = GenerateMessageList(includedMessages, userIndices, strategy),
 		};
 
 		perf.Step("Generate value object");
@@ -58,7 +58,7 @@ public static class ViewerJsonExport {
 		perf.End();
 	}
 
-	private static object GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds, out List<string> userindex, out Dictionary<ulong, object> userIndices) {
+	private static Dictionary<string, object> GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds, out List<string> userindex, out Dictionary<ulong, object> userIndices) {
 		var users = new Dictionary<string, object>();
 		userindex = new List<string>();
 		userIndices = new Dictionary<ulong, object>();
@@ -90,7 +90,7 @@ public static class ViewerJsonExport {
 		return users;
 	}
 
-	private static object GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds, out Dictionary<ulong, object> serverIndices) {
+	private static List<object> GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds, out Dictionary<ulong, object> serverIndices) {
 		var servers = new List<object>();
 		serverIndices = new Dictionary<ulong, object>();
 
@@ -103,20 +103,20 @@ public static class ViewerJsonExport {
 			serverIndices[id] = servers.Count;
 			servers.Add(new Dictionary<string, object> {
 				["name"] = server.Name,
-				["type"] = ServerTypes.ToJsonViewerString(server.Type)
+				["type"] = ServerTypes.ToJsonViewerString(server.Type),
 			});
 		}
 
 		return servers;
 	}
 
-	private static object GenerateChannelList(List<Channel> includedChannels, Dictionary<ulong, object> serverIndices) {
+	private static Dictionary<string, object> GenerateChannelList(List<Channel> includedChannels, Dictionary<ulong, object> serverIndices) {
 		var channels = new Dictionary<string, object>();
 
 		foreach (var channel in includedChannels) {
 			var obj = new Dictionary<string, object> {
 				["server"] = serverIndices[channel.Server],
-				["name"] = channel.Name
+				["name"] = channel.Name,
 			};
 
 			if (channel.ParentId != null) {
@@ -141,7 +141,7 @@ public static class ViewerJsonExport {
 		return channels;
 	}
 
-	private static object GenerateMessageList( List<Message> includedMessages, Dictionary<ulong, object> userIndices, IViewerExportStrategy strategy) {
+	private static Dictionary<string, Dictionary<string, object>> GenerateMessageList( List<Message> includedMessages, Dictionary<ulong, object> userIndices, IViewerExportStrategy strategy) {
 		var data = new Dictionary<string, Dictionary<string, object>>();
 
 		foreach (var grouping in includedMessages.GroupBy(static message => message.Channel)) {
@@ -151,7 +151,7 @@ public static class ViewerJsonExport {
 			foreach (var message in grouping) {
 				var obj = new Dictionary<string, object> {
 					["u"] = userIndices[message.Sender],
-					["t"] = message.Timestamp
+					["t"] = message.Timestamp,
 				};
 
 				if (!string.IsNullOrEmpty(message.Text)) {
@@ -170,10 +170,10 @@ public static class ViewerJsonExport {
 					obj["a"] = message.Attachments.Select(attachment => {
 						var a = new Dictionary<string, object> {
 							{ "url", strategy.GetAttachmentUrl(attachment) },
-							{ "name", Uri.TryCreate(attachment.Url, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.Url }
+							{ "name", Uri.TryCreate(attachment.Url, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.Url },
 						};
 
-						if (attachment.Width != null && attachment.Height != null) {
+						if (attachment is { Width: not null, Height: not null }) {
 							a["width"] = attachment.Width;
 							a["height"] = attachment.Height;
 						}

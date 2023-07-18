@@ -57,11 +57,7 @@ public static class LegacyArchiveImport {
 				for (var i = 0; i < servers.Length; i++) {
 					var server = servers[i];
 					if (askedServerIds.TryGetValue(server, out var serverId)) {
-						servers[i] = new Data.Server {
-							Id = serverId,
-							Name = server.Name,
-							Type = server.Type
-						};
+						servers[i] = server with { Id = serverId };
 					}
 				}
 			}
@@ -113,7 +109,7 @@ public static class LegacyArchiveImport {
 				Id = userId,
 				Name = userObj.RequireString("name", path),
 				AvatarUrl = userObj.HasKey("avatar") ? userObj.RequireString("avatar", path) : null,
-				Discriminator = userObj.HasKey("tag") ? userObj.RequireString("tag", path) : null
+				Discriminator = userObj.HasKey("tag") ? userObj.RequireString("tag", path) : null,
 			};
 		}
 
@@ -126,7 +122,7 @@ public static class LegacyArchiveImport {
 		return meta.RequireArray("servers", "meta").Select(serverObj => new Data.Server {
 			Id = fakeSnowflake.Next(),
 			Name = serverObj.RequireString("name", ServersPath),
-			Type = ServerTypes.FromString(serverObj.RequireString("type", ServersPath))
+			Type = ServerTypes.FromString(serverObj.RequireString("type", ServersPath)),
 		}).ToArray();
 	}
 
@@ -154,7 +150,7 @@ public static class LegacyArchiveImport {
 				Name = channelObj.RequireString("name", path),
 				Position = channelObj.HasKey("position") ? channelObj.RequireInt("position", path, min: 0) : null,
 				Topic = channelObj.HasKey("topic") ? channelObj.RequireString("topic", path) : null,
-				Nsfw = channelObj.HasKey("nsfw") ? channelObj.RequireBool("nsfw", path) : null
+				Nsfw = channelObj.HasKey("nsfw") ? channelObj.RequireBool("nsfw", path) : null,
 			};
 		}).ToArray();
 	}
@@ -185,7 +181,7 @@ public static class LegacyArchiveImport {
 				RepliedToId = messageObj.HasKey("r") ? messageObj.RequireSnowflake("r", path) : null,
 				Attachments = messageObj.HasKey("a") ? ReadMessageAttachments(messageObj.RequireArray("a", path), fakeSnowflake, path + ".a[]").ToImmutableArray() : ImmutableArray<Attachment>.Empty,
 				Embeds = messageObj.HasKey("e") ? ReadMessageEmbeds(messageObj.RequireArray("e", path), path + ".e[]").ToImmutableArray() : ImmutableArray<Embed>.Empty,
-				Reactions = messageObj.HasKey("re") ? ReadMessageReactions(messageObj.RequireArray("re", path), path + ".re[]").ToImmutableArray() : ImmutableArray<Reaction>.Empty
+				Reactions = messageObj.HasKey("re") ? ReadMessageReactions(messageObj.RequireArray("re", path), path + ".re[]").ToImmutableArray() : ImmutableArray<Reaction>.Empty,
 			};
 		}).ToArray();
 	}
@@ -202,7 +198,7 @@ public static class LegacyArchiveImport {
 				Name = name,
 				Type = type,
 				Url = url,
-				Size = 0 // unknown size
+				Size = 0, // unknown size
 			};
 		}).DistinctByKeyStable(static attachment => {
 			// Some Discord messages have duplicate attachments with the same id for unknown reasons.
@@ -219,7 +215,7 @@ public static class LegacyArchiveImport {
 			var embedJson = new Dictionary<string, object> {
 				{ "url", url },
 				{ "type", type },
-				{ "dht_legacy", true }
+				{ "dht_legacy", true },
 			};
 
 			if (type == "image") {
@@ -256,7 +252,7 @@ public static class LegacyArchiveImport {
 				EmojiId = id,
 				EmojiName = name,
 				EmojiFlags = reactionObj.HasKey("an") && reactionObj.RequireBool("an", path) ? EmojiFlags.Animated : EmojiFlags.None,
-				Count = reactionObj.RequireInt("c", path, min: 0)
+				Count = reactionObj.RequireInt("c", path, min: 0),
 			};
 		});
 	}

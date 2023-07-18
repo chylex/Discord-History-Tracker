@@ -80,7 +80,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 			TotalServers = Statistics.TotalServers,
 			TotalChannels = Statistics.TotalChannels,
 			TotalUsers = Statistics.TotalUsers,
-			TotalMessages = ComputeMessageStatistics()
+			TotalMessages = ComputeMessageStatistics(),
 		};
 	}
 
@@ -89,7 +89,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		using var cmd = conn.Upsert("servers", new[] {
 			("id", SqliteType.Integer),
 			("name", SqliteType.Text),
-			("type", SqliteType.Text)
+			("type", SqliteType.Text),
 		});
 
 		cmd.Set(":id", server.Id);
@@ -111,7 +111,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 			list.Add(new Data.Server {
 				Id = reader.GetUint64(0),
 				Name = reader.GetString(1),
-				Type = ServerTypes.FromString(reader.GetString(2))
+				Type = ServerTypes.FromString(reader.GetString(2)),
 			});
 		}
 
@@ -128,7 +128,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 			("parent_id", SqliteType.Integer),
 			("position", SqliteType.Integer),
 			("topic", SqliteType.Text),
-			("nsfw", SqliteType.Integer)
+			("nsfw", SqliteType.Integer),
 		});
 
 		cmd.Set(":id", channel.Id);
@@ -157,7 +157,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 				ParentId = reader.IsDBNull(3) ? null : reader.GetUint64(3),
 				Position = reader.IsDBNull(4) ? null : reader.GetInt32(4),
 				Topic = reader.IsDBNull(5) ? null : reader.GetString(5),
-				Nsfw = reader.IsDBNull(6) ? null : reader.GetBoolean(6)
+				Nsfw = reader.IsDBNull(6) ? null : reader.GetBoolean(6),
 			});
 		}
 
@@ -171,7 +171,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 			("id", SqliteType.Integer),
 			("name", SqliteType.Text),
 			("avatar_url", SqliteType.Text),
-			("discriminator", SqliteType.Text)
+			("discriminator", SqliteType.Text),
 		});
 
 		foreach (var user in users) {
@@ -199,7 +199,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 				Id = reader.GetUint64(0),
 				Name = reader.GetString(1),
 				AvatarUrl = reader.IsDBNull(2) ? null : reader.GetString(2),
-				Discriminator = reader.IsDBNull(3) ? null : reader.GetString(3)
+				Discriminator = reader.IsDBNull(3) ? null : reader.GetString(3),
 			});
 		}
 
@@ -227,7 +227,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 				("sender_id", SqliteType.Integer),
 				("channel_id", SqliteType.Integer),
 				("text", SqliteType.Text),
-				("timestamp", SqliteType.Integer)
+				("timestamp", SqliteType.Integer),
 			});
 
 			using var deleteEditTimestampCmd = DeleteByMessageId(conn, "edit_timestamps");
@@ -239,12 +239,12 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 
 			using var editTimestampCmd = conn.Insert("edit_timestamps", new [] {
 				("message_id", SqliteType.Integer),
-				("edit_timestamp", SqliteType.Integer)
+				("edit_timestamp", SqliteType.Integer),
 			});
 
 			using var repliedToCmd = conn.Insert("replied_to", new [] {
 				("message_id", SqliteType.Integer),
-				("replied_to_id", SqliteType.Integer)
+				("replied_to_id", SqliteType.Integer),
 			});
 
 			using var attachmentCmd = conn.Insert("attachments", new[] {
@@ -255,12 +255,12 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 				("url", SqliteType.Text),
 				("size", SqliteType.Integer),
 				("width", SqliteType.Integer),
-				("height", SqliteType.Integer)
+				("height", SqliteType.Integer),
 			});
 
 			using var embedCmd = conn.Insert("embeds", new[] {
 				("message_id", SqliteType.Integer),
-				("json", SqliteType.Text)
+				("json", SqliteType.Text),
 			});
 
 			using var reactionCmd = conn.Insert("reactions", new[] {
@@ -268,7 +268,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 				("emoji_id", SqliteType.Integer),
 				("emoji_name", SqliteType.Text),
 				("emoji_flags", SqliteType.Integer),
-				("count", SqliteType.Integer)
+				("count", SqliteType.Integer),
 			});
 
 			foreach (var message in messages) {
@@ -383,7 +383,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 				RepliedToId = reader.IsDBNull(6) ? null : reader.GetUint64(6),
 				Attachments = attachments.GetListOrNull(id)?.ToImmutableArray() ?? ImmutableArray<Attachment>.Empty,
 				Embeds = embeds.GetListOrNull(id)?.ToImmutableArray() ?? ImmutableArray<Embed>.Empty,
-				Reactions = reactions.GetListOrNull(id)?.ToImmutableArray() ?? ImmutableArray<Reaction>.Empty
+				Reactions = reactions.GetListOrNull(id)?.ToImmutableArray() ?? ImmutableArray<Reaction>.Empty,
 			});
 		}
 
@@ -430,7 +430,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 			("url", SqliteType.Text),
 			("status", SqliteType.Integer),
 			("size", SqliteType.Integer),
-			("blob", SqliteType.Blob)
+			("blob", SqliteType.Blob),
 		});
 
 		cmd.Set(":url", download.Url);
@@ -493,7 +493,7 @@ WHERE d.url = :url AND d.status = :success AND d.blob IS NOT NULL");
 
 		return new DownloadedAttachment {
 			Type = reader.IsDBNull(0) ? null : reader.GetString(0),
-			Data = (byte[]) reader["blob"]
+			Data = (byte[]) reader["blob"],
 		};
 	}
 
@@ -517,7 +517,7 @@ WHERE d.url = :url AND d.status = :success AND d.blob IS NOT NULL");
 		while (reader.Read()) {
 			list.Add(new DownloadItem {
 				Url = reader.GetString(0),
-				Size = reader.GetUint64(1)
+				Size = reader.GetUint64(1),
 			});
 		}
 
@@ -589,7 +589,7 @@ FROM downloads");
 				Url = reader.GetString(4),
 				Size = reader.GetUint64(5),
 				Width = reader.IsDBNull(6) ? null : reader.GetInt32(6),
-				Height = reader.IsDBNull(7) ? null : reader.GetInt32(7)
+				Height = reader.IsDBNull(7) ? null : reader.GetInt32(7),
 			});
 		}
 
@@ -607,7 +607,7 @@ FROM downloads");
 			ulong messageId = reader.GetUint64(0);
 
 			dict.Add(messageId, new Embed {
-				Json = reader.GetString(1)
+				Json = reader.GetString(1),
 			});
 		}
 
@@ -628,7 +628,7 @@ FROM downloads");
 				EmojiId = reader.IsDBNull(1) ? null : reader.GetUint64(1),
 				EmojiName = reader.IsDBNull(2) ? null : reader.GetString(2),
 				EmojiFlags = (EmojiFlags) reader.GetInt16(3),
-				Count = reader.GetInt32(4)
+				Count = reader.GetInt32(4),
 			});
 		}
 

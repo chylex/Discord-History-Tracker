@@ -40,9 +40,7 @@ sealed class SqliteConnectionPool : IDisposable {
 	}
 
 	private void ThrowIfDisposed() {
-		if (isDisposed) {
-			throw new ObjectDisposedException(nameof(SqliteConnectionPool));
-		}
+		ObjectDisposedException.ThrowIf(isDisposed, nameof(SqliteConnectionPool));
 	}
 
 	public ISqliteConnection Take() {
@@ -55,7 +53,7 @@ sealed class SqliteConnectionPool : IDisposable {
 					return conn;
 				}
 				else {
-					Log.ForType<SqliteConnectionPool>().Warn("Thread " + Thread.CurrentThread.ManagedThreadId + " is starving for connections.");
+					Log.ForType<SqliteConnectionPool>().Warn("Thread " + Environment.CurrentManagedThreadId + " is starving for connections.");
 				}
 			}
 

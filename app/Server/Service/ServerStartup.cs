@@ -14,7 +14,7 @@ sealed class Startup {
 		"https://discord.com",
 		"https://ptb.discord.com",
 		"https://canary.discord.com",
-		"https://discordapp.com"
+		"https://discordapp.com",
 	};
 
 	public void ConfigureServices(IServiceCollection services) {
