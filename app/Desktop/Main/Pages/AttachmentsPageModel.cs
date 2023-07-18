@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading;
+using Avalonia.Threading;
 using DHT.Desktop.Common;
 using DHT.Desktop.Main.Controls;
 using DHT.Server.Data;
@@ -134,9 +136,9 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 	}
 
 	private void DownloadThreadOnOnItemFinished(object? sender, DownloadItem e) {
-		++doneItemsCount;
+		Interlocked.Increment(ref doneItemsCount);
 
-		UpdateDownloadMessage();
+		Dispatcher.UIThread.Invoke(UpdateDownloadMessage);
 		downloadStatisticsComputer.Recompute();
 	}
 
