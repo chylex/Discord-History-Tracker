@@ -3,20 +3,19 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using DHT.Desktop.Dialogs.Message;
 
-namespace DHT.Desktop.Dialogs.CheckBox {
-	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
-	public sealed partial class CheckBoxDialog : Window {
-		public CheckBoxDialog() {
-			InitializeComponent();
-		}
+namespace DHT.Desktop.Dialogs.CheckBox;
 
-		public void ClickOk(object? sender, RoutedEventArgs e) {
-			Close(DialogResult.OkCancel.Ok);
-		}
+[SuppressMessage("ReSharper", "MemberCanBeInternal")]
+public sealed partial class CheckBoxDialog : Window {
+	public CheckBoxDialog() {
+		InitializeComponent();
+	}
 
-		public void ClickCancel(object? sender, RoutedEventArgs e) {
-			Close(DialogResult.OkCancel.Cancel);
-		}
+	public void ClickOk(object? sender, RoutedEventArgs e) {
+		Close(DialogResult.OkCancel.Ok);
+	}
+
+	public void ClickCancel(object? sender, RoutedEventArgs e) {
+		Close(DialogResult.OkCancel.Cancel);
 	}
 }
-

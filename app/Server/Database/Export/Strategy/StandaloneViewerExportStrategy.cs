@@ -1,13 +1,13 @@
 using DHT.Server.Data;
 
-namespace DHT.Server.Database.Export.Strategy {
-	public sealed class StandaloneViewerExportStrategy : IViewerExportStrategy {
-		public static StandaloneViewerExportStrategy Instance { get; } = new ();
+namespace DHT.Server.Database.Export.Strategy;
 
-		private StandaloneViewerExportStrategy() {}
+public sealed class StandaloneViewerExportStrategy : IViewerExportStrategy {
+	public static StandaloneViewerExportStrategy Instance { get; } = new ();
 
-		public string GetAttachmentUrl(Attachment attachment) {
-			return attachment.Url;
-		}
+	private StandaloneViewerExportStrategy() {}
+
+	public string GetAttachmentUrl(Attachment attachment) {
+		return attachment.Url;
 	}
 }

@@ -7,123 +7,123 @@ using DHT.Server.Database;
 using DHT.Utils.Models;
 using DHT.Utils.Tasks;
 
-namespace DHT.Desktop.Main.Controls {
-	sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
-		public sealed record Unit(string Name, uint Scale);
+namespace DHT.Desktop.Main.Controls;
 
-		private static readonly Unit[] AllUnits = {
-			new ("B", 1),
-			new ("kB", 1024),
-			new ("MB", 1024 * 1024)
-		};
+sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
+	public sealed record Unit(string Name, uint Scale);
 
-		private static readonly HashSet<string> FilterProperties = new () {
-			nameof(LimitSize),
-			nameof(MaximumSize),
-			nameof(MaximumSizeUnit)
-		};
+	private static readonly Unit[] AllUnits = {
+		new ("B", 1),
+		new ("kB", 1024),
+		new ("MB", 1024 * 1024)
+	};
 
-		public string FilterStatisticsText { get; private set; } = "";
+	private static readonly HashSet<string> FilterProperties = new () {
+		nameof(LimitSize),
+		nameof(MaximumSize),
+		nameof(MaximumSizeUnit)
+	};
 
-		private bool limitSize = false;
-		private ulong maximumSize = 0L;
-		private Unit maximumSizeUnit = AllUnits[0];
+	public string FilterStatisticsText { get; private set; } = "";
 
-		public bool LimitSize {
-			get => limitSize;
-			set => Change(ref limitSize, value);
-		}
+	private bool limitSize = false;
+	private ulong maximumSize = 0L;
+	private Unit maximumSizeUnit = AllUnits[0];
 
-		public ulong MaximumSize {
-			get => maximumSize;
-			set => Change(ref maximumSize, value);
-		}
+	public bool LimitSize {
+		get => limitSize;
+		set => Change(ref limitSize, value);
+	}
 
-		public Unit MaximumSizeUnit {
-			get => maximumSizeUnit;
-			set => Change(ref maximumSizeUnit, value);
-		}
+	public ulong MaximumSize {
+		get => maximumSize;
+		set => Change(ref maximumSize, value);
+	}
 
-		public IEnumerable<Unit> Units => AllUnits;
+	public Unit MaximumSizeUnit {
+		get => maximumSizeUnit;
+		set => Change(ref maximumSizeUnit, value);
+	}
 
-		private readonly IDatabaseFile db;
-		private readonly string verb;
+	public IEnumerable<Unit> Units => AllUnits;
 
-		private readonly AsyncValueComputer<long> matchingAttachmentCountComputer;
-		private long? matchingAttachmentCount;
-		private long? totalAttachmentCount;
+	private readonly IDatabaseFile db;
+	private readonly string verb;
 
-		[Obsolete("Designer")]
-		public AttachmentFilterPanelModel() : this(DummyDatabaseFile.Instance) {}
+	private readonly AsyncValueComputer<long> matchingAttachmentCountComputer;
+	private long? matchingAttachmentCount;
+	private long? totalAttachmentCount;
 
-		public AttachmentFilterPanelModel(IDatabaseFile db, string verb = "Matches") {
-			this.db = db;
-			this.verb = verb;
+	[Obsolete("Designer")]
+	public AttachmentFilterPanelModel() : this(DummyDatabaseFile.Instance) {}
 
-			this.matchingAttachmentCountComputer = AsyncValueComputer<long>.WithResultProcessor(SetAttachmentCounts).Build();
+	public AttachmentFilterPanelModel(IDatabaseFile db, string verb = "Matches") {
+		this.db = db;
+		this.verb = verb;
 
+		this.matchingAttachmentCountComputer = AsyncValueComputer<long>.WithResultProcessor(SetAttachmentCounts).Build();
+
+		UpdateFilterStatistics();
+
+		PropertyChanged += OnPropertyChanged;
+		db.Statistics.PropertyChanged += OnDbStatisticsChanged;
+	}
+
+	public void Dispose() {
+		db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
+	}
+
+	private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
+		if (e.PropertyName != null && FilterProperties.Contains(e.PropertyName)) {
 			UpdateFilterStatistics();
-			
-			PropertyChanged += OnPropertyChanged;
-			db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 		}
+	}
 
-		public void Dispose() {
-			db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
+	private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
+		if (e.PropertyName == nameof(DatabaseStatistics.TotalAttachments)) {
+			totalAttachmentCount = db.Statistics.TotalAttachments;
+			UpdateFilterStatistics();
 		}
+	}
 
-		private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
-			if (e.PropertyName != null && FilterProperties.Contains(e.PropertyName)) {
-				UpdateFilterStatistics();
-			}
-		}
-
-		private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
-			if (e.PropertyName == nameof(DatabaseStatistics.TotalAttachments)) {
-				totalAttachmentCount = db.Statistics.TotalAttachments;
-				UpdateFilterStatistics();
-			}
-		}
-
-		private void UpdateFilterStatistics() {
-			var filter = CreateFilter();
-			if (filter.IsEmpty) {
-				matchingAttachmentCountComputer.Cancel();
-				matchingAttachmentCount = totalAttachmentCount;
-				UpdateFilterStatisticsText();
-			}
-			else {
-				matchingAttachmentCount = null;
-				UpdateFilterStatisticsText();
-				matchingAttachmentCountComputer.Compute(() => db.CountAttachments(filter));
-			}
-		}
-
-		private void SetAttachmentCounts(long matchingAttachmentCount) {
-			this.matchingAttachmentCount = matchingAttachmentCount;
+	private void UpdateFilterStatistics() {
+		var filter = CreateFilter();
+		if (filter.IsEmpty) {
+			matchingAttachmentCountComputer.Cancel();
+			matchingAttachmentCount = totalAttachmentCount;
 			UpdateFilterStatisticsText();
 		}
-
-		private void UpdateFilterStatisticsText() {
-			var matchingAttachmentCountStr = matchingAttachmentCount?.Format() ?? "(...)";
-			var totalAttachmentCountStr = totalAttachmentCount?.Format() ?? "(...)";
-
-			FilterStatisticsText = verb + " " + matchingAttachmentCountStr + " out of " + totalAttachmentCountStr + " attachment" + (totalAttachmentCount is null or 1 ? "." : "s.");
-			OnPropertyChanged(nameof(FilterStatisticsText));
+		else {
+			matchingAttachmentCount = null;
+			UpdateFilterStatisticsText();
+			matchingAttachmentCountComputer.Compute(() => db.CountAttachments(filter));
 		}
+	}
 
-		public AttachmentFilter CreateFilter() {
-			AttachmentFilter filter = new();
+	private void SetAttachmentCounts(long matchingAttachmentCount) {
+		this.matchingAttachmentCount = matchingAttachmentCount;
+		UpdateFilterStatisticsText();
+	}
 
-			if (LimitSize) {
-				try {
-					filter.MaxBytes = maximumSize * maximumSizeUnit.Scale;
-				} catch (ArithmeticException) {
-					// set no size limit, because the overflown size is larger than any file could possibly be
-				}
+	private void UpdateFilterStatisticsText() {
+		var matchingAttachmentCountStr = matchingAttachmentCount?.Format() ?? "(...)";
+		var totalAttachmentCountStr = totalAttachmentCount?.Format() ?? "(...)";
+
+		FilterStatisticsText = verb + " " + matchingAttachmentCountStr + " out of " + totalAttachmentCountStr + " attachment" + (totalAttachmentCount is null or 1 ? "." : "s.");
+		OnPropertyChanged(nameof(FilterStatisticsText));
+	}
+
+	public AttachmentFilter CreateFilter() {
+		AttachmentFilter filter = new();
+
+		if (LimitSize) {
+			try {
+				filter.MaxBytes = maximumSize * maximumSizeUnit.Scale;
+			} catch (ArithmeticException) {
+				// set no size limit, because the overflown size is larger than any file could possibly be
 			}
-
-			return filter;
 		}
+
+		return filter;
 	}
 }

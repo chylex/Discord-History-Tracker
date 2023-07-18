@@ -4,28 +4,28 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace DHT.Desktop.Main.Pages {
-	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
-	public sealed partial class TrackingPage : UserControl {
-		private bool isCopyingScript;
+namespace DHT.Desktop.Main.Pages;
 
-		public TrackingPage() {
-			InitializeComponent();
-		}
+[SuppressMessage("ReSharper", "MemberCanBeInternal")]
+public sealed partial class TrackingPage : UserControl {
+	private bool isCopyingScript;
 
-		public async void CopyTrackingScriptButton_OnClick(object? sender, RoutedEventArgs e) {
-			if (DataContext is TrackingPageModel model) {
-				var originalText = CopyTrackingScript.Content;
-				CopyTrackingScript.MinWidth = CopyTrackingScript.Bounds.Width;
+	public TrackingPage() {
+		InitializeComponent();
+	}
 
-				if (await model.OnClickCopyTrackingScript() && !isCopyingScript) {
-					isCopyingScript = true;
-					CopyTrackingScript.Content = "Script Copied!";
+	public async void CopyTrackingScriptButton_OnClick(object? sender, RoutedEventArgs e) {
+		if (DataContext is TrackingPageModel model) {
+			var originalText = CopyTrackingScript.Content;
+			CopyTrackingScript.MinWidth = CopyTrackingScript.Bounds.Width;
 
-					await Task.Delay(TimeSpan.FromSeconds(2));
-					CopyTrackingScript.Content = originalText;
-					isCopyingScript = false;
-				}
+			if (await model.OnClickCopyTrackingScript() && !isCopyingScript) {
+				isCopyingScript = true;
+				CopyTrackingScript.Content = "Script Copied!";
+
+				await Task.Delay(TimeSpan.FromSeconds(2));
+				CopyTrackingScript.Content = originalText;
+				isCopyingScript = false;
 			}
 		}
 	}

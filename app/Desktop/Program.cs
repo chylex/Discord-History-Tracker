@@ -3,38 +3,38 @@ using System.Reflection;
 using Avalonia;
 using DHT.Utils.Resources;
 
-namespace DHT.Desktop {
-	static class Program {
-		public static string Version { get; }
-		public static CultureInfo Culture { get; }
-		public static ResourceLoader Resources { get; }
+namespace DHT.Desktop;
 
-		static Program() {
-			var assembly = Assembly.GetExecutingAssembly();
-			
-			Version = assembly.GetName().Version?.ToString() ?? "";
-			while (Version.EndsWith(".0")) {
-				Version = Version[..^2];
-			}
+static class Program {
+	public static string Version { get; }
+	public static CultureInfo Culture { get; }
+	public static ResourceLoader Resources { get; }
 
-			Culture = CultureInfo.CurrentCulture;
-			CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-			CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
-			CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
-			CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-			
-			Resources = new ResourceLoader(assembly);
+	static Program() {
+		var assembly = Assembly.GetExecutingAssembly();
+
+		Version = assembly.GetName().Version?.ToString() ?? "";
+		while (Version.EndsWith(".0")) {
+			Version = Version[..^2];
 		}
 
-		public static void Main(string[] args) {
-			BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
-		}
+		Culture = CultureInfo.CurrentCulture;
+		CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+		CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+		CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+		CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
-		private static AppBuilder BuildAvaloniaApp() {
-			return AppBuilder.Configure<App>()
-			                 .UsePlatformDetect()
-			                 .WithInterFont()
-			                 .LogToTrace();
-		}
+		Resources = new ResourceLoader(assembly);
+	}
+
+	public static void Main(string[] args) {
+		BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+	}
+
+	private static AppBuilder BuildAvaloniaApp() {
+		return AppBuilder.Configure<App>()
+		                 .UsePlatformDetect()
+		                 .WithInterFont()
+		                 .LogToTrace();
 	}
 }

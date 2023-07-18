@@ -2,49 +2,49 @@ using System;
 using DHT.Server.Database;
 using DHT.Server.Service;
 
-namespace DHT.Desktop.Server {
-	sealed class ServerManager : IDisposable {
-		public static ushort Port { get; set; } = ServerUtils.FindAvailablePort(50000, 60000);
-		public static string Token { get; set; } = ServerUtils.GenerateRandomToken(20);
+namespace DHT.Desktop.Server;
 
-		private static ServerManager? instance;
+sealed class ServerManager : IDisposable {
+	public static ushort Port { get; set; } = ServerUtils.FindAvailablePort(50000, 60000);
+	public static string Token { get; set; } = ServerUtils.GenerateRandomToken(20);
 
-		public bool IsRunning => ServerLauncher.IsRunning;
-		
-		private readonly IDatabaseFile db;
-		
-		public ServerManager(IDatabaseFile db) {
-			if (db != DummyDatabaseFile.Instance) {
-				if (instance != null) {
-					throw new InvalidOperationException("Only one instance of ServerManager can exist at the same time!");
-				}
+	private static ServerManager? instance;
 
-				instance = this;
+	public bool IsRunning => ServerLauncher.IsRunning;
+
+	private readonly IDatabaseFile db;
+
+	public ServerManager(IDatabaseFile db) {
+		if (db != DummyDatabaseFile.Instance) {
+			if (instance != null) {
+				throw new InvalidOperationException("Only one instance of ServerManager can exist at the same time!");
 			}
 
-			this.db = db;
+			instance = this;
 		}
 
-		public void Launch() {
-			ServerLauncher.Relaunch(Port, Token, db);
-		}
+		this.db = db;
+	}
 
-		public void Relaunch(ushort port, string token) {
-			Port = port;
-			Token = token;
-			Launch();
-		}
+	public void Launch() {
+		ServerLauncher.Relaunch(Port, Token, db);
+	}
 
-		public void Stop() {
-			ServerLauncher.Stop();
-		}
+	public void Relaunch(ushort port, string token) {
+		Port = port;
+		Token = token;
+		Launch();
+	}
 
-		public void Dispose() {
-			Stop();
-			
-			if (instance == this) {
-				instance = null;
-			}
+	public void Stop() {
+		ServerLauncher.Stop();
+	}
+
+	public void Dispose() {
+		Stop();
+
+		if (instance == this) {
+			instance = null;
 		}
 	}
 }

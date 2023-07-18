@@ -1,33 +1,33 @@
 using System.Diagnostics;
 
-namespace DHT.Desktop.Main {
-	sealed class AboutWindowModel {
-		public void ShowOfficialWebsite() {
-			OpenUrl("https://dht.chylex.com");
-		}
+namespace DHT.Desktop.Main;
 
-		public void ShowSourceCode() {
-			OpenUrl("https://github.com/chylex/Discord-History-Tracker");
-		}
+sealed class AboutWindowModel {
+	public void ShowOfficialWebsite() {
+		OpenUrl("https://dht.chylex.com");
+	}
 
-		public void ShowLibraryAvalonia() {
-			OpenUrl("https://www.nuget.org/packages/Avalonia");
-		}
+	public void ShowSourceCode() {
+		OpenUrl("https://github.com/chylex/Discord-History-Tracker");
+	}
 
-		public void ShowLibrarySqlite() {
-			OpenUrl("https://www.sqlite.org");
-		}
+	public void ShowLibraryAvalonia() {
+		OpenUrl("https://www.nuget.org/packages/Avalonia");
+	}
 
-		public void ShowLibrarySqliteAdoNet() {
-			OpenUrl("https://www.nuget.org/packages/Microsoft.Data.Sqlite");
-		}
+	public void ShowLibrarySqlite() {
+		OpenUrl("https://www.sqlite.org");
+	}
 
-		public void ShowLibraryNetCore() {
-			OpenUrl("https://github.com/dotnet/core");
-		}
+	public void ShowLibrarySqliteAdoNet() {
+		OpenUrl("https://www.nuget.org/packages/Microsoft.Data.Sqlite");
+	}
 
-		private static void OpenUrl(string url) {
-			Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
-		}
+	public void ShowLibraryNetCore() {
+		OpenUrl("https://github.com/dotnet/core");
+	}
+
+	private static void OpenUrl(string url) {
+		Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
 	}
 }

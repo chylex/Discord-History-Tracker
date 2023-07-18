@@ -5,39 +5,39 @@ using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
 using DHT.Server.Download;
 
-namespace DHT.Server.Database {
-	public interface IDatabaseFile : IDisposable {
-		string Path { get; }
-		DatabaseStatistics Statistics { get; }
-		DatabaseStatisticsSnapshot SnapshotStatistics();
+namespace DHT.Server.Database;
 
-		void AddServer(Data.Server server);
-		List<Data.Server> GetAllServers();
+public interface IDatabaseFile : IDisposable {
+	string Path { get; }
+	DatabaseStatistics Statistics { get; }
+	DatabaseStatisticsSnapshot SnapshotStatistics();
 
-		void AddChannel(Channel channel);
-		List<Channel> GetAllChannels();
+	void AddServer(Data.Server server);
+	List<Data.Server> GetAllServers();
 
-		void AddUsers(User[] users);
-		List<User> GetAllUsers();
+	void AddChannel(Channel channel);
+	List<Channel> GetAllChannels();
 
-		void AddMessages(Message[] messages);
-		int CountMessages(MessageFilter? filter = null);
-		List<Message> GetMessages(MessageFilter? filter = null);
-		HashSet<ulong> GetMessageIds(MessageFilter? filter = null);
-		void RemoveMessages(MessageFilter filter, FilterRemovalMode mode);
+	void AddUsers(User[] users);
+	List<User> GetAllUsers();
 
-		int CountAttachments(AttachmentFilter? filter = null);
+	void AddMessages(Message[] messages);
+	int CountMessages(MessageFilter? filter = null);
+	List<Message> GetMessages(MessageFilter? filter = null);
+	HashSet<ulong> GetMessageIds(MessageFilter? filter = null);
+	void RemoveMessages(MessageFilter filter, FilterRemovalMode mode);
 
-		void AddDownload(Data.Download download);
-		List<Data.Download> GetDownloadsWithoutData();
-		Data.Download GetDownloadWithData(Data.Download download);
-		DownloadedAttachment? GetDownloadedAttachment(string url);
+	int CountAttachments(AttachmentFilter? filter = null);
 
-		void EnqueueDownloadItems(AttachmentFilter? filter = null);
-		List<DownloadItem> GetEnqueuedDownloadItems(int count);
-		void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode);
-		DownloadStatusStatistics GetDownloadStatusStatistics();
+	void AddDownload(Data.Download download);
+	List<Data.Download> GetDownloadsWithoutData();
+	Data.Download GetDownloadWithData(Data.Download download);
+	DownloadedAttachment? GetDownloadedAttachment(string url);
 
-		void Vacuum();
-	}
+	void EnqueueDownloadItems(AttachmentFilter? filter = null);
+	List<DownloadItem> GetEnqueuedDownloadItems(int count);
+	void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode);
+	DownloadStatusStatistics GetDownloadStatusStatistics();
+
+	void Vacuum();
 }

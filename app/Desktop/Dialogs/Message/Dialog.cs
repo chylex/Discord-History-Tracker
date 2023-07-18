@@ -2,73 +2,73 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 
-namespace DHT.Desktop.Dialogs.Message {
-	static class Dialog {
-		public static async Task ShowOk(Window owner, string title, string message) {
-			if (!Dispatcher.UIThread.CheckAccess()) {
-				await Dispatcher.UIThread.InvokeAsync(() => ShowOk(owner, title, message));
-				return;
-			}
+namespace DHT.Desktop.Dialogs.Message;
 
-			await new MessageDialog {
-				DataContext = new MessageDialogModel {
-					Title = title,
-					Message = message,
-					IsOkVisible = true
-				}
-			}.ShowDialog<DialogResult.All>(owner);
+static class Dialog {
+	public static async Task ShowOk(Window owner, string title, string message) {
+		if (!Dispatcher.UIThread.CheckAccess()) {
+			await Dispatcher.UIThread.InvokeAsync(() => ShowOk(owner, title, message));
+			return;
 		}
 
-		public static async Task<DialogResult.OkCancel> ShowOkCancel(Window owner, string title, string message) {
-			if (!Dispatcher.UIThread.CheckAccess()) {
-				return await Dispatcher.UIThread.InvokeAsync(() => ShowOkCancel(owner, title, message));
+		await new MessageDialog {
+			DataContext = new MessageDialogModel {
+				Title = title,
+				Message = message,
+				IsOkVisible = true
 			}
+		}.ShowDialog<DialogResult.All>(owner);
+	}
 
-			var result = await new MessageDialog {
-				DataContext = new MessageDialogModel {
-					Title = title,
-					Message = message,
-					IsOkVisible = true,
-					IsCancelVisible = true
-				}
-			}.ShowDialog<DialogResult.All?>(owner);
-
-			return result.ToOkCancel();
+	public static async Task<DialogResult.OkCancel> ShowOkCancel(Window owner, string title, string message) {
+		if (!Dispatcher.UIThread.CheckAccess()) {
+			return await Dispatcher.UIThread.InvokeAsync(() => ShowOkCancel(owner, title, message));
 		}
 
-		public static async Task<DialogResult.YesNo> ShowYesNo(Window owner, string title, string message) {
-			if (!Dispatcher.UIThread.CheckAccess()) {
-				return await Dispatcher.UIThread.InvokeAsync(() => ShowYesNo(owner, title, message));
+		var result = await new MessageDialog {
+			DataContext = new MessageDialogModel {
+				Title = title,
+				Message = message,
+				IsOkVisible = true,
+				IsCancelVisible = true
 			}
+		}.ShowDialog<DialogResult.All?>(owner);
 
-			var result = await new MessageDialog {
-				DataContext = new MessageDialogModel {
-					Title = title,
-					Message = message,
-					IsYesVisible = true,
-					IsNoVisible = true
-				}
-			}.ShowDialog<DialogResult.All?>(owner);
+		return result.ToOkCancel();
+	}
 
-			return result.ToYesNo();
+	public static async Task<DialogResult.YesNo> ShowYesNo(Window owner, string title, string message) {
+		if (!Dispatcher.UIThread.CheckAccess()) {
+			return await Dispatcher.UIThread.InvokeAsync(() => ShowYesNo(owner, title, message));
 		}
 
-		public static async Task<DialogResult.YesNoCancel> ShowYesNoCancel(Window owner, string title, string message) {
-			if (!Dispatcher.UIThread.CheckAccess()) {
-				return await Dispatcher.UIThread.InvokeAsync(() => ShowYesNoCancel(owner, title, message));
+		var result = await new MessageDialog {
+			DataContext = new MessageDialogModel {
+				Title = title,
+				Message = message,
+				IsYesVisible = true,
+				IsNoVisible = true
 			}
+		}.ShowDialog<DialogResult.All?>(owner);
 
-			var result = await new MessageDialog {
-				DataContext = new MessageDialogModel {
-					Title = title,
-					Message = message,
-					IsYesVisible = true,
-					IsNoVisible = true,
-					IsCancelVisible = true
-				}
-			}.ShowDialog<DialogResult.All?>(owner);
+		return result.ToYesNo();
+	}
 
-			return result.ToYesNoCancel();
+	public static async Task<DialogResult.YesNoCancel> ShowYesNoCancel(Window owner, string title, string message) {
+		if (!Dispatcher.UIThread.CheckAccess()) {
+			return await Dispatcher.UIThread.InvokeAsync(() => ShowYesNoCancel(owner, title, message));
 		}
+
+		var result = await new MessageDialog {
+			DataContext = new MessageDialogModel {
+				Title = title,
+				Message = message,
+				IsYesVisible = true,
+				IsNoVisible = true,
+				IsCancelVisible = true
+			}
+		}.ShowDialog<DialogResult.All?>(owner);
+
+		return result.ToYesNoCancel();
 	}
 }

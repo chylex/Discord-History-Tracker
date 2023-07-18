@@ -3,28 +3,28 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 
-namespace DHT.Desktop.Dialogs.Progress {
-	[SuppressMessage("ReSharper", "MemberCanBeInternal")]
-	public sealed partial class ProgressDialog : Window {
-		private bool isFinished = false;
+namespace DHT.Desktop.Dialogs.Progress;
 
-		public ProgressDialog() {
-			InitializeComponent();
-		}
+[SuppressMessage("ReSharper", "MemberCanBeInternal")]
+public sealed partial class ProgressDialog : Window {
+	private bool isFinished = false;
 
-		public void OnOpened(object? sender, EventArgs e) {
-			if (DataContext is ProgressDialogModel model) {
-				Task.Run(model.StartTask).ContinueWith(OnFinished, TaskScheduler.FromCurrentSynchronizationContext());
-			}
-		}
+	public ProgressDialog() {
+		InitializeComponent();
+	}
 
-		public void OnClosing(object? sender, WindowClosingEventArgs e) {
-			e.Cancel = !isFinished;
+	public void OnOpened(object? sender, EventArgs e) {
+		if (DataContext is ProgressDialogModel model) {
+			Task.Run(model.StartTask).ContinueWith(OnFinished, TaskScheduler.FromCurrentSynchronizationContext());
 		}
+	}
 
-		private void OnFinished(Task task) {
-			isFinished = true;
-			Close();
-		}
+	public void OnClosing(object? sender, WindowClosingEventArgs e) {
+		e.Cancel = !isFinished;
+	}
+
+	private void OnFinished(Task task) {
+		isFinished = true;
+		Close();
 	}
 }

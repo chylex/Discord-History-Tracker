@@ -1,64 +1,64 @@
 using System;
 using DHT.Utils.Logging;
 
-namespace DHT.Desktop {
-	sealed class Arguments {
-		private static readonly Log Log = Log.ForType<Arguments>();
+namespace DHT.Desktop;
 
-		public static Arguments Empty => new(Array.Empty<string>());
+sealed class Arguments {
+	private static readonly Log Log = Log.ForType<Arguments>();
 
-		public string? DatabaseFile { get; }
-		public ushort? ServerPort { get; }
-		public string? ServerToken { get; }
+	public static Arguments Empty => new(Array.Empty<string>());
 
-		public Arguments(string[] args) {
-			for (int i = 0; i < args.Length; i++) {
-				string key = args[i];
+	public string? DatabaseFile { get; }
+	public ushort? ServerPort { get; }
+	public string? ServerToken { get; }
 
-				switch (key) {
-					case "-debug":
-						Log.IsDebugEnabled = true;
-						continue;
-				}
+	public Arguments(string[] args) {
+		for (int i = 0; i < args.Length; i++) {
+			string key = args[i];
 
-				string value;
-
-				if (i == 0 && !key.StartsWith('-')) {
-					value = key;
-					key = "-db";
-				}
-				else if (i >= args.Length - 1) {
-					Log.Warn("Missing value for command line argument: " + key);
+			switch (key) {
+				case "-debug":
+					Log.IsDebugEnabled = true;
 					continue;
-				}
-				else {
-					value = args[++i];
-				}
+			}
 
-				switch (key) {
-					case "-db":
-						DatabaseFile = value;
-						continue;
+			string value;
 
-					case "-port": {
-						if (ushort.TryParse(value, out var port)) {
-							ServerPort = port;
-						}
-						else {
-							Log.Warn("Invalid port number: " + value);
-						}
+			if (i == 0 && !key.StartsWith('-')) {
+				value = key;
+				key = "-db";
+			}
+			else if (i >= args.Length - 1) {
+				Log.Warn("Missing value for command line argument: " + key);
+				continue;
+			}
+			else {
+				value = args[++i];
+			}
 
-						continue;
+			switch (key) {
+				case "-db":
+					DatabaseFile = value;
+					continue;
+
+				case "-port": {
+					if (ushort.TryParse(value, out var port)) {
+						ServerPort = port;
+					}
+					else {
+						Log.Warn("Invalid port number: " + value);
 					}
 
-					case "-token":
-						ServerToken = value;
-						continue;
-
-					default:
-						Log.Warn("Unknown command line argument: " + key);
-						break;
+					continue;
 				}
+
+				case "-token":
+					ServerToken = value;
+					continue;
+
+				default:
+					Log.Warn("Unknown command line argument: " + key);
+					break;
 			}
 		}
 	}

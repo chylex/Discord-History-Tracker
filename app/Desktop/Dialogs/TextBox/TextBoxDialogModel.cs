@@ -4,44 +4,44 @@ using System.ComponentModel;
 using System.Linq;
 using DHT.Utils.Models;
 
-namespace DHT.Desktop.Dialogs.TextBox {
-	class TextBoxDialogModel : BaseModel {
-		public string Title { get; init; } = "";
-		public string Description { get; init; } = "";
+namespace DHT.Desktop.Dialogs.TextBox; 
 
-		private IReadOnlyList<TextBoxItem> items = Array.Empty<TextBoxItem>();
+class TextBoxDialogModel : BaseModel {
+	public string Title { get; init; } = "";
+	public string Description { get; init; } = "";
 
-		public IReadOnlyList<TextBoxItem> Items {
-			get => items;
+	private IReadOnlyList<TextBoxItem> items = Array.Empty<TextBoxItem>();
 
-			protected set {
-				foreach (var item in items) {
-					item.ErrorsChanged -= OnItemErrorsChanged;
-				}
+	public IReadOnlyList<TextBoxItem> Items {
+		get => items;
 
-				items = value;
+		protected set {
+			foreach (var item in items) {
+				item.ErrorsChanged -= OnItemErrorsChanged;
+			}
 
-				foreach (var item in items) {
-					item.ErrorsChanged += OnItemErrorsChanged;
-				}
+			items = value;
+
+			foreach (var item in items) {
+				item.ErrorsChanged += OnItemErrorsChanged;
 			}
 		}
-		
-		public bool HasErrors => Items.Any(static item => !item.IsValid);
-
-		private void OnItemErrorsChanged(object? sender, DataErrorsChangedEventArgs e) {
-			OnPropertyChanged(nameof(HasErrors));
-		}
 	}
+		
+	public bool HasErrors => Items.Any(static item => !item.IsValid);
 
-	sealed class TextBoxDialogModel<T> : TextBoxDialogModel {
-		public new IReadOnlyList<TextBoxItem<T>> Items { get; }
+	private void OnItemErrorsChanged(object? sender, DataErrorsChangedEventArgs e) {
+		OnPropertyChanged(nameof(HasErrors));
+	}
+}
 
-		public IEnumerable<TextBoxItem<T>> ValidItems => Items.Where(static item => item.IsValid);
+sealed class TextBoxDialogModel<T> : TextBoxDialogModel {
+	public new IReadOnlyList<TextBoxItem<T>> Items { get; }
 
-		public TextBoxDialogModel(IEnumerable<TextBoxItem<T>> items) {
-			this.Items = new List<TextBoxItem<T>>(items);
-			base.Items = this.Items;
-		}
+	public IEnumerable<TextBoxItem<T>> ValidItems => Items.Where(static item => item.IsValid);
+
+	public TextBoxDialogModel(IEnumerable<TextBoxItem<T>> items) {
+		this.Items = new List<TextBoxItem<T>>(items);
+		base.Items = this.Items;
 	}
 }

@@ -1,19 +1,19 @@
 using System.Collections.Generic;
 
-namespace DHT.Utils.Collections {
-	public sealed class MultiDictionary<TKey, TValue> where TKey : notnull {
-		private readonly Dictionary<TKey, List<TValue>> dict = new();
+namespace DHT.Utils.Collections;
 
-		public void Add(TKey key, TValue value) {
-			if (!dict.TryGetValue(key, out var list)) {
-				dict[key] = list = new List<TValue>();
-			}
+public sealed class MultiDictionary<TKey, TValue> where TKey : notnull {
+	private readonly Dictionary<TKey, List<TValue>> dict = new();
 
-			list.Add(value);
+	public void Add(TKey key, TValue value) {
+		if (!dict.TryGetValue(key, out var list)) {
+			dict[key] = list = new List<TValue>();
 		}
 
-		public List<TValue>? GetListOrNull(TKey key) {
-			return dict.TryGetValue(key, out var list) ? list : null;
-		}
+		list.Add(value);
+	}
+
+	public List<TValue>? GetListOrNull(TKey key) {
+		return dict.TryGetValue(key, out var list) ? list : null;
 	}
 }
