@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>DHT.Utils</RootNamespace>
     <Nullable>enable</Nullable>
     <AssemblyName>DiscordHistoryTracker.Utils</AssemblyName>

@@ -57,7 +57,7 @@ define('LATEST_VERSION', $version === false ? '_' : $version);
         </a>
       </div>
       <p>To launch the three OS-specific versions, extract the <strong>DiscordHistoryTracker</strong> executable, and double-click it.</p>
-      <p>To launch the <strong>Other</strong> version, which works on other operating systems including 32-bit versions, you must install <a href="https://dotnet.microsoft.com/download/dotnet/5.0" rel="nofollow noopener">ASP.NET Core Runtime 5</a>. Then extract the downloaded archive into a folder, open the folder in a terminal, and type: <code>dotnet DiscordHistoryTracker.dll</code></p>
+      <p>To launch the <strong>Other</strong> version, which works on other operating systems including 32-bit versions, you must install <a href="https://dotnet.microsoft.com/download/dotnet/8.0" rel="nofollow noopener">ASP.NET Core Runtime 8</a>. Then extract the downloaded archive into a folder, open the folder in a terminal, and type: <code>dotnet DiscordHistoryTracker.dll</code></p>
       
       <h3>How to Track Messages</h3>
       <p>The app saves messages into a database file stored on your computer. When you open the app, you are given the option to create a new database file, or open an existing one.</p>

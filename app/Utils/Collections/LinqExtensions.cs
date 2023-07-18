@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace DHT.Utils.Collections {
 	public static class LinqExtensions {
@@ -14,10 +13,6 @@ namespace DHT.Utils.Collections {
 					yield return item;
 				}
 			}
-		}
-
-		public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IEnumerable<(TKey, TValue)> collection) where TKey : notnull {
-			return collection.ToDictionary(static item => item.Item1, static item => item.Item2);
 		}
 	}
 }

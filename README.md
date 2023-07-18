@@ -19,7 +19,7 @@ Folder organization:
 * `lib/` contains utilities required to build the project
 * `web/` contains source code of the [official website](https://dht.chylex.com), which can be used as a template when making your own website
 
-To start editing source code for the desktop app, install the [.NET 5 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/5.0), and then open `app/DiscordHistoryTracker.sln` in [Visual Studio](https://visualstudio.microsoft.com/downloads/) or [Rider](https://www.jetbrains.com/rider/).
+To start editing source code for the desktop app, install the [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0), and then open `app/DiscordHistoryTracker.sln` in [Visual Studio](https://visualstudio.microsoft.com/downloads/) or [Rider](https://www.jetbrains.com/rider/).
 
 ### Building
 
@@ -50,6 +50,6 @@ Run the `app/build.sh` script, and read the [Distribution](#distribution) sectio
 
 #### Distribution
 
-The mentioned build scripts will prepare `Release` builds ready for distribution. Once the script finishes, the `app/bin` folder will contain self-contained executables for each major operating system, and a portable version that works on all other systems but requires .NET 5 to be installed.
+The mentioned build scripts will prepare `Release` builds ready for distribution. Once the script finishes, the `app/bin` folder will contain self-contained executables for each major operating system, and a portable version that works on all other systems but requires .NET 8 to be installed.
 
 Note that when building on Windows, the generated `.zip` files for Linux and Mac will not have correct file permissions, so it will not be possible to run them by double-clicking `DiscordHistoryTracker`. I tried using Python to re-create the archives with correct file permissions, but found that Linux `zip` tools could not see them. The only working solution is building the Windows + portable version on Windows, and Linux + Mac version on Linux.

@@ -46,7 +46,7 @@
             <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold">License</TextBlock>
             <TextBlock Grid.Row="0" Grid.Column="2" FontWeight="Bold">Link</TextBlock>
 
-            <TextBlock Grid.Row="2" Grid.Column="0">.NET 5</TextBlock>
+            <TextBlock Grid.Row="2" Grid.Column="0">.NET 8</TextBlock>
             <TextBlock Grid.Row="2" Grid.Column="1">MIT</TextBlock>
             <Button Grid.Row="2" Grid.Column="2" Command="{Binding ShowLibraryNetCore}">GitHub</Button>
 
