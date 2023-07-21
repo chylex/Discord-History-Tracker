@@ -1,0 +1,56 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:textBox="clr-namespace:DHT.Desktop.App.Dialogs.TextBox"
+        mc:Ignorable="d" d:DesignWidth="500"
+        x:Class="DHT.Desktop.App.Dialogs.TextBox.TextBoxDialog"
+        Title="{Binding Title}"
+        Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
+        Width="500" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.DataContext>
+        <textBox:TextBoxDialogModel />
+    </Window.DataContext>
+
+    <Window.Styles>
+        <Style Selector="Panel.buttons">
+            <Setter Property="Margin" Value="0 20 0 0" />
+        </Style>
+        <Style Selector="Panel.buttons > WrapPanel.right">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+        <Style Selector="Panel.buttons Button">
+            <Setter Property="MinWidth" Value="80" />
+            <Setter Property="Margin" Value="8 0 0 0" />
+        </Style>
+    </Window.Styles>
+
+    <StackPanel Margin="20">
+        <ScrollViewer MaxHeight="400">
+            <StackPanel Spacing="10">
+                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                <ItemsRepeater ItemsSource="{Binding Items}">
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel Margin="0 5 25 0">
+                                <TextBox Name="Input" Text="{Binding Value}" Width="180" VerticalAlignment="Top" DockPanel.Dock="Right" />
+                                <Label Target="Input" VerticalAlignment="Center" DockPanel.Dock="Left">
+                                    <TextBlock Text="{Binding Title}" TextWrapping="Wrap" />
+                                </Label>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </StackPanel>
+        </ScrollViewer>
+        <Panel Classes="buttons">
+            <WrapPanel Classes="right">
+                <Button Click="ClickOk" IsEnabled="{Binding !HasErrors}">OK</Button>
+                <Button Click="ClickCancel">Cancel</Button>
+            </WrapPanel>
+        </Panel>
+    </StackPanel>
+
+</Window>

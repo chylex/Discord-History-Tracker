@@ -20,7 +20,7 @@ sealed class SqliteConnectionPool : IDisposable {
 	private readonly BlockingCollection<PooledConnection> free = new (new ConcurrentStack<PooledConnection>());
 	private readonly List<PooledConnection> used;
 
-	public SqliteConnectionPool(SqliteConnectionStringBuilder connectionStringBuilder, int poolSize) {
+	public SqliteConnectionPool(SqliteConnectionStringBuilder connectionStringBuilder, int poolSize, string[] initialCommands) {
 		var connectionString = GetConnectionString(connectionStringBuilder);
 
 		for (int i = 0; i < poolSize; i++) {
@@ -28,9 +28,9 @@ sealed class SqliteConnectionPool : IDisposable {
 			conn.Open();
 
 			var pooledConn = new PooledConnection(this, conn);
-
-			using (var cmd = pooledConn.Command("PRAGMA journal_mode=WAL")) {
-				cmd.ExecuteNonQuery();
+			
+			foreach (var initialCommand in initialCommands) {
+				pooledConn.ExecuteNonQuery(initialCommand);
 			}
 
 			free.Add(pooledConn);

@@ -33,8 +33,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Version.cs" Link="Version.cs" />
-    <Compile Update="Dialogs\TextBox\TextBoxDialog.axaml.cs">
-      <DependentUpon>CheckBoxDialog.axaml</DependentUpon>
+    <Compile Update="App\App.axaml.cs">
+      <DependentUpon>App.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="App\Windows\AboutWindow.axaml.cs">
+      <DependentUpon>AboutWindow.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="App\Windows\MainWindow.axaml.cs">
+      <DependentUpon>MainWindow.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -60,6 +68,26 @@
       <Link>Resources/Viewer/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <Visible>false</Visible>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="App\Controls\ServerConfigurationPanel.axaml" />
+    <AdditionalFiles Include="App\Controls\StatusBar.axaml" />
+    <AdditionalFiles Include="App\Dialogs\CheckBox\CheckBoxDialog.axaml" />
+    <AdditionalFiles Include="App\Dialogs\Message\MessageDialog.axaml" />
+    <AdditionalFiles Include="App\Dialogs\Progress\ProgressDialog.axaml" />
+    <AdditionalFiles Include="App\Dialogs\TextBox\TextBoxDialog.axaml" />
+    <AdditionalFiles Include="App\Pages\AdvancedPage.axaml" />
+    <AdditionalFiles Include="App\Pages\DatabasePage.axaml" />
+    <AdditionalFiles Include="App\Pages\TrackingPage.axaml" />
+    <AdditionalFiles Include="App\Screens\MainContentScreen.axaml" />
+    <AdditionalFiles Include="App\Screens\WelcomeScreen.axaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Main\Pages\AdvancedPage.axaml" />
+    <UpToDateCheckInput Remove="Main\Pages\DatabasePage.axaml" />
+    <UpToDateCheckInput Remove="Main\Pages\TrackingPage.axaml" />
+    <UpToDateCheckInput Remove="Main\Screens\MainContentScreen.axaml" />
+    <UpToDateCheckInput Remove="Main\Screens\WelcomeScreen.axaml" />
   </ItemGroup>
   <Target Name="MinifyResources" BeforeTargets="PrepareForBuild" Condition=" '$(Configuration)' == 'Release' ">
     <PropertyGroup>

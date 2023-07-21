@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Reflection;
 using Avalonia;
-using DHT.Utils.Resources;
+using DHT.Desktop.Resources;
 
 namespace DHT.Desktop;
 
@@ -32,7 +32,7 @@ static class Program {
 	}
 
 	private static AppBuilder BuildAvaloniaApp() {
-		return AppBuilder.Configure<App>()
+		return AppBuilder.Configure<App.App>()
 		                 .UsePlatformDetect()
 		                 .WithInterFont()
 		                 .LogToTrace();

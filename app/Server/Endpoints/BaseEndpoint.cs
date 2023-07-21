@@ -16,11 +16,11 @@ abstract class BaseEndpoint {
 	private static readonly Log Log = Log.ForType<BaseEndpoint>();
 
 	protected IDatabaseFile Db { get; }
-	private readonly ServerParameters parameters;
+	private readonly ServerAccessToken accessToken;
 
-	protected BaseEndpoint(IDatabaseFile db, ServerParameters parameters) {
+	protected BaseEndpoint(IDatabaseFile db, ServerAccessToken accessToken) {
 		this.Db = db;
-		this.parameters = parameters;
+		this.accessToken = accessToken;
 	}
 
 	private async Task Handle(HttpContext ctx, StringValues token) {
@@ -29,8 +29,8 @@ abstract class BaseEndpoint {
 
 		Log.Info("Request: " + request.GetDisplayUrl() + " (" + request.ContentLength + " B)");
 
-		if (token.Count != 1 || token[0] != parameters.Token) {
-			Log.Error("Token: " + (token.Count == 1 ? token[0] : "<missing>"));
+		if (!CheckToken(token)) {
+			Log.Error("Invalid token.");
 			response.StatusCode = (int) HttpStatusCode.Forbidden;
 			return;
 		}
@@ -48,6 +48,16 @@ abstract class BaseEndpoint {
 			response.StatusCode = (int) HttpStatusCode.InternalServerError;
 		}
 	}
+	
+	private bool CheckToken(StringValues token) {
+		if (token.Count != 1) {
+			return false;
+		}
+		
+		string? tokenString = token[0];
+		return tokenString != null && accessToken.IsValid(tokenString);
+	}
+
 
 	public async Task HandleGet(HttpContext ctx) {
 		await Handle(ctx, ctx.Request.Query["token"]);

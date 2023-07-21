@@ -11,6 +11,11 @@ static class SqliteExtensions {
 		return cmd;
 	}
 
+	public static void ExecuteNonQuery(this ISqliteConnection conn, string sql) {
+		using var cmd = conn.Command(sql);
+		cmd.ExecuteNonQuery();
+	}
+
 	public static SqliteTransaction BeginTransaction(this ISqliteConnection conn) {
 		return conn.InnerConnection.BeginTransaction();
 	}

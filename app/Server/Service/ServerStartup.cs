@@ -3,13 +3,15 @@ using System.Text.Json.Serialization;
 using DHT.Server.Database;
 using DHT.Server.Endpoints;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 namespace DHT.Server.Service;
 
-sealed class Startup {
+sealed class ServerStartup {
 	private static readonly string[] AllowedOrigins = {
 		"https://discord.com",
 		"https://ptb.discord.com",
@@ -18,6 +20,8 @@ sealed class Startup {
 	};
 
 	public void ConfigureServices(IServiceCollection services) {
+		services.AddRoutingCore();
+
 		services.Configure<JsonOptions>(static options => {
 			options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
 		});
@@ -27,24 +31,18 @@ sealed class Startup {
 				builder.WithOrigins(AllowedOrigins).AllowCredentials().AllowAnyMethod().AllowAnyHeader();
 			});
 		});
+		
+		services.AddSingleton<TrackChannelEndpoint>();
+		services.AddSingleton<TrackMessagesEndpoint>();
 	}
 
 	[SuppressMessage("ReSharper", "UnusedMember.Global")]
-	public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, IDatabaseFile db, ServerParameters parameters) {
+	public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, IDatabaseFile db, ServerAccessToken accessToken) {
 		app.UseRouting();
 		app.UseCors();
-		app.UseEndpoints(endpoints => {
-			TrackChannelEndpoint trackChannel = new(db, parameters);
-			endpoints.MapPost("/track-channel", async context => await trackChannel.HandlePost(context));
-
-			TrackUsersEndpoint trackUsers = new(db, parameters);
-			endpoints.MapPost("/track-users", async context => await trackUsers.HandlePost(context));
-
-			TrackMessagesEndpoint trackMessages = new(db, parameters);
-			endpoints.MapPost("/track-messages", async context => await trackMessages.HandlePost(context));
-
-			GetAttachmentEndpoint getAttachment = new(db, parameters);
-			endpoints.MapGet("/get-attachment/{url}", async context => await getAttachment.HandleGet(context));
+		app.UseEndpoints(static endpoints => {
+			endpoints.MapPost("/track-channel", static async (HttpContext context, [FromServices] TrackChannelEndpoint endpoint) => await endpoint.HandlePost(context));
+			endpoints.MapPost("/track-messages", static async (HttpContext context, [FromServices] TrackMessagesEndpoint endpoint) => await endpoint.HandlePost(context));
 		});
 	}
 }

@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:screens="clr-namespace:DHT.Desktop.App.Screens"
+             xmlns:controls="clr-namespace:DHT.Desktop.App.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DHT.Desktop.App.Screens.MainContentScreen">
+
+    <Design.DataContext>
+        <screens:MainContentScreenModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="Border.statusBar">
+            <Setter Property="Background" Value="#3C4F79" />
+        </Style>
+        <Style Selector="TextBlock.invisibleTabItem">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="SemiLight" />
+            <Setter Property="Margin" Value="17 0" />
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+        <Style Selector="TabControl ItemsPresenter > Grid">
+            <Setter Property="Background" Value="#546A9F" />
+        </Style>
+        <Style Selector="TabItem">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="#E9E9E9" />
+            <Setter Property="FontSize" Value="20" />
+        </Style>
+        <Style Selector="TabItem[TabStripPlacement=Left] /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Margin" Value="5 0" />
+        </Style>
+        <Style Selector="TabItem:pointerover">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="#455785" />
+        </Style>
+        <Style Selector="TabItem:pointerover /template/ Border">
+            <Setter Property="Background" Value="#455785" />
+        </Style>
+        <Style Selector="TabItem:pointerover > TextBlock">
+            <Setter Property="Foreground" Value="#E9E9E9" />
+        </Style>
+        <Style Selector="TabItem:selected:pointerover /template/ Border">
+            <Setter Property="Background" Value="#FFFFFF" />
+        </Style>
+        <Style Selector="TabItem:selected:pointerover > TextBlock">
+            <Setter Property="Foreground" Value="#1A2234" />
+        </Style>
+        <Style Selector="TabItem:selected">
+            <Setter Property="Foreground" Value="#1A2234" />
+            <Setter Property="Background" Value="#FFFFFF" />
+        </Style>
+        <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="TabItem:disabled > TextBlock">
+            <Setter Property="Foreground" Value="#B2B2B2" />
+            <Setter Property="TextDecorations" Value="Strikethrough" />
+        </Style>
+        <Style Selector="TabItem.first">
+            <Setter Property="Margin" Value="0 13 0 0" />
+        </Style>
+        <Style Selector="TabControl">
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="ContentPresenter.page">
+            <Setter Property="Margin" Value="15 21 20 21" />
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel>
+        <Border Classes="statusBar" DockPanel.Dock="Bottom">
+            <DockPanel>
+                <TextBlock Classes="invisibleTabItem" DockPanel.Dock="Left">Attachments</TextBlock>
+                <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Right" />
+            </DockPanel>
+        </Border>
+        <TabControl x:Name="TabControl" TabStripPlacement="Left" DockPanel.Dock="Top">
+            <TabControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid ColumnDefinitions="Auto" RowDefinitions="Auto,Auto,*,Auto" />
+                </ItemsPanelTemplate>
+            </TabControl.ItemsPanel>
+            <TabItem x:Name="TabDatabase" Header="Database" Classes="first" Grid.Row="0">
+                <ScrollViewer>
+                    <ContentPresenter Content="{Binding DatabasePage}" Classes="page" />
+                </ScrollViewer>
+            </TabItem>
+            <TabItem x:Name="TabTracking" Header="Tracking" Grid.Row="1">
+                <ScrollViewer>
+                    <ContentPresenter Content="{Binding TrackingPage}" Classes="page" />
+                </ScrollViewer>
+            </TabItem>
+            <TabItem x:Name="TabAdvanced" Header="Advanced" Grid.Row="3">
+                <ScrollViewer>
+                    <ContentPresenter Content="{Binding AdvancedPage}" Classes="page" />
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+
+</UserControl>
