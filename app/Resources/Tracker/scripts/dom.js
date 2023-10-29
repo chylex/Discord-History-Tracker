@@ -11,7 +11,7 @@ class DOM {
 	 * Returns the first child element containing the specified obfuscated class. Parent defaults to the entire document.
 	 */
 	static queryReactClass(cls, parent) {
-		return (parent || document).querySelector(`[class*="${cls}-"]`);
+		return (parent || document).querySelector(`[class*="${cls}_"]`);
 	}
 	
 	/**

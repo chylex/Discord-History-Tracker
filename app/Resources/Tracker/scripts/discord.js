@@ -9,7 +9,7 @@ class DISCORD {
 	}
 	
 	static getMessageElements() {
-		return this.getMessageOuterElement().querySelectorAll("[class*='message-']");
+		return this.getMessageOuterElement().querySelectorAll("[class*='message_']");
 	}
 	
 	static hasMoreMessages() {
@@ -168,7 +168,7 @@ class DISCORD {
 			if (dms) {
 				let name;
 				
-				for (const ele of dms.querySelectorAll("[class*='channel-'] [class*='selected-'] [class^='name-'] *, [class*='channel-'][class*='selected-'] [class^='name-'] *")) {
+				for (const ele of dms.querySelectorAll("[class*='channel_'] [class*='selected_'] [class^='name_'] *")) {
 					const node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
 					
 					if (node) {
@@ -199,7 +199,7 @@ class DISCORD {
 			else if (obj.guild_id) {
 				let guild;
 				
-				for (const child of DOM.getReactProps(document.querySelector("nav header [class*='headerContent-']")).children) {
+				for (const child of DOM.getReactProps(document.querySelector("nav header [class*='headerContent_']")).children) {
 					if (child && child.props && child.props.guild) {
 						guild = child.props.guild;
 						break;
@@ -251,10 +251,10 @@ class DISCORD {
 		
 		if (dms) {
 			const currentChannel = DOM.queryReactClass("selected", dms);
-			const currentChannelContainer = currentChannel && currentChannel.closest("[class*='channel-']");
+			const currentChannelContainer = currentChannel && currentChannel.closest("[class*='channel_']");
 			const nextChannel = currentChannelContainer && currentChannelContainer.nextElementSibling;
 			
-			if (!nextChannel || !nextChannel.getAttribute("class").includes("channel-")) {
+			if (!nextChannel || !nextChannel.getAttribute("class").includes("channel_")) {
 				return false;
 			}
 			
@@ -281,7 +281,7 @@ class DISCORD {
 			let nextChannel = null;
 			
 			for (let index = 0; index < allTextChannels.length - 1; index++) {
-				if (allTextChannels[index].className.includes("selected-")) {
+				if (allTextChannels[index].className.includes("selected_")) {
 					nextChannel = allTextChannels[index + 1];
 					break;
 				}
