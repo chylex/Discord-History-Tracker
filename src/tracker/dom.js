@@ -16,7 +16,7 @@ var DOM = (function(){
     /*
      * Returns the first child element containing the specified obfuscated class. Parent defaults to the entire document.
      */
-    queryReactClass: (cls, parent) => (parent || document).querySelector(`[class*="${cls}-"]`),
+    queryReactClass: (cls, parent) => (parent || document).querySelector(`[class*="${cls}_"]`),
     
     /*
      * Creates an element, adds it to the DOM, and returns it.

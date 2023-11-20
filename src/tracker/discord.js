@@ -4,11 +4,11 @@ var DISCORD = (function(){
   };
   
   var getMessageScrollerElement = function(){
-    return getMessageOuterElement().querySelector("[class*='scroller-']");
+    return getMessageOuterElement().querySelector("[class*='scroller_']");
   };
   
   var getMessageElements = function() {
-    return getMessageOuterElement().querySelectorAll("[class*='message-']");
+    return getMessageOuterElement().querySelectorAll("[class*='message_']");
   };
   
   var getReactProps = function(ele) {
@@ -183,7 +183,7 @@ var DISCORD = (function(){
         if (dms){
           let name;
           
-          for (const ele of dms.querySelectorAll("[class*='channel-'] [class*='selected-'] [class^='name-'] *, [class*='channel-'][class*='selected-'] [class^='name-'] *")) {
+          for (const ele of dms.querySelectorAll("[class*='channel_'] [class*='selected_'] [class^='name_'] *")) {
             const node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
             
             if (node) {
@@ -216,7 +216,7 @@ var DISCORD = (function(){
         else if (obj.guild_id) {
           let guild;
   
-          for (const child of getReactProps(document.querySelector("nav header [class*='headerContent-']")).children) {
+          for (const child of getReactProps(document.querySelector("nav header [class*='headerContent_']")).children) {
             if (child && child.props && child.props.guild) {
               guild = child.props.guild;
               break;
@@ -286,10 +286,10 @@ var DISCORD = (function(){
       
       if (dms) {
         const currentChannel = DOM.queryReactClass("selected", dms);
-        const currentChannelContainer = currentChannel && currentChannel.closest("[class*='channel-']");
+        const currentChannelContainer = currentChannel && currentChannel.closest("[class*='channel_']");
         const nextChannel = currentChannelContainer && currentChannelContainer.nextElementSibling;
         
-        if (!nextChannel || !nextChannel.getAttribute("class").includes("channel-")) {
+        if (!nextChannel || !nextChannel.getAttribute("class").includes("channel_")) {
           return false;
         }
         
@@ -316,7 +316,7 @@ var DISCORD = (function(){
         let nextChannel = null;
         
         for (let index = 0; index < allTextChannels.length - 1; index++) {
-          if (allTextChannels[index].className.includes("selected-")) {
+          if (allTextChannels[index].className.includes("selected_")) {
             nextChannel = allTextChannels[index + 1];
             break;
           }
