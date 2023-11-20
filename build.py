@@ -42,7 +42,7 @@ if USE_UGLIFYJS:
 def combine_files(input_pattern, output_file):
     is_first_file = True
     
-    with fileinput.input(sorted(glob.glob(input_pattern))) as stream:
+    with fileinput.input(sorted(glob.glob(input_pattern, recursive=True))) as stream:
         for line in stream:
             if stream.isfirstline():
                 if is_first_file:
@@ -82,7 +82,7 @@ def build_tracker_html():
     output_file_html = "bld/track.html"
     
     output_file_tmp = "bld/track.tmp.js"
-    input_pattern = "src/tracker/*.js"
+    input_pattern = "src/tracker/**/*.js"
     
     with open(output_file_raw, "w") as out:
         if not USE_UGLIFYJS:
@@ -97,7 +97,7 @@ def build_tracker_html():
         os.system(EXEC_UGLIFYJS.format(output_file_raw, output_file_tmp, WORKING_DIR, RESERVED_PROPS))
         
         with open(output_file_raw, "w") as out:
-            out.write("javascript:(function(){")
+            out.write("(function(){")
             
             with open(output_file_tmp, "r") as minified:
                 out.write(minified.read().replace("\n", " ").replace("\r", ""))
@@ -116,7 +116,7 @@ def build_tracker_html():
 def build_tracker_userscript():
     output_file = "bld/track.user.js"
     
-    input_pattern = "src/tracker/*.js"
+    input_pattern = "src/tracker/**/*.js"
     userscript_base = "src/base/track.user.js"
     
     with open(userscript_base, "r") as base:

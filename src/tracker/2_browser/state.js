@@ -1,18 +1,25 @@
-var STATE = (function(){
-	var stateChangedEvents = [];
-	
-	var triggerStateChanged = function(changeType, changeDetail){
-		for(var callback of stateChangedEvents){
-			callback(changeType, changeDetail);
-		}
-	};
-	
+// noinspection FunctionWithInconsistentReturnsJS
+const STATE = (function() {
+
 	/*
 	 * Internal class constructor.
 	 */
 	class CLS{
 		constructor(){
+			this._stateChangedEvents = [];
+			this._trackingStateChangedListeners = [];
 			this.resetState();
+		};
+		
+		_triggerStateChanged(changeType, changeDetail){
+			for(var callback of this._stateChangedEvents){
+				callback(changeType, changeDetail);
+			}
+			if (changeType === "tracking") {
+				for (let callback of this._trackingStateChangedListeners) {
+					callback(this._isTracking);
+				}
+			}
 		};
 		
 		/*
@@ -22,7 +29,7 @@ var STATE = (function(){
 			this._savefile = null;
 			this._isTracking = false;
 			this._lastFileName = null;
-			triggerStateChanged("data", "reset");
+			this._triggerStateChanged("data", "reset");
 		}
 		
 		/*
@@ -55,7 +62,7 @@ var STATE = (function(){
 		 */
 		setIsTracking(state){
 			this._isTracking = state;
-			triggerStateChanged("tracking", state);
+			this._triggerStateChanged("tracking", state);
 		}
 		
 		/*
@@ -64,7 +71,30 @@ var STATE = (function(){
 		uploadSavefile(fileName, fileObject){
 			this._lastFileName = fileName;
 			this.getSavefile().combineWith(fileObject);
-			triggerStateChanged("data", "upload");
+			this._triggerStateChanged("data", "upload");
+		}
+		
+		/*
+		 * Triggers a UTF-8 text file download.
+		 */
+		downloadTextFile(fileName, fileContents) {
+			var blob = new Blob([fileContents], { "type": "octet/stream" });
+			
+			if ("msSaveBlob" in window.navigator){
+				return window.navigator.msSaveBlob(blob, fileName);
+			}
+			
+			var url = window.URL.createObjectURL(blob);
+			
+			var ele = DOM.createElement("a", document.body);
+			ele.href = url;
+			ele.download = fileName;
+			ele.style.display = "none";
+			
+			ele.click();
+			
+			document.body.removeChild(ele);
+			window.URL.revokeObjectURL(url);
 		}
 		
 		/*
@@ -72,27 +102,34 @@ var STATE = (function(){
 		 */
 		downloadSavefile(){
 			if (this.hasSavedData()){
-				DOM.downloadTextFile(this._lastFileName || "dht.txt", this._savefile.toJson());
+				this.downloadTextFile(this._lastFileName || "dht.txt", this._savefile.toJson());
 			}
 		}
 		
 		/*
 		 * Registers a Discord server and channel.
 		 */
-		addDiscordChannel(serverName, serverType, channelId, channelName, extraInfo){
+		addDiscordChannel(serverInfo, channelInfo){
+			let serverName = serverInfo.name
+			let serverType = serverInfo.type
+			let channelId = channelInfo.id
+			let channelName = channelInfo.name
+			let extraInfo = channelInfo.extra
 			var serverIndex = this.getSavefile().findOrRegisterServer(serverName, serverType);
 			
 			if (this.getSavefile().tryRegisterChannel(serverIndex, channelId, channelName, extraInfo) === true){
-				triggerStateChanged("data", "channel");
+				this._triggerStateChanged("data", "channel");
 			}
 		}
+		// Right. Upstream desktop `bootstrap.js` expects an `async` here. I think it's fine.
 		
 		/*
 		 * Adds all messages from the array to the specified channel. Returns true if the savefile was updated.
 		 */
-		addDiscordMessages(channelId, discordMessageArray){
-			if (this.getSavefile().addMessagesFromDiscord(channelId, discordMessageArray)){
-				triggerStateChanged("data", "messages");
+		addDiscordMessages(_channelId, discordMessageArray){
+			// TODO: _channelId is dead code, but still in the desktop version (where it's also dead code).
+			if (this.getSavefile().addMessagesFromDiscord(_channelId, discordMessageArray)){
+				this._triggerStateChanged("data", "messages");
 				return true;
 			}
 			else{
@@ -101,17 +138,25 @@ var STATE = (function(){
 		}
 		
 		/*
-		 * Returns true if the message was added during this session.
-		 */
-		isMessageFresh(id){
-			return this.getSavefile().isMessageFresh(id);
-		}
-		
-		/*
 		 * Adds a listener that is called whenever the state changes. The callback is a function that takes subject (generic type) and detail (specific type or data).
 		 */
 		onStateChanged(callback){
-			stateChangedEvents.push(callback);
+			this._stateChangedEvents.push(callback);
+		}
+		
+		/*
+		* Shim for code from the desktop app.
+		*/
+		onTrackingStateChanged(callback) {
+			this._trackingStateChangedListeners.push(callback);
+			callback(this._isTracking);
+		}
+		
+		/*
+		 * Shim for code from the desktop app.
+		 */
+		setup(port, token) {
+			console.log("Placeholder port and token: " + port + " " + token);
 		}
 	}
 	

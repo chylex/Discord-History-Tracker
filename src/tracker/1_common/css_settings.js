@@ -1,3 +1,6 @@
+// NOTE: Currently unused. See `.createStyle()` calls in `gui.js`. Included in branch so a rebase isn't needed for `git` to track this if it's used later.
+/*
+const css_settings = `
 #dht-cfg-overlay {
   position: absolute;
   left: 0;
@@ -26,3 +29,5 @@
 #dht-cfg-note {
   margin-top: 22px;
 }
+`
+*/

@@ -81,7 +81,6 @@
  *   },
  *   channelkeys: Set<channel id>,
  *   messagekeys: Set<message id>,
- *   freshmsgs: Set<message id> // only messages which were newly added to the savefile in the current session
  * }
  */
 
@@ -108,7 +107,6 @@ class SAVEFILE{
 			userlookup: {},
 			channelkeys: new Set(),
 			messagekeys: new Set(),
-			freshmsgs: new Set()
 		};
 	}
 	
@@ -269,19 +267,14 @@ class SAVEFILE{
 		return obj;
 	}
 	
-	isMessageFresh(id){
-		return this.tmp.freshmsgs.has(id);
-	}
-	
-	addMessagesFromDiscord(channelId, discordMessageArray){
+	addMessagesFromDiscord(_channelId, discordMessageArray){
 		var hasNewMessages = false;
-		
+		// TODO: _channelId is dead code, but still in the desktop version (where it's also dead code).
 		for(var discordMessage of discordMessageArray){
 			var type = discordMessage.type;
 			
 			// https://discord.com/developers/docs/resources/channel#message-object-message-reference-structure
-			if ((type === 0 || type === 19) && discordMessage.state === "SENT" && this.addMessage(channelId, discordMessage.id, this.convertToMessageObject(discordMessage))){
-				this.tmp.freshmsgs.add(discordMessage.id);
+			if ((type === 0 || type === 19) && discordMessage.state === "SENT" && this.addMessage(discordMessage.channel_id, discordMessage.id, this.convertToMessageObject(discordMessage))){
 				hasNewMessages = true;
 			}
 		}

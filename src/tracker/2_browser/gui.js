@@ -69,7 +69,9 @@ var GUI = (function(){
 	var setupStateChanged = function(detail){
 		if (!registeredEvent){
 			STATE.onStateChanged(stateChangedEvent);
-			SETTINGS.onSettingsChanged(stateChangedEvent);
+			SETTINGS.onSettingsChanged((property) =>
+				stateChangedEvent("setting", property)
+			);
 			registeredEvent = true;
 		}
 		
@@ -120,33 +122,33 @@ ${btn("close", "X")}`);
 			
 			// events
 			
-			DOM.listen(controller.ui.btnUpload, "click", () => {
+			controller.ui.btnUpload.addEventListener("click", () => {
 				controller.ui.inputUpload.click();
 			});
 			
-			DOM.listen(controller.ui.btnSettings, "click", () => {
+			controller.ui.btnSettings.addEventListener("click", () => {
 				root.showSettings();
 			});
 			
-			DOM.listen(controller.ui.btnToggleTracking, "click", () => {
+			controller.ui.btnToggleTracking.addEventListener("click", () => {
 				STATE.setIsTracking(!STATE.isTracking());
 			});
 			
-			DOM.listen(controller.ui.btnDownload, "click", () => {
+			controller.ui.btnDownload.addEventListener("click", () => {
 				STATE.downloadSavefile();
 			});
 			
-			DOM.listen(controller.ui.btnReset, "click", () => {
+			controller.ui.btnReset.addEventListener("click", () => {
 				STATE.resetState();
 			});
 			
-			DOM.listen(controller.ui.btnClose, "click", () => {
+			controller.ui.btnClose.addEventListener("click", () => {
 				root.hideController();
 				window.DHT_ON_UNLOAD.forEach(f => f());
 				window.DHT_LOADED = false;
 			});
 			
-			DOM.listen(controller.ui.inputUpload, "change", () => {
+			controller.ui.inputUpload.addEventListener("change", () => {
 				Array.prototype.forEach.call(controller.ui.inputUpload.files, file => {
 					var reader = new FileReader();
 					
@@ -201,7 +203,7 @@ ${btn("close", "X")}`);
 			
 			settings.overlay = DOM.createElement("div", document.body, "dht-cfg-overlay");
 			
-			DOM.listen(settings.overlay, "click", () => {
+			settings.overlay.addEventListener("click", () => {
 				root.hideSettings();
 			});
 			
@@ -249,13 +251,13 @@ It is recommended to disable link and image previews to avoid putting unnecessar
 			});
 			
 			Object.keys(settings.ui.optsAfterFirstMsg).forEach(key => {
-				DOM.listen(settings.ui.optsAfterFirstMsg[key], "click", () => {
+				settings.ui.optsAfterFirstMsg[key].addEventListener("click", () => {
 					SETTINGS.afterFirstMsg = key;
 				});
 			});
 			
 			Object.keys(settings.ui.optsAfterSavedMsg).forEach(key => {
-				DOM.listen(settings.ui.optsAfterSavedMsg[key], "click", () => {
+				settings.ui.optsAfterSavedMsg[key].addEventListener("click", () => {
 					SETTINGS.afterSavedMsg = key;
 				});
 			});
@@ -270,6 +272,11 @@ It is recommended to disable link and image previews to avoid putting unnecessar
 				DOM.removeElement(settings.styles);
 				settings = null;
 			}
+		},
+		
+		setStatus: function(state){
+			console.log("Status: " + state)
+			// TODO I guess.
 		}
 	};
 	
