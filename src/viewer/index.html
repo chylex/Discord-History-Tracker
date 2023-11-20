@@ -1,19 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="utf-8">
     <title>Discord Offline History</title>
     
     <script type="text/javascript">
-		window.DHT_EMBEDDED = "/*[ARCHIVE]*/";
-		/*[JS]*/
+      /*{js}*/
     </script>
-    <style>
-      /*[CSS]*/
+    <style type="text/css">
+      /*{css}*/
     </style>
   </head>
   <body>
     <div id="menu">
+      <input id="uploaded-file" type="file" style="display:none">
+      <button id="btn-upload-file" class="hide-embedded">Load File</button>
+      
+      <div class="splitter hide-embedded"></div>
+      
       <button id="btn-settings">Settings</button>
       
       <div> <!-- needed to stop the select from messing up -->
@@ -26,7 +30,7 @@
           <option value="0">All messages&nbsp;</option>
         </select>
       </div>
-      
+
       <div class="nav">
         <button id="nav-first" data-nav="first" class="icon">&laquo;</button>
         <button id="nav-prev" data-nav="prev" class="icon">&lsaquo;</button>
@@ -56,6 +60,11 @@
         <input type="hidden" data-filter-type="withimages" value="1">
         <input type="hidden" data-filter-type="withdownloads" value="1">
         <input type="hidden" data-filter-type="edited" value="1">
+      </div>
+      
+      <div id="opt-save-filtered">
+        <div class="splitter"></div>
+        <button id="btn-save-filtered">Save Filtered Messages</button>
       </div>
       
       <div class="separator"></div>

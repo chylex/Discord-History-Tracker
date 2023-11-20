@@ -1,65 +1,77 @@
-const HTML_ENTITY_MAP = {
-	"&": "&amp;",
-	"<": "&lt;",
-	">": "&gt;",
-	"\"": "&quot;",
-	"'": "&#39;"
-};
-
-const HTML_ENTITY_REGEX = /[&<>"']/g;
-
-class DOM {
-	/**
-	 * Returns a child element by its ID. Parent defaults to the entire document.
-	 */
-	static id(id, parent) {
-		return (parent || document).getElementById(id);
-	}
-	
-	/**
-	 * Returns an array of all child elements containing the specified class. Parent defaults to the entire document.
-	 */
-	static cls(cls, parent) {
-		return Array.prototype.slice.call((parent || document).getElementsByClassName(cls));
-	}
-	
-	/**
-	 * Returns an array of all child elements that have the specified tag. Parent defaults to the entire document.
-	 */
-	static tag(tag, parent) {
-		return Array.prototype.slice.call((parent || document).getElementsByTagName(tag));
-	}
-	
-	/**
-	 * Returns the first child element containing the specified class. Parent defaults to the entire document.
-	 */
-	static fcls(cls, parent) {
-		return (parent || document).getElementsByClassName(cls)[0];
-	}
-	
-	/**
-	 * Converts characters to their HTML entity form.
-	 */
-	static escapeHTML(html) {
-		return String(html).replace(HTML_ENTITY_REGEX, s => HTML_ENTITY_MAP[s]);
-	}
-	
-	/**
-	 * Converts a timestamp into a human readable time, using the browser locale.
-	 */
-	static getHumanReadableTime(timestamp) {
-		const date = new Date(timestamp);
-		return date.toLocaleDateString() + ", " + date.toLocaleTimeString();
-	};
-	
-	/**
-	 * Parses a url string into a URL object and returns it. If the parsing fails, returns null.
-	 */
-	static tryParseUrl(url) {
-		try {
-			return new URL(url);
-		} catch (ignore) {
-			return null;
-		}
-	}
-}
+var DOM = (function(){
+  var createElement = (tag, parent) => {
+    var ele = document.createElement(tag);
+    parent.appendChild(ele);
+    return ele;
+  };
+  
+  var entityMap = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  
+  var entityRegex = /[&<>"']/g;
+  
+  return {
+    /*
+     * Returns a child element by its ID. Parent defaults to the entire document.
+     */
+    id: (id, parent) => (parent || document).getElementById(id),
+    
+    /*
+     * Returns an array of all child elements containing the specified class. Parent defaults to the entire document.
+     */
+    cls: (cls, parent) => Array.prototype.slice.call((parent || document).getElementsByClassName(cls)),
+    
+    /*
+     * Returns an array of all child elements that have the specified tag. Parent defaults to the entire document.
+     */
+    tag: (tag, parent) => Array.prototype.slice.call((parent || document).getElementsByTagName(tag)),
+    
+    /*
+     * Returns the first child element containing the specified class. Parent defaults to the entire document.
+     */
+    fcls: (cls, parent) => (parent || document).getElementsByClassName(cls)[0],
+    
+    /*
+     * Creates an element, adds it to the DOM, and returns it.
+     */
+    createElement: (tag, parent) => createElement(tag, parent),
+    
+    /*
+     * Removes an element from the DOM.
+     */
+    removeElement: (ele) => ele.parentNode.removeChild(ele),
+    
+    /*
+     * Converts characters to their HTML entity form.
+     */
+    escapeHTML: (html) => String(html).replace(entityRegex, s => entityMap[s]),
+    
+    /*
+     * Triggers a UTF-8 text file download.
+     */
+    downloadTextFile: (fileName, fileContents) => {
+      var blob = new Blob([fileContents], { "type": "octet/stream" });
+      
+      if ("msSaveBlob" in window.navigator){
+        return window.navigator.msSaveBlob(blob, fileName);
+      }
+      
+      var url = window.URL.createObjectURL(blob);
+      
+      var ele = createElement("a", document.body);
+      ele.href = url;
+      ele.download = fileName;
+      ele.style.display = "none";
+      
+      ele.click();
+      
+      document.body.removeChild(ele);
+      window.URL.revokeObjectURL(url);
+    }
+  };
+})();

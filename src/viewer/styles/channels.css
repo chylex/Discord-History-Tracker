@@ -3,7 +3,7 @@
   min-width: 215px;
   max-width: 300px;
   overflow-y: auto;
-  background-color: #1c1e22;
+  background-color: #1C1E22;
 }
 
 #channels > div {
@@ -15,7 +15,7 @@
 }
 
 #channels > div:hover, #channels > div.active {
-  background-color: #282b30;
+  background-color: #282B30;
 }
 
 #channels .info {

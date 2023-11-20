@@ -36,8 +36,13 @@
   margin-bottom: 1px;
 }
 
+#dialog sub {
+  color: #999;
+  font-size: 12px;
+}
+
 #dialog a {
-  color: #0096cf;
+  color: #0096CF;
   text-decoration: none;
 }
 

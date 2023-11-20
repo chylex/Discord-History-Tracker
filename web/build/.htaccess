@@ -1,1 +1,3 @@
-Redirect permanent / https://dht.chylex.com/browser-only/
+<IfModule mod_expires.c>
+ExpiresActive Off
+</IfModule>

@@ -1,455 +1,358 @@
-// noinspection FunctionWithInconsistentReturnsJS
-const STATE = (function() {
-	/**
-	 * @type {{}}
-	 * @property {{}} users
-	 * @property {String[]} userindex
-	 * @property {{}[]} servers
-	 * @property {{}} channels
-	 */
-	let loadedFileMeta;
-	let loadedFileData;
-	
-	let loadedMessages;
-	
-	let filterFunction;
-	let selectedChannel;
-	let currentPage;
-	let messagesPerPage;
-	
-	const getUser = function(index) {
-		return loadedFileMeta.users[loadedFileMeta.userindex[index]] || { "name": "&lt;unknown&gt;" };
-	};
-	
-	const getUserId = function(index) {
-		return loadedFileMeta.userindex[index];
-	};
-	
-	const getUserList = function() {
-		return loadedFileMeta ? loadedFileMeta.users : [];
-	};
-	
-	const getServer = function(index) {
-		return loadedFileMeta.servers[index] || { "name": "&lt;unknown&gt;", "type": "unknown" };
-	};
-	
-	const generateChannelHierarchy = function() {
-		/**
-		 * @type {Map<string, Set>}
-		 */
-		const hierarchy = new Map();
-		
-		if (!loadedFileMeta) {
-			return hierarchy;
-		}
-		
-		/**
-		 * @returns {Set}
-		 */
-		function getChildren(parentId) {
-			let children = hierarchy.get(parentId);
-			
-			if (!children) {
-				children = new Set();
-				hierarchy.set(parentId, children);
-			}
-			
-			return children;
-		}
-		
-		for (const [ id, channel ] of Object.entries(loadedFileMeta.channels)) {
-			getChildren(channel.parent || "").add(id);
-		}
-		
-		const unreachableIds = new Set(hierarchy.keys());
-		
-		function reachIds(parentId) {
-			unreachableIds.delete(parentId);
-			
-			const children = hierarchy.get(parentId);
-			
-			if (children) {
-				for (const id of children) {
-					reachIds(id);
-				}
-			}
-		}
-		
-		reachIds("");
-		
-		const rootChildren = getChildren("");
-		
-		for (const unreachableId of unreachableIds) {
-			for (const id of hierarchy.get(unreachableId)) {
-				rootChildren.add(id);
-			}
-			
-			hierarchy.delete(unreachableId);
-		}
-		
-		return hierarchy;
-	};
-	
-	const generateChannelOrder = function() {
-		if (!loadedFileMeta) {
-			return {};
-		}
-		
-		const channels = loadedFileMeta.channels;
-		const hierarchy = generateChannelHierarchy();
-		
-		function getSortedSubTree(parentId) {
-			const children = hierarchy.get(parentId);
-			if (!children) {
-				return [];
-			}
-			
-			const sortedChildren = Array.from(children);
-			
-			sortedChildren.sort((id1, id2) => {
-				const c1 = channels[id1];
-				const c2 = channels[id2];
-				const s1 = getServer(c1.server);
-				const s2 = getServer(c2.server);
-				
-				return s1.type.localeCompare(s2.type, "en") ||
-					s1.name.toLocaleLowerCase().localeCompare(s2.name.toLocaleLowerCase(), undefined, { numeric: true }) ||
-					(c1.position || -1) - (c2.position || -1) ||
-					c1.name.toLocaleLowerCase().localeCompare(c2.name.toLocaleLowerCase(), undefined, { numeric: true });
-			});
-			
-			const subTree = [];
-			
-			for (const id of sortedChildren) {
-				subTree.push(id);
-				subTree.push(...getSortedSubTree(id));
-			}
-			
-			return subTree;
-		}
-		
-		const orderArray = getSortedSubTree("");
-		const orderMap = {};
-		
-		for (let i = 0; i < orderArray.length; i++) {
-			orderMap[orderArray[i]] = i;
-		}
-		
-		return orderMap;
-	};
-	
-	const getChannelList = function() {
-		if (!loadedFileMeta) {
-			return [];
-		}
-		
-		const channels = loadedFileMeta.channels;
-		const channelOrder = generateChannelOrder();
-		
-		return Object.keys(channels).map(key => ({
-			"id": key,
-			"name": channels[key].name,
-			"server": getServer(channels[key].server),
-			"msgcount": getFilteredMessageKeys(key).length,
-			"topic": channels[key].topic || "",
-			"nsfw": channels[key].nsfw || false,
-		})).sort((ac, bc) => {
-			return channelOrder[ac.id] - channelOrder[bc.id];
-		});
-	};
-	
-	const getMessages = function(channel) {
-		return loadedFileData[channel] || {};
-	};
-	
-	const getMessageById = function(id) {
-		for (const messages of Object.values(loadedFileData)) {
-			if (id in messages) {
-				return messages[id];
-			}
-		}
-		
-		return null;
-	};
-	
-	const getMessageChannel = function(id) {
-		for (const [ channel, messages ] of Object.entries(loadedFileData)) {
-			if (id in messages) {
-				return channel;
-			}
-		}
-		
-		return null;
-	};
-	
-	const getMessageList = function() {
-		if (!loadedMessages) {
-			return [];
-		}
-		
-		const messages = getMessages(selectedChannel);
-		const startIndex = messagesPerPage * (root.getCurrentPage() - 1);
-		
-		return loadedMessages.slice(startIndex, !messagesPerPage ? undefined : startIndex + messagesPerPage).map(key => {
-			/**
-			 * @type {{}}
-			 * @property {Number} u
-			 * @property {Number} t
-			 * @property {String} m
-			 * @property {Number} [te]
-			 * @property {String} [r]
-			 * @property {{}[]} [a]
-			 * @property {String[]} [e]
-			 * @property {{}[]} [re]
-			 */
-			const message = messages[key];
-			const user = getUser(message.u);
-			const avatar = user.avatar ? { id: getUserId(message.u), path: user.avatar } : null;
-			
-			const obj = {
-				user,
-				avatar,
-				"timestamp": message.t,
-				"jump": key,
-			};
-			
-			if ("m" in message) {
-				obj["contents"] = message.m;
-			}
-			
-			if ("e" in message) {
-				obj["embeds"] = message.e.map(embed => JSON.parse(embed));
-			}
-			
-			if ("a" in message) {
-				obj["attachments"] = message.a;
-			}
-			
-			if ("te" in message) {
-				obj["edit"] = message.te;
-			}
-			
-			if ("r" in message) {
-				const replyMessage = getMessageById(message.r);
-				const replyUser = replyMessage ? getUser(replyMessage.u) : null;
-				const replyAvatar = replyUser && replyUser.avatar ? { id: getUserId(replyMessage.u), path: replyUser.avatar } : null;
-				
-				obj["reply"] = replyMessage ? {
-					"id": message.r,
-					"user": replyUser,
-					"avatar": replyAvatar,
-					"contents": replyMessage.m
-				} : null;
-			}
-			
-			if ("re" in message) {
-				obj["reactions"] = message.re;
-			}
-			
-			return obj;
-		});
-	};
-	
-	let eventOnUsersRefreshed;
-	let eventOnChannelsRefreshed;
-	let eventOnMessagesRefreshed;
-	
-	const triggerUsersRefreshed = function() {
-		eventOnUsersRefreshed && eventOnUsersRefreshed(getUserList());
-	};
-	
-	const triggerChannelsRefreshed = function(selectedChannel) {
-		eventOnChannelsRefreshed && eventOnChannelsRefreshed(getChannelList(), selectedChannel);
-	};
-	
-	const triggerMessagesRefreshed = function() {
-		eventOnMessagesRefreshed && eventOnMessagesRefreshed(getMessageList());
-	};
-	
-	const getFilteredMessageKeys = function(channel) {
-		const messages = getMessages(channel);
-		let keys = Object.keys(messages);
-		
-		if (filterFunction) {
-			keys = keys.filter(key => filterFunction(messages[key]));
-		}
-		
-		return keys;
-	};
-	
-	const root = {
-		onChannelsRefreshed(callback) {
-			eventOnChannelsRefreshed = callback;
-		},
-		
-		onMessagesRefreshed(callback) {
-			eventOnMessagesRefreshed = callback;
-		},
-		
-		onUsersRefreshed(callback) {
-			eventOnUsersRefreshed = callback;
-		},
-		
-		/**
-		 * @param {{ meta, data }} file
-		 */
-		uploadFile(file) {
-			if (loadedFileMeta != null) {
-				throw "A file is already loaded!";
-			}
-			
-			if (!file || typeof file.meta !== "object" || typeof file.data !== "object") {
-				throw "Invalid file format!";
-			}
-			
-			loadedFileMeta = file.meta;
-			loadedFileData = file.data;
-			loadedMessages = null;
-			
-			selectedChannel = null;
-			currentPage = 1;
-			
-			triggerUsersRefreshed();
-			triggerChannelsRefreshed();
-			triggerMessagesRefreshed();
-			
-			SETTINGS.onSettingsChanged(() => triggerMessagesRefreshed());
-		},
-		
-		getChannelName(channel) {
-			const channelObj = loadedFileMeta.channels[channel];
-			return (channelObj && channelObj.name) || channel;
-		},
-		
-		getUserTag(user) {
-			const userObj = loadedFileMeta.users[user];
-			return (userObj && userObj.tag) || "????";
-		},
-		
-		getUserName(user) {
-			const userObj = loadedFileMeta.users[user];
-			return (userObj && userObj.name) || user;
-		},
-		
-		selectChannel(channel) {
-			currentPage = 1;
-			selectedChannel = channel;
-			
-			loadedMessages = getFilteredMessageKeys(channel).sort(PROCESSOR.SORTER.oldestToNewest);
-			triggerMessagesRefreshed();
-		},
-		
-		setMessagesPerPage(amount) {
-			messagesPerPage = amount;
-			triggerMessagesRefreshed();
-		},
-		
-		updateCurrentPage(action) {
-			switch (action) {
-				case "first":
-					currentPage = 1;
-					break;
-				
-				case "prev":
-					currentPage = Math.max(1, currentPage - 1);
-					break;
-				
-				case "next":
-					currentPage = Math.min(this.getPageCount(), currentPage + 1);
-					break;
-				
-				case "last":
-					currentPage = this.getPageCount();
-					break;
-				
-				case "pick":
-					const page = parseInt(prompt("Select page:", currentPage), 10);
-					
-					if (!page && page !== 0) {
-						return;
-					}
-					
-					currentPage = Math.max(1, Math.min(this.getPageCount(), page));
-					break;
-			}
-			
-			triggerMessagesRefreshed();
-		},
-		
-		getCurrentPage() {
-			const total = this.getPageCount();
-			
-			if (currentPage > total && total > 0) {
-				currentPage = total;
-			}
-			
-			return currentPage || 1;
-		},
-		
-		getPageCount() {
-			return !loadedMessages ? 0 : (!messagesPerPage ? 1 : Math.ceil(loadedMessages.length / messagesPerPage));
-		},
-		
-		navigateToMessage(id) {
-			if (!loadedMessages) {
-				return -1;
-			}
-			
-			const channel = getMessageChannel(id);
-			
-			if (channel !== null && channel !== selectedChannel) {
-				triggerChannelsRefreshed(channel);
-				this.selectChannel(channel);
-			}
-			
-			const index = loadedMessages.indexOf(id);
-			
-			if (index === -1) {
-				return -1;
-			}
-			
-			currentPage = Math.max(1, Math.min(this.getPageCount(), 1 + Math.floor(index / messagesPerPage)));
-			triggerMessagesRefreshed();
-			return index % messagesPerPage;
-		},
-		
-		setActiveFilter(filter) {
-			switch (filter ? filter.type : "") {
-				case "user":
-					filterFunction = PROCESSOR.FILTER.byUser(loadedFileMeta.userindex.indexOf(filter.value));
-					break;
-				
-				case "contents":
-					filterFunction = PROCESSOR.FILTER.byContents(filter.value);
-					break;
-				
-				case "withimages":
-					filterFunction = PROCESSOR.FILTER.withImages();
-					break;
-				
-				case "withdownloads":
-					filterFunction = PROCESSOR.FILTER.withDownloads();
-					break;
-				
-				case "edited":
-					filterFunction = PROCESSOR.FILTER.isEdited();
-					break;
-				
-				default:
-					filterFunction = null;
-					break;
-			}
-			
-			this.hasActiveFilter = filterFunction != null;
-			
-			triggerChannelsRefreshed(selectedChannel);
-			
-			if (selectedChannel) {
-				this.selectChannel(selectedChannel); // resets current page and updates messages
-			}
-		}
-	};
-	
-	root.hasActiveFilter = false;
-	return root;
+var STATE = (function(){
+  var ROOT = {};
+  
+  // ---------------
+  // State variables
+  // ---------------
+  
+  var FILE;
+  var MSGS;
+  
+  var uploadedFileName;
+  var filterFunction;
+  var selectedChannel;
+  var currentPage;
+  var messagesPerPage;
+  
+  // ----------------------------------
+  // Channel and message refresh events
+  // ----------------------------------
+  
+  var eventOnChannelsRefreshed;
+  var eventOnMessagesRefreshed;
+  var eventOnUsersRefreshed;
+  
+  var triggerChannelsRefreshed = function(selectedChannel){
+    eventOnChannelsRefreshed && eventOnChannelsRefreshed(ROOT.getChannelList(), selectedChannel);
+  };
+  
+  var triggerMessagesRefreshed = function(){
+    eventOnMessagesRefreshed && eventOnMessagesRefreshed(ROOT.getMessageList());
+  };
+  
+  var triggerUsersRefreshed = function(){
+    eventOnUsersRefreshed && eventOnUsersRefreshed(ROOT.getUserList());
+  };
+
+  ROOT.onChannelsRefreshed = function(callback){
+    eventOnChannelsRefreshed = callback;
+  };
+  
+  ROOT.onMessagesRefreshed = function(callback){
+    eventOnMessagesRefreshed = callback;
+  };
+  
+  ROOT.onUsersRefreshed = function(callback){
+    eventOnUsersRefreshed = callback;
+  };
+
+  // ------------------------------------
+  // File upload and basic data retrieval
+  // ------------------------------------
+
+  ROOT.uploadFile = function(file){
+    FILE = file;
+    MSGS = null;
+    
+    selectedChannel = null;
+    currentPage = 1;
+    
+    triggerUsersRefreshed();
+    triggerChannelsRefreshed();
+    triggerMessagesRefreshed();
+  };
+  
+  ROOT.setUploadedFileName = function(name){
+    uploadedFileName = name;
+  };
+
+  ROOT.getChannelName = function(channel){
+    return FILE.getChannelById(channel).name;
+  };
+  
+  ROOT.getUserName = function(user){
+    return FILE.getUserById(user).name;
+  };
+  
+  ROOT.getUserTag = function(user){
+    return FILE.getUserById(user).tag;
+  };
+  
+  // --------------------------
+  // Channel list and selection
+  // --------------------------
+  
+  var getFilteredMessageKeys = function(channel){
+    var messages = FILE.getMessages(channel);
+    var keys = Object.keys(messages);
+    
+    if (filterFunction){
+      keys = keys.filter(key => filterFunction(messages[key]));
+    }
+    
+    return keys;
+  };
+
+  ROOT.getChannelList = function(){
+    if (!FILE){
+      return [];
+    }
+    
+    var channels = FILE.getChannels();
+
+    return Object.keys(channels).map(key => ({
+      "id": key,
+      "name": channels[key].name,
+      "server": FILE.getServer(channels[key].server),
+      "msgcount": getFilteredMessageKeys(key).length,
+      "topic": channels[key].topic || "",
+      "nsfw": channels[key].nsfw || false,
+      "position": channels[key].position || -1
+    })).sort((ac, bc) => {
+      var as = ac.server;
+      var bs = bc.server;
+      
+      return as.type.localeCompare(bs.type, "en") ||
+             as.name.toLocaleLowerCase().localeCompare(bs.name.toLocaleLowerCase(), undefined, { numeric: true }) ||
+             ac.position - bc.position ||
+             ac.name.toLocaleLowerCase().localeCompare(bc.name.toLocaleLowerCase(), undefined, { numeric: true });
+    });
+  };
+
+  ROOT.selectChannel = function(channel){
+    currentPage = 1;
+    selectedChannel = channel;
+    
+    MSGS = getFilteredMessageKeys(channel).sort(PROCESSOR.SORTER.oldestToNewest);
+    triggerMessagesRefreshed();
+  };
+
+  ROOT.getSelectedChannel = function(){
+    return selectedChannel;
+  };
+  
+  // ------------
+  // Message list
+  // ------------
+  
+  ROOT.getMessageList = function(){
+    if (!MSGS){
+      return [];
+    }
+
+    var messages = FILE.getMessages(selectedChannel);
+    var startIndex = messagesPerPage*(ROOT.getCurrentPage()-1);
+
+    return MSGS.slice(startIndex, !messagesPerPage ? undefined : startIndex+messagesPerPage).map(key => {
+      var message = messages[key];
+      var user = FILE.getUser(message.u);
+      var avatar = user.avatar ? { id: FILE.getUserId(message.u), path: user.avatar } : null;
+      
+      var reply = ("r" in message && message.r in messages) ? messages[message.r] : null;
+      var replyUser = reply ? FILE.getUser(reply.u) : null;
+      var replyAvatar = replyUser && replyUser.avatar ? { id: FILE.getUserId(reply.u), path: replyUser.avatar } : null;
+      var replyObj = reply ? {
+        "id": message.r,
+        "user": replyUser,
+        "avatar": replyAvatar,
+        "contents": reply.m
+      } : null;
+      
+      return {
+        "user": user,
+        "avatar": avatar,
+        "timestamp": message.t,
+        "contents": ("m" in message) ? message.m : null,
+        "embeds": message.e,
+        "attachments": message.a,
+        "edit": ("te" in message) ? message.te : (message.f & 1) === 1,
+        "jump": key,
+        "reply": replyObj,
+        "reactions": ("re" in message) ? message.re : null
+      };
+    });
+  };
+  
+  ROOT.navigateToMessage = function(id){
+    if (!MSGS){
+      return 0;
+    }
+    
+    var index = MSGS.indexOf(id);
+    
+    if (index == -1){
+      return 0;
+    }
+    
+    currentPage = Math.max(1, Math.min(ROOT.getPageCount(), 1 + Math.floor(index / messagesPerPage)));
+    triggerMessagesRefreshed();
+    return index % messagesPerPage;
+  };
+
+  // ----------
+  // Filtering
+  // ----------
+  
+  ROOT.hasActiveFilter = false;
+  
+  ROOT.setActiveFilter = function(filter){
+    switch(filter ? filter.type : ""){
+      case "user":
+        filterFunction = PROCESSOR.FILTER.byUser(FILE.getUserIndex(filter.value));
+        break;
+        
+      case "contents":
+        filterFunction = PROCESSOR.FILTER.byContents(filter.value);
+        break;
+        
+      case "withimages":
+        filterFunction = PROCESSOR.FILTER.withImages();
+        break;
+        
+      case "withdownloads":
+        filterFunction = PROCESSOR.FILTER.withDownloads();
+        break;
+        
+      case "edited":
+        filterFunction = PROCESSOR.FILTER.isEdited();
+        break;
+
+      default:
+        filterFunction = null;
+        break;
+    }
+    
+    ROOT.hasActiveFilter = filterFunction != null;
+    
+    triggerChannelsRefreshed(selectedChannel);
+    
+    if (selectedChannel){
+      ROOT.selectChannel(selectedChannel); // resets current page and updates messages
+    }
+  };
+  
+  ROOT.saveFilteredMessages = function(){
+    var saveFileName = "dht-filtered.txt";
+    
+    if (uploadedFileName){
+      if (uploadedFileName.includes("filtered")){
+        saveFileName = uploadedFileName;
+      }
+      else{
+        saveFileName = uploadedFileName.replace(".", "-filtered.");
+      }
+    }
+    
+    DOM.downloadTextFile(saveFileName, FILE.filterToJson(filterFunction));
+  };
+  
+  // -----
+  // Users
+  // -----
+  
+  ROOT.getUserList = function(){
+    return FILE ? FILE.getUsers() : [];
+  };
+
+  // ----------
+  // Pagination
+  // ----------
+
+  ROOT.setMessagesPerPage = function(amount){
+    messagesPerPage = amount;
+    triggerMessagesRefreshed();
+  };
+
+  ROOT.updateCurrentPage = function(action){
+    switch(action){
+      case "first": currentPage = 1; break;
+      case "prev": currentPage = Math.max(1, currentPage-1); break;
+      case "next": currentPage = Math.min(ROOT.getPageCount(), currentPage+1); break;
+      case "last": currentPage = ROOT.getPageCount(); break;
+      
+      case "pick":
+        var page = parseInt(prompt("Select page:", currentPage), 10);
+        
+        if (!page && page !== 0){
+          return;
+        }
+        
+        currentPage = Math.max(1, Math.min(ROOT.getPageCount(), page));
+        break;
+    }
+    
+    triggerMessagesRefreshed();
+  };
+
+  ROOT.getCurrentPage = function(){
+    var total = ROOT.getPageCount();
+    
+    if (currentPage > total && total > 0){
+      currentPage = total;
+    }
+    
+    return currentPage || 1;
+  };
+
+  ROOT.getPageCount = function(){
+    return !MSGS ? 0 : (!messagesPerPage ? 1 : Math.ceil(MSGS.length/messagesPerPage));
+  };
+  
+  // --------
+  // Settings
+  // --------
+  
+  ROOT.settings = {};
+  
+  var getStorageItem = (property) => {
+    try{
+      return localStorage.getItem(property);
+    }catch(e){
+      console.error(e);
+      return null;
+    }
+  };
+  
+  var setStorageItem = (property, value) => {
+    try{
+      localStorage.setItem(property, value);
+    }catch(e){
+      console.error(e);
+    }
+  };
+  
+  var defineSettingProperty = (property, defaultValue, storageToValue) => {
+    var name = "_"+property;
+    
+    Object.defineProperty(ROOT.settings, property, {
+      get: (() => ROOT.settings[name]),
+      set: (value => {
+        ROOT.settings[name] = value;
+        triggerMessagesRefreshed();
+        setStorageItem(property, value);
+      })
+    });
+    
+    var stored = getStorageItem(property);
+    
+    if (stored !== null){
+      stored = storageToValue(stored);
+    }
+    
+    ROOT.settings[name] = stored === null ? defaultValue : stored;
+  };
+  
+  var fromBooleanString = (value) => {
+    if (value === "true") return true;
+    if (value === "false") return false;
+    return null;
+  };
+  
+  defineSettingProperty("enableImagePreviews", true, fromBooleanString);
+  defineSettingProperty("enableFormatting", true, fromBooleanString);
+  defineSettingProperty("enableUserAvatars", true, fromBooleanString);
+  defineSettingProperty("enableAnimatedEmoji", true, fromBooleanString);
+  
+  // End
+  return ROOT;
 })();
