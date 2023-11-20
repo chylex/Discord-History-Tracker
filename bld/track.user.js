@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Discord History Tracker
-// @version      v.31e
+// @version      v.31f
 // @license      MIT
 // @namespace    https://chylex.com
 // @homepageURL  https://dht.chylex.com/
@@ -18,11 +18,11 @@ var DISCORD = (function(){
   };
   
   var getMessageScrollerElement = function(){
-    return getMessageOuterElement().querySelector("[class*='scroller-']");
+    return getMessageOuterElement().querySelector("[class*='scroller_']");
   };
   
   var getMessageElements = function() {
-    return getMessageOuterElement().querySelectorAll("[class*='message-']");
+    return getMessageOuterElement().querySelectorAll("[class*='message_']");
   };
   
   var getReactProps = function(ele) {
@@ -197,7 +197,7 @@ var DISCORD = (function(){
         if (dms){
           let name;
           
-          for (const ele of dms.querySelectorAll("[class*='channel-'] [class*='selected-'] [class^='name-'] *, [class*='channel-'][class*='selected-'] [class^='name-'] *")) {
+          for (const ele of dms.querySelectorAll("[class*='channel_'] [class*='selected_'] [class^='name_'] *")) {
             const node = Array.prototype.find.call(ele.childNodes, node => node.nodeType === Node.TEXT_NODE);
             
             if (node) {
@@ -230,7 +230,7 @@ var DISCORD = (function(){
         else if (obj.guild_id) {
           let guild;
   
-          for (const child of getReactProps(document.querySelector("nav header [class*='headerContent-']")).children) {
+          for (const child of getReactProps(document.querySelector("nav header [class*='headerContent_']")).children) {
             if (child && child.props && child.props.guild) {
               guild = child.props.guild;
               break;
@@ -300,10 +300,10 @@ var DISCORD = (function(){
       
       if (dms) {
         const currentChannel = DOM.queryReactClass("selected", dms);
-        const currentChannelContainer = currentChannel && currentChannel.closest("[class*='channel-']");
+        const currentChannelContainer = currentChannel && currentChannel.closest("[class*='channel_']");
         const nextChannel = currentChannelContainer && currentChannelContainer.nextElementSibling;
         
-        if (!nextChannel || !nextChannel.getAttribute("class").includes("channel-")) {
+        if (!nextChannel || !nextChannel.getAttribute("class").includes("channel_")) {
           return false;
         }
         
@@ -330,7 +330,7 @@ var DISCORD = (function(){
         let nextChannel = null;
         
         for (let index = 0; index < allTextChannels.length - 1; index++) {
-          if (allTextChannels[index].className.includes("selected-")) {
+          if (allTextChannels[index].className.includes("selected_")) {
             nextChannel = allTextChannels[index + 1];
             break;
           }
@@ -371,7 +371,7 @@ var DOM = (function(){
     /*
      * Returns the first child element containing the specified obfuscated class. Parent defaults to the entire document.
      */
-    queryReactClass: (cls, parent) => (parent || document).querySelector(`[class*="${cls}-"]`),
+    queryReactClass: (cls, parent) => (parent || document).querySelector(`[class*="${cls}_"]`),
     
     /*
      * Creates an element, adds it to the DOM, and returns it.
@@ -524,7 +524,7 @@ var GUI = (function(){
       // styles
       
       controller.styles = DOM.createStyle(`
-#app-mount div[class*="app-"] { margin-bottom: 48px !important; }
+#app-mount { height: calc(100% - 48px) !important; }
 #dht-ctrl { position: absolute; bottom: 0; width: 100%; height: 48px; background-color: #FFF; z-index: 1000000; }
 #dht-ctrl button { height: 32px; margin: 8px 0 8px 8px; font-size: 16px; padding: 0 12px; background-color: #7289DA; color: #FFF; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.75); }
 #dht-ctrl button:disabled { background-color: #7A7A7A; cursor: default; }
@@ -664,7 +664,7 @@ ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
 It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.<br><br>
-<sub>v.31e, released 10 October 2022</sub>
+<sub>v.31f, released 20 November 2023</sub>
 </p>`);
       
       // elements
