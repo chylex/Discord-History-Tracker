@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!-- 
+This page automatically pulls version information from VERSIONS.json in the live GitHub repository, replacing manual updates on:
+- https://github.com/chylex/Discord-History-Tracker/wiki/Old-Versions
+- https://github.com/chylex/Discord-History-Tracker/wiki/Release-Notes
+-->
+<!-- PR Author: TBH IMO this entire page can probably actually be replaced with a link to the branch commit history. I've never used an old version even once in many years, and users at this point are already choosing greater difficulty. -->
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -10,113 +16,152 @@
     <title>Discord History Tracker</title>
     
     <link href="style.css" type="text/css" rel="stylesheet">
+    
+    <script src="versions.js"></script>
   </head>
   <body>
     <div class="inner">
-      <h1>Discord History Tracker <span class="version">{{{version:web}}}</span>&nbsp;<span class="bar">|</span>&nbsp;<span class="notes"><a href="https://github.com/chylex/Discord-History-Tracker/wiki/Release-Notes">Release&nbsp;Notes</a></span></h1>
-      <p>Discord History Tracker lets you save chat history in your servers, groups, and private conversations, and view it offline.</p>
-      <img src="img/tracker.png" width="851" class="dht bordered">
-      <p>This page explains how to use Discord History Tracker entirely in your browser. While this method gets you started quicker and works on any device that has a modern web browser, it has <strong>significant limitations and fewer features</strong> than the <a href="https://dht.chylex.com">desktop app</a>.</p>
-      <p>Because everything happens in your browser, if the browser tab is closed, or your browser or computer crashes, you will lose all progress. Your browser may also crash or freeze if you have too many messages. If this is a concern, <a href="https://dht.chylex.com">use the desktop app</a> instead.</p>
+      <h1>Discord History Tracker <span class="version">Web&nbsp;Version&nbsp;History</span>&nbsp;<!--<span class="bar">|</span>&nbsp;<span class="notes"><a href="./index.html">Main Page</a></span>--></h1>
+      <p>This page lists old versions of the browser version of DHT. For the latest version, please see the <a href="./index.html">main page</a>.</p>
       
-      <h2>How to Use</h2>
-      <p>A tracking script will load messages according to your settings, and temporarily save them in your browser. Once you finish tracking, the browser will create an archive file you can save to your disk, and open in an offline viewer later.</p>
+      <noscript><p>This page requires JavaScript. You can also view the <a href="https://github.com/will-ca/Discord-History-Tracker/tree/main-browser/VERSIONS.json">raw version history data</a>.</p></noscript>
+      <!-- TODO for PR: Update the fallback link. -->
       
-      <h3>Setup the Tracking Script</h3>
-      <h4>Option 1: Userscript</h4>
-      <div class="quote">
-        <p><strong>Preferred option.</strong> Requires a browser addon, but DHT will stay up-to-date and be easily accessible on the Discord website.</p>
-        
-        <ol>
-          <li>Install a userscript manager addon:
-            <ul>
-              <li><a href="https://violentmonkey.github.io/get-it/">Violentmonkey</a> (Chrome)</li>
-              <li><a href="https://tampermonkey.net/">Tampermonkey</a> (Firefox, Edge, Chrome, Opera)</li>
-              <li>Due to browser bugs / limitations, DHT will not work in <strong>Firefox</strong> with Greasemonkey / Violentmonkey, and in <strong>Safari</strong> at all</li>
-            </ul>
-          </li>
-          <li>Click <a href="build/track.user.js">Install Userscript</a> to prompt an installation into the userscript manager</li>
-          <li>Open <a href="https://discord.com/channels/@me" rel="noreferrer">Discord</a>, and view any server, group, or private conversation (it will not appear in Friends list)</li>
-          <li>Click <strong>DHT</strong> in the top right corner:<br><img src="img/button.png" class="bordered"></li>
-        </ol>
-      </div>
+      <h2>Current Version</h2>
       
-      <h4>Option 2: Browser / Discord Console</h4>
-      <div class="quote">
-        <p>The console is the only way to use DHT directly in the desktop app.</p>
-        
-        <ol>
-          <li>Click <a href="javascript:" id="tracker-copy-button" onauxclick="return false;">Copy to Clipboard</a> to copy the tracking script
-            <noscript> (requires JavaScript)</noscript>
-          </li>
-          <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> in your browser or the Discord app, and select the <strong>Console</strong> tab</li>
-          <li>Paste the script into the console, and press <strong>Enter</strong> to run it</li>
-          <li>Press <strong>Ctrl</strong>+<strong>Shift</strong>+<strong>I</strong> again to close the console</li>
-        </ol>
-        
-        <p id="tracker-copy-issue">Your browser may not support copying to clipboard, please try copying the script manually:</p>
-        <textarea id="tracker-copy-contents"><?php include './build/track.html'; ?></textarea>
-      </div>
+      <span id="version_current">
+        <p>Loading…</p>
+      </span>
       
-      <h4>Option 3: Bookmarklet</h4>
-      <div class="quote">
-        <p>Requires Firefox 69 or newer.</p>
-        
-        <ol>
-          <li>Right-click <a href="<?php include './build/track.html'; ?>" onclick="return false;" onauxclick="return false;">Discord History Tracker</a></li>
-          <li>Select &laquo;Bookmark This Link&raquo; and save the bookmark</li>
-          <li>Open <a href="https://discord.com/channels/@me" rel="noreferrer">Discord</a> and click the bookmark to run the script</li>
-        </ol>
-      </div>
+      <h2>Past Versions</h2>
       
-      <h4>Old Versions</h4>
-      <p>Whenever DHT is updated to work with a new version of Discord, it may no longer work with the previous version of Discord.</p>
-      <p>If you haven't received that Discord update yet, see <a href="https://github.com/chylex/Discord-History-Tracker/wiki/Release-Notes">Release Notes</a> for information about recent updates, and <a href="https://github.com/chylex/Discord-History-Tracker/wiki/Old-Versions">Old Versions</a> if you need to use an older version of DHT.</p>
+      <p>If you need to use an older version of DHT, for example when you haven't received a Discord update yet, use one of the links below.</p>
+      <p>The <strong>userscript</strong> version will install into your userscript manager, however <strong>it will not update automatically</strong>. Click the link to prompt an installation.</p>
+      <p>The <strong>manual</strong> version shows the tracker code, which you can copy/paste into the browser or app console, as described on the <a href="./index.html">main page</a>.</p>
+      <p>To use the <strong>viewer</strong>, you must right-click the link and use <strong>Save link as...</strong> to download it, otherwise it will not work. Using old viewers is not recommended, as the most recent viewer should be able to open archives made in any of the old trackers.</p>
       
-      <h3>How to Track Messages</h3>
-      <p>When using the script for the first time, you will see a <strong>Settings</strong> dialog where you can configure the script. These settings will be remembered as long as you don't delete cookies in your browser.</p>
-      <p>By default, Discord History Tracker is set to automatically scroll up to load the channel history, and pause tracking if it reaches a previously saved message to avoid unnecessary history loading.</p>
-      <p>Before you <strong>Start Tracking</strong>, you may use <strong>Upload &amp; Combine</strong> to load messages from a previously saved archive file into the browser.</p>
-      <p>When you click <strong>Download</strong>, the browser will generate an archive file from saved messages, and lets you save it to your computer.</p>
+      <span id="versions_old">
+        <p>Loading…</p>
+      </span>
       
-      <h3>How to View History</h3>
-      <p>First, save the <a href="build/viewer.html">Viewer</a> file to your computer. Then you can open the downloaded viewer in your browser, click <strong>Load File</strong>, and select the archive to view.</p>
-      
-      <h2>External Links</h2>
-      <p class="links">
-        <a href="https://github.com/chylex/Discord-History-Tracker/issues">Issues&nbsp;&amp;&nbsp;Suggestions</a>&nbsp;&nbsp;&mdash;&nbsp;
-        <a href="https://github.com/chylex/Discord-History-Tracker/tree/master-browser-only">Source&nbsp;Code</a>&nbsp;&nbsp;&mdash;&nbsp;
-        <a href="https://twitter.com/chylexmc">Follow&nbsp;Dev&nbsp;on&nbsp;Twitter</a>&nbsp;&nbsp;&mdash;&nbsp;
-        <a href="https://www.patreon.com/chylex">Support&nbsp;via&nbsp;Patreon</a>&nbsp;&nbsp;&mdash;&nbsp;
-        <a href="https://ko-fi.com/chylex">Support&nbsp;via&nbsp;Ko-fi</a>
-      </p>
     </div>
     
     <script type="text/javascript">
-      var contents = document.getElementById("tracker-copy-contents");
-      var issue = document.getElementById("tracker-copy-issue");
-      var button = document.getElementById("tracker-copy-button");
-      
-      if (document.queryCommandSupported("copy")) {
-        contents.style.display = "none";
-        issue.style.display = "none";
-      }
-      
-      button.addEventListener("click", function() {
-        contents.style.display = "block";
-        issue.style.display = "block";
+      (async function (ctx) {
+        ctx.current = document.getElementById("version_current")
+        ctx.olds = document.getElementById("versions_old")
         
-        contents.select();
-        document.execCommand("copy");
+        ctx.createElementText = function (tagName, text = null) {
+          let ele = document.createElement(tagName)
+          if (text)
+            ele.innerText = text
+          return ele
+        }
         
-        button.innerHTML = "Copied to Clipboard";
-        contents.style.display = "none";
-        issue.style.display = "none";
-      });
-      
-      contents.addEventListener("click", function() {
-        contents.select();
-      });
+        ctx.renderVersion = function (v_array) {
+          console.log(`Rendering ${v_array[0]} release notes.`)
+          let frag = document.createDocumentFragment()
+          frag.appendChild(
+            // Version number/name.
+            ctx.createElementText('h3', v_array[0])
+          )
+          if (v_array[1]) {
+            let commit = v_array[1]
+            // // Time of commit from GH API.
+            // // Works but is heavily rate-limited without auth (60/hour). See below.
+            // let p_time = frag.appendChild(
+            //   ctx.createElementText("p", "Loading…")
+            // )
+            // ctx.ghCommitDate(commit).then(date =>
+            //   p_time.innerText = date.toLocaleDateString()
+            // )
+            let p_links = frag.appendChild(
+              ctx.createElementText("p")
+            )
+            // Links to each version.
+            for (let [display, path, add_bar] of [
+              ["Userscript", "/bld/track.user.js", true],
+              ["Manual", "/bld/track.js", true],
+              ["Viewer", "/bld/viewer.html", true],
+              [commit.slice(0, 6), null, false]
+            ]) {
+              let a = p_links.appendChild(
+                ctx.createElementText('a', display)
+              )
+              a.href = (path === null) ?
+                ctx.ghCommitUrl(commit) :
+                ghUrl(path, commit)
+              if (add_bar) {
+                p_links.innerHTML += " | "
+              }
+            }
+          }
+          if (v_array.length > 2) {
+            // Change notes.
+            let div = frag.appendChild(
+              ctx.createElementText("div")
+            )
+            div.classList.add("quote")
+            let ul = div.appendChild(
+              ctx.createElementText("ul")
+            )
+            for (let i=2; i< v_array.length; i++) {
+              ul.appendChild(
+                ctx.createElementText("li", v_array[i])
+              )
+            }
+          }
+          return frag
+        }
+        
+        // // Works but is heavily rate-limited without auth (60/hour). See above.
+        // ctx._ghCommitDate = async function (commit) {
+        //   // This downloads quite a bit of data, and is arguably unnecessary.
+        //   let url = `https://api.github.com/repos/${GH_REPO}/commits/${commit}`
+        //   console.log(`Fetching commit ${commit.slice(0,6)}: ${url}`)
+        //   let resp = await window.fetch(url)
+        //   console.log(`Fetched commit ${commit.slice(0,6)}.`)
+        //   let json = await resp.json()
+        //   try {
+        //     return new Date(json.commit.committer.date)
+        //   } catch (e) {
+        //     console.error(e)
+        //     console.log(json)
+        //     return new Date(0)
+        //   }
+        // }
+        // ctx._lastDatePromise = null
+        // ctx.ghCommitDate = function (commit) {
+        //   // Chain API calls so GH can rate-limit.
+        //   return (ctx._lastDatePromise === null) ?
+        //     ctx._lastDatePromise = ctx._ghCommitDate(commit) :
+        //     ctx._lastDatePromise = ctx._lastDatePromise.then(r =>
+        //       ctx._ghCommitDate(commit)
+        //     )
+        // }
+        
+        ctx.ghCommitUrl = function(commit) {
+          return `https://github.com/${GH_REPO}/commit/${commit}`
+        }
+        
+        ctx.versions = await window.ajax_versions
+        
+        let current_r = ctx.renderVersion(ctx.versions.current)
+        ctx.current.innerHTML = ""
+        ctx.current.appendChild(current_r)
+        
+        let olds_r = document.createDocumentFragment()
+        for (let i=0; i<ctx.versions.history.length; i++) {
+          olds_r.appendChild(
+            ctx.renderVersion(
+              ctx.versions.history[i]
+            )
+          )
+        }
+        ctx.olds.innerHTML = ""
+        ctx.olds.appendChild(olds_r)
+        
+      })(window.dht_ctx = {})
     </script>
   </body>
 </html>

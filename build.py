@@ -79,7 +79,6 @@ def minify_css(input_file, output_file):
 
 def build_tracker_html():
     output_file_raw = "bld/track.js"
-    output_file_html = "bld/track.html"
     
     output_file_tmp = "bld/track.tmp.js"
     input_pattern = "src/tracker/**/*.js"
@@ -105,12 +104,6 @@ def build_tracker_html():
             out.write("})()")
         
         os.remove(output_file_tmp)
-    
-    with open(output_file_raw, "r") as raw:
-        script_contents = raw.read().replace("&", "&amp;").replace('"', "&quot;").replace("'", "&#x27;").replace("<", "&lt;").replace(">", "&gt;")
-    
-    with open(output_file_html, "w") as out:
-        out.write(script_contents)
 
 
 def build_tracker_userscript():
@@ -178,23 +171,10 @@ def build_viewer():
 
 
 def build_website():
-    tracker_file_html = "bld/track.html"
-    tracker_file_userscript = "bld/track.user.js"
-    viewer_file = "bld/viewer.html"
     web_style_file = "bld/web/style.css"
     
     distutils.dir_util.copy_tree("web", "bld/web")
-    index_file = "bld/web/index.php"
     
-    with open(index_file, "r") as index:
-        index_contents = index.read()
-    
-    with open(index_file, "w") as index:
-        index.write(index_contents.replace("{{{version:web}}}", VERSION_SHORT.replace(" ", "&nbsp;")))
-    
-    shutil.copyfile(tracker_file_html, "bld/web/build/track.html")
-    shutil.copyfile(tracker_file_userscript, "bld/web/build/track.user.js")
-    shutil.copyfile(viewer_file, "bld/web/build/viewer.html")
     minify_css(web_style_file, web_style_file)
 
 

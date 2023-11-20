@@ -1,0 +1,317 @@
+{
+	"_SchemaNotes": "Versions are [<number>, <commit>, [changes]…]. Commit can be `null` for .current as it can't be known ahead of time. Commit can be as short as the GIT hash's first four characters, as long as GH recognizes it in URLs. When bumping versions, simply move the .current into .history (and make sure your editor doesn't complain about bad JSON).",
+	"current":
+		[
+			"v.38-web",
+			null,
+			"Tracker",
+			"Fixed not seeing messages after a Discord update",
+			"Reorganized code for easier maintenance (PR)"
+		],
+	"history": [
+		[
+			"v.31f",
+			"ce87901088d13741d8ec74f17d7f3789a751769a",
+			"Fix server name detection after a Discord update",
+			"Fix DHT tracker overlaying part of Discord"
+		],
+		[
+			"v.31e",
+			"a20ce8ee71ff4f20e7a469080c5e004f7d306c59",
+			"Fix server name detection after a Discord update"
+		],
+		[
+			"v.31d",
+			"3cca16779350a981c36247e16289c88aab0ffcff",
+			"Fix not seeing messages after a Discord update",
+			"Improve error handling and reporting when extracting message data"
+		],
+		[
+			"v.31c (May 19, 2022)",
+			"3ba4d018a950fe7a1e80ab680476f56a9f780a22",
+			"Tracker",
+			"Fixed Discord covering parts of DHT after a Discord update"
+		],
+		[
+			"v.31b (April 2, 2022)",
+			"ab6e929da6a6db1e84c3cf1638fdcbd83d7aa46a",
+			"Tracker",
+			"Fixed broken server name detection after a Discord update",
+			"Fixed switching to next channel not working in DMs after a Discord update"
+		],
+		[
+			"v.31a (February 12, 2022)",
+			"4b823802d3f94a6af064404cd553adb793e29444",
+			"Tracker",
+			"Fixed occasional skipping of messages when autoscrolling while the browser is not focused",
+			"Fixed broken channel detection after a Discord update",
+			"Fixed switching to next channel not working after a Discord update"
+		],
+		[
+			"v.31 (April 4, 2021)",
+			"233e37a1c8974dc630afa0a9f672f8911d32520d",
+			"Tracker & Viewer",
+			"Added support for saving and viewing reactions (PR #135 by Chupalika)",
+			"Viewer",
+			"Fixed disabling avatars not working for replies",
+			"Fixed formatting issues in replies"
+		],
+		[
+			"v.30 (March 28, 2021)",
+			"3f6249078381bb8a24fb85f50d2d39fc9e7a1268",
+			"Tracker & Viewer",
+			"Added support for saving, viewing, and jumping to replied messages (PR #133 by Chupalika)"
+		],
+		[
+			"v.29 (December 20, 2020)",
+			"8c825aeb8626bed059e095e496e7342ba37e066a",
+			"Tracker",
+			"Fixed channel detection after a recent Discord update"
+		],
+		[
+			"v.28 (November 29, 2020)",
+			"dd4db0a9f90084560f94f4bbfc08bb29329a85f9",
+			"Tracker",
+			"Fixed not saving replies",
+			"Fixed incompatibility with a recent Discord change (which was just reverted, but should work if Discord un-reverts the change)"
+		],
+		[
+			"v.27 (August 24, 2020)",
+			"56d988671913b18db535d23fc0bef8dd644c0d4b",
+			"Tracker",
+			"Fixed message detection and autoscrolling after a recent Discord update",
+			"Note that autoscrolling may stall for a few seconds every so often (for currently unknown reasons)"
+		],
+		[
+			"v.26 (July 13, 2020)",
+			"00f8ac25b7118dcc705716ce4f841803c5723208",
+			"Tracker",
+			"Fixed channel detection and automatic channel switching after a recent Discord update"
+		],
+		[
+			"v.25 (July 1, 2020)",
+			"08547c0b29fac95444593a2aae2a8885df631c2d",
+			"Tracker",
+			"Fixed channel detection after a recent Discord update"
+		],
+		[
+			"v.24 (June 25, 2020)",
+			"9ea6db5ad191b7b2236d77b863597cc7abb5f69d",
+			"Tracker",
+			"Added tracking of user avatars and channel information --- topic, nsfw status, position in channel list (PR #102 by denetii)",
+			"Added tracking of user tags/discriminators (PR #55 by excinera)",
+			"Fixed misclassifying DMs with default avatars as group DMs",
+			"Fixed not detecting old Discord URL",
+			"Viewer",
+			"All newly tracked information is displayed in the viewer",
+			"User avatars appear next to every message (can be turned off in Options)",
+			"User tags appear after hovering the username",
+			"Channel topics appear after hovering the channel name",
+			"Channels are now sorted by their real position in the server's channel list"
+		],
+		[
+			"v.23 (May 19, 2020)",
+			"e800e7e25e294d9869d36ee11c949b610d17786c",
+			"Tracker",
+			"Fixed not detecting messages after a recent Discord update",
+			"Fixed categorizing group DMs without changed icon getting categorized as non-group DMs"
+		],
+		[
+			"v.22 (May 6, 2020)",
+			"849e0c798a6b07df6ae3c3f4e3f475239ba2073d",
+			"Tracker",
+			"Updated Discord URL"
+		],
+		[
+			"v.21 (April 19, 2020)",
+			"123d41b793b7795c4db15a911043345ae05c2957",
+			"Tracker",
+			"Server status messages are now skipped instead of showing up as empty messages",
+			"Viewer",
+			"Added Jump to message button when viewing filtered messages",
+			"Added a button to save filtered messages as a new archive file",
+			"Improved contrast of info text next to usernames"
+		],
+		[
+			"BETA v.20 (April 18, 2020)",
+			"3ee8d6514d2841321f9e2a667dd6f72899b5f109",
+			"Tracker",
+			"Fixed autoscroll after a recent Discord update"
+		],
+		[
+			"BETA v.19 (April 1, 2020)",
+			"f575c759b244d2b20275a78e430afabd6e39762c",
+			"Tracker",
+			"Fixed not finding channels/messages after a recent Discord update"
+		],
+		[
+			"BETA v.18 (February 6, 2020)",
+			"d6450bd0794bc292429dac79c34fd5aa38458517",
+			"Tracker",
+			"Fixed not finding messages and broken autoscroll after a recent Discord update"
+		],
+		[
+			"BETA v.17 (November 11, 2019)",
+			"c64207e52d424e9d09cf6e66468442fbccde2858",
+			"Tracker",
+			"Fixed not finding messages after a recent Discord update"
+		],
+		[
+			"BETA v.16a (September 20, 2019)",
+			"df6e66c591f36f8b96ce2aa9752a845bf98afb31",
+			"Viewer",
+			"Fixed broken filters for message content and edited status"
+		],
+		[
+			"BETA v.16 (September 19, 2019)",
+			"",
+			"Tracker",
+			"Fixed archive combining often causing messages of a specific user to be re-assigned to the wrong user",
+			"Fixed some embeds showing [object Object] in their description",
+			"Reduced archive size when message contents or embed titles are empty",
+			"Viewer",
+			"Settings now persist (browser support may vary)"
+		],
+		[
+			"BETA v.15 (September 11, 2019)",
+			"77216e6ce95be9ce77dbc8615b27514ee4327353",
+			"Tracker",
+			"Fixed channel detection broken by a recent Discord update"
+		],
+		[
+			"BETA v.14 (September 6, 2019)",
+			"505015d58590b4002d64fa155977f8999fb304fb",
+			"Tracker",
+			"Edited messages now save the time of edit",
+			"Fixed miscategorizing DMs as groups",
+			"Fixed duplicate messages caused by tracking messages before they were sent",
+			"Fixed overlaying the bottom of the page instead of pushing it up",
+			"Fixed broken Download button in Microsoft Edge",
+			"Switch to Next Channel now recognizes locked and NSFW channels",
+			"Viewer",
+			"Added support for custom emoji (animated ones can be disabled in the Settings)",
+			"Added experimental feature to generate viewer pages with embedded archives (see discussion)",
+			"Channels are now grouped by type and server, and then sorted by name"
+		],
+		[
+			"BETA v.13 (April 26, 2019)",
+			null,
+			"Tracker",
+			"Fixed broken channel detection after a Discord UI update",
+			"Fixed broken DHT button after a Discord UI update"
+		],
+		[
+			"BETA v.12 (March 13, 2019)",
+			null,
+			"Tracker",
+			"Fixed tracking not working in group chats"
+		],
+		[
+			"BETA v.11 (February 14, 2019)",
+			null,
+			"Tracker",
+			"Fixed tracking not working for DMs where the user's profile is showing Rich Presence (PR #58 by OnceDot)"
+		],
+		[
+			"BETA v.10 (February 2, 2019)",
+			null,
+			"Tracker",
+			"Fixed broken tracking caused by a recent Discord update",
+			"The tracker is now available as a userscript"
+		],
+		[
+			"BETA v.9 (September 19, 2018)",
+			null,
+			"Tracker",
+			"Fixed broken DM tracking caused by a recent Discord update",
+			"Fixed server groups breaking the Switch to Next Channel option",
+			"Switch to Next Channel now scrolls the channel to top, in order to load channels below",
+			"Viewer",
+			"The current page indicator can now be clicked to jump to an exact page",
+			"Minor visual tweaks in the menu"
+		],
+		[
+			"BETA v.8 (August 5, 2018)",
+			null,
+			"Tracker",
+			"Fixed issues with a recent Discord update",
+			"Improved reliability when capturing the first few messages (however, there are still issues in some cases)",
+			"Viewer",
+			"Fixed undefined printed in front of messages that start with italics"
+		],
+		[
+			"BETA v.7 (February 16, 2018)",
+			null,
+			"Viewer",
+			"Added an option to filter messages by user (PR #27 by Lynxy), contents, images, downloads, and their edited status"
+		],
+		[
+			"BETA v.6a (February 8, 2018)",
+			null,
+			"Tracker",
+			"Fixed a crash when saving an embed that has a title but no description"
+		],
+		[
+			"BETA v.6 (February 5, 2018)",
+			null,
+			"Tracker",
+			"Fixed Switch to Next Channel option skipping channels that take too long to load",
+			"Fixed broken selecting multiple files in the Upload & Combine dialog",
+			"Fixed mismatched users when combining multiple different files",
+			"Added an error message if the selected channel isn't visible in the channel list",
+			"Added support for basic rich embeds and webhooks",
+			"Viewer",
+			"Added support for basic rich embeds and webhooks"
+		],
+		[
+			"BETA v.5 (October 27, 2017)",
+			null,
+			"Tracker",
+			"Fixed autoscroll randomly getting stuck",
+			"Fixed a crash in server tracking after a recent Discord update",
+			"Fixed unreliable detection of previously saved messages (again, but properly this time)"
+		],
+		[
+			"BETA v.4 (October 5, 2017)",
+			null,
+			"Tracker",
+			"Fixed crashes after Discord updated their React library",
+			"Improved reliability of detecting previously saved messages after a recent Discord update",
+			"The Reset button is now disabled while tracking",
+			"Redesigned button design",
+			"Viewer",
+			"Redesigned button design"
+		],
+		[
+			"BETA v.3 (July 1, 2017)",
+			null,
+			"Tracker",
+			"Major reliability rewrite to allow tracking messages without reloading the website, and fix tracking after a recent Discord update",
+			"Fixed channel detection and switching after a recent Discord update",
+			"Fixed downloads not working when the archive gets large in some browsers (PR #8 by jahands)",
+			"Added a button to close DHT"
+		],
+		[
+			"BETA v.2 (May 31, 2017)",
+			null,
+			"Tracker",
+			"Fixed autoscroll having issues on fast computers",
+			"Settings are now only shown on the first run, and are saved in cookies",
+			"Added version and release date to Settings dialog",
+			"Viewer",
+			"Fixed a crash when a channel has no messages",
+			"Added version and release date to Settings dialog"
+		],
+		[
+			"BETA v.1a (November 16, 2016)",
+			null,
+			"Viewer",
+			"Fixed formatting issues (escaped characters, no-embed urls)"
+		],
+		[
+			"BETA v.1 (November 3, 2016)",
+			null,
+			"Initial release"
+		]
+	]
+}

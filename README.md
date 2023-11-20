@@ -31,7 +31,6 @@ After you've done changes to the source code, you will need to build it. Before 
 
 Now open the folder that contains `build.py` in a command line, and run `python build.py` to create a build with default settings. The following files will be created:
 * `bld/track.js` is the raw tracker script that can be pasted into a browser console
-* `bld/track.html` is the tracker script but sanitized for inclusion in HTML (see `web/index.php` for examples)
 * `bld/viewer.html` is the complete offline viewer
 
 You can tweak the build process using the following flags:
