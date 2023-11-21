@@ -61,14 +61,12 @@ public static class ServerLauncher {
 		}
 	}
 
-	private static void StartServerFromManagementThread(int port, string token, IDatabaseFile db) {
+	private static void StartServerFromManagementThread(ushort port, string token, IDatabaseFile db) {
 		Log.Info("Starting server on port " + port + "...");
 
 		void AddServices(IServiceCollection services) {
 			services.AddSingleton(typeof(IDatabaseFile), db);
-			services.AddSingleton(typeof(ServerParameters), new ServerParameters {
-				Token = token
-			});
+			services.AddSingleton(typeof(ServerParameters), new ServerParameters(port, token));
 		}
 
 		void SetKestrelOptions(KestrelServerOptions options) {
@@ -103,7 +101,7 @@ public static class ServerLauncher {
 		}
 	}
 
-	public static void Relaunch(int port, string token, IDatabaseFile db) {
+	public static void Relaunch(ushort port, string token, IDatabaseFile db) {
 		EnqueueMessage(new IMessage.StartServer(port, token, db));
 	}
 
@@ -113,11 +111,11 @@ public static class ServerLauncher {
 
 	private interface IMessage {
 		public sealed class StartServer : IMessage {
-			public int Port { get; }
+			public ushort Port { get; }
 			public string Token { get; }
 			public IDatabaseFile Db { get; }
 
-			public StartServer(int port, string token, IDatabaseFile db) {
+			public StartServer(ushort port, string token, IDatabaseFile db) {
 				this.Port = port;
 				this.Token = token;
 				this.Db = db;

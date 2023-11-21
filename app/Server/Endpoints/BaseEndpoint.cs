@@ -16,11 +16,11 @@ abstract class BaseEndpoint {
 	private static readonly Log Log = Log.ForType<BaseEndpoint>();
 
 	protected IDatabaseFile Db { get; }
-	private readonly ServerParameters parameters;
+	protected ServerParameters Parameters { get; }
 
 	protected BaseEndpoint(IDatabaseFile db, ServerParameters parameters) {
 		this.Db = db;
-		this.parameters = parameters;
+		this.Parameters = parameters;
 	}
 
 	private async Task Handle(HttpContext ctx, StringValues token) {
@@ -29,7 +29,7 @@ abstract class BaseEndpoint {
 
 		Log.Info("Request: " + request.GetDisplayUrl() + " (" + request.ContentLength + " B)");
 
-		if (token.Count != 1 || token[0] != parameters.Token) {
+		if (token.Count != 1 || token[0] != Parameters.Token) {
 			Log.Error("Token: " + (token.Count == 1 ? token[0] : "<missing>"));
 			response.StatusCode = (int) HttpStatusCode.Forbidden;
 			return;

@@ -24,7 +24,7 @@ sealed class Startup {
 
 		services.AddCors(static cors => {
 			cors.AddDefaultPolicy(static builder => {
-				builder.WithOrigins(AllowedOrigins).AllowCredentials().AllowAnyMethod().AllowAnyHeader();
+				builder.WithOrigins(AllowedOrigins).AllowCredentials().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("X-DHT");
 			});
 		});
 	}
@@ -34,17 +34,20 @@ sealed class Startup {
 		app.UseRouting();
 		app.UseCors();
 		app.UseEndpoints(endpoints => {
-			TrackChannelEndpoint trackChannel = new(db, parameters);
-			endpoints.MapPost("/track-channel", async context => await trackChannel.HandlePost(context));
+			GetTrackingScriptEndpoint getTrackingScript = new (db, parameters);
+			endpoints.MapGet("/get-tracking-script", context => getTrackingScript.HandleGet(context));
+			
+			TrackChannelEndpoint trackChannel = new (db, parameters);
+			endpoints.MapPost("/track-channel", context => trackChannel.HandlePost(context));
 
-			TrackUsersEndpoint trackUsers = new(db, parameters);
-			endpoints.MapPost("/track-users", async context => await trackUsers.HandlePost(context));
+			TrackUsersEndpoint trackUsers = new (db, parameters);
+			endpoints.MapPost("/track-users", context => trackUsers.HandlePost(context));
 
-			TrackMessagesEndpoint trackMessages = new(db, parameters);
-			endpoints.MapPost("/track-messages", async context => await trackMessages.HandlePost(context));
+			TrackMessagesEndpoint trackMessages = new (db, parameters);
+			endpoints.MapPost("/track-messages", context => trackMessages.HandlePost(context));
 
-			GetAttachmentEndpoint getAttachment = new(db, parameters);
-			endpoints.MapGet("/get-attachment/{url}", async context => await getAttachment.HandleGet(context));
+			GetAttachmentEndpoint getAttachment = new (db, parameters);
+			endpoints.MapGet("/get-attachment/{url}", context => getAttachment.HandleGet(context));
 		});
 	}
 }

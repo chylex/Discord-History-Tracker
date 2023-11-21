@@ -52,14 +52,10 @@ sealed class TrackingPageModel : BaseModel {
 			OnPropertyChanged(nameof(IsToggleAppDevToolsButtonEnabled));
 		}
 	}
-
+	
 	public async Task<bool> OnClickCopyTrackingScript() {
-		string bootstrap = await Resources.ReadTextAsync("Tracker/bootstrap.js");
-		string script = bootstrap.Replace("= 0; /*[PORT]*/", "= " + ServerManager.Port + ";")
-		                         .Replace("/*[TOKEN]*/", HttpUtility.JavaScriptStringEncode(ServerManager.Token))
-		                         .Replace("/*[IMPORTS]*/", await Resources.ReadJoinedAsync("Tracker/scripts/", '\n'))
-		                         .Replace("/*[CSS-CONTROLLER]*/", await Resources.ReadTextAsync("Tracker/styles/controller.css"))
-		                         .Replace("/*[CSS-SETTINGS]*/", await Resources.ReadTextAsync("Tracker/styles/settings.css"));
+		string url = $"http://127.0.0.1:{ServerManager.Port}/get-tracking-script?token={HttpUtility.UrlEncode(ServerManager.Token)}";
+		string script = (await Resources.ReadTextAsync("tracker-loader.js")).Trim().Replace("{url}", url);
 
 		var clipboard = window.Clipboard;
 		if (clipboard == null) {

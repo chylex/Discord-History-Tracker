@@ -27,4 +27,21 @@
   <ItemGroup>
     <Compile Include="..\Version.cs" Link="Version.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="../Resources/Tracker/bootstrap.js">
+      <LogicalName>Tracker\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+      <Link>Resources/Tracker/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
+    </EmbeddedResource>
+    <EmbeddedResource Include="../Resources/Tracker/scripts/**">
+      <LogicalName>Tracker\scripts\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+      <Link>Resources/Tracker/scripts/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
+    </EmbeddedResource>
+    <EmbeddedResource Include="../Resources/Tracker/styles/**">
+      <LogicalName>Tracker\styles\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+      <Link>Resources/Tracker/styles/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

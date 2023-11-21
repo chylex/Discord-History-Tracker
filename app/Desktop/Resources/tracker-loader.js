@@ -1,0 +1,1 @@
+fetch("{url}").then(r => r.ok ? (r.headers.get("X-DHT") === "1" ? r.text() : Promise.reject("Invalid response")) : Promise.reject(r.status + " " + r.statusText)).then(s => eval(s)).catch(e => alert("Could not load tracking script:\n" + e));

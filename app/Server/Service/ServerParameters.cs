@@ -1,5 +1,3 @@
 namespace DHT.Server.Service;
 
-readonly struct ServerParameters {
-	public string Token { get; init; }
-}
+sealed record ServerParameters(ushort Port, string Token);

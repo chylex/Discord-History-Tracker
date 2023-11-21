@@ -40,20 +40,8 @@
   </ItemGroup>
   <ItemGroup>
     <AvaloniaResource Include="Resources/icon.ico" />
-    <EmbeddedResource Include="../Resources/Tracker/bootstrap.js">
-      <LogicalName>Tracker\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
-      <Link>Resources/Tracker/%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <Visible>false</Visible>
-    </EmbeddedResource>
-    <EmbeddedResource Include="../Resources/Tracker/scripts/**" Condition=" '$(Configuration)' == 'Debug' ">
-      <LogicalName>Tracker\scripts\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
-      <Link>Resources/Tracker/scripts/%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <Visible>false</Visible>
-    </EmbeddedResource>
-    <EmbeddedResource Include="../Resources/Tracker/styles/**">
-      <LogicalName>Tracker\styles\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
-      <Link>Resources/Tracker/styles/%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <Visible>false</Visible>
+    <EmbeddedResource Include="Resources/tracker-loader.js">
+      <LogicalName>tracker-loader.js</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="../Resources/Viewer/**">
       <LogicalName>Viewer\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
@@ -61,19 +49,4 @@
       <Visible>false</Visible>
     </EmbeddedResource>
   </ItemGroup>
-  <Target Name="MinifyResources" BeforeTargets="PrepareForBuild" Condition=" '$(Configuration)' == 'Release' ">
-    <PropertyGroup>
-      <MinifiedResourceDir>$(ProjectDir)bin/.res/scripts</MinifiedResourceDir>
-    </PropertyGroup>
-    <ItemGroup>
-      <UpToDateCheckInput Include="$(ProjectDir)../Resources/Tracker/scripts/**" Visible="false" />
-      <EmbeddedResource Include="$(MinifiedResourceDir)/discord.js" LogicalName="Tracker\scripts\discord.js" Visible="false" />
-      <EmbeddedResource Include="$(MinifiedResourceDir)/dom.js" LogicalName="Tracker\scripts\dom.js" Visible="false" />
-      <EmbeddedResource Include="$(MinifiedResourceDir)/gui.js" LogicalName="Tracker\scripts\gui.js" Visible="false" />
-      <EmbeddedResource Include="$(MinifiedResourceDir)/settings.js" LogicalName="Tracker\scripts\settings.js" Visible="false" />
-      <EmbeddedResource Include="$(MinifiedResourceDir)/state.js" LogicalName="Tracker\scripts\state.js" Visible="false" />
-    </ItemGroup>
-    <RemoveDir Directories="$(ProjectDir)bin/.res/scripts" />
-    <Exec Command="python $(ProjectDir)../Resources/minify.py" WorkingDirectory="$(ProjectDir)../Resources" IgnoreExitCode="false" />
-  </Target>
 </Project>
