@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Discord Offline History</title>
+    
+    <script type="text/javascript">
+var DISCORD = (function(){
+  var REGEX = {
+    formatBold: /\*\*([\s\S]+?)\*\*(?!\*)/g,
+    formatItalic: /(.)?\*([\s\S]+?)\*(?!\*)/g,
+    formatUnderline: /__([\s\S]+?)__(?!_)/g,
+    formatStrike: /~~([\s\S]+?)~~(?!~)/g,
+    formatCodeInline: /(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/g,
+    formatCodeBlock: /```(?:([A-z0-9\-]+?)\n+)?\n*([^]+?)\n*```/g,
+    formatUrl: /(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,
+    formatUrlNoEmbed: /<(\b(?:https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])>/ig,
+    specialEscapedBacktick: /\\`/g,
+    specialEscapedSingle: /\\([*\\])/g,
+    specialEscapedDouble: /\\__|_\\_|\\_\\_|\\~~|~\\~|\\~\\~/g,
+    specialUnescaped: /([*_~\\])/g,
+    mentionRole: /&lt;@&(\d+?)&gt;/g,
+    mentionUser: /&lt;@!?(\d+?)&gt;/g,
+    mentionChannel: /&lt;#(\d+?)&gt;/g,
+    customEmojiStatic: /&lt;:([^:]+):(\d+?)&gt;/g,
+    customEmojiAnimated: /&lt;a:([^:]+):(\d+?)&gt;/g
+  };
+  
+  var isImageAttachment = function(attachment){
+    var dot = attachment.url.lastIndexOf(".");
+    var ext = dot === -1 ? "" : attachment.url.substring(dot).toLowerCase();
+    return ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg";
+  };
+  
+  var getHumanReadableTime = function(timestamp){
+    var date = new Date(timestamp);
+    return date.toLocaleDateString() + ", " + date.toLocaleTimeString();
+  };
+  
+  var templateChannelServer;
+  var templateChannelPrivate;
+  var templateMessageNoAvatar;
+  var templateMessageWithAvatar;
+  var templateUserAvatar;
+  var templateEmbedImage;
+  var templateEmbedRich;
+  var templateEmbedRichNoDescription;
+  var templateEmbedRichUnsupported;
+  var templateEmbedDownload;
+  
+  var processMessageContents = function(contents){
+    var processed = DOM.escapeHTML(contents.replace(REGEX.formatUrlNoEmbed, "$1"));
+    
+    if (STATE.settings.enableFormatting){
+      var escapeHtmlMatch = (full, match) => "&#"+match.charCodeAt(0)+";";
+      
+      processed = processed
+        .replace(REGEX.specialEscapedBacktick, "&#96;")
+        .replace(REGEX.formatCodeBlock, (full, ignore, match) => "<code class='block'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
+        .replace(REGEX.formatCodeInline, (full, ignore, match) => "<code class='inline'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
+        .replace(REGEX.specialEscapedSingle, escapeHtmlMatch)
+        .replace(REGEX.specialEscapedDouble, full => full.replace(/\\/g, "").replace(/(.)/g, escapeHtmlMatch))
+        .replace(REGEX.formatBold, "<b>$1</b>")
+        .replace(REGEX.formatItalic, (full, pre, match) => pre === '\\' ? full : (pre || "")+"<i>"+match+"</i>")
+        .replace(REGEX.formatUnderline, "<u>$1</u>")
+        .replace(REGEX.formatStrike, "<s>$1</s>");
+    }
+    
+    var animatedEmojiExtension = STATE.settings.enableAnimatedEmoji ? "gif" : "png";
+    
+    processed = processed
+      .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
+      .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
+      .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user' title='#"+(STATE.getUserTag(match) || "????")+"'>@"+STATE.getUserName(match)+"</span>")
+      .replace(REGEX.customEmojiStatic, "<img src='https://cdn.discordapp.com/emojis/$2.png' alt=':$1:' title=':$1:' class='emoji'>")
+      .replace(REGEX.customEmojiAnimated, "<img src='https://cdn.discordapp.com/emojis/$2."+animatedEmojiExtension+"' alt=':$1:' title=':$1:' class='emoji'>");
+    
+    return "<p>"+processed+"</p>";
+  };
+  
+  return {
+    setup: function(){
+      templateChannelServer = new TEMPLATE([
+        "<div data-channel='{id}'>",
+        "<div class='info' title='{topic}'><strong class='name'>#{name}</strong>{nsfw}<span class='tag'>{msgcount}</span></div>",
+        "<span class='server'>{server.name} ({server.type})</span>",
+        "</div>"
+      ].join(""));
+      
+      templateChannelPrivate = new TEMPLATE([
+        "<div data-channel='{id}'>",
+        "<div class='info'><strong class='name'>{name}</strong><span class='tag'>{msgcount}</span></div>",
+        "<span class='server'>({server.type})</span>",
+        "</div>"
+      ].join(""));
+      
+      templateMessageNoAvatar = new TEMPLATE([
+        "<div>",
+        "<div class='reply-message'>{reply}</div>",
+        "<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
+        "<div class='message'>{contents}{embeds}{attachments}</div>",
+        "<div class='reactions'>{reactions}</div>",
+        "</div>"
+      ].join(""));
+      
+      templateMessageWithAvatar = new TEMPLATE([
+        "<div>",
+        "<div class='reply-message reply-message-with-avatar'>{reply}</div>",
+        "<div class='avatar-wrapper'>",
+        "<div class='avatar'>{avatar}</div>",
+        "<div>",
+        "<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
+        "<div class='message'>{contents}{embeds}{attachments}</div>",
+        "<div class='reactions'>{reactions}</div>",
+        "</div>",
+        "</div>",
+        "</div>"
+      ].join(""));
+      
+      templateUserAvatar = new TEMPLATE([
+        "<img src='https://cdn.discordapp.com/avatars/{id}/{path}.webp?size=128'>"
+      ].join(""));
+      
+      templateEmbedImage = new TEMPLATE([
+        "<a href='{url}' class='embed thumbnail'><img src='{url}' alt='(image attachment not found)'></a><br>"
+      ].join(""));
+      
+      templateEmbedRich = new TEMPLATE([
+        "<div class='embed download'><a href='{url}' class='title'>{t}</a><p class='desc'>{d}</p></div>"
+      ].join(""));
+      
+      templateEmbedRichNoDescription = new TEMPLATE([
+        "<div class='embed download'><a href='{url}' class='title'>{t}</a></div>"
+      ].join(""));
+      
+      templateEmbedRichUnsupported = new TEMPLATE([
+        "<div class='embed download'><p>(Formatted embeds are currently not supported)</p></div>"
+      ].join(""));
+      
+      templateEmbedDownload = new TEMPLATE([
+        "<a href='{url}' class='embed download'>Download {filename}</a>"
+      ].join(""));
+      
+      templateReaction = new TEMPLATE([
+        "<span class='reaction-wrapper'><span class='reaction-emoji'>{n}</span><span class='count'>{c}</span></span>"
+      ].join(""));
+      
+      templateReactionCustom = new TEMPLATE([
+        "<span class='reaction-wrapper'><img src='https://cdn.discordapp.com/emojis/{id}.{ext}' alt=':{n}:' title=':{n}:' class='reaction-emoji-custom'><span class='count'>{c}</span></span>"
+      ].join(""));
+    },
+    
+    isImageAttachment: isImageAttachment,
+    
+    getChannelHTML: function(channel){
+      return (channel.server.type === "SERVER" ? templateChannelServer : templateChannelPrivate).apply(channel, (property, value) => {
+        if (property === "server.type"){
+          switch(value){
+            case "SERVER": return "server";
+            case "GROUP": return "group";
+            case "DM": return "user";
+          }
+        }
+        else if (property === "nsfw"){
+          return value ? "<span class='tag'>NSFW</span>" : "";
+        }
+      });
+    },
+    
+    getMessageHTML: function(message){
+      return (STATE.settings.enableUserAvatars ? templateMessageWithAvatar : templateMessageNoAvatar).apply(message, (property, value) => {
+        if (property === "avatar"){
+          return value ? templateUserAvatar.apply(value) : "";
+        }
+        else if (property === "user.tag"){
+          return value ? value : "????";
+        }
+        else if (property === "timestamp"){
+          return getHumanReadableTime(value);
+        }
+        else if (property === "contents"){
+          return value == null || value.length === 0 ? "" : processMessageContents(value);
+        }
+        else if (property === "embeds"){
+          if (!value){
+            return "";
+          }
+          
+          return value.map(embed => {
+            switch(embed.type){
+              case "image":
+                return STATE.settings.enableImagePreviews ? templateEmbedImage.apply(embed) : "";
+                
+              case "rich":
+                return (embed.t ? (embed.d ? templateEmbedRich : templateEmbedRichNoDescription) : templateEmbedRichUnsupported).apply(embed);
+            }
+          }).join("");
+        }
+        else if (property === "attachments"){
+          if (!value){
+            return "";
+          }
+          
+          return value.map(attachment => {
+            if (isImageAttachment(attachment) && STATE.settings.enableImagePreviews){
+              return templateEmbedImage.apply(attachment);
+            }
+            else{
+              var sliced = attachment.url.split("/");
+
+              return templateEmbedDownload.apply({
+                "url": attachment.url,
+                "filename": sliced[sliced.length-1]
+              });
+            }
+          }).join("");
+        }
+        else if (property === "edit"){
+          return value ? "<span class='info edited'>Edited" + (value > 1 ? " " + getHumanReadableTime(value) : "") + "</span>" : "";
+        }
+        else if (property === "jump"){
+          return STATE.hasActiveFilter ? "<span class='info jump' data-jump='" + value + "'>Jump to message</span>" : "";
+        }
+        else if (property === "reply"){
+          if (value === null) {
+            return "";
+          }
+          
+          var user = "<span class='reply-username' title='#" + (value.user.tag ? value.user.tag : "????") + "'>" + value.user.name + "</span>";
+          var avatar = STATE.settings.enableUserAvatars && value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(value.avatar) + "</span>" : "";
+          var contents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
+          
+          return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
+        }
+        else if (property === "reactions"){
+          if (value === null){
+            return "";
+          }
+          
+          return value.map(reaction => {
+            if ("id" in reaction){
+              reaction.ext = reaction.an && STATE.settings.enableAnimatedEmoji ? "gif" : "png";
+              return templateReactionCustom.apply(reaction);
+            }
+            else {
+              return templateReaction.apply(reaction);
+            }
+          }).join("");
+        }
+      });
+    }
+  };
+})();
+
+var DOM = (function(){
+  var createElement = (tag, parent) => {
+    var ele = document.createElement(tag);
+    parent.appendChild(ele);
+    return ele;
+  };
+  
+  var entityMap = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  
+  var entityRegex = /[&<>"']/g;
+  
+  return {
+    /*
+     * Returns a child element by its ID. Parent defaults to the entire document.
+     */
+    id: (id, parent) => (parent || document).getElementById(id),
+    
+    /*
+     * Returns an array of all child elements containing the specified class. Parent defaults to the entire document.
+     */
+    cls: (cls, parent) => Array.prototype.slice.call((parent || document).getElementsByClassName(cls)),
+    
+    /*
+     * Returns an array of all child elements that have the specified tag. Parent defaults to the entire document.
+     */
+    tag: (tag, parent) => Array.prototype.slice.call((parent || document).getElementsByTagName(tag)),
+    
+    /*
+     * Returns the first child element containing the specified class. Parent defaults to the entire document.
+     */
+    fcls: (cls, parent) => (parent || document).getElementsByClassName(cls)[0],
+    
+    /*
+     * Creates an element, adds it to the DOM, and returns it.
+     */
+    createElement: (tag, parent) => createElement(tag, parent),
+    
+    /*
+     * Removes an element from the DOM.
+     */
+    removeElement: (ele) => ele.parentNode.removeChild(ele),
+    
+    /*
+     * Converts characters to their HTML entity form.
+     */
+    escapeHTML: (html) => String(html).replace(entityRegex, s => entityMap[s]),
+    
+    /*
+     * Triggers a UTF-8 text file download.
+     */
+    downloadTextFile: (fileName, fileContents) => {
+      var blob = new Blob([fileContents], { "type": "octet/stream" });
+      
+      if ("msSaveBlob" in window.navigator){
+        return window.navigator.msSaveBlob(blob, fileName);
+      }
+      
+      var url = window.URL.createObjectURL(blob);
+      
+      var ele = createElement("a", document.body);
+      ele.href = url;
+      ele.download = fileName;
+      ele.style.display = "none";
+      
+      ele.click();
+      
+      document.body.removeChild(ele);
+      window.URL.revokeObjectURL(url);
+    }
+  };
+})();
+
+var EMBED = (function(){
+  var enabled = false;
+  
+  var html;
+  var generated;
+  
+  var downloadTextFile = function(fileName, fileContents){
+    var blob = new Blob([fileContents], { "type": "octet/stream" });
+    
+    if ("msSaveBlob" in window.navigator){
+      return window.navigator.msSaveBlob(blob, fileName);
+    }
+    
+    var url = window.URL.createObjectURL(blob);
+    
+    var ele = DOM.createElement("a", document.body);
+    ele.href = url;
+    ele.download = fileName;
+    ele.style.display = "none";
+    
+    ele.click();
+    
+    document.body.removeChild(ele);
+    window.URL.revokeObjectURL(url);
+  };
+  
+  var utoa = function(str){
+    return window.btoa(unescape(encodeURIComponent(str)));
+  };
+  
+  var atou = function(str){
+    return decodeURIComponent(escape(window.atob(str)));
+  };
+  
+  return {
+    setup: function(){
+      enabled = true;
+      html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      
+      DOM.id("btn-upload-file").insertAdjacentHTML("afterend", `<button id="btn-embed-file" disabled>Embed File</button>`);
+      DOM.id("btn-embed-file").addEventListener("click", () => downloadTextFile("embed.html", generated));
+    },
+    
+    onFileRead: function(json){
+      if (!enabled){
+        return;
+      }
+      
+      DOM.id("btn-embed-file").disabled = false;
+      generated = html.replace("</title>", `</title>\n<script type="text/javascript">window.DHT_EMBEDDED = "${utoa(json)}";<\/script>`).replace(`<${document.body.tagName.toLowerCase()}>`, `<body class="embedded">`);
+    },
+    
+    getEmbeddedJSON: function(){
+      var embed = window.DHT_EMBEDDED;
+      return embed ? atou(embed) : null;
+    }
+  };
+})();
+
+document.addEventListener("DOMContentLoaded", () => {
+  var embedded = EMBED.getEmbeddedJSON();
+  
+  if (location.search === "?embed" && !embedded){
+    EMBED.setup();
+  }
+  
+  DISCORD.setup();
+  GUI.setup();
+  
+  GUI.onOptionMessagesPerPageChanged(() => {
+    STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
+  });
+  
+  STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
+  
+  GUI.onOptMessageFilterChanged(filter => {
+    STATE.setActiveFilter(filter);
+  });
+  
+  GUI.onNavigationButtonClicked(action => {
+    STATE.updateCurrentPage(action);
+  });
+  
+  STATE.onUsersRefreshed(users => {
+    GUI.updateUserList(users);
+  });
+  
+  STATE.onChannelsRefreshed((channels, selected) => {
+    GUI.updateChannelList(channels, selected, STATE.selectChannel);
+  });
+  
+  STATE.onMessagesRefreshed(messages => {
+    GUI.updateNavigation(STATE.getCurrentPage(), STATE.getPageCount());
+    GUI.updateMessageList(messages);
+    GUI.scrollMessagesToTop();
+  });
+  
+  var loadJSON = function(json, errParse, errInvalid){
+    var obj;
+    
+    try{
+      obj = JSON.parse(json);
+      EMBED.onFileRead(json);
+    }catch(e){
+      console.error(e);
+      alert(errParse);
+      return;
+    }
+    
+    if (SAVEFILE.isValid(obj)){
+      STATE.uploadFile(new SAVEFILE(obj));
+    }
+    else{
+      alert(errInvalid);
+    }
+  };
+  
+  if (embedded){
+    loadJSON(embedded, "Could not parse embedded file, see console for details.", "Embedded file has an invalid format.");
+  }
+  else{
+    GUI.onFileUploaded(files => {
+      if (files.length === 1){
+        var file = files[0];
+        var reader = new FileReader();
+        
+        STATE.setUploadedFileName(file.name);
+
+        reader.onload = () => loadJSON(reader.result, "Could not parse '"+file.name+"', see console for details.", "File '"+file.name+"' has an invalid format.");
+        reader.readAsText(file, "UTF-8");
+      }
+      else{
+        alert("Please, select only one file.");
+      }
+      
+      return true;
+    });
+  }
+});
+
+var GUI = (function(){
+  var eventOnFileUploaded;
+  var eventOnOptMessagesPerPageChanged;
+  var eventOnOptMessageFilterChanged;
+  var eventOnNavButtonClicked;
+  
+  var getActiveFilter = function(){
+    var active = DOM.fcls("active", DOM.id("opt-filter-list"));
+    
+    return active && active.value !== "" ? {
+      "type": active.getAttribute("data-filter-type"),
+      "value": active.value
+    } : null;
+  };
+  
+  var triggerFilterChanged = function(){
+    var activeFilter = getActiveFilter();
+    DOM.id("opt-save-filtered").classList.toggle("active", activeFilter != null);
+    
+    eventOnOptMessageFilterChanged && eventOnOptMessageFilterChanged(activeFilter);
+  };
+  
+  var showModal = function(width, html){
+    var dialog = DOM.id("dialog");
+    dialog.innerHTML = html;
+    dialog.style.width = width+"px";
+    dialog.style.marginLeft = (-width/2)+"px";
+    
+    DOM.id("modal").classList.add("visible");
+    return dialog;
+  };
+  
+  // -------------
+  // Modal dialogs
+  // -------------
+  
+  var showSettingsModal = function(){
+    showModal(560, `
+<label><input id='dht-cfg-imgpreviews' type='checkbox'> Image Previews</label><br>
+<label><input id='dht-cfg-formatting' type='checkbox'> Message Formatting</label><br>
+<label><input id='dht-cfg-useravatars' type='checkbox'> User Avatars</label><br>
+<label><input id='dht-cfg-animemoji' type='checkbox'> Animated Emoji</label><br>`);
+    
+    var setupCheckBox = function(id, settingName){
+      var ele = DOM.id(id);
+      ele.checked = STATE.settings[settingName];
+      ele.addEventListener("change", () => STATE.settings[settingName] = ele.checked);
+    };
+    
+    setupCheckBox("dht-cfg-imgpreviews", "enableImagePreviews");
+    setupCheckBox("dht-cfg-formatting", "enableFormatting");
+    setupCheckBox("dht-cfg-useravatars", "enableUserAvatars");
+    setupCheckBox("dht-cfg-animemoji", "enableAnimatedEmoji");
+  };
+  
+  var showInfoModal = function(){
+    var linkGH = "https://github.com/chylex/Discord-History-Tracker";
+    
+    showModal(560, `
+<p>Discord History Tracker is developed by <a href='https://chylex.com'>chylex</a> as an <a href='${linkGH}/blob/master/LICENSE.md'>open source</a> project.</p>
+<sub>v.31e, released 10 October 2022</sub>
+<p>Please, report any issues and suggestions to the <a href='${linkGH}/issues'>tracker</a>. If you want to support the development, please spread the word and consider <a href='https://www.patreon.com/chylex'>becoming a patron</a> or <a href='https://ko-fi.com/chylex'>buying me a coffee</a>. Any support is appreciated!</p>
+<p><a href='${linkGH}/issues'>Issue Tracker</a> &nbsp;&mdash;&nbsp; <a href='${linkGH}'>GitHub Repository</a> &nbsp;&mdash;&nbsp; <a href='https://twitter.com/chylexmc'>Developer's Twitter</a></p>`);
+  };
+  
+  return {
+    // ---------
+    // GUI setup
+    // ---------
+    
+    /*
+     * Hooks all event listeners into the DOM.
+     */
+    setup: function(){
+      var inputUploadedFile = DOM.id("uploaded-file");
+      var inputMessageFilter = DOM.id("opt-messages-filter");
+      var containerFilterList = DOM.id("opt-filter-list");
+      
+      var resetActiveFilter = function(){
+        inputMessageFilter.value = "";
+        inputMessageFilter.dispatchEvent(new Event("change"));
+        
+        DOM.id("opt-filter-contents").value = "";
+        DOM.id("opt-save-filtered").classList.remove("active");
+      };
+      
+      DOM.id("btn-upload-file").addEventListener("click", () => {
+        inputUploadedFile.click();
+      });
+      
+      inputUploadedFile.addEventListener("change", () => {
+        if (eventOnFileUploaded && eventOnFileUploaded(inputUploadedFile.files)){
+          inputUploadedFile.value = null;
+          resetActiveFilter();
+        }
+      });
+      
+      inputMessageFilter.value = ""; // required to prevent browsers from remembering old value
+      
+      inputMessageFilter.addEventListener("change", () => {
+        DOM.cls("active", containerFilterList).forEach(ele => ele.classList.remove("active"));
+        
+        if (inputMessageFilter.value){
+          containerFilterList.querySelector("[data-filter-type='"+inputMessageFilter.value+"']").classList.add("active");
+        }
+        
+        triggerFilterChanged();
+      });
+      
+      Array.prototype.forEach.call(containerFilterList.children, ele => {
+        ele.addEventListener(ele.tagName === "SELECT" ? "change" : "input", e => triggerFilterChanged());
+      });
+      
+      DOM.id("opt-messages-per-page").addEventListener("change", () => {
+        eventOnOptMessagesPerPageChanged && eventOnOptMessagesPerPageChanged();
+      });
+      
+      DOM.id("btn-save-filtered").addEventListener("click", () => {
+        if (confirm("Filtering only removes messages, all users and servers will remain in the new archive. Continue?")){
+          STATE.saveFilteredMessages();
+        }
+      });
+
+      DOM.tag("button", DOM.fcls("nav")).forEach(button => {
+        button.disabled = true;
+        
+        button.addEventListener("click", () => {
+          eventOnNavButtonClicked && eventOnNavButtonClicked(button.getAttribute("data-nav"));
+        });
+      });
+      
+      DOM.id("btn-settings").addEventListener("click", () => {
+        showSettingsModal();
+      });
+      
+      DOM.id("btn-about").addEventListener("click", () => {
+        showInfoModal();
+      });
+      
+      DOM.id("messages").addEventListener("click", e => {
+        var jump = e.target.getAttribute("data-jump");
+        
+        if (jump){
+          resetActiveFilter();
+          
+          var index = STATE.navigateToMessage(jump);
+          DOM.id("messages").children[index].scrollIntoView();
+        }
+      });
+      
+      DOM.id("overlay").addEventListener("click", () => {
+        DOM.id("modal").classList.remove("visible");
+        DOM.id("dialog").innerHTML = "";
+      });
+    },
+    
+    // -----------------
+    // Event registering
+    // -----------------
+    
+    /*
+     * Sets a callback for when a file is uploaded. The callback takes a single argument, which is the file object array, and should return true to reset the input.
+     */
+    onFileUploaded: function(callback){
+      eventOnFileUploaded = callback;
+    },
+    
+    /*
+     * Sets a callback for when the user changes the messages per page option. The callback is not passed any arguments.
+     */
+    onOptionMessagesPerPageChanged: function(callback){
+      eventOnOptMessagesPerPageChanged = callback;
+    },
+    
+    /*
+     * Sets a callback for when the user changes the active filter. The callback is passed either null or an object such as { type: <filter type>, value: <filter value> }.
+     */
+    onOptMessageFilterChanged: function(callback){
+      eventOnOptMessageFilterChanged = callback;
+    },
+
+    /*
+     * Sets a callback for when the user clicks a navigation button. The callback is passed one of the following strings: first, prev, next, last.
+     */
+    onNavigationButtonClicked: function(callback){
+      eventOnNavButtonClicked = callback;
+    },
+    
+    // ----------------------
+    // Options and navigation
+    // ----------------------
+    
+    /*
+     * Returns the selected amount of messages per page.
+     */
+    getOptionMessagesPerPage: function(){
+      return parseInt(DOM.id("opt-messages-per-page").value, 10);
+    },
+
+    /*
+     * Updates the navigation text and buttons.
+     */
+    updateNavigation: function(currentPage, totalPages){
+      DOM.id("nav-page-current").innerHTML = currentPage;
+      DOM.id("nav-page-total").innerHTML = totalPages || "?";
+      
+      DOM.id("nav-first").disabled = currentPage === 1;
+      DOM.id("nav-prev").disabled = currentPage === 1;
+      DOM.id("nav-pick").disabled = (totalPages || 0) <= 1;
+      DOM.id("nav-next").disabled = currentPage === (totalPages || 1);
+      DOM.id("nav-last").disabled = currentPage === (totalPages || 1);
+    },
+    
+    // --------------
+    // Updating lists
+    // --------------
+    
+    /*
+     * Updates the channel list and sets up their click events. The callback is triggered whenever a channel is selected, and takes the channel ID as its argument.
+     */
+    updateChannelList: function(channels, selected, callback){
+      var eleChannels = DOM.id("channels");
+      
+      if (!channels){
+        eleChannels.innerHTML = "";
+      }
+      else{
+        if (getActiveFilter() != null){
+          channels = channels.filter(channel => channel.msgcount > 0);
+        }
+        
+        eleChannels.innerHTML = channels.map(channel => DISCORD.getChannelHTML(channel)).join("");
+        
+        Array.prototype.forEach.call(eleChannels.children, ele => {
+          ele.addEventListener("click", e => {
+            var currentChannel = DOM.fcls("active", eleChannels);
+
+            if (currentChannel){
+              currentChannel.classList.remove("active");
+            }
+
+            ele.classList.add("active");
+            callback(ele.getAttribute("data-channel"));
+          });
+        });
+        
+        if (selected){
+          var activeChannel = eleChannels.querySelector("[data-channel='"+selected+"']");
+          activeChannel && activeChannel.classList.add("active");
+        }
+      }
+    },
+    
+    // ------------
+    // Message list
+    // ------------
+    
+    /*
+     * Updates the message list.
+     */
+    updateMessageList: function(messages){
+      DOM.id("messages").innerHTML = messages ? messages.map(message => DISCORD.getMessageHTML(message)).join("") : "";
+    },
+    
+    /*
+     * Updates the user filter list.
+     */
+    updateUserList: function(users){
+      var eleSelect = DOM.id("opt-filter-user");
+      
+      while(eleSelect.length > 1){
+        eleSelect.remove(1);
+      }
+      
+      var options = [];
+      
+      for(var key of Object.keys(users)){
+        var option = document.createElement("option");
+        option.value = key;
+        option.text = users[key].name;
+        options.push(option);
+      }
+      
+      options.sort((a, b) => a.text.toLocaleLowerCase().localeCompare(b.text.toLocaleLowerCase()));
+      options.forEach(option => eleSelect.add(option));
+    },
+
+    /*
+     * Scrolls the message div to the top.
+     */
+    scrollMessagesToTop: function(){
+      DOM.id("messages").scrollTop = 0;
+    }
+  };
+})();
+
+var PROCESSOR = {};
+
+// ------------------------
+// Global filter generators
+// ------------------------
+
+PROCESSOR.FILTER = {
+  byUser: ((userindex) => message => message.u === userindex),
+  byTime: ((timeStart, timeEnd) => message => message.t >= timeStart && message.t <= timeEnd),
+  byContents: ((substr) => message => ("m" in message ? message.m : "").indexOf(substr) !== -1),
+  byRegex: ((regex) => message => regex.test("m" in message ? message.m : "")),
+  withImages: (() => message => (message.e && message.e.some(embed => embed.type === "image")) || (message.a && message.a.some(DISCORD.isImageAttachment))),
+  withDownloads: (() => message => message.a && message.a.some(attachment => !DISCORD.isImageAttachment(attachment))),
+  withEmbeds: (() => message => message.e && message.e.length > 0),
+  withAttachments: (() => message => message.a && message.a.length > 0),
+  isEdited: (() => message => ("te" in message) ? message.te : (message.f & 1) === 1)
+};
+
+// --------------
+// Global sorters
+// --------------
+
+PROCESSOR.SORTER = {
+  oldestToNewest: (key1, key2) => {
+    if (key1.length === key2.length){
+      return key1 > key2 ? 1 : key1 < key2 ? -1 : 0;
+    }
+    else{
+      return key1.length > key2.length ? 1 : -1;
+    }
+  },
+  
+  newestToOldest: (key1, key2) => {
+    if (key1.length === key2.length){
+      return key1 > key2 ? -1 : key1 < key2 ? 1 : 0;
+    }
+    else{
+      return key1.length > key2.length ? -1 : 1;
+    }
+  }
+};
+
+class SAVEFILE{
+  constructor(parsedObj){
+    var me = this;
+    
+    me.meta = parsedObj.meta;
+    me.data = parsedObj.data;
+    
+    me.meta.users = me.meta.users || {};
+    me.meta.userindex = me.meta.userindex || [];
+    me.meta.servers = me.meta.servers || [];
+    me.meta.channels = me.meta.channels || {};
+  };
+
+  static isValid(parsedObj){
+    return parsedObj && typeof parsedObj.meta === "object" && typeof parsedObj.data === "object";
+  };
+
+  getServer(index){
+    return this.meta.servers[index] || { "name": "&lt;unknown&gt;", "type": "ERROR" };
+  }
+
+  getChannels(){
+    return this.meta.channels;
+  }
+
+  getChannelById(channel){
+    return this.meta.channels[channel] || { "id": channel, "name": channel };
+  }
+
+  getUsers(){
+    return this.meta.users;
+  }
+
+  getUser(index){
+    return this.meta.users[this.meta.userindex[index]] || { "name": "&lt;unknown&gt;" };
+  }
+
+  getUserId(index){
+    return this.meta.userindex[index];
+  }
+
+  getUserById(user){
+    return this.meta.users[user] || { "name": user };
+  }
+
+  getUserIndex(user){
+    return this.meta.userindex.indexOf(user);
+  }
+
+  getMessages(channel){
+    return this.data[channel] || {};
+  }
+
+  filterToJson(filterFunction){
+    var newMeta = JSON.parse(JSON.stringify(this.meta));
+    var newData = {};
+    
+    for(let channel of Object.keys(this.getChannels())){
+      var messages = this.getMessages(channel);
+      var retained = {};
+      
+      for(let key of Object.keys(messages)){
+        var message = messages[key];
+        
+        if (filterFunction(message)){
+          retained[key] = message;
+        }
+      }
+      
+      if (Object.keys(retained).length > 0){
+        newData[channel] = retained;
+      }
+      else{
+        delete newMeta.channels[channel];
+      }
+    }
+    
+    return JSON.stringify({
+      "meta": newMeta,
+      "data": newData
+    });
+  }
+}
+
+var STATE = (function(){
+  var ROOT = {};
+  
+  // ---------------
+  // State variables
+  // ---------------
+  
+  var FILE;
+  var MSGS;
+  
+  var uploadedFileName;
+  var filterFunction;
+  var selectedChannel;
+  var currentPage;
+  var messagesPerPage;
+  
+  // ----------------------------------
+  // Channel and message refresh events
+  // ----------------------------------
+  
+  var eventOnChannelsRefreshed;
+  var eventOnMessagesRefreshed;
+  var eventOnUsersRefreshed;
+  
+  var triggerChannelsRefreshed = function(selectedChannel){
+    eventOnChannelsRefreshed && eventOnChannelsRefreshed(ROOT.getChannelList(), selectedChannel);
+  };
+  
+  var triggerMessagesRefreshed = function(){
+    eventOnMessagesRefreshed && eventOnMessagesRefreshed(ROOT.getMessageList());
+  };
+  
+  var triggerUsersRefreshed = function(){
+    eventOnUsersRefreshed && eventOnUsersRefreshed(ROOT.getUserList());
+  };
+
+  ROOT.onChannelsRefreshed = function(callback){
+    eventOnChannelsRefreshed = callback;
+  };
+  
+  ROOT.onMessagesRefreshed = function(callback){
+    eventOnMessagesRefreshed = callback;
+  };
+  
+  ROOT.onUsersRefreshed = function(callback){
+    eventOnUsersRefreshed = callback;
+  };
+
+  // ------------------------------------
+  // File upload and basic data retrieval
+  // ------------------------------------
+
+  ROOT.uploadFile = function(file){
+    FILE = file;
+    MSGS = null;
+    
+    selectedChannel = null;
+    currentPage = 1;
+    
+    triggerUsersRefreshed();
+    triggerChannelsRefreshed();
+    triggerMessagesRefreshed();
+  };
+  
+  ROOT.setUploadedFileName = function(name){
+    uploadedFileName = name;
+  };
+
+  ROOT.getChannelName = function(channel){
+    return FILE.getChannelById(channel).name;
+  };
+  
+  ROOT.getUserName = function(user){
+    return FILE.getUserById(user).name;
+  };
+  
+  ROOT.getUserTag = function(user){
+    return FILE.getUserById(user).tag;
+  };
+  
+  // --------------------------
+  // Channel list and selection
+  // --------------------------
+  
+  var getFilteredMessageKeys = function(channel){
+    var messages = FILE.getMessages(channel);
+    var keys = Object.keys(messages);
+    
+    if (filterFunction){
+      keys = keys.filter(key => filterFunction(messages[key]));
+    }
+    
+    return keys;
+  };
+
+  ROOT.getChannelList = function(){
+    if (!FILE){
+      return [];
+    }
+    
+    var channels = FILE.getChannels();
+
+    return Object.keys(channels).map(key => ({
+      "id": key,
+      "name": channels[key].name,
+      "server": FILE.getServer(channels[key].server),
+      "msgcount": getFilteredMessageKeys(key).length,
+      "topic": channels[key].topic || "",
+      "nsfw": channels[key].nsfw || false,
+      "position": channels[key].position || -1
+    })).sort((ac, bc) => {
+      var as = ac.server;
+      var bs = bc.server;
+      
+      return as.type.localeCompare(bs.type, "en") ||
+             as.name.toLocaleLowerCase().localeCompare(bs.name.toLocaleLowerCase(), undefined, { numeric: true }) ||
+             ac.position - bc.position ||
+             ac.name.toLocaleLowerCase().localeCompare(bc.name.toLocaleLowerCase(), undefined, { numeric: true });
+    });
+  };
+
+  ROOT.selectChannel = function(channel){
+    currentPage = 1;
+    selectedChannel = channel;
+    
+    MSGS = getFilteredMessageKeys(channel).sort(PROCESSOR.SORTER.oldestToNewest);
+    triggerMessagesRefreshed();
+  };
+
+  ROOT.getSelectedChannel = function(){
+    return selectedChannel;
+  };
+  
+  // ------------
+  // Message list
+  // ------------
+  
+  ROOT.getMessageList = function(){
+    if (!MSGS){
+      return [];
+    }
+
+    var messages = FILE.getMessages(selectedChannel);
+    var startIndex = messagesPerPage*(ROOT.getCurrentPage()-1);
+
+    return MSGS.slice(startIndex, !messagesPerPage ? undefined : startIndex+messagesPerPage).map(key => {
+      var message = messages[key];
+      var user = FILE.getUser(message.u);
+      var avatar = user.avatar ? { id: FILE.getUserId(message.u), path: user.avatar } : null;
+      
+      var reply = ("r" in message && message.r in messages) ? messages[message.r] : null;
+      var replyUser = reply ? FILE.getUser(reply.u) : null;
+      var replyAvatar = replyUser && replyUser.avatar ? { id: FILE.getUserId(reply.u), path: replyUser.avatar } : null;
+      var replyObj = reply ? {
+        "id": message.r,
+        "user": replyUser,
+        "avatar": replyAvatar,
+        "contents": reply.m
+      } : null;
+      
+      return {
+        "user": user,
+        "avatar": avatar,
+        "timestamp": message.t,
+        "contents": ("m" in message) ? message.m : null,
+        "embeds": message.e,
+        "attachments": message.a,
+        "edit": ("te" in message) ? message.te : (message.f & 1) === 1,
+        "jump": key,
+        "reply": replyObj,
+        "reactions": ("re" in message) ? message.re : null
+      };
+    });
+  };
+  
+  ROOT.navigateToMessage = function(id){
+    if (!MSGS){
+      return 0;
+    }
+    
+    var index = MSGS.indexOf(id);
+    
+    if (index == -1){
+      return 0;
+    }
+    
+    currentPage = Math.max(1, Math.min(ROOT.getPageCount(), 1 + Math.floor(index / messagesPerPage)));
+    triggerMessagesRefreshed();
+    return index % messagesPerPage;
+  };
+
+  // ----------
+  // Filtering
+  // ----------
+  
+  ROOT.hasActiveFilter = false;
+  
+  ROOT.setActiveFilter = function(filter){
+    switch(filter ? filter.type : ""){
+      case "user":
+        filterFunction = PROCESSOR.FILTER.byUser(FILE.getUserIndex(filter.value));
+        break;
+        
+      case "contents":
+        filterFunction = PROCESSOR.FILTER.byContents(filter.value);
+        break;
+        
+      case "withimages":
+        filterFunction = PROCESSOR.FILTER.withImages();
+        break;
+        
+      case "withdownloads":
+        filterFunction = PROCESSOR.FILTER.withDownloads();
+        break;
+        
+      case "edited":
+        filterFunction = PROCESSOR.FILTER.isEdited();
+        break;
+
+      default:
+        filterFunction = null;
+        break;
+    }
+    
+    ROOT.hasActiveFilter = filterFunction != null;
+    
+    triggerChannelsRefreshed(selectedChannel);
+    
+    if (selectedChannel){
+      ROOT.selectChannel(selectedChannel); // resets current page and updates messages
+    }
+  };
+  
+  ROOT.saveFilteredMessages = function(){
+    var saveFileName = "dht-filtered.txt";
+    
+    if (uploadedFileName){
+      if (uploadedFileName.includes("filtered")){
+        saveFileName = uploadedFileName;
+      }
+      else{
+        saveFileName = uploadedFileName.replace(".", "-filtered.");
+      }
+    }
+    
+    DOM.downloadTextFile(saveFileName, FILE.filterToJson(filterFunction));
+  };
+  
+  // -----
+  // Users
+  // -----
+  
+  ROOT.getUserList = function(){
+    return FILE ? FILE.getUsers() : [];
+  };
+
+  // ----------
+  // Pagination
+  // ----------
+
+  ROOT.setMessagesPerPage = function(amount){
+    messagesPerPage = amount;
+    triggerMessagesRefreshed();
+  };
+
+  ROOT.updateCurrentPage = function(action){
+    switch(action){
+      case "first": currentPage = 1; break;
+      case "prev": currentPage = Math.max(1, currentPage-1); break;
+      case "next": currentPage = Math.min(ROOT.getPageCount(), currentPage+1); break;
+      case "last": currentPage = ROOT.getPageCount(); break;
+      
+      case "pick":
+        var page = parseInt(prompt("Select page:", currentPage), 10);
+        
+        if (!page && page !== 0){
+          return;
+        }
+        
+        currentPage = Math.max(1, Math.min(ROOT.getPageCount(), page));
+        break;
+    }
+    
+    triggerMessagesRefreshed();
+  };
+
+  ROOT.getCurrentPage = function(){
+    var total = ROOT.getPageCount();
+    
+    if (currentPage > total && total > 0){
+      currentPage = total;
+    }
+    
+    return currentPage || 1;
+  };
+
+  ROOT.getPageCount = function(){
+    return !MSGS ? 0 : (!messagesPerPage ? 1 : Math.ceil(MSGS.length/messagesPerPage));
+  };
+  
+  // --------
+  // Settings
+  // --------
+  
+  ROOT.settings = {};
+  
+  var getStorageItem = (property) => {
+    try{
+      return localStorage.getItem(property);
+    }catch(e){
+      console.error(e);
+      return null;
+    }
+  };
+  
+  var setStorageItem = (property, value) => {
+    try{
+      localStorage.setItem(property, value);
+    }catch(e){
+      console.error(e);
+    }
+  };
+  
+  var defineSettingProperty = (property, defaultValue, storageToValue) => {
+    var name = "_"+property;
+    
+    Object.defineProperty(ROOT.settings, property, {
+      get: (() => ROOT.settings[name]),
+      set: (value => {
+        ROOT.settings[name] = value;
+        triggerMessagesRefreshed();
+        setStorageItem(property, value);
+      })
+    });
+    
+    var stored = getStorageItem(property);
+    
+    if (stored !== null){
+      stored = storageToValue(stored);
+    }
+    
+    ROOT.settings[name] = stored === null ? defaultValue : stored;
+  };
+  
+  var fromBooleanString = (value) => {
+    if (value === "true") return true;
+    if (value === "false") return false;
+    return null;
+  };
+  
+  defineSettingProperty("enableImagePreviews", true, fromBooleanString);
+  defineSettingProperty("enableFormatting", true, fromBooleanString);
+  defineSettingProperty("enableUserAvatars", true, fromBooleanString);
+  defineSettingProperty("enableAnimatedEmoji", true, fromBooleanString);
+  
+  // End
+  return ROOT;
+})();
+
+var TEMPLATE_REGEX = /{([^{}]+?)}/g;
+
+class TEMPLATE{
+  constructor(contents){
+    this.contents = contents;
+  };
+
+  apply(obj, processor){
+    return this.contents.replace(TEMPLATE_REGEX, (full, match) => {
+      var value = match.split(".").reduce((o, property) => o[property], obj);
+      
+      if (processor){
+        var updated = processor(match, value);
+        return typeof updated === "undefined" ? DOM.escapeHTML(value) : updated;
+      }
+      
+      return DOM.escapeHTML(value);
+    });
+  }
+}
+    </script>
+    <style type="text/css">
+#channels {width:15vw;min-width:215px;max-width:300px;overflow-y:auto;background-color:#1C1E22}
+#channels > div {cursor:pointer;padding:10px 12px;color:#eee;font-size:15px;border-bottom:1px solid #333333}
+#channels > div:hover, #channels > div.active {background-color:#282B30}
+#channels .info {display:flex;height:16px;margin-bottom:4px}
+#channels .name {flex-grow:1;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+#channels .tag {flex-shrink:1;background-color:rgba(255,255,255,0.08);border-radius:4px;margin-left:4px;margin-top:1px;padding:2px 5px;font-size:11px}
+body {font-family:Whitney, "Helvetica Neue", Helvetica, Verdana, "Lucida Grande", sans-serif;line-height:1;margin:0;padding:0;overflow:hidden}
+body.embedded .hide-embedded {display:none}
+#menu {width:100%;height:48px;display:flex;flex-direction:row}
+#app {height:calc(100vh - 48px);display:flex;flex-direction:row}
+#menu {background-color:#17181C;border-bottom:1px dotted #5D626B}
+#menu .splitter {width:1px;margin:9px 4px;background-color:#5D626B}
+#menu .separator {flex:1 1 0}
+#menu :disabled {background-color:#555;cursor:default}
+#menu button, #menu select, #menu input[type="text"] {margin:8px;background-color:#7289DA;color:#FFF;text-shadow:1px 1px 2px rgba(0,0,0,0.75)}
+#menu button {font-size:17px;padding:0 12px;border:0;cursor:pointer}
+#menu select {font-size:14px;padding:6px;border:0;cursor:pointer}
+#menu input[type="text"] {font-size:14px;padding:7px 12px;border:0}
+#menu .nav {display:flex;flex-direction:row;margin:0 8px}
+#menu .nav > button {font-size:14px}
+#menu .nav > button.icon {font-family:Lucida Console, monospace;font-size:17px;padding:0 8px}
+#menu .nav > button, #menu .nav > p {margin:8px 1px}
+#opt-filter-list > select, #opt-filter-list > input {display:none}
+#opt-filter-list > .active {display:block}
+#opt-save-filtered {display:flex}
+#opt-save-filtered:not(.active) {display:none}
+#messages {flex:1 1 0;overflow-y:auto;background-color:#36393E}
+#messages > div {margin:0 24px;padding:4px 0 12px;border-bottom:1px solid rgba(255,255,255,0.04)}
+#messages h2 {margin:0;padding:0;display:block}
+#messages .avatar-wrapper {display:flex;flex-direction:row;align-items:flex-start;align-content:flex-start}
+#messages .avatar-wrapper > div {flex:1 1 auto}
+#messages .avatar {flex:0 0 38px!important;margin:8px 14px 0 0}
+#messages .avatar img {width:38px;border-radius:50%}
+#messages .username {color:#FFF;font-size:15px;font-weight:600;margin-right:3px;letter-spacing:0}
+#messages .info {color:rgba(255,255,255,0.4);font-size:12px;font-weight:500;letter-spacing:0}
+#messages .info::before {content:"\2022";text-align:center;display:inline-block;width:14px}
+#messages .jump {cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.message {margin-top:6px;color:rgba(255,255,255,0.7);font-size:15px;line-height:1.1em;white-space:pre-wrap;word-wrap:break-word}
+.message .link, .reply-message .link {color:#7289DA;background-color:rgba(115,139,215,0.1)}
+.message a, .reply-message a {color:#0096CF;text-decoration:none}
+.message a:hover {text-decoration:underline}
+.message p {margin:0}
+.message .embed {display:inline-block;margin-top:8px}
+.message .embed .title {font-weight:bold;display:inline-block}
+.message .embed .desc {margin-top:4px}
+.message .thumbnail {max-width:calc(100% - 20px);max-height:320px}
+.message .thumbnail img {max-width:100%;max-height:320px;border-radius:3px}
+.message .download {margin-right:8px;padding:8px 9px;border:1px solid rgba(255,255,255,0.5);border-radius:3px}
+.message .embed:first-child, .message .download + .download {margin-top:0}
+.message code {background-color:#2E3136;border-radius:5px;font-family:Menlo, Consolas, Monaco, monospace;font-size:14px}
+.message code.inline {display:inline;padding:2px}
+.message code.block {display:block;border:2px solid #282B30;margin-top:6px;padding:7px}
+.message .emoji {width:22px;height:22px;margin:0 1px;vertical-align:-30%;object-fit:contain}
+.reply-message {display:flex;align-items:baseline;flex-wrap:wrap;line-height:120%;white-space:nowrap}
+.reply-message-with-avatar {margin:0 0 -2px 52px}
+.reply-message .jump {color:rgba(255,255,255,0.4);font-size:12px;text-underline-offset:1px;margin-right:7px}
+.reply-message .emoji {width:16px;height:16px;vertical-align:-20%;object-fit:contain}
+.reply-message .user {margin-right:5px}
+.reply-avatar {margin-right:4px}
+.reply-avatar img {width:16px;border-radius:50%;vertical-align:middle}
+.reply-username {color:#FFF;font-size:12px;font-weight:600;letter-spacing:0}
+.reply-contents {display:inline-block;color:rgba(255,255,255,0.7);font-size:12px;max-width:calc(80%)}
+.reply-contents p {margin:0;overflow:hidden;text-overflow:ellipsis}
+.reply-contents code {background-color:#2E3136;font-family:Menlo, Consolas, Monaco, monospace;padding:1px 2px}
+.reactions {margin-top:4px}
+.reactions .reaction-wrapper {display:inline-block;border-radius:4px;margin:3px 2px 0 0;padding:3px 6px;background:#42454a;cursor:default}
+.reactions .reaction-emoji {margin-right:5px;font-size:16px;display:inline-block;text-align:center;vertical-align:-5%}
+.reactions .reaction-emoji-custom {height:15px;margin-right:5px;vertical-align:-10%}
+.reactions .count {color:rgba(255,255,255,0.45);font-size:14px}
+#modal div {position:absolute;display:none}
+#modal.visible div {display:block}
+#modal #overlay {left:0;top:0;width:100%;height:100%;background-color:#000}
+#modal.visible #overlay {opacity:0.5}
+#dialog {left:50%;top:50%;padding:16px;background-color:#fff;transform:translateY(-50%)}
+#dialog p {line-height:1.2}
+#dialog p:first-child, #dialog p:last-child {margin-top:1px;margin-bottom:1px}
+#dialog sub {color:#999;font-size:12px}
+#dialog a {color:#0096CF;text-decoration:none}
+#dialog a:hover {text-decoration:underline}
+    </style>
+  </head>
+  <body>
+    <div id="menu">
+      <input id="uploaded-file" type="file" style="display:none">
+      <button id="btn-upload-file" class="hide-embedded">Load File</button>
+      
+      <div class="splitter hide-embedded"></div>
+      
+      <button id="btn-settings">Settings</button>
+      
+      <div> <!-- needed to stop the select from messing up -->
+        <select id="opt-messages-per-page">
+          <option value="50">50 messages per page&nbsp;</option>
+          <option value="100">100 messages per page&nbsp;</option>
+          <option value="250">250 messages per page&nbsp;</option>
+          <option value="500">500 messages per page&nbsp;</option>
+          <option value="1000">1000 messages per page&nbsp;</option>
+          <option value="0">All messages&nbsp;</option>
+        </select>
+      </div>
+
+      <div class="nav">
+        <button id="nav-first" data-nav="first" class="icon">&laquo;</button>
+        <button id="nav-prev" data-nav="prev" class="icon">&lsaquo;</button>
+        <button id="nav-pick" data-nav="pick">Page <span id="nav-page-current">1</span>/<span id="nav-page-total">?</span></button>
+        <button id="nav-next" data-nav="next" class="icon">&rsaquo;</button>
+        <button id="nav-last" data-nav="last" class="icon">&raquo;</button>
+      </div>
+      
+      <div class="splitter"></div>
+      
+      <div> <!-- needed to stop the select from messing up -->
+        <select id="opt-messages-filter">
+          <option value="">No filter&nbsp;</option>
+          <option value="user">Filter messages by user&nbsp;</option>
+          <option value="contents">Filter messages by contents&nbsp;</option>
+          <option value="withimages">Only messages with images&nbsp;</option>
+          <option value="withdownloads">Only messages with downloads&nbsp;</option>
+          <option value="edited">Only edited messages&nbsp;</option>
+        </select>
+      </div>
+      
+      <div id="opt-filter-list">
+        <select id="opt-filter-user" data-filter-type="user">
+          <option value="">Select user...</option>
+        </select>
+        <input id="opt-filter-contents" type="text" data-filter-type="contents" placeholder="Messages containing...">
+        <input type="hidden" data-filter-type="withimages" value="1">
+        <input type="hidden" data-filter-type="withdownloads" value="1">
+        <input type="hidden" data-filter-type="edited" value="1">
+      </div>
+      
+      <div id="opt-save-filtered">
+        <div class="splitter"></div>
+        <button id="btn-save-filtered">Save Filtered Messages</button>
+      </div>
+      
+      <div class="separator"></div>
+      
+      <button id="btn-about">About</button>
+    </div>
+    
+    <div id="app">
+      <div id="channels"></div>
+      <div id="messages"></div>
+    </div>
+    
+    <div id="modal">
+      <div id="overlay"></div>
+      <div id="dialog"></div>
+    </div>
+  </body>
+</html>
