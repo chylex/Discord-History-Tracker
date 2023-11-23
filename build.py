@@ -11,8 +11,8 @@ import distutils.dir_util
 VERSION_SHORT = "v.31f"
 VERSION_FULL = VERSION_SHORT + ", released 20 November 2023"
 
-EXEC_UGLIFYJS_WIN = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
-EXEC_UGLIFYJS_AUTO = "uglifyjs --parse bare_returns --compress --mangle toplevel --mangle-props keep_quoted,reserved=[{3}] --output \"{1}\" \"{0}\""
+EXEC_UGLIFYJS_WIN = "{2}/lib/uglifyjs.cmd --parse bare_returns --compress --output \"{1}\" \"{0}\""
+EXEC_UGLIFYJS_AUTO = "uglifyjs --parse bare_returns --compress --output \"{1}\" \"{0}\""
 
 USE_UGLIFYJS = "--nominify" not in sys.argv
 USE_MINIFICATION = "--nominify" not in sys.argv
@@ -32,10 +32,6 @@ else:
         USE_UGLIFYJS = False
         print("Could not find 'uglifyjs', JS minification will be disabled")
 
-if USE_UGLIFYJS:
-    with open("reserve.txt", "r") as reserved:
-        RESERVED_PROPS = ",".join(line.strip() for line in reserved.readlines())
-
 
 # File Utilities
 
@@ -51,6 +47,23 @@ def combine_files(input_pattern, output_file):
                     output_file.write("\n")
             
             output_file.write(line.replace("{{{version:full}}}", VERSION_FULL))
+
+
+def combine_files_to_str(input_pattern):
+    is_first_file = True
+    output = []
+    
+    with fileinput.input(sorted(glob.glob(input_pattern))) as stream:
+        for line in stream:
+            if stream.isfirstline():
+                if is_first_file:
+                    is_first_file = False
+                else:
+                    output.append("\n")
+            
+            output.append(line.replace("{{{version:full}}}", VERSION_FULL))
+    
+    return "".join(output)
 
 
 def minify_css(input_file, output_file):
@@ -77,24 +90,39 @@ def minify_css(input_file, output_file):
 
 # Build System
 
-def build_tracker_html():
+def build_tracker():
     output_file_raw = "bld/track.js"
     output_file_html = "bld/track.html"
+    output_file_userscript = "bld/track.user.js"
     
-    output_file_tmp = "bld/track.tmp.js"
-    input_pattern = "src/tracker/*.js"
+    with open("src/tracker/styles/controller.css", "r") as f:
+        controller_css = f.read()
+    
+    with open("src/tracker/styles/settings.css", "r") as f:
+        settings_css = f.read()
+    
+    with open("src/tracker/bootstrap.js", "r") as f:
+        bootstrap_js = f.read()
+    
+    combined_tracker_js = combine_files_to_str("src/tracker/scripts/*.js")
+    combined_tracker_js = combined_tracker_js.replace("/*[CSS-CONTROLLER]*/", controller_css)
+    combined_tracker_js = combined_tracker_js.replace("/*[CSS-SETTINGS]*/", settings_css)
+    
+    full_tracker_js = bootstrap_js.replace("/*[IMPORTS]*/", combined_tracker_js)
     
     with open(output_file_raw, "w") as out:
         if not USE_UGLIFYJS:
             out.write("(function(){\n")
         
-        combine_files(input_pattern, out)
+        out.write(full_tracker_js)
         
         if not USE_UGLIFYJS:
             out.write("})()")
     
     if USE_UGLIFYJS:
-        os.system(EXEC_UGLIFYJS.format(output_file_raw, output_file_tmp, WORKING_DIR, RESERVED_PROPS))
+        output_file_tmp = "bld/track.tmp.js"
+        
+        os.system(EXEC_UGLIFYJS.format(output_file_raw, output_file_tmp, WORKING_DIR))
         
         with open(output_file_raw, "w") as out:
             out.write("javascript:(function(){")
@@ -105,27 +133,30 @@ def build_tracker_html():
             out.write("})()")
         
         os.remove(output_file_tmp)
-    
+        
     with open(output_file_raw, "r") as raw:
-        script_contents = raw.read().replace("&", "&amp;").replace('"', "&quot;").replace("'", "&#x27;").replace("<", "&lt;").replace(">", "&gt;")
+        minified_tracker_js = raw.read()
     
-    with open(output_file_html, "w") as out:
-        out.write(script_contents)
+    write_tracker_html(output_file_html, minified_tracker_js)
+    write_tracker_userscript(output_file_userscript, full_tracker_js)
 
 
-def build_tracker_userscript():
-    output_file = "bld/track.user.js"
-    
-    input_pattern = "src/tracker/*.js"
-    userscript_base = "src/base/track.user.js"
-    
-    with open(userscript_base, "r") as base:
-        userscript_contents = base.read().replace("{{{version}}}", VERSION_SHORT).split("{{{contents}}}")
+def write_tracker_html(output_file, tracker_js):
+    tracker_js = tracker_js.replace("&", "&amp;").replace('"', "&quot;").replace("'", "&#x27;").replace("<", "&lt;").replace(">", "&gt;")
     
     with open(output_file, "w") as out:
-        out.write(userscript_contents[0])
-        combine_files(input_pattern, out)
-        out.write(userscript_contents[1])
+        out.write(tracker_js)
+
+
+def write_tracker_userscript(output_file, full_tracker_js):
+    with open("src/base/track.user.js", "r") as f:
+        userscript_js = f.read()
+    
+    userscript_js = userscript_js.replace("{{{version}}}", VERSION_SHORT)
+    userscript_js = userscript_js.replace("{{{contents}}}", full_tracker_js)
+    
+    with open(output_file, "w") as out:
+        out.write(userscript_js)
 
 
 def build_viewer():
@@ -150,7 +181,7 @@ def build_viewer():
         combine_files(input_js_pattern, out)
     
     if USE_UGLIFYJS:
-        os.system(EXEC_UGLIFYJS.format(tmp_js_file_combined, tmp_js_file_minified, WORKING_DIR, RESERVED_PROPS))
+        os.system(EXEC_UGLIFYJS.format(tmp_js_file_combined, tmp_js_file_minified, WORKING_DIR))
     else:
         shutil.copyfile(tmp_js_file_combined, tmp_js_file_minified)
     
@@ -202,11 +233,8 @@ def build_website():
 
 os.makedirs("bld", exist_ok = True)
 
-print("Building tracker html...")
-build_tracker_html()
-
-print("Building tracker userscript...")
-build_tracker_userscript()
+print("Building tracker...")
+build_tracker()
 
 print("Building viewer...")
 build_viewer()
