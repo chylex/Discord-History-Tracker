@@ -174,10 +174,9 @@ const STATE = (function() {
 		},
 		
 		/**
-		 * @param {String} channelId
 		 * @param {DiscordMessage[]} discordMessageArray
 		 */
-		async addDiscordMessages(channelId, discordMessageArray) {
+		async addDiscordMessages(discordMessageArray) {
 			// https://discord.com/developers/docs/resources/channel#message-object-message-types
 			discordMessageArray = discordMessageArray.filter(msg => (msg.type === 0 || msg.type === 19 || msg.type === 21) && msg.state === "SENT");
 			

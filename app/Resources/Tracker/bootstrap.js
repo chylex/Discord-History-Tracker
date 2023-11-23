@@ -121,7 +121,7 @@
 				onTrackingContinued(false);
 			}
 			else {
-				const anyNewMessages = await STATE.addDiscordMessages(info.id, messages);
+				const anyNewMessages = await STATE.addDiscordMessages(messages);
 				onTrackingContinued(anyNewMessages);
 			}
 		} catch (e) {
