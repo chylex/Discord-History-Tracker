@@ -1095,9 +1095,8 @@ class SAVEFILE{
 		return obj;
 	}
 	
-	addMessagesFromDiscord(_channelId, discordMessageArray){
+	addMessagesFromDiscord(discordMessageArray){
 		var hasNewMessages = false;
-		// TODO: _channelId is dead code, but still in the desktop version (where it's also dead code).
 		for(var discordMessage of discordMessageArray){
 			var type = discordMessage.type;
 			
@@ -1297,9 +1296,8 @@ const STATE = (function() {
 		/*
 		 * Adds all messages from the array to the specified channel. Returns true if the savefile was updated.
 		 */
-		addDiscordMessages(_channelId, discordMessageArray){
-			// TODO: _channelId is dead code, but still in the desktop version (where it's also dead code).
-			if (this.getSavefile().addMessagesFromDiscord(_channelId, discordMessageArray)){
+		addDiscordMessages(discordMessageArray){
+			if (this.getSavefile().addMessagesFromDiscord(discordMessageArray)){
 				this._triggerStateChanged("data", "messages");
 				return true;
 			}
@@ -1459,7 +1457,7 @@ const STATE = (function() {
 				onTrackingContinued(false);
 			}
 			else {
-				const anyNewMessages = await STATE.addDiscordMessages(info.id, messages);
+				const anyNewMessages = await STATE.addDiscordMessages(messages);
 				onTrackingContinued(anyNewMessages);
 			}
 		} catch (e) {
@@ -1494,6 +1492,7 @@ const STATE = (function() {
 		GUI.showSettings();
 	}
 })();
+/*[DEBUGGER]*/
 
 
 };
