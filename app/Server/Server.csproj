@@ -1,32 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
     <RootNamespace>DHT.Server</RootNamespace>
-    <Nullable>enable</Nullable>
     <AssemblyName>DiscordHistoryTracker.Server</AssemblyName>
     <PackageId>DiscordHistoryTrackerServer</PackageId>
-    <Authors>chylex</Authors>
-    <Company>DiscordHistoryTracker</Company>
-    <Product>DiscordHistoryTrackerServer</Product>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>none</DebugType>
-  </PropertyGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.9" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Utils\Utils.csproj" />
   </ItemGroup>
+  
   <ItemGroup>
     <Compile Include="..\Version.cs" Link="Version.cs" />
   </ItemGroup>
+  
   <ItemGroup>
     <EmbeddedResource Include="../Resources/Tracker/bootstrap.js">
       <LogicalName>Tracker\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
@@ -44,4 +39,5 @@
       <Visible>false</Visible>
     </EmbeddedResource>
   </ItemGroup>
+  
 </Project>

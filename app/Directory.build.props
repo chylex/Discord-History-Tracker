@@ -1,8 +1,0 @@
-<Project>
-  
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>11</LangVersion>
-  </PropertyGroup>
-  
-</Project>

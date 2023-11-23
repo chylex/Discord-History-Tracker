@@ -1,27 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
     <RootNamespace>DHT.Utils</RootNamespace>
-    <Nullable>enable</Nullable>
     <AssemblyName>DiscordHistoryTracker.Utils</AssemblyName>
     <PackageId>DiscordHistoryTrackerUtils</PackageId>
-    <Authors>chylex</Authors>
-    <Company>DiscordHistoryTracker</Company>
-    <Product>DiscordHistoryTrackerUtils</Product>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>none</DebugType>
-  </PropertyGroup>
+  
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
   </ItemGroup>
+  
   <ItemGroup>
     <Compile Include="..\Version.cs" Link="Version.cs" />
   </ItemGroup>
+  
 </Project>

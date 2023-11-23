@@ -1,24 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <PropertyGroup>
+    <RootNamespace>DHT.Desktop</RootNamespace>
+    <AssemblyName>DiscordHistoryTracker</AssemblyName>
+    <PackageId>DiscordHistoryTracker</PackageId>
+  </PropertyGroup>
+  
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <Nullable>enable</Nullable>
-    <AssemblyName>DiscordHistoryTracker</AssemblyName>
-    <RootNamespace>DHT.Desktop</RootNamespace>
-    <PackageId>DiscordHistoryTracker</PackageId>
-    <Authors>chylex</Authors>
-    <Company>DiscordHistoryTracker</Company>
-    <Product>DiscordHistoryTracker</Product>
     <ApplicationIcon>./Resources/icon.ico</ApplicationIcon>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>none</DebugType>
-  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.0.5" />
     <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.0.5" />
@@ -28,9 +22,11 @@
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.5" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.5" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Server\Server.csproj" />
   </ItemGroup>
+  
   <ItemGroup>
     <Compile Include="..\Version.cs" Link="Version.cs" />
     <Compile Update="Dialogs\TextBox\TextBoxDialog.axaml.cs">
@@ -38,6 +34,7 @@
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
+  
   <ItemGroup>
     <AvaloniaResource Include="Resources/icon.ico" />
     <EmbeddedResource Include="Resources/tracker-loader.js">
@@ -49,4 +46,5 @@
       <Visible>false</Visible>
     </EmbeddedResource>
   </ItemGroup>
+  
 </Project>
