@@ -267,9 +267,8 @@ class SAVEFILE{
 		return obj;
 	}
 	
-	addMessagesFromDiscord(_channelId, discordMessageArray){
+	addMessagesFromDiscord(discordMessageArray){
 		var hasNewMessages = false;
-		// TODO: _channelId is dead code, but still in the desktop version (where it's also dead code).
 		for(var discordMessage of discordMessageArray){
 			var type = discordMessage.type;
 			

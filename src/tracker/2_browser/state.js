@@ -126,9 +126,8 @@ const STATE = (function() {
 		/*
 		 * Adds all messages from the array to the specified channel. Returns true if the savefile was updated.
 		 */
-		addDiscordMessages(_channelId, discordMessageArray){
-			// TODO: _channelId is dead code, but still in the desktop version (where it's also dead code).
-			if (this.getSavefile().addMessagesFromDiscord(_channelId, discordMessageArray)){
+		addDiscordMessages(discordMessageArray){
+			if (this.getSavefile().addMessagesFromDiscord(discordMessageArray)){
 				this._triggerStateChanged("data", "messages");
 				return true;
 			}
