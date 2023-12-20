@@ -85,18 +85,21 @@ class DISCORD {
 	}
 	
 	/**
-	 * Returns the property object of a message element.
-	 * @returns { null | { message: DiscordMessage, channel: Object } }
+	 * Returns the message from a message element.
+	 * @returns { null | DiscordMessage } }
 	 */
-	static getMessageElementProps(ele) {
+	static getMessageFromElement(ele) {
 		const props = DOM.getReactProps(ele);
 		
-		if (props.children && props.children.length) {
-			for (let i = 3; i < props.children.length; i++) {
-				const childProps = props.children[i].props;
+		if (props && Array.isArray(props.children)) {
+			for (const child of props.children) {
+				if (!(child instanceof Object)) {
+					continue;
+				}
 				
-				if (childProps && "message" in childProps && "channel" in childProps) {
-					return childProps;
+				const childProps = child.props;
+				if (childProps instanceof Object && "message" in childProps) {
+					return childProps.message;
 				}
 			}
 		}
@@ -113,10 +116,10 @@ class DISCORD {
 			
 			for (const ele of this.getMessageElements()) {
 				try {
-					const props = this.getMessageElementProps(ele);
+					const message = this.getMessageFromElement(ele);
 					
-					if (props != null) {
-						messages.push(props.message);
+					if (message != null) {
+						messages.push(message);
 					}
 				} catch (e) {
 					console.error("[DHT] Error extracing message data, skipping it.", e, ele, DOM.tryGetReactProps(ele));
@@ -137,7 +140,7 @@ class DISCORD {
 	 */
 	static getSelectedChannel() {
 		try {
-			let obj;
+			let obj = null;
 			
 			try {
 				for (const child of DOM.getReactProps(DOM.queryReactClass("chatContent")).children) {
@@ -148,15 +151,6 @@ class DISCORD {
 				}
 			} catch (e) {
 				console.error("[DHT] Error retrieving selected channel from 'chatContent' element.", e);
-				
-				for (const ele of this.getMessageElements()) {
-					const props = this.getMessageElementProps(ele);
-					
-					if (props != null) {
-						obj = props.channel;
-						break;
-					}
-				}
 			}
 			
 			if (!obj || typeof obj.id !== "string") {
