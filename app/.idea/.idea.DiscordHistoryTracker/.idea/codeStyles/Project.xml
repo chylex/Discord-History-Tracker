@@ -29,9 +29,6 @@
     <H2CodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </H2CodeStyleSettings>
-    <H2CodeStyleSettings version="6">
-      <option name="USE_GENERIC_STYLE" value="true" />
-    </H2CodeStyleSettings>
     <HSQLCodeStyleSettings version="6">
       <option name="USE_GENERIC_STYLE" value="true" />
     </HSQLCodeStyleSettings>
