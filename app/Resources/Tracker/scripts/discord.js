@@ -28,46 +28,11 @@ class DISCORD {
 	 * Calls the provided function with a list of messages whenever the currently loaded messages change.
 	 */
 	static setupMessageCallback(callback) {
-		let skipsLeft = 0;
-		let waitForCleanup = false;
 		const previousMessages = new Set();
 		
-		const timer = window.setInterval(() => {
-			if (skipsLeft > 0) {
-				--skipsLeft;
-				return;
-			}
-			
-			const view = this.getMessageOuterElement();
-			
-			if (!view) {
-				skipsLeft = 2;
-				return;
-			}
-			
-			const anyMessage = DOM.queryReactClass("message", this.getMessageOuterElement());
-			const messageCount = anyMessage ? anyMessage.parentElement.children.length : 0;
-			
-			if (messageCount > 300) {
-				if (waitForCleanup) {
-					return;
-				}
-				
-				skipsLeft = 3;
-				waitForCleanup = true;
-				
-				window.setTimeout(() => {
-					const view = this.getMessageScrollerElement();
-					// noinspection JSUnusedGlobalSymbols
-					view.scrollTop = view.scrollHeight / 2;
-				}, 1);
-			}
-			else {
-				waitForCleanup = false;
-			}
-			
-			const messages = this.getMessages();
-			const hasChanged = messages.some(message => !previousMessages.has(message.id)) || !this.hasMoreMessages();
+		const onMessageElementsChanged = function() {
+			const messages = DISCORD.getMessages();
+			const hasChanged = messages.some(message => !previousMessages.has(message.id)) || !DISCORD.hasMoreMessages();
 			
 			if (!hasChanged) {
 				return;
@@ -79,9 +44,56 @@ class DISCORD {
 			}
 			
 			callback(messages);
-		}, 200);
+		};
 		
-		window.DHT_ON_UNLOAD.push(() => window.clearInterval(timer));
+		let debounceTimer;
+		
+		/**
+		 * Do not trigger the callback too often due to autoscrolling.
+		 */
+		const onMessageElementsChangedLater = function() {
+			window.clearTimeout(debounceTimer);
+			debounceTimer = window.setTimeout(onMessageElementsChanged, 200);
+		};
+		
+		const observer = new MutationObserver(function () {
+			onMessageElementsChangedLater();
+		});
+		
+		let skipsLeft = 0;
+		let observedElement = null;
+		
+		const observerTimer = window.setInterval(() => {
+			if (skipsLeft > 0) {
+				--skipsLeft;
+				return;
+			}
+			
+			const view = this.getMessageOuterElement();
+			
+			if (!view) {
+				skipsLeft = 1;
+				return;
+			}
+			
+			if (observedElement !== null && observedElement.isConnected) {
+				return;
+			}
+			
+			observedElement = view.querySelector("[data-list-id='chat-messages']");
+			
+			if (observedElement) {
+				console.debug("[DHT] Observed message container.");
+				observer.observe(observedElement, { childList: true });
+				onMessageElementsChangedLater();
+			}
+		}, 400);
+		
+		window.DHT_ON_UNLOAD.push(() => {
+			observer.disconnect();
+			observedElement = null;
+			window.clearInterval(observerTimer);
+		});
 	}
 	
 	/**

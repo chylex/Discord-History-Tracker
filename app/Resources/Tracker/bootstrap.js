@@ -64,9 +64,11 @@
 			let action = null;
 			
 			if (!DISCORD.hasMoreMessages()) {
+				console.debug("[DHT] Reached first message.");
 				action = SETTINGS.afterFirstMsg;
 			}
 			if (isNoAction(action) && !anyNewMessages) {
+				console.debug("[DHT] No new messages.");
 				action = SETTINGS.afterSavedMsg;
 			}
 			
