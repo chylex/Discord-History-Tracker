@@ -1,30 +1,33 @@
 using System;
 using System.Net;
+using DHT.Server.Download;
 
 namespace DHT.Server.Data;
 
 public readonly struct Download {
-	internal static Download NewSuccess(string url, byte[] data) {
-		return new Download(url, DownloadStatus.Success, (ulong) Math.Max(data.LongLength, 0), data);
+	internal static Download NewSuccess(DownloadItem item, byte[] data) {
+		return new Download(item.NormalizedUrl, item.DownloadUrl, DownloadStatus.Success, (ulong) Math.Max(data.LongLength, 0), data);
 	}
 
-	internal static Download NewFailure(string url, HttpStatusCode? statusCode, ulong size) {
-		return new Download(url, statusCode.HasValue ? (DownloadStatus) (int) statusCode : DownloadStatus.GenericError, size);
+	internal static Download NewFailure(DownloadItem item, HttpStatusCode? statusCode, ulong size) {
+		return new Download(item.NormalizedUrl, item.DownloadUrl, statusCode.HasValue ? (DownloadStatus) (int) statusCode : DownloadStatus.GenericError, size);
 	}
 
-	public string Url { get; }
+	public string NormalizedUrl { get; }
+	public string DownloadUrl { get; }
 	public DownloadStatus Status { get; }
 	public ulong Size { get; }
 	public byte[]? Data { get; }
 
-	internal Download(string url, DownloadStatus status, ulong size, byte[]? data = null) {
-		Url = url;
+	internal Download(string normalizedUrl, string downloadUrl, DownloadStatus status, ulong size, byte[]? data = null) {
+		NormalizedUrl = normalizedUrl;
+		DownloadUrl = downloadUrl;
 		Status = status;
 		Size = size;
 		Data = data;
 	}
 
 	internal Download WithData(byte[] data) {
-		return new Download(Url, Status, Size, data);
+		return new Download(NormalizedUrl, DownloadUrl, Status, Size, data);
 	}
 }

@@ -50,10 +50,10 @@ static class SqliteFilters {
 		}
 
 		if (filter.DownloadItemRule == AttachmentFilter.DownloadItemRules.OnlyNotPresent) {
-			where.AddCondition("url NOT IN (SELECT url FROM downloads)");
+			where.AddCondition("normalized_url NOT IN (SELECT normalized_url FROM downloads)");
 		}
 		else if (filter.DownloadItemRule == AttachmentFilter.DownloadItemRules.OnlyPresent) {
-			where.AddCondition("url IN (SELECT url FROM downloads)");
+			where.AddCondition("normalized_url IN (SELECT normalized_url FROM downloads)");
 		}
 
 		return where.Generate();

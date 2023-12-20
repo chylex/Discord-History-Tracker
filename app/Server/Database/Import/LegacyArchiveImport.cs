@@ -197,7 +197,8 @@ public static class LegacyArchiveImport {
 				Id = fakeSnowflake.Next(),
 				Name = name,
 				Type = type,
-				Url = url,
+				NormalizedUrl = url,
+				DownloadUrl = url,
 				Size = 0, // unknown size
 			};
 		}).DistinctByKeyStable(static attachment => {

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
+using DHT.Server.Download;
 using DHT.Server.Service;
 using DHT.Utils.Collections;
 using DHT.Utils.Http;
@@ -57,14 +58,18 @@ sealed class TrackMessagesEndpoint : BaseEndpoint {
 	};
 
 	[SuppressMessage("ReSharper", "ConvertToLambdaExpression")]
-	private static IEnumerable<Attachment> ReadAttachments(JsonElement.ArrayEnumerator array, string path) => array.Select(ele => new Attachment {
-		Id = ele.RequireSnowflake("id", path),
-		Name = ele.RequireString("name", path),
-		Type = ele.HasKey("type") ? ele.RequireString("type", path) : null,
-		Url = ele.RequireString("url", path),
-		Size = (ulong) ele.RequireLong("size", path),
-		Width = ele.HasKey("width") ? ele.RequireInt("width", path) : null,
-		Height = ele.HasKey("height") ? ele.RequireInt("height", path) : null,
+	private static IEnumerable<Attachment> ReadAttachments(JsonElement.ArrayEnumerator array, string path) => array.Select(ele => {
+		var downloadUrl = ele.RequireString("url", path);
+		return new Attachment {
+			Id = ele.RequireSnowflake("id", path),
+			Name = ele.RequireString("name", path),
+			Type = ele.HasKey("type") ? ele.RequireString("type", path) : null,
+			NormalizedUrl = DiscordCdn.NormalizeUrl(downloadUrl),
+			DownloadUrl = downloadUrl,
+			Size = (ulong) ele.RequireLong("size", path),
+			Width = ele.HasKey("width") ? ele.RequireInt("width", path) : null,
+			Height = ele.HasKey("height") ? ele.RequireInt("height", path) : null,
+		};
 	}).DistinctByKeyStable(static attachment => {
 		// Some Discord messages have duplicate attachments with the same id for unknown reasons.
 		return attachment.Id;

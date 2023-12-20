@@ -252,7 +252,8 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 				("attachment_id", SqliteType.Integer),
 				("name", SqliteType.Text),
 				("type", SqliteType.Text),
-				("url", SqliteType.Text),
+				("normalized_url", SqliteType.Text),
+				("download_url", SqliteType.Text),
 				("size", SqliteType.Integer),
 				("width", SqliteType.Integer),
 				("height", SqliteType.Integer),
@@ -308,7 +309,8 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 						attachmentCmd.Set(":attachment_id", attachment.Id);
 						attachmentCmd.Set(":name", attachment.Name);
 						attachmentCmd.Set(":type", attachment.Type);
-						attachmentCmd.Set(":url", attachment.Url);
+						attachmentCmd.Set(":normalized_url", attachment.NormalizedUrl);
+						attachmentCmd.Set(":download_url", attachment.DownloadUrl);
 						attachmentCmd.Set(":size", attachment.Size);
 						attachmentCmd.Set(":width", attachment.Width);
 						attachmentCmd.Set(":height", attachment.Height);
@@ -363,11 +365,13 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		var reactions = GetAllReactions();
 
 		using var conn = pool.Take();
-		using var cmd = conn.Command(@"
-SELECT m.message_id, m.sender_id, m.channel_id, m.text, m.timestamp, et.edit_timestamp, rt.replied_to_id
-FROM messages m
-LEFT JOIN edit_timestamps et ON m.message_id = et.message_id
-LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereClause("m"));
+		using var cmd = conn.Command($"""
+		                              SELECT m.message_id, m.sender_id, m.channel_id, m.text, m.timestamp, et.edit_timestamp, rt.replied_to_id
+		                              FROM messages m
+		                              LEFT JOIN edit_timestamps et ON m.message_id = et.message_id
+		                              LEFT JOIN replied_to rt ON m.message_id = rt.message_id
+		                              {filter.GenerateWhereClause("m")}
+		                              """);
 		using var reader = cmd.ExecuteReader();
 
 		while (reader.Read()) {
@@ -418,7 +422,7 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 
 	public int CountAttachments(AttachmentFilter? filter = null) {
 		using var conn = pool.Take();
-		using var cmd = conn.Command("SELECT COUNT(DISTINCT url) FROM attachments a" + filter.GenerateWhereClause("a"));
+		using var cmd = conn.Command("SELECT COUNT(DISTINCT normalized_url) FROM attachments a" + filter.GenerateWhereClause("a"));
 		using var reader = cmd.ExecuteReader();
 
 		return reader.Read() ? reader.GetInt32(0) : 0;
@@ -427,13 +431,15 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 	public void AddDownload(Data.Download download) {
 		using var conn = pool.Take();
 		using var cmd = conn.Upsert("downloads", new[] {
-			("url", SqliteType.Text),
+			("normalized_url", SqliteType.Text),
+			("download_url", SqliteType.Text),
 			("status", SqliteType.Integer),
 			("size", SqliteType.Integer),
 			("blob", SqliteType.Blob),
 		});
 
-		cmd.Set(":url", download.Url);
+		cmd.Set(":normalized_url", download.NormalizedUrl);
+		cmd.Set(":download_url", download.DownloadUrl);
 		cmd.Set(":status", (int) download.Status);
 		cmd.Set(":size", download.Size);
 		cmd.Set(":blob", download.Data);
@@ -446,15 +452,16 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 		var list = new List<Data.Download>();
 
 		using var conn = pool.Take();
-		using var cmd = conn.Command("SELECT url, status, size FROM downloads");
+		using var cmd = conn.Command("SELECT normalized_url, download_url, status, size FROM downloads");
 		using var reader = cmd.ExecuteReader();
 
 		while (reader.Read()) {
-			string url = reader.GetString(0);
-			var status = (DownloadStatus) reader.GetInt32(1);
-			ulong size = reader.GetUint64(2);
+			string normalizedUrl = reader.GetString(0);
+			string downloadUrl = reader.GetString(1);
+			var status = (DownloadStatus) reader.GetInt32(2);
+			ulong size = reader.GetUint64(3);
 
-			list.Add(new Data.Download(url, status, size));
+			list.Add(new Data.Download(normalizedUrl, downloadUrl, status, size));
 		}
 
 		return list;
@@ -462,8 +469,8 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 
 	public Data.Download GetDownloadWithData(Data.Download download) {
 		using var conn = pool.Take();
-		using var cmd = conn.Command("SELECT blob FROM downloads WHERE url = :url");
-		cmd.AddAndSet(":url", SqliteType.Text, download.Url);
+		using var cmd = conn.Command("SELECT blob FROM downloads WHERE normalized_url = :url");
+		cmd.AddAndSet(":url", SqliteType.Text, download.NormalizedUrl);
 
 		using var reader = cmd.ExecuteReader();
 
@@ -475,14 +482,15 @@ LEFT JOIN replied_to rt ON m.message_id = rt.message_id" + filter.GenerateWhereC
 		}
 	}
 
-	public DownloadedAttachment? GetDownloadedAttachment(string url) {
+	public DownloadedAttachment? GetDownloadedAttachment(string normalizedUrl) {
 		using var conn = pool.Take();
-		using var cmd = conn.Command(@"
-SELECT a.type, d.blob FROM downloads d
-LEFT JOIN attachments a ON d.url = a.url
-WHERE d.url = :url AND d.status = :success AND d.blob IS NOT NULL");
+		using var cmd = conn.Command("""
+		                             SELECT a.type, d.blob FROM downloads d
+		                             LEFT JOIN attachments a ON d.normalized_url = a.normalized_url
+		                             WHERE d.normalized_url = :normalized_url AND d.status = :success AND d.blob IS NOT NULL
+		                             """);
 
-		cmd.AddAndSet(":url", SqliteType.Text, url);
+		cmd.AddAndSet(":normalized_url", SqliteType.Text, normalizedUrl);
 		cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
 
 		using var reader = cmd.ExecuteReader();
@@ -499,7 +507,13 @@ WHERE d.url = :url AND d.status = :success AND d.blob IS NOT NULL");
 
 	public void EnqueueDownloadItems(AttachmentFilter? filter = null) {
 		using var conn = pool.Take();
-		using var cmd = conn.Command("INSERT INTO downloads (url, status, size) SELECT a.url, :enqueued, MAX(a.size) FROM attachments a" + filter.GenerateWhereClause("a") + " GROUP BY a.url");
+		using var cmd = conn.Command($"""
+		                              INSERT INTO downloads (normalized_url, download_url, status, size)
+		                              SELECT a.normalized_url, a.download_url, :enqueued, MAX(a.size)
+		                              FROM attachments a
+		                              {filter.GenerateWhereClause("a")}
+		                              GROUP BY a.normalized_url
+		                              """);
 		cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
 		cmd.ExecuteNonQuery();
 	}
@@ -508,7 +522,7 @@ WHERE d.url = :url AND d.status = :success AND d.blob IS NOT NULL");
 		var list = new List<DownloadItem>();
 
 		using var conn = pool.Take();
-		using var cmd = conn.Command("SELECT url, size FROM downloads WHERE status = :enqueued LIMIT :limit");
+		using var cmd = conn.Command("SELECT normalized_url, download_url, size FROM downloads WHERE status = :enqueued LIMIT :limit");
 		cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
 		cmd.AddAndSet(":limit", SqliteType.Integer, Math.Max(0, count));
 
@@ -516,8 +530,9 @@ WHERE d.url = :url AND d.status = :success AND d.blob IS NOT NULL");
 
 		while (reader.Read()) {
 			list.Add(new DownloadItem {
-				Url = reader.GetString(0),
-				Size = reader.GetUint64(1),
+				NormalizedUrl = reader.GetString(0),
+				DownloadUrl = reader.GetString(1),
+				Size = reader.GetUint64(2),
 			});
 		}
 
@@ -531,7 +546,7 @@ WHERE d.url = :url AND d.status = :success AND d.blob IS NOT NULL");
 
 	public DownloadStatusStatistics GetDownloadStatusStatistics() {
 		static void LoadUndownloadedStatistics(ISqliteConnection conn, DownloadStatusStatistics result) {
-			using var cmd = conn.Command("SELECT IFNULL(COUNT(size), 0), IFNULL(SUM(size), 0) FROM (SELECT MAX(a.size) size FROM attachments a WHERE a.url NOT IN (SELECT d.url FROM downloads d) GROUP BY a.url)");
+			using var cmd = conn.Command("SELECT IFNULL(COUNT(size), 0), IFNULL(SUM(size), 0) FROM (SELECT MAX(a.size) size FROM attachments a WHERE a.normalized_url NOT IN (SELECT d.normalized_url FROM downloads d) GROUP BY a.normalized_url)");
 			using var reader = cmd.ExecuteReader();
 
 			if (reader.Read()) {
@@ -541,14 +556,16 @@ WHERE d.url = :url AND d.status = :success AND d.blob IS NOT NULL");
 		}
 
 		static void LoadSuccessStatistics(ISqliteConnection conn, DownloadStatusStatistics result) {
-			using var cmd = conn.Command(@"SELECT
-IFNULL(SUM(CASE WHEN status = :enqueued THEN 1 ELSE 0 END), 0),
-IFNULL(SUM(CASE WHEN status = :enqueued THEN size ELSE 0 END), 0),
-IFNULL(SUM(CASE WHEN status = :success THEN 1 ELSE 0 END), 0),
-IFNULL(SUM(CASE WHEN status = :success THEN size ELSE 0 END), 0),
-IFNULL(SUM(CASE WHEN status != :enqueued AND status != :success THEN 1 ELSE 0 END), 0),
-IFNULL(SUM(CASE WHEN status != :enqueued AND status != :success THEN size ELSE 0 END), 0)
-FROM downloads");
+			using var cmd = conn.Command("""
+			                             SELECT
+			                             IFNULL(SUM(CASE WHEN status = :enqueued THEN 1 ELSE 0 END), 0),
+			                             IFNULL(SUM(CASE WHEN status = :enqueued THEN size ELSE 0 END), 0),
+			                             IFNULL(SUM(CASE WHEN status = :success THEN 1 ELSE 0 END), 0),
+			                             IFNULL(SUM(CASE WHEN status = :success THEN size ELSE 0 END), 0),
+			                             IFNULL(SUM(CASE WHEN status != :enqueued AND status != :success THEN 1 ELSE 0 END), 0),
+			                             IFNULL(SUM(CASE WHEN status != :enqueued AND status != :success THEN size ELSE 0 END), 0)
+			                             FROM downloads
+			                             """);
 			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
 			cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
 
@@ -576,7 +593,7 @@ FROM downloads");
 		var dict = new MultiDictionary<ulong, Attachment>();
 
 		using var conn = pool.Take();
-		using var cmd = conn.Command("SELECT message_id, attachment_id, name, type, url, size, width, height FROM attachments");
+		using var cmd = conn.Command("SELECT message_id, attachment_id, name, type, normalized_url, download_url, size, width, height FROM attachments");
 		using var reader = cmd.ExecuteReader();
 
 		while (reader.Read()) {
@@ -586,10 +603,11 @@ FROM downloads");
 				Id = reader.GetUint64(1),
 				Name = reader.GetString(2),
 				Type = reader.IsDBNull(3) ? null : reader.GetString(3),
-				Url = reader.GetString(4),
-				Size = reader.GetUint64(5),
-				Width = reader.IsDBNull(6) ? null : reader.GetInt32(6),
-				Height = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+				NormalizedUrl = reader.GetString(4),
+				DownloadUrl = reader.GetString(5),
+				Size = reader.GetUint64(6),
+				Width = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+				Height = reader.IsDBNull(8) ? null : reader.GetInt32(8),
 			});
 		}
 
@@ -677,7 +695,7 @@ FROM downloads");
 
 	private long ComputeAttachmentStatistics() {
 		using var conn = pool.Take();
-		return conn.SelectScalar("SELECT COUNT(DISTINCT url) FROM attachments") as long? ?? 0L;
+		return conn.SelectScalar("SELECT COUNT(DISTINCT normalized_url) FROM attachments") as long? ?? 0L;
 	}
 
 	private void UpdateAttachmentStatistics(long totalAttachments) {

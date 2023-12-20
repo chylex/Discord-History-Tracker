@@ -13,6 +13,6 @@ public sealed class LiveViewerExportStrategy : IViewerExportStrategy {
 	}
 
 	public string GetAttachmentUrl(Attachment attachment) {
-		return "http://127.0.0.1:" + safePort + "/get-attachment/" + WebUtility.UrlEncode(attachment.Url) + "?token=" + safeToken;
+		return "http://127.0.0.1:" + safePort + "/get-attachment/" + WebUtility.UrlEncode(attachment.NormalizedUrl) + "?token=" + safeToken;
 	}
 }

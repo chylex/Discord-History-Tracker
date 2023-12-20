@@ -170,7 +170,7 @@ public static class ViewerJsonExport {
 					obj["a"] = message.Attachments.Select(attachment => {
 						var a = new Dictionary<string, object> {
 							{ "url", strategy.GetAttachmentUrl(attachment) },
-							{ "name", Uri.TryCreate(attachment.Url, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.Url },
+							{ "name", Uri.TryCreate(attachment.NormalizedUrl, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.NormalizedUrl },
 						};
 
 						if (attachment is { Width: not null, Height: not null }) {

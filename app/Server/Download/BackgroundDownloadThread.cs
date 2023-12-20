@@ -87,16 +87,16 @@ public sealed class BackgroundDownloadThread : BaseModel {
 					FillQueue(db, queue, cancellationToken);
 
 					while (!cancellationToken.IsCancellationRequested && queue.TryDequeue(out var item)) {
-						var url = item.Url;
-						Log.Debug("Downloading " + url + "...");
+						var downloadUrl = item.DownloadUrl;
+						Log.Debug("Downloading " + downloadUrl + "...");
 
 						try {
-							db.AddDownload(Data.Download.NewSuccess(url, await client.GetByteArrayAsync(url, cancellationToken)));
+							db.AddDownload(Data.Download.NewSuccess(item, await client.GetByteArrayAsync(downloadUrl, cancellationToken)));
 						} catch (HttpRequestException e) {
-							db.AddDownload(Data.Download.NewFailure(url, e.StatusCode, item.Size));
+							db.AddDownload(Data.Download.NewFailure(item, e.StatusCode, item.Size));
 							Log.Error(e);
 						} catch (Exception e) {
-							db.AddDownload(Data.Download.NewFailure(url, null, item.Size));
+							db.AddDownload(Data.Download.NewFailure(item, null, item.Size));
 							Log.Error(e);
 						} finally {
 							parameters.FireOnItemFinished(item);
