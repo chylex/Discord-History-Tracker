@@ -177,8 +177,7 @@ const STATE = (function() {
 		 * @param {DiscordMessage[]} discordMessageArray
 		 */
 		async addDiscordMessages(discordMessageArray) {
-			// https://discord.com/developers/docs/resources/channel#message-object-message-types
-			discordMessageArray = discordMessageArray.filter(msg => (msg.type === 0 || msg.type === 19 || msg.type === 21) && msg.state === "SENT");
+			discordMessageArray = discordMessageArray.filter(msg => (msg.type === DISCORD.MESSAGE_TYPE.DEFAULT || msg.type === DISCORD.MESSAGE_TYPE.REPLY || msg.type === DISCORD.MESSAGE_TYPE.THREAD_STARTER) && msg.state === "SENT");
 			
 			if (discordMessageArray.length === 0) {
 				return false;
