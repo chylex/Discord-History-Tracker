@@ -204,12 +204,12 @@ ${btn("close", "X")}`);
 <label><input id='dht-cfg-autoscroll' type='checkbox'> Autoscroll</label><br>
 <br>
 <label>After reaching the first message in channel...</label><br>
-${radio("afm", "nothing", "Do Nothing")}
+${radio("afm", "nothing", "Continue Tracking")}
 ${radio("afm", "pause", "Pause Tracking")}
 ${radio("afm", "switch", "Switch to Next Channel")}
 <br>
 <label>After reaching a previously saved message...</label><br>
-${radio("asm", "nothing", "Do Nothing")}
+${radio("asm", "nothing", "Continue Tracking")}
 ${radio("asm", "pause", "Pause Tracking")}
 ${radio("asm", "switch", "Switch to Next Channel")}
 <p id='dht-cfg-note'>
