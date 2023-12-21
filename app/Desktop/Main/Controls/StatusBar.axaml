@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
              mc:Ignorable="d"
-             x:Class="DHT.Desktop.Main.Controls.StatusBar">
+             x:Class="DHT.Desktop.Main.Controls.StatusBar"
+             x:DataType="controls:StatusBarModel">
 
     <Design.DataContext>
         <controls:StatusBarModel />

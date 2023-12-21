@@ -9,6 +9,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <ApplicationIcon>./Resources/icon.ico</ApplicationIcon>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>

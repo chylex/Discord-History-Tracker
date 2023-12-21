@@ -35,7 +35,7 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 		set => Change(ref hasFilters, value);
 	}
 
-	private MessageFilterPanelModel FilterModel { get; }
+	public MessageFilterPanelModel FilterModel { get; }
 
 	private readonly Window window;
 	private readonly IDatabaseFile db;

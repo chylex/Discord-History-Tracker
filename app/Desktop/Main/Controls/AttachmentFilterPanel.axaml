@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
              mc:Ignorable="d"
-             x:Class="DHT.Desktop.Main.Controls.AttachmentFilterPanel">
+             x:Class="DHT.Desktop.Main.Controls.AttachmentFilterPanel"
+             x:DataType="controls:AttachmentFilterPanelModel">
 
     <Design.DataContext>
         <controls:AttachmentFilterPanelModel />

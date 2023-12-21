@@ -5,7 +5,8 @@
              xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
              xmlns:screens="clr-namespace:DHT.Desktop.Main.Screens"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DHT.Desktop.Main.Screens.MainContentScreen">
+             x:Class="DHT.Desktop.Main.Screens.MainContentScreen"
+             x:DataType="screens:MainContentScreenModel">
 
     <Design.DataContext>
         <screens:MainContentScreenModel />

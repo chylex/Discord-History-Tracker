@@ -5,6 +5,7 @@
         xmlns:namespace="clr-namespace:DHT.Desktop.Dialogs.TextBox"
         mc:Ignorable="d" d:DesignWidth="500"
         x:Class="DHT.Desktop.Dialogs.TextBox.TextBoxDialog"
+        x:DataType="namespace:TextBoxDialogModel"
         Title="{Binding Title}"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
         Width="500" SizeToContent="Height" CanResize="False"

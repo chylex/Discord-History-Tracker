@@ -5,6 +5,7 @@
         xmlns:main="clr-namespace:DHT.Desktop.Main"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="DHT.Desktop.Main.MainWindow"
+        x:DataType="main:MainWindowModel"
         Title="{Binding Title}"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
         Width="800" Height="500"

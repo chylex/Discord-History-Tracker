@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
              mc:Ignorable="d"
-             x:Class="DHT.Desktop.Main.Controls.ServerConfigurationPanel">
+             x:Class="DHT.Desktop.Main.Controls.ServerConfigurationPanel"
+             x:DataType="controls:ServerConfigurationPanelModel">
 
     <Design.DataContext>
         <controls:ServerConfigurationPanelModel />

@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:screens="clr-namespace:DHT.Desktop.Main.Screens"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DHT.Desktop.Main.Screens.WelcomeScreen">
+             x:Class="DHT.Desktop.Main.Screens.WelcomeScreen"
+             x:DataType="screens:WelcomeScreenModel">
 
     <Design.DataContext>
         <screens:WelcomeScreenModel />

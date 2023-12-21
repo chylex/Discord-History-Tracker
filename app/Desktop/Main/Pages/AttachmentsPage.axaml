@@ -5,7 +5,8 @@
              xmlns:pages="clr-namespace:DHT.Desktop.Main.Pages"
              xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DHT.Desktop.Main.Pages.AttachmentsPage">
+             x:Class="DHT.Desktop.Main.Pages.AttachmentsPage"
+             x:DataType="pages:AttachmentsPageModel">
 
     <Design.DataContext>
         <pages:AttachmentsPageModel />
@@ -35,7 +36,7 @@
             <TextBlock Text="{Binding DownloadMessage}" Margin="10 0 0 0" VerticalAlignment="Center" DockPanel.Dock="Left" />
             <ProgressBar Value="{Binding DownloadProgress}" IsVisible="{Binding IsDownloading}" Margin="15 0" VerticalAlignment="Center" DockPanel.Dock="Right" />
         </DockPanel>
-        <controls:AttachmentFilterPanel DataContext="{Binding FilterModel}" IsEnabled="{Binding !DataContext.IsDownloading, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+        <controls:AttachmentFilterPanel DataContext="{Binding FilterModel}" IsEnabled="{Binding !IsDownloading, RelativeSource={RelativeSource AncestorType=pages:AttachmentsPageModel}}" />
         <StackPanel Orientation="Vertical" Spacing="12">
             <Expander Header="Download Status" IsExpanded="True">
                 <DataGrid ItemsSource="{Binding StatisticsRows}" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" IsReadOnly="True">

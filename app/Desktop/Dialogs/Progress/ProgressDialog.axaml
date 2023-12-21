@@ -5,6 +5,7 @@
         xmlns:namespace="clr-namespace:DHT.Desktop.Dialogs.Progress"
         mc:Ignorable="d" d:DesignWidth="500"
         x:Class="DHT.Desktop.Dialogs.Progress.ProgressDialog"
+        x:DataType="namespace:ProgressDialogModel"
         Title="{Binding Title}"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
         Opened="OnOpened"

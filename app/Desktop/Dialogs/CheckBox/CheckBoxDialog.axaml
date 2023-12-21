@@ -5,6 +5,7 @@
         xmlns:namespace="clr-namespace:DHT.Desktop.Dialogs.CheckBox"
         mc:Ignorable="d" d:DesignWidth="500"
         x:Class="DHT.Desktop.Dialogs.CheckBox.CheckBoxDialog"
+        x:DataType="namespace:CheckBoxDialogModel"
         Title="{Binding Title}"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
         Width="500" SizeToContent="Height" CanResize="False"
