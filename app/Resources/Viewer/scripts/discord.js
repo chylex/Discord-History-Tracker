@@ -1,7 +1,8 @@
 const DISCORD = (function() {
 	const regex = {
 		formatBold: /\*\*([\s\S]+?)\*\*(?!\*)/g,
-		formatItalic: /(.)?([_*])([\s\S]+?)\2(?!\2)/g,
+		formatItalic1: /\*([\s\S]+?)\*(?!\*)/g,
+		formatItalic2: /_([\s\S]+?)_(?!_)\b/g,
 		formatUnderline: /__([\s\S]+?)__(?!_)/g,
 		formatStrike: /~~([\s\S]+?)~~(?!~)/g,
 		formatCodeInline: /(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/g,
@@ -48,7 +49,8 @@ const DISCORD = (function() {
 				.replace(regex.specialEscapedDouble, full => full.replace(/\\/g, "").replace(/(.)/g, escapeHtmlMatch))
 				.replace(regex.formatBold, "<b>$1</b>")
 				.replace(regex.formatUnderline, "<u>$1</u>")
-				.replace(regex.formatItalic, (full, pre, char, match) => pre === "\\" ? full : (pre || "") + "<i>" + match + "</i>")
+				.replace(regex.formatItalic1, "<i>$1</i>")
+				.replace(regex.formatItalic2, "<i>$1</i>")
 				.replace(regex.formatStrike, "<s>$1</s>");
 		}
 		
