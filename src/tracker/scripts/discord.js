@@ -53,7 +53,7 @@ class DISCORD {
 		 */
 		const onMessageElementsChangedLater = function() {
 			window.clearTimeout(debounceTimer);
-			debounceTimer = window.setTimeout(onMessageElementsChanged, 200);
+			debounceTimer = window.setTimeout(onMessageElementsChanged, 100);
 		};
 		
 		const observer = new MutationObserver(function () {
