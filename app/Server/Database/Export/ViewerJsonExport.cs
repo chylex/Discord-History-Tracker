@@ -42,26 +42,28 @@ public static class ViewerJsonExport {
 
 		perf.Step("Collect database data");
 
-		var value = new {
-			meta = new { users, userindex, servers, channels },
-			data = GenerateMessageList(includedMessages, userIndices, strategy),
+		var value = new ViewerJson {
+			Meta = new ViewerJson.JsonMeta {
+				Users = users,
+				Userindex = userindex,
+				Servers = servers,
+				Channels = channels
+			},
+			Data = GenerateMessageList(includedMessages, userIndices, strategy)
 		};
 
 		perf.Step("Generate value object");
 
-		var opts = new JsonSerializerOptions();
-		opts.Converters.Add(new ViewerJsonSnowflakeSerializer());
-
-		await JsonSerializer.SerializeAsync(stream, value, opts);
+		await JsonSerializer.SerializeAsync(stream, value, ViewerJsonContext.Default.ViewerJson);
 
 		perf.Step("Serialize to JSON");
 		perf.End();
 	}
 
-	private static Dictionary<string, object> GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds, out List<string> userindex, out Dictionary<ulong, object> userIndices) {
-		var users = new Dictionary<string, object>();
-		userindex = new List<string>();
-		userIndices = new Dictionary<ulong, object>();
+	private static Dictionary<Snowflake, ViewerJson.JsonUser> GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds, out List<Snowflake> userindex, out Dictionary<ulong, int> userIndices) {
+		var users = new Dictionary<Snowflake, ViewerJson.JsonUser>();
+		userindex = new List<Snowflake>();
+		userIndices = new Dictionary<ulong, int>();
 
 		foreach (var user in db.GetAllUsers()) {
 			var id = user.Id;
@@ -69,30 +71,23 @@ public static class ViewerJsonExport {
 				continue;
 			}
 
-			var obj = new Dictionary<string, object> {
-				["name"] = user.Name
-			};
-
-			if (user.AvatarUrl != null) {
-				obj["avatar"] = user.AvatarUrl;
-			}
-
-			if (user.Discriminator != null) {
-				obj["tag"] = user.Discriminator;
-			}
-
-			var idStr = id.ToString();
+			var idSnowflake = new Snowflake(id);
 			userIndices[id] = users.Count;
-			userindex.Add(idStr);
-			users[idStr] = obj;
+			userindex.Add(idSnowflake);
+			
+			users[idSnowflake] = new ViewerJson.JsonUser {
+				Name = user.Name,
+				Avatar = user.AvatarUrl,
+				Tag = user.Discriminator
+			};
 		}
 
 		return users;
 	}
 
-	private static List<object> GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds, out Dictionary<ulong, object> serverIndices) {
-		var servers = new List<object>();
-		serverIndices = new Dictionary<ulong, object>();
+	private static List<ViewerJson.JsonServer> GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds, out Dictionary<ulong, int> serverIndices) {
+		var servers = new List<ViewerJson.JsonServer>();
+		serverIndices = new Dictionary<ulong, int>();
 
 		foreach (var server in db.GetAllServers()) {
 			var id = server.Id;
@@ -101,113 +96,78 @@ public static class ViewerJsonExport {
 			}
 
 			serverIndices[id] = servers.Count;
-			servers.Add(new Dictionary<string, object> {
-				["name"] = server.Name,
-				["type"] = ServerTypes.ToJsonViewerString(server.Type),
+			
+			servers.Add(new ViewerJson.JsonServer {
+				Name = server.Name,
+				Type = ServerTypes.ToJsonViewerString(server.Type)
 			});
 		}
 
 		return servers;
 	}
 
-	private static Dictionary<string, object> GenerateChannelList(List<Channel> includedChannels, Dictionary<ulong, object> serverIndices) {
-		var channels = new Dictionary<string, object>();
+	private static Dictionary<Snowflake, ViewerJson.JsonChannel> GenerateChannelList(List<Channel> includedChannels, Dictionary<ulong, int> serverIndices) {
+		var channels = new Dictionary<Snowflake, ViewerJson.JsonChannel>();
 
 		foreach (var channel in includedChannels) {
-			var obj = new Dictionary<string, object> {
-				["server"] = serverIndices[channel.Server],
-				["name"] = channel.Name,
+			var channelIdSnowflake = new Snowflake(channel.Id);
+			
+			channels[channelIdSnowflake] = new ViewerJson.JsonChannel {
+				Server = serverIndices[channel.Server],
+				Name = channel.Name,
+				Parent = channel.ParentId?.ToString(),
+				Position = channel.Position,
+				Topic = channel.Topic,
+				Nsfw = channel.Nsfw
 			};
-
-			if (channel.ParentId != null) {
-				obj["parent"] = channel.ParentId;
-			}
-
-			if (channel.Position != null) {
-				obj["position"] = channel.Position;
-			}
-
-			if (channel.Topic != null) {
-				obj["topic"] = channel.Topic;
-			}
-
-			if (channel.Nsfw != null) {
-				obj["nsfw"] = channel.Nsfw;
-			}
-
-			channels[channel.Id.ToString()] = obj;
 		}
 
 		return channels;
 	}
 
-	private static Dictionary<string, Dictionary<string, object>> GenerateMessageList( List<Message> includedMessages, Dictionary<ulong, object> userIndices, IViewerExportStrategy strategy) {
-		var data = new Dictionary<string, Dictionary<string, object>>();
+	private static Dictionary<Snowflake, Dictionary<Snowflake, ViewerJson.JsonMessage>> GenerateMessageList(List<Message> includedMessages, Dictionary<ulong, int> userIndices, IViewerExportStrategy strategy) {
+		var data = new Dictionary<Snowflake, Dictionary<Snowflake, ViewerJson.JsonMessage>>();
 
 		foreach (var grouping in includedMessages.GroupBy(static message => message.Channel)) {
-			var channel = grouping.Key.ToString();
-			var channelData = new Dictionary<string, object>();
+			var channelIdSnowflake = new Snowflake(grouping.Key);
+			var channelData = new Dictionary<Snowflake, ViewerJson.JsonMessage>();
 
 			foreach (var message in grouping) {
-				var obj = new Dictionary<string, object> {
-					["u"] = userIndices[message.Sender],
-					["t"] = message.Timestamp,
-				};
-
-				if (!string.IsNullOrEmpty(message.Text)) {
-					obj["m"] = message.Text;
-				}
-
-				if (message.EditTimestamp != null) {
-					obj["te"] = message.EditTimestamp;
-				}
-
-				if (message.RepliedToId != null) {
-					obj["r"] = message.RepliedToId.Value;
-				}
-
-				if (!message.Attachments.IsEmpty) {
-					obj["a"] = message.Attachments.Select(attachment => {
-						var a = new Dictionary<string, object> {
-							{ "url", strategy.GetAttachmentUrl(attachment) },
-							{ "name", Uri.TryCreate(attachment.NormalizedUrl, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.NormalizedUrl },
+				var messageIdSnowflake = new Snowflake(message.Id);
+				
+				channelData[messageIdSnowflake] = new ViewerJson.JsonMessage {
+					U = userIndices[message.Sender],
+					T = message.Timestamp,
+					M = string.IsNullOrEmpty(message.Text) ? null : message.Text,
+					Te = message.EditTimestamp,
+					R = message.RepliedToId?.ToString(),
+					
+					A = message.Attachments.IsEmpty ? null : message.Attachments.Select(attachment => {
+						var a = new ViewerJson.JsonMessageAttachment {
+							Url = strategy.GetAttachmentUrl(attachment),
+							Name = Uri.TryCreate(attachment.NormalizedUrl, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.NormalizedUrl
 						};
 
 						if (attachment is { Width: not null, Height: not null }) {
-							a["width"] = attachment.Width;
-							a["height"] = attachment.Height;
+							a.Width = attachment.Width;
+							a.Height = attachment.Height;
 						}
 
 						return a;
-					}).ToArray();
-				}
-
-				if (!message.Embeds.IsEmpty) {
-					obj["e"] = message.Embeds.Select(static embed => embed.Json).ToArray();
-				}
-
-				if (!message.Reactions.IsEmpty) {
-					obj["re"] = message.Reactions.Select(static reaction => {
-						var r = new Dictionary<string, object>();
-
-						if (reaction.EmojiId != null) {
-							r["id"] = reaction.EmojiId.Value;
-						}
-
-						if (reaction.EmojiName != null) {
-							r["n"] = reaction.EmojiName;
-						}
-
-						r["a"] = reaction.EmojiFlags.HasFlag(EmojiFlags.Animated);
-						r["c"] = reaction.Count;
-						return r;
-					}).ToArray();
-				}
-
-				channelData[message.Id.ToString()] = obj;
+					}).ToArray(),
+					
+					E = message.Embeds.IsEmpty ? null : message.Embeds.Select(static embed => embed.Json).ToArray(),
+					
+					Re = message.Reactions.IsEmpty ? null : message.Reactions.Select(static reaction => new ViewerJson.JsonMessageReaction {
+						Id = reaction.EmojiId?.ToString(),
+						N = reaction.EmojiName,
+						A = reaction.EmojiFlags.HasFlag(EmojiFlags.Animated),
+						C = reaction.Count
+					}).ToArray()
+				};
 			}
 
-			data[channel] = channelData;
+			data[channelIdSnowflake] = channelData;
 		}
 
 		return data;
