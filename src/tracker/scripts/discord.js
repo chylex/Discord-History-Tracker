@@ -1,5 +1,23 @@
 // noinspection JSUnresolvedVariable
+// noinspection LocalVariableNamingConventionJS
 class DISCORD {
+	
+	// https://discord.com/developers/docs/resources/channel#channel-object-channel-types
+	static CHANNEL_TYPE = {
+		DM: 1,
+		GROUP_DM: 3,
+		ANNOUNCEMENT_THREAD: 10,
+		PUBLIC_THREAD: 11,
+		PRIVATE_THREAD: 12
+	};
+	
+	// https://discord.com/developers/docs/resources/channel#message-object-message-types
+	static MESSAGE_TYPE = {
+		DEFAULT: 0,
+		REPLY: 19,
+		THREAD_STARTER: 21
+	};
+	
 	static getMessageOuterElement() {
 		return DOM.queryReactClass("messagesWrapper");
 	}
@@ -191,8 +209,8 @@ class DISCORD {
 				
 				// https://discord.com/developers/docs/resources/channel#channel-object-channel-types
 				switch (obj.type) {
-					case 1: type = "DM"; break;
-					case 3: type = "GROUP"; break;
+					case DISCORD.CHANNEL_TYPE.DM: type = "DM"; break;
+					case DISCORD.CHANNEL_TYPE.GROUP_DM: type = "GROUP"; break;
 					default: return null;
 				}
 				
@@ -230,7 +248,7 @@ class DISCORD {
 					}
 				};
 				
-				if (obj.parent_id) {
+				if (obj.type === DISCORD.CHANNEL_TYPE.ANNOUNCEMENT_THREAD || obj.type === DISCORD.CHANNEL_TYPE.PUBLIC_THREAD || obj.type === DISCORD.CHANNEL_TYPE.PRIVATE_THREAD) {
 					channel["extra"]["parent"] = obj.parent_id;
 				}
 				else {
