@@ -50,7 +50,7 @@ namespace DHT.Desktop.Main.Pages {
 				}
 			};
 
-			await progressDialog.ShowDialog(window);
+			await progressDialog.ShowProgressDialog(window);
 		}
 
 		private const int BatchSize = 500;

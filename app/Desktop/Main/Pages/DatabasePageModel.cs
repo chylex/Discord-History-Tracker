@@ -81,7 +81,7 @@ sealed class DatabasePageModel : BaseModel {
 			Title = "Database Merge"
 		};
 
-		await progressDialog.ShowDialog(window);
+		await progressDialog.ShowProgressDialog(window);
 	}
 
 	private static async Task MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {

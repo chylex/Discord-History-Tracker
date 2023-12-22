@@ -8,6 +8,7 @@ namespace DHT.Desktop.Dialogs.Progress;
 [SuppressMessage("ReSharper", "MemberCanBeInternal")]
 public sealed partial class ProgressDialog : Window {
 	private bool isFinished = false;
+	private Task progressTask = Task.CompletedTask;
 
 	public ProgressDialog() {
 		InitializeComponent();
@@ -15,7 +16,8 @@ public sealed partial class ProgressDialog : Window {
 
 	public void OnOpened(object? sender, EventArgs e) {
 		if (DataContext is ProgressDialogModel model) {
-			Task.Run(model.StartTask).ContinueWith(OnFinished, TaskScheduler.FromCurrentSynchronizationContext());
+			progressTask = Task.Run(model.StartTask);
+			progressTask.ContinueWith(OnFinished, TaskScheduler.FromCurrentSynchronizationContext());
 		}
 	}
 
@@ -26,5 +28,10 @@ public sealed partial class ProgressDialog : Window {
 	private void OnFinished(Task task) {
 		isFinished = true;
 		Close();
+	}
+
+	public async Task ShowProgressDialog(Window owner) {
+		await ShowDialog(owner);
+		await progressTask;
 	}
 }
