@@ -60,6 +60,10 @@ abstract class BaseEndpoint {
 	protected abstract Task<IHttpOutput> Respond(HttpContext ctx);
 
 	protected static async Task<JsonElement> ReadJson(HttpContext ctx) {
-		return await ctx.Request.ReadFromJsonAsync<JsonElement?>() ?? throw new HttpException(HttpStatusCode.UnsupportedMediaType, "This endpoint only accepts JSON.");
+		try {
+			return await ctx.Request.ReadFromJsonAsync(JsonElementContext.Default.JsonElement);
+		} catch (JsonException) {
+			throw new HttpException(HttpStatusCode.UnsupportedMediaType, "This endpoint only accepts JSON.");
+		}
 	}
 }

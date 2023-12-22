@@ -21,7 +21,7 @@ public static class LegacyArchiveImport {
 
 	public static async Task<bool> Read(Stream stream, IDatabaseFile db, FakeSnowflake fakeSnowflake, Func<Data.Server[], Task<Dictionary<Data.Server, ulong>?>> askForServerIds) {
 		var perf = Log.Start();
-		var root = await JsonSerializer.DeserializeAsync(stream, LegacyArchiveJsonContext.Default.JsonElement);
+		var root = await JsonSerializer.DeserializeAsync(stream, JsonElementContext.Default.JsonElement);
 
 		try {
 			var meta = root.RequireObject("meta");

@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace DHT.Server.Database.Import;
+namespace DHT.Utils.Http;
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, GenerationMode = JsonSourceGenerationMode.Default)]
 [JsonSerializable(typeof(JsonElement))]
-sealed partial class LegacyArchiveJsonContext : JsonSerializerContext {}
+public sealed partial class JsonElementContext : JsonSerializerContext {}
