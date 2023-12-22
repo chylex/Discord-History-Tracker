@@ -17,6 +17,9 @@ using Microsoft.AspNetCore.Http;
 namespace DHT.Server.Endpoints;
 
 sealed class TrackMessagesEndpoint : BaseEndpoint {
+	private const string HasNewMessages = "1";
+	private const string NoNewMessages = "0";
+	
 	public TrackMessagesEndpoint(IDatabaseFile db, ServerParameters parameters) : base(db, parameters) {}
 
 	protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
@@ -41,7 +44,7 @@ sealed class TrackMessagesEndpoint : BaseEndpoint {
 
 		Db.AddMessages(messages);
 
-		return new HttpOutput.Json(anyNewMessages ? 1 : 0);
+		return new HttpOutput.Text(anyNewMessages ? HasNewMessages : NoNewMessages);
 	}
 
 	private static Message ReadMessage(JsonElement json, string path) => new() {

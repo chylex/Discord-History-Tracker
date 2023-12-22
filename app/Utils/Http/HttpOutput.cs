@@ -1,3 +1,4 @@
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
@@ -12,15 +13,15 @@ public static class HttpOutput {
 		}
 	}
 
-	public sealed class Json : IHttpOutput {
-		private readonly object? obj;
+	public sealed class Text : IHttpOutput {
+		private readonly string text;
 
-		public Json(object? obj) {
-			this.obj = obj;
+		public Text(string text) {
+			this.text = text;
 		}
 
 		public Task WriteTo(HttpResponse response) {
-			return response.WriteAsJsonAsync(obj);
+			return response.WriteAsync(text, Encoding.UTF8);
 		}
 	}
 

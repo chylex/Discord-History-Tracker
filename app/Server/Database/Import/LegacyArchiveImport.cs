@@ -21,7 +21,7 @@ public static class LegacyArchiveImport {
 
 	public static async Task<bool> Read(Stream stream, IDatabaseFile db, FakeSnowflake fakeSnowflake, Func<Data.Server[], Task<Dictionary<Data.Server, ulong>?>> askForServerIds) {
 		var perf = Log.Start();
-		var root = await JsonSerializer.DeserializeAsync<JsonElement>(stream);
+		var root = await JsonSerializer.DeserializeAsync(stream, LegacyArchiveJsonContext.Default.JsonElement);
 
 		try {
 			var meta = root.RequireObject("meta");
@@ -212,30 +212,17 @@ public static class LegacyArchiveImport {
 		return embedsArray.Where(static embedObj => embedObj.HasKey("url")).Select(embedObj => {
 			string url = embedObj.RequireString("url", path);
 			string type = embedObj.RequireString("type", path);
-
-			var embedJson = new Dictionary<string, object> {
-				{ "url", url },
-				{ "type", type },
-				{ "dht_legacy", true },
+			
+			var embed = new DiscordEmbedLegacyJson {
+				Url = url,
+				Type = type,
+				Title = type == "rich" && embedObj.HasKey("t") ? embedObj.RequireString("t", path) : null,
+				Description = type == "rich" && embedObj.HasKey("d") ? embedObj.RequireString("d", path) : null,
+				Image = type == "image" ? new DiscordEmbedLegacyJson.ImageJson { Url = url } : null
 			};
 
-			if (type == "image") {
-				embedJson["image"] = new Dictionary<string, string> {
-					{ "url", url }
-				};
-			}
-			else if (type == "rich") {
-				if (embedObj.HasKey("t")) {
-					embedJson["title"] = embedObj.RequireString("t", path);
-				}
-
-				if (embedObj.HasKey("d")) {
-					embedJson["description"] = embedObj.RequireString("d", path);
-				}
-			}
-
 			return new Embed {
-				Json = JsonSerializer.Serialize(embedJson)
+				Json = JsonSerializer.Serialize(embed, DiscordEmbedLegacyJsonContext.Default.DiscordEmbedLegacyJson)
 			};
 		});
 	}

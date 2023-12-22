@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using DHT.Utils.Logging;
 using static System.Environment.SpecialFolder;
@@ -47,12 +47,12 @@ static class DiscordAppSettings {
 		}
 	}
 
-	private static bool AreDevToolsEnabled(Dictionary<string, object?> json) {
-		return json.TryGetValue(JsonKeyDevTools, out var value) && value is JsonElement { ValueKind: JsonValueKind.True };
+	private static bool AreDevToolsEnabled(JsonObject json) {
+		return json.TryGetPropertyValue(JsonKeyDevTools, out var node) && node?.GetValueKind() == JsonValueKind.True;
 	}
 
 	public static async Task<SettingsJsonResult> ConfigureDevTools(bool enable) {
-		Dictionary<string, object?> json;
+		JsonObject json;
 
 		try {
 			json = await ReadSettingsJson();
@@ -109,13 +109,13 @@ static class DiscordAppSettings {
 		return SettingsJsonResult.Success;
 	}
 
-	private static async Task<Dictionary<string, object?>> ReadSettingsJson() {
+	private static async Task<JsonObject> ReadSettingsJson() {
 		await using var stream = new FileStream(JsonFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-		return await JsonSerializer.DeserializeAsync<Dictionary<string, object?>?>(stream) ?? throw new JsonException();
+		return await JsonSerializer.DeserializeAsync(stream, DiscordAppSettingsJsonContext.Default.JsonObject) ?? throw new JsonException();
 	}
 
-	private static async Task WriteSettingsJson(Dictionary<string, object?> json) {
+	private static async Task WriteSettingsJson(JsonObject json) {
 		await using var stream = new FileStream(JsonFilePath, FileMode.Truncate, FileAccess.Write, FileShare.None);
-		await JsonSerializer.SerializeAsync(stream, json, new JsonSerializerOptions { WriteIndented = true });
+		await JsonSerializer.SerializeAsync(stream, json, DiscordAppSettingsJsonContext.Default.JsonObject);
 	}
 }
