@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Server.Database;
@@ -41,11 +43,16 @@ static class DatabaseGui {
 		});
 	}
 
-	public static async Task<IDatabaseFile?> TryOpenOrCreateDatabaseFromPath(string path, Window window, Func<Task<bool>> checkCanUpgradeDatabase) {
+	public static async Task<IDatabaseFile?> TryOpenOrCreateDatabaseFromPath(string path, Window window, ISchemaUpgradeCallbacks schemaUpgradeCallbacks) {
+		var prevSynchronizationContext = SynchronizationContext.Current;
+		SynchronizationContext.SetSynchronizationContext(new AvaloniaSynchronizationContext());
+		var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+		SynchronizationContext.SetSynchronizationContext(prevSynchronizationContext);
+		
 		IDatabaseFile? file = null;
 
 		try {
-			file = await SqliteDatabaseFile.OpenOrCreate(path, checkCanUpgradeDatabase);
+			file = await SqliteDatabaseFile.OpenOrCreate(path, schemaUpgradeCallbacks, taskScheduler);
 		} catch (InvalidDatabaseVersionException ex) {
 			await Dialog.ShowOk(window, "Database Error", "Database '" + Path.GetFileName(path) + "' appears to be corrupted (invalid version: " + ex.Version + ").");
 		} catch (DatabaseTooNewException ex) {

@@ -18,7 +18,7 @@ namespace DHT.Server.Database.Sqlite;
 public sealed class SqliteDatabaseFile : IDatabaseFile {
 	private const int DefaultPoolSize = 5;
 
-	public static async Task<SqliteDatabaseFile?> OpenOrCreate(string path, Func<Task<bool>> checkCanUpgradeSchemas) {
+	public static async Task<SqliteDatabaseFile?> OpenOrCreate(string path, ISchemaUpgradeCallbacks schemaUpgradeCallbacks, TaskScheduler computeTaskResultScheduler) {
 		var connectionString = new SqliteConnectionStringBuilder {
 			DataSource = path,
 			Mode = SqliteOpenMode.ReadWriteCreate,
@@ -27,12 +27,16 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		var pool = new SqliteConnectionPool(connectionString, DefaultPoolSize);
 		bool wasOpened;
 
-		using (var conn = pool.Take()) {
-			wasOpened = await new Schema(conn).Setup(checkCanUpgradeSchemas);
+		try {
+			using var conn = pool.Take();
+			wasOpened = await new Schema(conn).Setup(schemaUpgradeCallbacks);
+		} catch (Exception) {
+			pool.Dispose();
+			throw;
 		}
 
 		if (wasOpened) {
-			return new SqliteDatabaseFile(path, pool);
+			return new SqliteDatabaseFile(path, pool, computeTaskResultScheduler);
 		}
 		else {
 			pool.Dispose();
@@ -49,13 +53,13 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 	private readonly AsyncValueComputer<long>.Single totalAttachmentsComputer;
 	private readonly AsyncValueComputer<long>.Single totalDownloadsComputer;
 
-	private SqliteDatabaseFile(string path, SqliteConnectionPool pool) {
+	private SqliteDatabaseFile(string path, SqliteConnectionPool pool, TaskScheduler computeTaskResultScheduler) {
 		this.log = Log.ForType(typeof(SqliteDatabaseFile), System.IO.Path.GetFileName(path));
 		this.pool = pool;
 
-		this.totalMessagesComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateMessageStatistics).WithOutdatedResults().BuildWithComputer(ComputeMessageStatistics);
-		this.totalAttachmentsComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateAttachmentStatistics).WithOutdatedResults().BuildWithComputer(ComputeAttachmentStatistics);
-		this.totalDownloadsComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateDownloadStatistics).WithOutdatedResults().BuildWithComputer(ComputeDownloadStatistics);
+		this.totalMessagesComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateMessageStatistics, computeTaskResultScheduler).WithOutdatedResults().BuildWithComputer(ComputeMessageStatistics);
+		this.totalAttachmentsComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateAttachmentStatistics, computeTaskResultScheduler).WithOutdatedResults().BuildWithComputer(ComputeAttachmentStatistics);
+		this.totalDownloadsComputer = AsyncValueComputer<long>.WithResultProcessor(UpdateDownloadStatistics, computeTaskResultScheduler).WithOutdatedResults().BuildWithComputer(ComputeDownloadStatistics);
 
 		this.Path = path;
 		this.Statistics = new DatabaseStatistics();

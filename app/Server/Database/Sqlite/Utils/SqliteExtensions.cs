@@ -5,14 +5,19 @@ using Microsoft.Data.Sqlite;
 namespace DHT.Server.Database.Sqlite.Utils;
 
 static class SqliteExtensions {
+	public static SqliteTransaction BeginTransaction(this ISqliteConnection conn) {
+		return conn.InnerConnection.BeginTransaction();
+	}
+
 	public static SqliteCommand Command(this ISqliteConnection conn, string sql) {
 		var cmd = conn.InnerConnection.CreateCommand();
 		cmd.CommandText = sql;
 		return cmd;
 	}
 
-	public static SqliteTransaction BeginTransaction(this ISqliteConnection conn) {
-		return conn.InnerConnection.BeginTransaction();
+	public static void Execute(this ISqliteConnection conn, string sql) {
+		using var cmd = conn.Command(sql);
+		cmd.ExecuteNonQuery();
 	}
 
 	public static object? SelectScalar(this ISqliteConnection conn, string sql) {

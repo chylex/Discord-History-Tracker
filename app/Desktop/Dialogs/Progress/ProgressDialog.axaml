@@ -32,12 +32,18 @@
         </Style>
     </Window.Styles>
 
-    <StackPanel Margin="20">
-        <DockPanel>
-            <TextBlock DockPanel.Dock="Right" Text="{Binding Items}" Classes="items" />
-            <TextBlock DockPanel.Dock="Left" Text="{Binding Message}" />
-        </DockPanel>
-        <ProgressBar Value="{Binding Progress}" />
-    </StackPanel>
+    <ItemsRepeater ItemsSource="{Binding Items}" Margin="0 10">
+        <ItemsRepeater.ItemTemplate>
+            <DataTemplate>
+                <StackPanel Margin="20 10" IsHitTestVisible="{Binding IsVisible}" Opacity="{Binding Opacity}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding Items}" Classes="items" />
+                        <TextBlock DockPanel.Dock="Left" Text="{Binding Message}" />
+                    </DockPanel>
+                    <ProgressBar Value="{Binding Progress}" />
+                </StackPanel>
+            </DataTemplate>
+        </ItemsRepeater.ItemTemplate>
+    </ItemsRepeater>
 
 </Window>

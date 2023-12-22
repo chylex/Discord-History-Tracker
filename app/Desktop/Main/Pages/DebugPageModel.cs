@@ -45,7 +45,7 @@ namespace DHT.Desktop.Main.Pages {
 			}
 
 			ProgressDialog progressDialog = new ProgressDialog {
-				DataContext = new ProgressDialogModel(async callback => await GenerateRandomData(channels, users, messages, callback)) {
+				DataContext = new ProgressDialogModel(async callbacks => await GenerateRandomData(channels, users, messages, callbacks[0])) {
 					Title = "Generating Random Data"
 				}
 			};

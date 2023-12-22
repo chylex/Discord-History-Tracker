@@ -17,6 +17,7 @@ using DHT.Desktop.Dialogs.TextBox;
 using DHT.Server.Data;
 using DHT.Server.Database;
 using DHT.Server.Database.Import;
+using DHT.Server.Database.Sqlite;
 using DHT.Utils.Logging;
 using DHT.Utils.Models;
 
@@ -77,7 +78,7 @@ sealed class DatabasePageModel : BaseModel {
 		}
 
 		ProgressDialog progressDialog = new ProgressDialog();
-		progressDialog.DataContext = new ProgressDialogModel(async callback => await MergeWithDatabaseFromPaths(Db, paths, progressDialog, callback)) {
+		progressDialog.DataContext = new ProgressDialogModel(async callbacks => await MergeWithDatabaseFromPaths(Db, paths, progressDialog, callbacks[0])) {
 			Title = "Database Merge"
 		};
 
@@ -85,23 +86,10 @@ sealed class DatabasePageModel : BaseModel {
 	}
 
 	private static async Task MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
-		int total = paths.Length;
-
-		DialogResult.YesNo? upgradeResult = null;
-
-		async Task<bool> CheckCanUpgradeDatabase() {
-			upgradeResult ??= total > 1
-				                  ? await DatabaseGui.ShowCanUpgradeMultipleDatabaseDialog(dialog)
-				                  : await DatabaseGui.ShowCanUpgradeDatabaseDialog(dialog);
-
-			return DialogResult.YesNo.Yes == upgradeResult;
-		}
-
+		var schemaUpgradeCallbacks = new SchemaUpgradeCallbacks(dialog, paths.Length);
+		
 		await PerformImport(target, paths, dialog, callback, "Database Merge", "Database Error", "database file", async path => {
-			SynchronizationContext? prevSyncContext = SynchronizationContext.Current;
-			SynchronizationContext.SetSynchronizationContext(new AvaloniaSynchronizationContext());
-			IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, dialog, CheckCanUpgradeDatabase);
-			SynchronizationContext.SetSynchronizationContext(prevSyncContext);
+			IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, dialog, schemaUpgradeCallbacks);
 
 			if (db == null) {
 				return false;
@@ -116,6 +104,41 @@ sealed class DatabasePageModel : BaseModel {
 		});
 	}
 
+	private sealed class SchemaUpgradeCallbacks : ISchemaUpgradeCallbacks {
+		private readonly ProgressDialog dialog;
+		private readonly int total;
+		private bool? decision;
+		
+		public SchemaUpgradeCallbacks(ProgressDialog dialog, int total) {
+			this.total = total;
+			this.dialog = dialog;
+		}
+
+		public async Task<bool> CanUpgrade() {
+			return decision ??= (total > 1
+				                     ? await DatabaseGui.ShowCanUpgradeMultipleDatabaseDialog(dialog)
+				                     : await DatabaseGui.ShowCanUpgradeDatabaseDialog(dialog)) == DialogResult.YesNo.Yes;
+		}
+
+		public Task Start(int versionSteps, Func<ISchemaUpgradeCallbacks.IProgressReporter, Task> doUpgrade) {
+			return doUpgrade(new NullReporter());
+		}
+
+		private sealed class NullReporter : ISchemaUpgradeCallbacks.IProgressReporter {
+			public Task NextVersion() {
+				return Task.CompletedTask;
+			}
+
+			public Task MainWork(string message, int finishedItems, int totalItems) {
+				return Task.CompletedTask;
+			}
+
+			public Task SubWork(string message, int finishedItems, int totalItems) {
+				return Task.CompletedTask;
+			}
+		}
+	}
+
 	public async void ImportLegacyArchive() {
 		var paths = await window.StorageProvider.OpenFiles(new FilePickerOpenOptions {
 			Title = "Open Legacy DHT Archive",
@@ -128,11 +151,11 @@ sealed class DatabasePageModel : BaseModel {
 		}
 
 		ProgressDialog progressDialog = new ProgressDialog();
-		progressDialog.DataContext = new ProgressDialogModel(async callback => await ImportLegacyArchiveFromPaths(Db, paths, progressDialog, callback)) {
+		progressDialog.DataContext = new ProgressDialogModel(async callbacks => await ImportLegacyArchiveFromPaths(Db, paths, progressDialog, callbacks[0])) {
 			Title = "Legacy Archive Import"
 		};
 
-		await progressDialog.ShowDialog(window);
+		await progressDialog.ShowProgressDialog(window);
 	}
 
 	private static async Task ImportLegacyArchiveFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
