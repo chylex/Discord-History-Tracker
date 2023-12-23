@@ -5,26 +5,33 @@ namespace DHT.Desktop;
 
 sealed class Arguments {
 	private static readonly Log Log = Log.ForType<Arguments>();
+	
+	private const int FirstArgument = 1;
 
 	public static Arguments Empty => new(Array.Empty<string>());
 
+	public bool Console { get; }
 	public string? DatabaseFile { get; }
 	public ushort? ServerPort { get; }
 	public string? ServerToken { get; }
 
 	public Arguments(string[] args) {
-		for (int i = 0; i < args.Length; i++) {
+		for (int i = FirstArgument; i < args.Length; i++) {
 			string key = args[i];
 
 			switch (key) {
 				case "-debug":
 					Log.IsDebugEnabled = true;
 					continue;
+				
+				case "-console":
+					Console = true;
+					continue;
 			}
 
 			string value;
 
-			if (i == 0 && !key.StartsWith('-')) {
+			if (i == FirstArgument && !key.StartsWith('-')) {
 				value = key;
 				key = "-db";
 			}

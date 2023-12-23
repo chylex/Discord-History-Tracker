@@ -1,6 +1,8 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Reflection;
 using Avalonia;
+using DHT.Utils.Logging;
 using DHT.Utils.Resources;
 
 namespace DHT.Desktop;
@@ -9,6 +11,7 @@ static class Program {
 	public static string Version { get; }
 	public static CultureInfo Culture { get; }
 	public static ResourceLoader Resources { get; }
+	public static Arguments Arguments { get; }
 
 	static Program() {
 		var assembly = Assembly.GetExecutingAssembly();
@@ -25,10 +28,21 @@ static class Program {
 		CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 		Resources = new ResourceLoader(assembly);
+		Arguments = new Arguments(Environment.GetCommandLineArgs());
 	}
 
 	public static void Main(string[] args) {
-		BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+		if (Arguments.Console && OperatingSystem.IsWindows()) {
+			WindowsConsole.AllocConsole();
+		}
+
+		try {
+			BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+		} finally {
+			if (Arguments.Console && OperatingSystem.IsWindows()) {
+				WindowsConsole.FreeConsole();
+			}
+		}
 	}
 
 	private static AppBuilder BuildAvaloniaApp() {
