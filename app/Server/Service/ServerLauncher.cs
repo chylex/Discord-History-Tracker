@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using DHT.Server.Database;
 using DHT.Utils.Logging;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -75,11 +74,11 @@ public static class ServerLauncher {
 			options.ListenLocalhost(port, static listenOptions => listenOptions.Protocols = HttpProtocols.Http1);
 		}
 
-		Server = WebHost.CreateDefaultBuilder()
-		                .ConfigureServices(AddServices)
-		                .UseKestrel(SetKestrelOptions)
-		                .UseStartup<Startup>()
-		                .Build();
+		Server = new WebHostBuilder()
+		         .ConfigureServices(AddServices)
+		         .UseKestrel(SetKestrelOptions)
+		         .UseStartup<Startup>()
+		         .Build();
 
 		Server.Start();
 

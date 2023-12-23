@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace DHT.Server.Service;
 
@@ -20,10 +19,6 @@ sealed class Startup {
 	};
 
 	public void ConfigureServices(IServiceCollection services) {
-		services.AddLogging(static logging => {
-			logging.ClearProviders();
-		});
-		
 		services.Configure<JsonOptions>(static options => {
 			options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
 		});
@@ -33,6 +28,8 @@ sealed class Startup {
 				builder.WithOrigins(AllowedOrigins).AllowCredentials().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("X-DHT");
 			});
 		});
+		
+		services.AddRoutingCore();
 	}
 
 	[SuppressMessage("ReSharper", "UnusedMember.Global")]
