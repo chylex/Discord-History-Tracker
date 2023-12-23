@@ -7,6 +7,13 @@ public sealed class StandaloneViewerExportStrategy : IViewerExportStrategy {
 
 	private StandaloneViewerExportStrategy() {}
 
+	public bool IncludeMessageText => true;
+
+	public string ProcessViewerTemplate(string template) {
+		return template.Replace("\"/*[SERVER_URL]*/\"", "null")
+		               .Replace("\"/*[SERVER_TOKEN]*/\"", "null");
+	}
+
 	public string GetAttachmentUrl(Attachment attachment) {
 		// The normalized URL will not load files from Discord CDN once the time limit is enforced.
 		

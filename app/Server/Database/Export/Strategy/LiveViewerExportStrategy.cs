@@ -12,6 +12,13 @@ public sealed class LiveViewerExportStrategy : IViewerExportStrategy {
 		this.safeToken = WebUtility.UrlEncode(token);
 	}
 
+	public bool IncludeMessageText => false;
+
+	public string ProcessViewerTemplate(string template) {
+		return template.Replace("/*[SERVER_URL]*/", "http://127.0.0.1:" + safePort)
+		               .Replace("/*[SERVER_TOKEN]*/", WebUtility.UrlEncode(safeToken));
+	}
+
 	public string GetAttachmentUrl(Attachment attachment) {
 		return "http://127.0.0.1:" + safePort + "/get-attachment/" + WebUtility.UrlEncode(attachment.NormalizedUrl) + "?token=" + safeToken;
 	}

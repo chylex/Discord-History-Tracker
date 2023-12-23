@@ -23,7 +23,7 @@ public interface IDatabaseFile : IDisposable {
 
 	void AddMessages(Message[] messages);
 	int CountMessages(MessageFilter? filter = null);
-	List<Message> GetMessages(MessageFilter? filter = null);
+	List<Message> GetMessages(MessageFilter? filter = null, bool includeText = true);
 	HashSet<ulong> GetMessageIds(MessageFilter? filter = null);
 	void RemoveMessages(MessageFilter filter, FilterRemovalMode mode);
 

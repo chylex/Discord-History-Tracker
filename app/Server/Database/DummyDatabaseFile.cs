@@ -44,7 +44,7 @@ public sealed class DummyDatabaseFile : IDatabaseFile {
 		return 0;
 	}
 
-	public List<Message> GetMessages(MessageFilter? filter = null) {
+	public List<Message> GetMessages(MessageFilter? filter = null, bool includeText = true) {
 		return new();
 	}
 

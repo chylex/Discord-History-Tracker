@@ -65,6 +65,8 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 		string indexFile = await Resources.ReadTextAsync("Viewer/index.html");
 		string viewerTemplate = indexFile.Replace("/*[JS]*/", await Resources.ReadJoinedAsync("Viewer/scripts/", '\n'))
 		                                 .Replace("/*[CSS]*/", await Resources.ReadJoinedAsync("Viewer/styles/", '\n'));
+		
+		viewerTemplate = strategy.ProcessViewerTemplate(viewerTemplate);
 
 		int viewerArchiveTagStart = viewerTemplate.IndexOf(ArchiveTag);
 		int viewerArchiveTagEnd = viewerArchiveTagStart + ArchiveTag.Length;

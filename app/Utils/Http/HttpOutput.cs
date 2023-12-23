@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
@@ -22,6 +23,20 @@ public static class HttpOutput {
 
 		public Task WriteTo(HttpResponse response) {
 			return response.WriteAsync(text, Encoding.UTF8);
+		}
+	}
+
+	public sealed class Json<TValue> : IHttpOutput {
+		private readonly TValue value;
+		private readonly JsonTypeInfo<TValue> typeInfo;
+
+		public Json(TValue value, JsonTypeInfo<TValue> typeInfo) {
+			this.value = value;
+			this.typeInfo = typeInfo;
+		}
+
+		public Task WriteTo(HttpResponse response) {
+			return response.WriteAsJsonAsync(value, typeInfo);
 		}
 	}
 

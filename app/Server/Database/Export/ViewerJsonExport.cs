@@ -21,7 +21,7 @@ public static class ViewerJsonExport {
 		var includedChannelIds = new HashSet<ulong>();
 		var includedServerIds = new HashSet<ulong>();
 
-		var includedMessages = db.GetMessages(filter);
+		var includedMessages = db.GetMessages(filter, strategy.IncludeMessageText);
 		var includedChannels = new List<Channel>();
 
 		foreach (var message in includedMessages) {

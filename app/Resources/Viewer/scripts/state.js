@@ -182,15 +182,32 @@ const STATE = (function() {
 		return null;
 	};
 	
-	const getMessageList = function() {
+	const getMessageList = async function(abortSignal) {
 		if (!loadedMessages) {
 			return [];
 		}
 		
 		const messages = getMessages(selectedChannel);
 		const startIndex = messagesPerPage * (root.getCurrentPage() - 1);
+		const slicedMessages = loadedMessages.slice(startIndex, !messagesPerPage ? undefined : startIndex + messagesPerPage);
 		
-		return loadedMessages.slice(startIndex, !messagesPerPage ? undefined : startIndex + messagesPerPage).map(key => {
+		let messageTexts = null;
+		
+		if (window.DHT_SERVER_URL !== null) {
+			const messageIds = new Set(slicedMessages);
+			
+			for (const key of slicedMessages) {
+				const message = messages[key];
+				
+				if ("r" in message) {
+					messageIds.add(message.r);
+				}
+			}
+			
+			messageTexts = await getMessageTextsFromServer(messageIds, abortSignal);
+		}
+		
+		return slicedMessages.map(key => {
 			/**
 			 * @type {{}}
 			 * @property {Number} u
@@ -216,6 +233,9 @@ const STATE = (function() {
 			if ("m" in message) {
 				obj["contents"] = message.m;
 			}
+			else if (messageTexts && key in messageTexts) {
+				obj["contents"] = messageTexts[key];
+			}
 			
 			if ("e" in message) {
 				obj["embeds"] = message.e.map(embed => JSON.parse(embed));
@@ -230,15 +250,16 @@ const STATE = (function() {
 			}
 			
 			if ("r" in message) {
-				const replyMessage = getMessageById(message.r);
+				const replyId = message.r;
+				const replyMessage = getMessageById(replyId);
 				const replyUser = replyMessage ? getUser(replyMessage.u) : null;
 				const replyAvatar = replyUser && replyUser.avatar ? { id: getUserId(replyMessage.u), path: replyUser.avatar } : null;
 				
 				obj["reply"] = replyMessage ? {
-					"id": message.r,
+					"id": replyId,
 					"user": replyUser,
 					"avatar": replyAvatar,
-					"contents": replyMessage.m
+					"contents": messageTexts != null && replyId in messageTexts ? messageTexts[replyId] : replyMessage.m,
 				} : null;
 			}
 			
@@ -250,9 +271,35 @@ const STATE = (function() {
 		});
 	};
 	
+	const getMessageTextsFromServer = async function(messageIds, abortSignal) {
+		let idParams = "";
+		
+		for (const messageId of messageIds) {
+			idParams += "id=" + encodeURIComponent(messageId) + "&";
+		}
+		
+		const response = await fetch(DHT_SERVER_URL + "/get-messages?" + idParams + "token=" + encodeURIComponent(DHT_SERVER_TOKEN), {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			credentials: "omit",
+			redirect: "error",
+			signal: abortSignal
+		});
+		
+		if (response.status === 200) {
+			return response.json();
+		}
+		else {
+			throw new Error("Server returned status " + response.status + " " + response.statusText);
+		}
+	};
+	
 	let eventOnUsersRefreshed;
 	let eventOnChannelsRefreshed;
 	let eventOnMessagesRefreshed;
+	let messageLoaderAborter = null;
 	
 	const triggerUsersRefreshed = function() {
 		eventOnUsersRefreshed && eventOnUsersRefreshed(getUserList());
@@ -263,7 +310,22 @@ const STATE = (function() {
 	};
 	
 	const triggerMessagesRefreshed = function() {
-		eventOnMessagesRefreshed && eventOnMessagesRefreshed(getMessageList());
+		if (!eventOnMessagesRefreshed) {
+			return;
+		}
+		
+		if (messageLoaderAborter != null) {
+			messageLoaderAborter.abort();
+		}
+		
+		const aborter = new AbortController();
+		messageLoaderAborter = aborter;
+		
+		getMessageList(aborter.signal).then(eventOnMessagesRefreshed).finally(() => {
+			if (messageLoaderAborter === aborter) {
+				messageLoaderAborter = null;
+			}
+		});
 	};
 	
 	const getFilteredMessageKeys = function(channel) {

@@ -360,7 +360,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		return reader.Read() ? reader.GetInt32(0) : 0;
 	}
 
-	public List<Message> GetMessages(MessageFilter? filter = null) {
+	public List<Message> GetMessages(MessageFilter? filter = null, bool includeText = true) {
 		var perf = log.Start();
 		var list = new List<Message>();
 
@@ -370,7 +370,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 
 		using var conn = pool.Take();
 		using var cmd = conn.Command($"""
-		                              SELECT m.message_id, m.sender_id, m.channel_id, m.text, m.timestamp, et.edit_timestamp, rt.replied_to_id
+		                              SELECT m.message_id, m.sender_id, m.channel_id, {(includeText ? "m.text" : "NULL")}, m.timestamp, et.edit_timestamp, rt.replied_to_id
 		                              FROM messages m
 		                              LEFT JOIN edit_timestamps et ON m.message_id = et.message_id
 		                              LEFT JOIN replied_to rt ON m.message_id = rt.message_id
@@ -385,7 +385,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 				Id = id,
 				Sender = reader.GetUint64(1),
 				Channel = reader.GetUint64(2),
-				Text = reader.GetString(3),
+				Text = includeText ? reader.GetString(3) : string.Empty,
 				Timestamp = reader.GetInt64(4),
 				EditTimestamp = reader.IsDBNull(5) ? null : reader.GetInt64(5),
 				RepliedToId = reader.IsDBNull(6) ? null : reader.GetUint64(6),
