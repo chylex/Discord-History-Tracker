@@ -38,23 +38,16 @@ sealed class Startup {
 	[SuppressMessage("ReSharper", "UnusedMember.Global")]
 	public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, IDatabaseFile db, ServerParameters parameters) {
 		app.UseMiddleware<ServerLoggingMiddleware>();
-		app.UseRouting();
 		app.UseCors();
+		app.UseMiddleware<ServerAuthorizationMiddleware>();
+		app.UseRouting();
+		
 		app.UseEndpoints(endpoints => {
-			GetTrackingScriptEndpoint getTrackingScript = new (db, parameters);
-			endpoints.MapGet("/get-tracking-script", context => getTrackingScript.HandleGet(context));
-			
-			TrackChannelEndpoint trackChannel = new (db, parameters);
-			endpoints.MapPost("/track-channel", context => trackChannel.HandlePost(context));
-
-			TrackUsersEndpoint trackUsers = new (db, parameters);
-			endpoints.MapPost("/track-users", context => trackUsers.HandlePost(context));
-
-			TrackMessagesEndpoint trackMessages = new (db, parameters);
-			endpoints.MapPost("/track-messages", context => trackMessages.HandlePost(context));
-
-			GetAttachmentEndpoint getAttachment = new (db, parameters);
-			endpoints.MapGet("/get-attachment/{url}", context => getAttachment.HandleGet(context));
+			endpoints.MapGet("/get-tracking-script", new GetTrackingScriptEndpoint(db, parameters).Handle);
+			endpoints.MapGet("/get-attachment/{url}", new GetAttachmentEndpoint(db).Handle);
+			endpoints.MapPost("/track-channel", new TrackChannelEndpoint(db).Handle);
+			endpoints.MapPost("/track-users", new TrackUsersEndpoint(db).Handle);
+			endpoints.MapPost("/track-messages", new TrackMessagesEndpoint(db).Handle);
 		});
 	}
 }

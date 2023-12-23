@@ -9,7 +9,6 @@ using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Server.Download;
-using DHT.Server.Service;
 using DHT.Utils.Collections;
 using DHT.Utils.Http;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +19,7 @@ sealed class TrackMessagesEndpoint : BaseEndpoint {
 	private const string HasNewMessages = "1";
 	private const string NoNewMessages = "0";
 	
-	public TrackMessagesEndpoint(IDatabaseFile db, ServerParameters parameters) : base(db, parameters) {}
+	public TrackMessagesEndpoint(IDatabaseFile db) : base(db) {}
 
 	protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
 		var root = await ReadJson(ctx);

@@ -2,14 +2,13 @@ using System.Net;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database;
-using DHT.Server.Service;
 using DHT.Utils.Http;
 using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
 sealed class GetAttachmentEndpoint : BaseEndpoint {
-	public GetAttachmentEndpoint(IDatabaseFile db, ServerParameters parameters) : base(db, parameters) {}
+	public GetAttachmentEndpoint(IDatabaseFile db) : base(db) {}
 
 	protected override Task<IHttpOutput> Respond(HttpContext ctx) {
 		string attachmentUrl = WebUtility.UrlDecode((string) ctx.Request.RouteValues["url"]!);

@@ -3,14 +3,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database;
-using DHT.Server.Service;
 using DHT.Utils.Http;
 using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
 sealed class TrackChannelEndpoint : BaseEndpoint {
-	public TrackChannelEndpoint(IDatabaseFile db, ServerParameters parameters) : base(db, parameters) {}
+	public TrackChannelEndpoint(IDatabaseFile db) : base(db) {}
 
 	protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
 		var root = await ReadJson(ctx);
