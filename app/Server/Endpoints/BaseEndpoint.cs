@@ -7,7 +7,6 @@ using DHT.Server.Service;
 using DHT.Utils.Http;
 using DHT.Utils.Logging;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Primitives;
 
 namespace DHT.Server.Endpoints;
@@ -24,10 +23,7 @@ abstract class BaseEndpoint {
 	}
 
 	private async Task Handle(HttpContext ctx, StringValues token) {
-		var request = ctx.Request;
 		var response = ctx.Response;
-
-		Log.Info("Request: " + request.GetDisplayUrl() + " (" + request.ContentLength + " B)");
 
 		if (token.Count != 1 || token[0] != Parameters.Token) {
 			Log.Error("Token: " + (token.Count == 1 ? token[0] : "<missing>"));

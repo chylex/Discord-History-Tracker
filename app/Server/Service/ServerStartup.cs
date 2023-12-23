@@ -2,10 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using DHT.Server.Database;
 using DHT.Server.Endpoints;
+using DHT.Server.Service.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace DHT.Server.Service;
 
@@ -18,6 +20,10 @@ sealed class Startup {
 	};
 
 	public void ConfigureServices(IServiceCollection services) {
+		services.AddLogging(static logging => {
+			logging.ClearProviders();
+		});
+		
 		services.Configure<JsonOptions>(static options => {
 			options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
 		});
@@ -31,6 +37,7 @@ sealed class Startup {
 
 	[SuppressMessage("ReSharper", "UnusedMember.Global")]
 	public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, IDatabaseFile db, ServerParameters parameters) {
+		app.UseMiddleware<ServerLoggingMiddleware>();
 		app.UseRouting();
 		app.UseCors();
 		app.UseEndpoints(endpoints => {
