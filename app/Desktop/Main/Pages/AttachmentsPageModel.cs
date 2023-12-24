@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using DHT.Desktop.Common;
 using DHT.Desktop.Main.Controls;
@@ -15,16 +16,17 @@ using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed class AttachmentsPageModel : BaseModel, IDisposable {
+sealed class AttachmentsPageModel : BaseModel, IAsyncDisposable {
 	private static readonly DownloadItemFilter EnqueuedItemFilter = new() {
 		IncludeStatuses = new HashSet<DownloadStatus> {
-			DownloadStatus.Enqueued
+			DownloadStatus.Enqueued,
+			DownloadStatus.Downloading
 		}
 	};
 
 	private bool isThreadDownloadButtonEnabled = true;
 
-	public string ToggleDownloadButtonText => downloadThread == null ? "Start Downloading" : "Stop Downloading";
+	public string ToggleDownloadButtonText => downloader == null ? "Start Downloading" : "Stop Downloading";
 
 	public bool IsToggleDownloadButtonEnabled {
 		get => isThreadDownloadButtonEnabled;
@@ -32,7 +34,7 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 	}
 
 	public string DownloadMessage { get; set; } = "";
-	public double DownloadProgress => allItemsCount is null or 0 ? 0.0 : 100.0 * doneItemsCount / allItemsCount.Value;
+	public double DownloadProgress => totalItemsToDownloadCount is null or 0 ? 0.0 : 100.0 * doneItemsCount / totalItemsToDownloadCount.Value;
 
 	public AttachmentFilterPanelModel FilterModel { get; }
 
@@ -52,15 +54,16 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 		}
 	}
 
-	public bool IsDownloading => downloadThread != null;
+	public bool IsDownloading => downloader != null;
 	public bool HasFailedDownloads => statisticsFailed.Items > 0;
 
 	private readonly IDatabaseFile db;
 	private readonly AsyncValueComputer<DownloadStatusStatistics>.Single downloadStatisticsComputer;
-	private BackgroundDownloadThread? downloadThread;
+	private BackgroundDownloader? downloader;
 
 	private int doneItemsCount;
-	private int? allItemsCount;
+	private int initialFinishedCount;
+	private int? totalItemsToDownloadCount;
 
 	public AttachmentsPageModel() : this(DummyDatabaseFile.Instance) {}
 
@@ -74,11 +77,11 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 		db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 	}
 
-	public void Dispose() {
+	public async ValueTask DisposeAsync() {
 		db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
 
 		FilterModel.Dispose();
-		DisposeDownloadThread();
+		await DisposeDownloader();
 	}
 
 	private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
@@ -124,44 +127,42 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 			OnPropertyChanged(nameof(HasFailedDownloads));
 		}
 
-		allItemsCount = doneItemsCount + statisticsEnqueued.Items;
+		totalItemsToDownloadCount = statisticsEnqueued.Items + statisticsDownloaded.Items + statisticsFailed.Items - initialFinishedCount;
 		UpdateDownloadMessage();
 	}
 
 	private void UpdateDownloadMessage() {
-		DownloadMessage = IsDownloading ? doneItemsCount.Format() + " / " + (allItemsCount?.Format() ?? "?") : "";
+		DownloadMessage = IsDownloading ? doneItemsCount.Format() + " / " + (totalItemsToDownloadCount?.Format() ?? "?") : "";
 
 		OnPropertyChanged(nameof(DownloadMessage));
 		OnPropertyChanged(nameof(DownloadProgress));
 	}
 
-	private void DownloadThreadOnOnItemFinished(object? sender, DownloadItem e) {
+	private void DownloaderOnOnItemFinished(object? sender, DownloadItem e) {
 		Interlocked.Increment(ref doneItemsCount);
-
+		
 		Dispatcher.UIThread.Invoke(UpdateDownloadMessage);
 		downloadStatisticsComputer.Recompute();
 	}
 
-	private void DownloadThreadOnOnServerStopped(object? sender, EventArgs e) {
-		downloadStatisticsComputer.Recompute();
-		IsToggleDownloadButtonEnabled = true;
-	}
-
-	public void OnClickToggleDownload() {
-		if (downloadThread == null) {
+	public async Task OnClickToggleDownload() {
+		if (downloader == null) {
+			initialFinishedCount = statisticsDownloaded.Items + statisticsFailed.Items;
 			EnqueueDownloadItems();
-			downloadThread = new BackgroundDownloadThread(db);
-			downloadThread.OnItemFinished += DownloadThreadOnOnItemFinished;
-			downloadThread.OnServerStopped += DownloadThreadOnOnServerStopped;
+			downloader = new BackgroundDownloader(db);
+			downloader.OnItemFinished += DownloaderOnOnItemFinished;
 		}
 		else {
 			IsToggleDownloadButtonEnabled = false;
-			DisposeDownloadThread();
+			await DisposeDownloader();
+			downloadStatisticsComputer.Recompute();
+			IsToggleDownloadButtonEnabled = true;
 
 			db.RemoveDownloadItems(EnqueuedItemFilter, FilterRemovalMode.RemoveMatching);
 
 			doneItemsCount = 0;
-			allItemsCount = null;
+			initialFinishedCount = 0;
+			totalItemsToDownloadCount = null;
 			UpdateDownloadMessage();
 		}
 
@@ -173,6 +174,7 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 		var allExceptFailedFilter = new DownloadItemFilter {
 			IncludeStatuses = new HashSet<DownloadStatus> {
 				DownloadStatus.Enqueued,
+				DownloadStatus.Downloading,
 				DownloadStatus.Success
 			}
 		};
@@ -184,13 +186,13 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 		}
 	}
 
-	private void DisposeDownloadThread() {
-		if (downloadThread != null) {
-			downloadThread.OnItemFinished -= DownloadThreadOnOnItemFinished;
-			downloadThread.StopThread();
+	private async Task DisposeDownloader() {
+		if (downloader != null) {
+			downloader.OnItemFinished -= DownloaderOnOnItemFinished;
+			await downloader.Stop();
 		}
 
-		downloadThread = null;
+		downloader = null;
 	}
 
 	public sealed class StatisticsRow {

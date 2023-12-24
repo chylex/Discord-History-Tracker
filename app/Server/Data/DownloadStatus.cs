@@ -8,5 +8,6 @@ namespace DHT.Server.Data;
 public enum DownloadStatus {
 	Enqueued = 0,
 	GenericError = 1,
+	Downloading = 2,
 	Success = HttpStatusCode.OK
 }

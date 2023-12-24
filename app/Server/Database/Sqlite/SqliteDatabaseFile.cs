@@ -522,25 +522,42 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		cmd.ExecuteNonQuery();
 	}
 
-	public List<DownloadItem> GetEnqueuedDownloadItems(int count) {
-		var list = new List<DownloadItem>();
+	public List<DownloadItem> PullEnqueuedDownloadItems(int count) {
+		var found = new List<DownloadItem>();
+		var pulled = new List<DownloadItem>();
 
 		using var conn = pool.Take();
-		using var cmd = conn.Command("SELECT normalized_url, download_url, size FROM downloads WHERE status = :enqueued LIMIT :limit");
-		cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
-		cmd.AddAndSet(":limit", SqliteType.Integer, Math.Max(0, count));
+		using (var cmd = conn.Command("SELECT normalized_url, download_url, size FROM downloads WHERE status = :enqueued LIMIT :limit")) {
+			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
+			cmd.AddAndSet(":limit", SqliteType.Integer, Math.Max(0, count));
 
-		using var reader = cmd.ExecuteReader();
+			using var reader = cmd.ExecuteReader();
 
-		while (reader.Read()) {
-			list.Add(new DownloadItem {
-				NormalizedUrl = reader.GetString(0),
-				DownloadUrl = reader.GetString(1),
-				Size = reader.GetUint64(2),
-			});
+			while (reader.Read()) {
+				found.Add(new DownloadItem {
+					NormalizedUrl = reader.GetString(0),
+					DownloadUrl = reader.GetString(1),
+					Size = reader.GetUint64(2),
+				});
+			}
 		}
 
-		return list;
+		if (found.Count != 0) {
+			using var cmd = conn.Command("UPDATE downloads SET status = :downloading WHERE normalized_url = :normalized_url AND status = :enqueued");
+			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
+			cmd.AddAndSet(":downloading", SqliteType.Integer, (int) DownloadStatus.Downloading);
+			cmd.Add(":normalized_url", SqliteType.Text);
+
+			foreach (var item in found) {
+				cmd.Set(":normalized_url", item.NormalizedUrl);
+
+				if (cmd.ExecuteNonQuery() == 1) {
+					pulled.Add(item);
+				}
+			}
+		}
+
+		return pulled;
 	}
 
 	public void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode) {
@@ -562,15 +579,16 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		static void LoadSuccessStatistics(ISqliteConnection conn, DownloadStatusStatistics result) {
 			using var cmd = conn.Command("""
 			                             SELECT
-			                             IFNULL(SUM(CASE WHEN status = :enqueued THEN 1 ELSE 0 END), 0),
-			                             IFNULL(SUM(CASE WHEN status = :enqueued THEN size ELSE 0 END), 0),
+			                             IFNULL(SUM(CASE WHEN status IN (:enqueued, :downloading) THEN 1 ELSE 0 END), 0),
+			                             IFNULL(SUM(CASE WHEN status IN (:enqueued, :downloading) THEN size ELSE 0 END), 0),
 			                             IFNULL(SUM(CASE WHEN status = :success THEN 1 ELSE 0 END), 0),
 			                             IFNULL(SUM(CASE WHEN status = :success THEN size ELSE 0 END), 0),
-			                             IFNULL(SUM(CASE WHEN status != :enqueued AND status != :success THEN 1 ELSE 0 END), 0),
-			                             IFNULL(SUM(CASE WHEN status != :enqueued AND status != :success THEN size ELSE 0 END), 0)
+			                             IFNULL(SUM(CASE WHEN status NOT IN (:enqueued, :downloading) AND status != :success THEN 1 ELSE 0 END), 0),
+			                             IFNULL(SUM(CASE WHEN status NOT IN (:enqueued, :downloading) AND status != :success THEN size ELSE 0 END), 0)
 			                             FROM downloads
 			                             """);
 			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
+			cmd.AddAndSet(":downloading", SqliteType.Integer, (int) DownloadStatus.Downloading);
 			cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
 
 			using var reader = cmd.ExecuteReader();

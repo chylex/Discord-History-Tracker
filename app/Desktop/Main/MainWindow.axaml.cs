@@ -20,9 +20,9 @@ public sealed partial class MainWindow : Window {
 		DataContext = new MainWindowModel(this, args);
 	}
 
-	public void OnClosed(object? sender, EventArgs e) {
-		if (DataContext is IDisposable disposable) {
-			disposable.Dispose();
+	public async void OnClosed(object? sender, EventArgs e) {
+		if (DataContext is MainWindowModel model) {
+			await model.DisposeAsync();
 		}
 
 		foreach (var temporaryFile in ViewerPageModel.TemporaryFiles) {

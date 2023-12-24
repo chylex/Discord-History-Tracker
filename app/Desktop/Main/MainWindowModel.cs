@@ -12,7 +12,7 @@ using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main;
 
-sealed class MainWindowModel : BaseModel, IDisposable {
+sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 	private const string DefaultTitle = "Discord History Tracker";
 
 	public string Title { get; private set; } = DefaultTitle;
@@ -75,7 +75,7 @@ sealed class MainWindowModel : BaseModel, IDisposable {
 		if (e.PropertyName == nameof(welcomeScreenModel.Db)) {
 			if (mainContentScreenModel != null) {
 				mainContentScreenModel.DatabaseClosed -= MainContentScreenModelOnDatabaseClosed;
-				mainContentScreenModel.Dispose();
+				await mainContentScreenModel.DisposeAsync();
 			}
 
 			db?.Dispose();
@@ -107,9 +107,13 @@ sealed class MainWindowModel : BaseModel, IDisposable {
 		welcomeScreenModel.CloseDatabase();
 	}
 
-	public void Dispose() {
+	public async ValueTask DisposeAsync() {
 		welcomeScreenModel.Dispose();
-		mainContentScreenModel?.Dispose();
+		
+		if (mainContentScreenModel != null) {
+			await mainContentScreenModel.DisposeAsync();
+		}
+		
 		db?.Dispose();
 		db = null;
 	}

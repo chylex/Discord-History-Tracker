@@ -74,7 +74,7 @@ public sealed class DummyDatabaseFile : IDatabaseFile {
 
 	public void EnqueueDownloadItems(AttachmentFilter? filter = null) {}
 
-	public List<DownloadItem> GetEnqueuedDownloadItems(int count) {
+	public List<DownloadItem> PullEnqueuedDownloadItems(int count) {
 		return new();
 	}
 

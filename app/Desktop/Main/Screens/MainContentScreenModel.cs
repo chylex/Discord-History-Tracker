@@ -11,7 +11,7 @@ using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Main.Screens;
 
-sealed class MainContentScreenModel : IDisposable {
+sealed class MainContentScreenModel : IAsyncDisposable {
 	private static readonly Log Log = Log.ForType<MainContentScreenModel>();
 
 	public DatabasePage DatabasePage { get; }
@@ -35,7 +35,7 @@ sealed class MainContentScreenModel : IDisposable {
 	public bool HasDebugPage => true;
 	private DebugPageModel DebugPageModel { get; }
 	#else
-		public bool HasDebugPage => false;
+	public bool HasDebugPage => false;
 	#endif
 
 	public StatusBarModel StatusBarModel { get; }
@@ -97,9 +97,9 @@ sealed class MainContentScreenModel : IDisposable {
 		serverManager.Launch();
 	}
 
-	public void Dispose() {
+	public async ValueTask DisposeAsync() {
 		ServerLauncher.ServerManagementExceptionCaught -= ServerLauncherOnServerManagementExceptionCaught;
-		AttachmentsPageModel.Dispose();
+		await AttachmentsPageModel.DisposeAsync();
 		ViewerPageModel.Dispose();
 		serverManager.Dispose();
 	}

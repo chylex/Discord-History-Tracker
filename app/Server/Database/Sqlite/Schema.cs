@@ -174,8 +174,8 @@ sealed class Schema {
 		int processedUrls = -1;
 
 		await using (var updateCmd = conn.Command("UPDATE attachments SET download_url = url, url = :normalized_url WHERE attachment_id = :attachment_id")) {
-			updateCmd.Parameters.Add(":attachment_id", SqliteType.Integer);
-			updateCmd.Parameters.Add(":normalized_url", SqliteType.Text);
+			updateCmd.Add(":attachment_id", SqliteType.Integer);
+			updateCmd.Add(":normalized_url", SqliteType.Text);
 				
 			foreach (var (attachmentId, normalizedUrl) in normalizedUrls) {
 				if (++processedUrls % 1000 == 0) {
@@ -235,8 +235,8 @@ sealed class Schema {
 		tx = conn.BeginTransaction();
 		
 		await using (var updateCmd = conn.Command("UPDATE downloads SET download_url = :download_url, url = :normalized_url WHERE url = :download_url")) {
-			updateCmd.Parameters.Add(":normalized_url", SqliteType.Text);
-			updateCmd.Parameters.Add(":download_url", SqliteType.Text);
+			updateCmd.Add(":normalized_url", SqliteType.Text);
+			updateCmd.Add(":download_url", SqliteType.Text);
 			
 			foreach (var (normalizedUrl, downloadUrl) in normalizedUrlsToOriginalUrls) {
 				if (++processedUrls % 100 == 0) {

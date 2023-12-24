@@ -62,6 +62,10 @@ static class SqliteExtensions {
 		}
 	}
 
+	public static void Add(this SqliteCommand cmd, string key, SqliteType type) {
+		cmd.Parameters.Add(key, type);
+	}
+
 	public static void AddAndSet(this SqliteCommand cmd, string key, SqliteType type, object? value) {
 		cmd.Parameters.Add(key, type).Value = value ?? DBNull.Value;
 	}

@@ -35,7 +35,7 @@ public interface IDatabaseFile : IDisposable {
 	DownloadedAttachment? GetDownloadedAttachment(string url);
 
 	void EnqueueDownloadItems(AttachmentFilter? filter = null);
-	List<DownloadItem> GetEnqueuedDownloadItems(int count);
+	List<DownloadItem> PullEnqueuedDownloadItems(int count);
 	void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode);
 	DownloadStatusStatistics GetDownloadStatusStatistics();
 
