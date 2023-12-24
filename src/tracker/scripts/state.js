@@ -122,7 +122,6 @@ const STATE = (function() {
 				this._triggerStateChanged("data", "channel");
 			}
 		}
-		// Right. Upstream desktop `bootstrap.js` expects an `async` here. I think it's fine.
 		
 		/*
 		 * Adds all messages from the array to the specified channel. Returns true if the savefile was updated.

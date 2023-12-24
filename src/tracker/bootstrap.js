@@ -108,7 +108,7 @@ const onMessagesUpdated = async messages => {
 	isSending = true;
 	
 	try {
-		await STATE.addDiscordChannel(info.server, info.channel);
+		STATE.addDiscordChannel(info.server, info.channel);
 	} catch (e) {
 		onError(e);
 		return;
