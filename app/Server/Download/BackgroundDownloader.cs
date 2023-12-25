@@ -16,7 +16,7 @@ public sealed class BackgroundDownloader : BaseModel {
 
 	private const int DownloadTasks = 4;
 	private const int QueueSize = 25;
-	private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36";
+	private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 	public event EventHandler<DownloadItem>? OnItemFinished;
 
