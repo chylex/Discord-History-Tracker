@@ -45,17 +45,17 @@
         <Rectangle />
         <StackPanel Orientation="Vertical">
             <TextBlock Classes="label">Servers</TextBlock>
-            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalServers, Converter={StaticResource NumberValueConverter}}" />
+            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalServers, Mode=OneWay, Converter={StaticResource NumberValueConverter}}" />
         </StackPanel>
         <Rectangle />
         <StackPanel Orientation="Vertical">
             <TextBlock Classes="label">Channels</TextBlock>
-            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalChannels, Converter={StaticResource NumberValueConverter}}" />
+            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalChannels, Mode=OneWay, Converter={StaticResource NumberValueConverter}}" />
         </StackPanel>
         <Rectangle />
         <StackPanel Orientation="Vertical">
             <TextBlock Classes="label">Messages</TextBlock>
-            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalMessages, Converter={StaticResource NumberValueConverter}}" />
+            <TextBlock Classes="value" Text="{Binding DatabaseStatistics.TotalMessages, Mode=OneWay, Converter={StaticResource NumberValueConverter}}" />
         </StackPanel>
     </StackPanel>
 

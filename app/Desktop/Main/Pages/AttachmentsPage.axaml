@@ -42,8 +42,8 @@
                 <DataGrid ItemsSource="{Binding StatisticsRows}" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" IsReadOnly="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="State" Binding="{Binding State}" Width="*" />
-                        <DataGridTextColumn Header="Attachments" Binding="{Binding Items, Converter={StaticResource NumberValueConverter}}" Width="*" CellStyleClasses="right" />
-                        <DataGridTextColumn Header="Size" Binding="{Binding Size, Converter={StaticResource BytesValueConverter}}" Width="*" CellStyleClasses="right" />
+                        <DataGridTextColumn Header="Attachments" Binding="{Binding Items, Mode=OneWay, Converter={StaticResource NumberValueConverter}}" Width="*" CellStyleClasses="right" />
+                        <DataGridTextColumn Header="Size" Binding="{Binding Size, Mode=OneWay, Converter={StaticResource BytesValueConverter}}" Width="*" CellStyleClasses="right" />
                     </DataGrid.Columns>
                 </DataGrid>
             </Expander>
