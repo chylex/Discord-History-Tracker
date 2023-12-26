@@ -3,7 +3,7 @@ using System.Collections;
 using System.ComponentModel;
 using DHT.Utils.Models;
 
-namespace DHT.Desktop.Dialogs.TextBox; 
+namespace DHT.Desktop.Dialogs.TextBox;
 
 class TextBoxItem : BaseModel, INotifyDataErrorInfo {
 	public string Title { get; init; } = "";

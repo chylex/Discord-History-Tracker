@@ -5,7 +5,7 @@ using DHT.Utils;
 [assembly: AssemblyFileVersion(Version.Tag)]
 [assembly: AssemblyInformationalVersion(Version.Tag)]
 
-namespace DHT.Utils; 
+namespace DHT.Utils;
 
 static class Version {
 	public const string Tag = "39.1.0.0";

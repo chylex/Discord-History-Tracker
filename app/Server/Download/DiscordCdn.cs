@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Frozen;
 
-namespace DHT.Server.Download; 
+namespace DHT.Server.Download;
 
 static class DiscordCdn {
 	private static FrozenSet<string> CdnHosts { get; } = new [] {

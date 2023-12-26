@@ -4,7 +4,7 @@ using DHT.Utils.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 
-namespace DHT.Server.Service.Middlewares; 
+namespace DHT.Server.Service.Middlewares;
 
 sealed class ServerLoggingMiddleware {
 	private static readonly Log Log = Log.ForType<ServerLoggingMiddleware>();

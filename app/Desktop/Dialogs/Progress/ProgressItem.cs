@@ -1,6 +1,6 @@
 using DHT.Utils.Models;
 
-namespace DHT.Desktop.Dialogs.Progress; 
+namespace DHT.Desktop.Dialogs.Progress;
 
 sealed class ProgressItem : BaseModel {
 	private bool isVisible = false;

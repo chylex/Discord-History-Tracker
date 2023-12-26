@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace DHT.Server.Database.Import; 
+namespace DHT.Server.Database.Import;
 
 sealed class DiscordEmbedLegacyJson {
 	public required string Url { get; init; }

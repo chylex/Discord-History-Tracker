@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
-namespace DHT.Utils.Logging; 
+namespace DHT.Utils.Logging;
 
 [SupportedOSPlatform("windows")]
 public static partial class WindowsConsole {

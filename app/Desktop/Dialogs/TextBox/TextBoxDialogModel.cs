@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using DHT.Utils.Models;
 
-namespace DHT.Desktop.Dialogs.TextBox; 
+namespace DHT.Desktop.Dialogs.TextBox;
 
 class TextBoxDialogModel : BaseModel {
 	public string Title { get; init; } = "";

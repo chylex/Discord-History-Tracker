@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using DHT.Desktop.Dialogs.Message;
 
-namespace DHT.Desktop.Dialogs.TextBox; 
+namespace DHT.Desktop.Dialogs.TextBox;
 
 [SuppressMessage("ReSharper", "MemberCanBeInternal")]
 public sealed partial class TextBoxDialog : Window {
