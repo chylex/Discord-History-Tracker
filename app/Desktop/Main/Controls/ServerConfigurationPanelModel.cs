@@ -2,7 +2,7 @@ using System;
 using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Server;
-using DHT.Server.Database;
+using DHT.Server;
 using DHT.Server.Service;
 using DHT.Utils.Models;
 
@@ -46,7 +46,7 @@ sealed class ServerConfigurationPanelModel : BaseModel, IDisposable {
 	private readonly ServerManager serverManager;
 
 	[Obsolete("Designer")]
-	public ServerConfigurationPanelModel() : this(null!, new ServerManager(DummyDatabaseFile.Instance)) {}
+	public ServerConfigurationPanelModel() : this(null!, new ServerManager(State.Dummy)) {}
 
 	public ServerConfigurationPanelModel(Window window, ServerManager serverManager) {
 		this.window = window;

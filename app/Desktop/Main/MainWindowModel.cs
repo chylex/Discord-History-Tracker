@@ -7,7 +7,7 @@ using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Screens;
 using DHT.Desktop.Server;
-using DHT.Server.Database;
+using DHT.Server;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main;
@@ -27,7 +27,7 @@ sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 
 	private readonly Window window;
 
-	private IDatabaseFile? db;
+	private State? state;
 
 	[Obsolete("Designer")]
 	public MainWindowModel() : this(null!, Arguments.Empty) {}
@@ -75,21 +75,24 @@ sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 		if (e.PropertyName == nameof(welcomeScreenModel.Db)) {
 			if (mainContentScreenModel != null) {
 				mainContentScreenModel.DatabaseClosed -= MainContentScreenModelOnDatabaseClosed;
-				await mainContentScreenModel.DisposeAsync();
+				mainContentScreenModel.Dispose();
 			}
 
-			db?.Dispose();
-			db = welcomeScreenModel.Db;
+			if (state != null) {
+				await state.DisposeAsync();
+			}
+			
+			state = welcomeScreenModel.Db == null ? null : new State(welcomeScreenModel.Db);
 
-			if (db == null) {
+			if (state == null) {
 				Title = DefaultTitle;
 				mainContentScreenModel = null;
 				mainContentScreen = null;
 				CurrentScreen = welcomeScreen;
 			}
 			else {
-				Title = Path.GetFileName(db.Path) + " - " + DefaultTitle;
-				mainContentScreenModel = new MainContentScreenModel(window, db);
+				Title = Path.GetFileName(state.Db.Path) + " - " + DefaultTitle;
+				mainContentScreenModel = new MainContentScreenModel(window, state);
 				await mainContentScreenModel.Initialize();
 				mainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
 				mainContentScreen = new MainContentScreen { DataContext = mainContentScreenModel };
@@ -108,13 +111,13 @@ sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 	}
 
 	public async ValueTask DisposeAsync() {
-		welcomeScreenModel.Dispose();
-		
-		if (mainContentScreenModel != null) {
-			await mainContentScreenModel.DisposeAsync();
+		mainContentScreenModel?.Dispose();
+
+		if (state != null) {
+			await state.DisposeAsync();
+			state = null;
 		}
 		
-		db?.Dispose();
-		db = null;
+		welcomeScreenModel.Dispose();
 	}
 }

@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Server;
-using DHT.Server.Database;
+using DHT.Server;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Pages;
@@ -12,14 +12,14 @@ sealed class AdvancedPageModel : BaseModel, IDisposable {
 	public ServerConfigurationPanelModel ServerConfigurationModel { get; }
 
 	private readonly Window window;
-	private readonly IDatabaseFile db;
+	private readonly State state;
 
 	[Obsolete("Designer")]
-	public AdvancedPageModel() : this(null!, DummyDatabaseFile.Instance, new ServerManager(DummyDatabaseFile.Instance)) {}
+	public AdvancedPageModel() : this(null!, State.Dummy, new ServerManager(State.Dummy)) {}
 
-	public AdvancedPageModel(Window window, IDatabaseFile db, ServerManager serverManager) {
+	public AdvancedPageModel(Window window, State state, ServerManager serverManager) {
 		this.window = window;
-		this.db = db;
+		this.state = state;
 
 		ServerConfigurationModel = new ServerConfigurationPanelModel(window, serverManager);
 	}
@@ -33,7 +33,7 @@ sealed class AdvancedPageModel : BaseModel, IDisposable {
 	}
 
 	public async void VacuumDatabase() {
-		db.Vacuum();
+		state.Db.Vacuum();
 		await Dialog.ShowOk(window, "Vacuum Database", "Done.");
 	}
 }

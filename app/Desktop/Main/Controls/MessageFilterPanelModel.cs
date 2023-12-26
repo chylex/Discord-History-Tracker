@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.CheckBox;
 using DHT.Desktop.Dialogs.Message;
+using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
@@ -62,7 +63,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 	}
 
 	public HashSet<ulong> IncludedChannels {
-		get => includedChannels ?? db.GetAllChannels().Select(static channel => channel.Id).ToHashSet();
+		get => includedChannels ?? state.Db.GetAllChannels().Select(static channel => channel.Id).ToHashSet();
 		set => Change(ref includedChannels, value);
 	}
 
@@ -72,7 +73,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 	}
 
 	public HashSet<ulong> IncludedUsers {
-		get => includedUsers ?? db.GetAllUsers().Select(static user => user.Id).ToHashSet();
+		get => includedUsers ?? state.Db.GetAllUsers().Select(static user => user.Id).ToHashSet();
 		set => Change(ref includedUsers, value);
 	}
 
@@ -91,7 +92,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 	}
 
 	private readonly Window window;
-	private readonly IDatabaseFile db;
+	private readonly State state;
 	private readonly string verb;
 
 	private readonly AsyncValueComputer<long> exportedMessageCountComputer;
@@ -99,11 +100,11 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 	private long? totalMessageCount;
 
 	[Obsolete("Designer")]
-	public MessageFilterPanelModel() : this(null!, DummyDatabaseFile.Instance) {}
+	public MessageFilterPanelModel() : this(null!, State.Dummy) {}
 
-	public MessageFilterPanelModel(Window window, IDatabaseFile db, string verb = "Matches") {
+	public MessageFilterPanelModel(Window window, State state, string verb = "Matches") {
 		this.window = window;
-		this.db = db;
+		this.state = state;
 		this.verb = verb;
 
 		this.exportedMessageCountComputer = AsyncValueComputer<long>.WithResultProcessor(SetExportedMessageCount).Build();
@@ -113,11 +114,11 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		UpdateUserFilterLabel();
 
 		PropertyChanged += OnPropertyChanged;
-		db.Statistics.PropertyChanged += OnDbStatisticsChanged;
+		state.Db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 	}
 
 	public void Dispose() {
-		db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
+		state.Db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
 	}
 
 	private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
@@ -136,7 +137,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 
 	private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
 		if (e.PropertyName == nameof(DatabaseStatistics.TotalMessages)) {
-			totalMessageCount = db.Statistics.TotalMessages;
+			totalMessageCount = state.Db.Statistics.TotalMessages;
 			UpdateFilterStatistics();
 		}
 		else if (e.PropertyName == nameof(DatabaseStatistics.TotalChannels)) {
@@ -157,7 +158,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		else {
 			exportedMessageCount = null;
 			UpdateFilterStatisticsText();
-			exportedMessageCountComputer.Compute(() => db.CountMessages(filter));
+			exportedMessageCountComputer.Compute(() => state.Db.CountMessages(filter));
 		}
 	}
 
@@ -175,11 +176,11 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 	}
 
 	public async void OpenChannelFilterDialog() {
-		var servers = db.GetAllServers().ToDictionary(static server => server.Id);
+		var servers = state.Db.GetAllServers().ToDictionary(static server => server.Id);
 		var items = new List<CheckBoxItem<ulong>>();
 		var included = IncludedChannels;
 
-		foreach (var channel in db.GetAllChannels()) {
+		foreach (var channel in state.Db.GetAllChannels()) {
 			var channelId = channel.Id;
 			var channelName = channel.Name;
 
@@ -223,7 +224,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		var items = new List<CheckBoxItem<ulong>>();
 		var included = IncludedUsers;
 
-		foreach (var user in db.GetAllUsers()) {
+		foreach (var user in state.Db.GetAllUsers()) {
 			var name = user.Name;
 			var discriminator = user.Discriminator;
 
@@ -240,13 +241,13 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 	}
 
 	private void UpdateChannelFilterLabel() {
-		long total = db.Statistics.TotalChannels;
+		long total = state.Db.Statistics.TotalChannels;
 		long included = FilterByChannel ? IncludedChannels.Count : total;
 		ChannelFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("channel") + ".";
 	}
 
 	private void UpdateUserFilterLabel() {
-		long total = db.Statistics.TotalUsers;
+		long total = state.Db.Statistics.TotalUsers;
 		long included = FilterByUser ? IncludedUsers.Count : total;
 		UserFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("user") + ".";
 	}

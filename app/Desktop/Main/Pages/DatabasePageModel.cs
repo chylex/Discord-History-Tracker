@@ -14,6 +14,7 @@ using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Dialogs.TextBox;
+using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Database;
 using DHT.Server.Database.Import;
@@ -21,7 +22,7 @@ using DHT.Server.Database.Sqlite;
 using DHT.Utils.Logging;
 using DHT.Utils.Models;
 
-namespace DHT.Desktop.Main.Pages; 
+namespace DHT.Desktop.Main.Pages;
 
 sealed class DatabasePageModel : BaseModel {
 	private static readonly Log Log = Log.ForType<DatabasePageModel>();
@@ -33,11 +34,11 @@ sealed class DatabasePageModel : BaseModel {
 	private readonly Window window;
 
 	[Obsolete("Designer")]
-	public DatabasePageModel() : this(null!, DummyDatabaseFile.Instance) {}
+	public DatabasePageModel() : this(null!, State.Dummy) {}
 
-	public DatabasePageModel(Window window, IDatabaseFile db) {
+	public DatabasePageModel(Window window, State state) {
 		this.window = window;
-		this.Db = db;
+		this.Db = state.Db;
 	}
 
 	public async void OpenDatabaseFolder() {

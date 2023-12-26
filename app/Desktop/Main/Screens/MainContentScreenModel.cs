@@ -5,13 +5,13 @@ using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Main.Pages;
 using DHT.Desktop.Server;
-using DHT.Server.Database;
+using DHT.Server;
 using DHT.Server.Service;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Main.Screens;
 
-sealed class MainContentScreenModel : IAsyncDisposable {
+sealed class MainContentScreenModel : IDisposable {
 	private static readonly Log Log = Log.ForType<MainContentScreenModel>();
 
 	public DatabasePage DatabasePage { get; }
@@ -53,37 +53,37 @@ sealed class MainContentScreenModel : IAsyncDisposable {
 	private readonly ServerManager serverManager;
 
 	[Obsolete("Designer")]
-	public MainContentScreenModel() : this(null!, DummyDatabaseFile.Instance) {}
+	public MainContentScreenModel() : this(null!, State.Dummy) {}
 
-	public MainContentScreenModel(Window window, IDatabaseFile db) {
+	public MainContentScreenModel(Window window, State state) {
 		this.window = window;
-		this.serverManager = new ServerManager(db);
+		this.serverManager = new ServerManager(state);
 
 		ServerLauncher.ServerManagementExceptionCaught += ServerLauncherOnServerManagementExceptionCaught;
 
-		DatabasePageModel = new DatabasePageModel(window, db);
+		DatabasePageModel = new DatabasePageModel(window, state);
 		DatabasePage = new DatabasePage { DataContext = DatabasePageModel };
 
 		TrackingPageModel = new TrackingPageModel(window);
 		TrackingPage = new TrackingPage { DataContext = TrackingPageModel };
 
-		AttachmentsPageModel = new AttachmentsPageModel(db);
+		AttachmentsPageModel = new AttachmentsPageModel(state);
 		AttachmentsPage = new AttachmentsPage { DataContext = AttachmentsPageModel };
 
-		ViewerPageModel = new ViewerPageModel(window, db);
+		ViewerPageModel = new ViewerPageModel(window, state);
 		ViewerPage = new ViewerPage { DataContext = ViewerPageModel };
 
-		AdvancedPageModel = new AdvancedPageModel(window, db, serverManager);
+		AdvancedPageModel = new AdvancedPageModel(window, state, serverManager);
 		AdvancedPage = new AdvancedPage { DataContext = AdvancedPageModel };
 
 		#if DEBUG
-		DebugPageModel = new DebugPageModel(window, db);
+		DebugPageModel = new DebugPageModel(window, state);
 		DebugPage = new DebugPage { DataContext = DebugPageModel };
 		#else
-			DebugPage = null;
+		DebugPage = null;
 		#endif
 
-		StatusBarModel = new StatusBarModel(db.Statistics);
+		StatusBarModel = new StatusBarModel(state.Db.Statistics);
 
 		AdvancedPageModel.ServerConfigurationModel.ServerStatusChanged += OnServerStatusChanged;
 		DatabaseClosed += OnDatabaseClosed;
@@ -97,9 +97,9 @@ sealed class MainContentScreenModel : IAsyncDisposable {
 		serverManager.Launch();
 	}
 
-	public async ValueTask DisposeAsync() {
+	public void Dispose() {
 		ServerLauncher.ServerManagementExceptionCaught -= ServerLauncherOnServerManagementExceptionCaught;
-		await AttachmentsPageModel.DisposeAsync();
+		AttachmentsPageModel.Dispose();
 		ViewerPageModel.Dispose();
 		serverManager.Dispose();
 	}

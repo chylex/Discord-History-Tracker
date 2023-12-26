@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
+using DHT.Server;
 using DHT.Server.Data;
-using DHT.Server.Database;
 using DHT.Server.Service;
 using DHT.Utils.Models;
 
@@ -18,14 +18,14 @@ namespace DHT.Desktop.Main.Pages {
 		public string GenerateMessages { get; set; } = "0";
 
 		private readonly Window window;
-		private readonly IDatabaseFile db;
+		private readonly State state;
 
 		[Obsolete("Designer")]
-		public DebugPageModel() : this(null!, DummyDatabaseFile.Instance) {}
+		public DebugPageModel() : this(null!, State.Dummy) {}
 
-		public DebugPageModel(Window window, IDatabaseFile db) {
+		public DebugPageModel(Window window, State state) {
 			this.window = window;
-			this.db = db;
+			this.state = state;
 		}
 
 		public async void OnClickAddRandomDataToDatabase() {
@@ -83,11 +83,11 @@ namespace DHT.Desktop.Main.Pages {
 				Discriminator = rand.Next(0, 9999).ToString(),
 			}).ToArray();
 
-			db.AddServer(server);
-			db.AddUsers(users);
+			state.Db.AddServer(server);
+			state.Db.AddUsers(users);
 
 			foreach (var channel in channels) {
-				db.AddChannel(channel);
+				state.Db.AddChannel(channel);
 			}
 
 			var now = DateTimeOffset.Now;
@@ -117,7 +117,7 @@ namespace DHT.Desktop.Main.Pages {
 					};
 				}).ToArray();
 
-				db.AddMessages(messages);
+				state.Db.AddMessages(messages);
 
 				messageCount -= BatchSize;
 				await callback.Update("Adding messages in batches of " + BatchSize, ++batchIndex, batchCount);

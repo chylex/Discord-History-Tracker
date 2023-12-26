@@ -1,14 +1,18 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Main.Pages;
+using DHT.Utils.Logging;
 using JetBrains.Annotations;
 
 namespace DHT.Desktop.Main;
 
 [SuppressMessage("ReSharper", "MemberCanBeInternal")]
 public sealed partial class MainWindow : Window {
+	private static readonly Log Log = Log.ForType<MainWindow>();
+	
 	[UsedImplicitly]
 	public MainWindow() {
 		InitializeComponent();
@@ -20,9 +24,24 @@ public sealed partial class MainWindow : Window {
 		DataContext = new MainWindowModel(this, args);
 	}
 
-	public async void OnClosed(object? sender, EventArgs e) {
+	public async void OnClosing(object? sender, WindowClosingEventArgs e) {
+		e.Cancel = true;
+		Closing -= OnClosing;
+
+		try {
+			await Dispose();
+		} finally {
+			Close();
+		}
+	}
+
+	private async Task Dispose() {
 		if (DataContext is MainWindowModel model) {
-			await model.DisposeAsync();
+			try {
+				await model.DisposeAsync();
+			} catch (Exception ex) {
+				Log.Error("Caught exception while disposing window: " + ex);
+			}
 		}
 
 		foreach (var temporaryFile in ViewerPageModel.TemporaryFiles) {

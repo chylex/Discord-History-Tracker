@@ -13,8 +13,8 @@ using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Server;
+using DHT.Server;
 using DHT.Server.Data.Filters;
-using DHT.Server.Database;
 using DHT.Server.Database.Export;
 using DHT.Server.Database.Export.Strategy;
 using DHT.Utils.Models;
@@ -38,16 +38,16 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 	public MessageFilterPanelModel FilterModel { get; }
 
 	private readonly Window window;
-	private readonly IDatabaseFile db;
+	private readonly State state;
 
 	[Obsolete("Designer")]
-	public ViewerPageModel() : this(null!, DummyDatabaseFile.Instance) {}
+	public ViewerPageModel() : this(null!, State.Dummy) {}
 
-	public ViewerPageModel(Window window, IDatabaseFile db) {
+	public ViewerPageModel(Window window, State state) {
 		this.window = window;
-		this.db = db;
+		this.state = state;
 
-		FilterModel = new MessageFilterPanelModel(window, db, "Will export");
+		FilterModel = new MessageFilterPanelModel(window, state, "Will export");
 		FilterModel.FilterPropertyChanged += OnFilterPropertyChanged;
 	}
 
@@ -72,7 +72,7 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 		string jsonTempFile = path + ".tmp";
 
 		await using (var jsonStream = new FileStream(jsonTempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)) {
-			await ViewerJsonExport.Generate(jsonStream, strategy, db, FilterModel.CreateFilter());
+			await ViewerJsonExport.Generate(jsonStream, strategy, state.Db, FilterModel.CreateFilter());
 
 			char[] jsonBuffer = new char[Math.Min(32768, jsonStream.Position)];
 			jsonStream.Position = 0;
@@ -98,7 +98,7 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 
 	public async void OnClickOpenViewer() {
 		string rootPath = Path.Combine(Path.GetTempPath(), "DiscordHistoryTracker");
-		string filenameBase = Path.GetFileNameWithoutExtension(db.Path) + "-" + DateTime.Now.ToString("yyyy-MM-dd");
+		string filenameBase = Path.GetFileNameWithoutExtension(state.Db.Path) + "-" + DateTime.Now.ToString("yyyy-MM-dd");
 		string fullPath = Path.Combine(rootPath, filenameBase + ".html");
 		int counter = 0;
 
@@ -123,8 +123,8 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 		string? path = await window.StorageProvider.SaveFile(new FilePickerSaveOptions {
 			Title = "Save Viewer",
 			FileTypeChoices = ViewerFileTypes,
-			SuggestedFileName = Path.GetFileNameWithoutExtension(db.Path) + ".html",
-			SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, Path.GetDirectoryName(db.Path)),
+			SuggestedFileName = Path.GetFileNameWithoutExtension(state.Db.Path) + ".html",
+			SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, Path.GetDirectoryName(state.Db.Path)),
 		});
 
 		if (path != null) {
@@ -136,13 +136,13 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 		var filter = FilterModel.CreateFilter();
 
 		if (DatabaseToolFilterModeKeep) {
-			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Keep Matching Messages in This Database", db.CountMessages(filter).Pluralize("message") + " will be kept, and the rest will be removed from this database. This action cannot be undone. Proceed?")) {
-				db.RemoveMessages(filter, FilterRemovalMode.KeepMatching);
+			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Keep Matching Messages in This Database", state.Db.CountMessages(filter).Pluralize("message") + " will be kept, and the rest will be removed from this database. This action cannot be undone. Proceed?")) {
+				state.Db.RemoveMessages(filter, FilterRemovalMode.KeepMatching);
 			}
 		}
 		else if (DatabaseToolFilterModeRemove) {
-			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Remove Matching Messages in This Database", db.CountMessages(filter).Pluralize("message") + " will be removed from this database. This action cannot be undone. Proceed?")) {
-				db.RemoveMessages(filter, FilterRemovalMode.RemoveMatching);
+			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Remove Matching Messages in This Database", state.Db.CountMessages(filter).Pluralize("message") + " will be removed from this database. This action cannot be undone. Proceed?")) {
+				state.Db.RemoveMessages(filter, FilterRemovalMode.RemoveMatching);
 			}
 		}
 	}

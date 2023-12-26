@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using DHT.Desktop.Common;
+using DHT.Server;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Utils.Models;
@@ -47,7 +48,7 @@ sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 
 	public IEnumerable<Unit> Units => AllUnits;
 
-	private readonly IDatabaseFile db;
+	private readonly State state;
 	private readonly string verb;
 
 	private readonly AsyncValueComputer<long> matchingAttachmentCountComputer;
@@ -55,10 +56,10 @@ sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 	private long? totalAttachmentCount;
 
 	[Obsolete("Designer")]
-	public AttachmentFilterPanelModel() : this(DummyDatabaseFile.Instance) {}
+	public AttachmentFilterPanelModel() : this(State.Dummy) {}
 
-	public AttachmentFilterPanelModel(IDatabaseFile db, string verb = "Matches") {
-		this.db = db;
+	public AttachmentFilterPanelModel(State state, string verb = "Matches") {
+		this.state = state;
 		this.verb = verb;
 
 		this.matchingAttachmentCountComputer = AsyncValueComputer<long>.WithResultProcessor(SetAttachmentCounts).Build();
@@ -66,11 +67,11 @@ sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 		UpdateFilterStatistics();
 
 		PropertyChanged += OnPropertyChanged;
-		db.Statistics.PropertyChanged += OnDbStatisticsChanged;
+		state.Db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 	}
 
 	public void Dispose() {
-		db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
+		state.Db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
 	}
 
 	private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
@@ -81,7 +82,7 @@ sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 
 	private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
 		if (e.PropertyName == nameof(DatabaseStatistics.TotalAttachments)) {
-			totalAttachmentCount = db.Statistics.TotalAttachments;
+			totalAttachmentCount = state.Db.Statistics.TotalAttachments;
 			UpdateFilterStatistics();
 		}
 	}
@@ -96,7 +97,7 @@ sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 		else {
 			matchingAttachmentCount = null;
 			UpdateFilterStatisticsText();
-			matchingAttachmentCountComputer.Compute(() => db.CountAttachments(filter));
+			matchingAttachmentCountComputer.Compute(() => state.Db.CountAttachments(filter));
 		}
 	}
 

@@ -11,14 +11,14 @@ using DHT.Utils.Tasks;
 
 namespace DHT.Server.Download;
 
-public sealed class BackgroundDownloader : BaseModel {
-	private static readonly Log Log = Log.ForType<BackgroundDownloader>();
+sealed class DownloaderTask : BaseModel {
+	private static readonly Log Log = Log.ForType<DownloaderTask>();
 
 	private const int DownloadTasks = 4;
 	private const int QueueSize = 25;
 	private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-	public event EventHandler<DownloadItem>? OnItemFinished;
+	internal event EventHandler<DownloadItem>? OnItemFinished;
 
 	private readonly Channel<DownloadItem> downloadQueue = Channel.CreateBounded<DownloadItem>(new BoundedChannelOptions(QueueSize) {
 		SingleReader = false,
@@ -34,7 +34,7 @@ public sealed class BackgroundDownloader : BaseModel {
 	private readonly Task queueWriterTask;
 	private readonly Task[] downloadTasks;
 
-	public BackgroundDownloader(IDatabaseFile db) {
+	internal DownloaderTask(IDatabaseFile db) {
 		this.cancellationToken = cancellationTokenSource.Token;
 		this.db = db;
 		this.queueWriterTask = Task.Run(RunQueueWriterTask);
@@ -56,7 +56,7 @@ public sealed class BackgroundDownloader : BaseModel {
 	}
 
 	private async Task RunDownloadTask(int taskIndex) {
-		var log = Log.ForType<BackgroundDownloader>("Task " + taskIndex);
+		var log = Log.ForType<DownloaderTask>("Task " + taskIndex);
 
 		var client = new HttpClient();
 		client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
@@ -87,7 +87,7 @@ public sealed class BackgroundDownloader : BaseModel {
 		}
 	}
 
-	public async Task Stop() {
+	internal async Task Stop() {
 		try {
 			await cancellationTokenSource.CancelAsync();
 		} catch (Exception) {

@@ -11,7 +11,7 @@
         Width="800" Height="500"
         MinWidth="520" MinHeight="300"
         WindowStartupLocation="CenterScreen"
-        Closed="OnClosed">
+        Closing="OnClosing">
 
     <Design.DataContext>
         <main:MainWindowModel />

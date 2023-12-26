@@ -1,5 +1,5 @@
 using System;
-using DHT.Server.Database;
+using DHT.Server;
 using DHT.Server.Service;
 
 namespace DHT.Desktop.Server;
@@ -12,10 +12,10 @@ sealed class ServerManager : IDisposable {
 
 	public bool IsRunning => ServerLauncher.IsRunning;
 
-	private readonly IDatabaseFile db;
+	private readonly State state;
 
-	public ServerManager(IDatabaseFile db) {
-		if (db != DummyDatabaseFile.Instance) {
+	public ServerManager(State state) {
+		if (state != State.Dummy) {
 			if (instance != null) {
 				throw new InvalidOperationException("Only one instance of ServerManager can exist at the same time!");
 			}
@@ -23,11 +23,11 @@ sealed class ServerManager : IDisposable {
 			instance = this;
 		}
 
-		this.db = db;
+		this.state = state;
 	}
 
 	public void Launch() {
-		ServerLauncher.Relaunch(Port, Token, db);
+		ServerLauncher.Relaunch(Port, Token, state.Db);
 	}
 
 	public void Relaunch(ushort port, string token) {
