@@ -54,7 +54,7 @@ sealed class TrackingPageModel : BaseModel {
 	}
 	
 	public async Task<bool> OnClickCopyTrackingScript() {
-		string url = $"http://127.0.0.1:{ServerManager.Port}/get-tracking-script?token={HttpUtility.UrlEncode(ServerManager.Token)}";
+		string url = $"http://127.0.0.1:{ServerConfiguration.Port}/get-tracking-script?token={HttpUtility.UrlEncode(ServerConfiguration.Token)}";
 		string script = (await Resources.ReadTextAsync("tracker-loader.js")).Trim().Replace("{url}", url);
 
 		var clipboard = window.Clipboard;

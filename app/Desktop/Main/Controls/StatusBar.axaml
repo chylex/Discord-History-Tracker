@@ -40,7 +40,7 @@
     <StackPanel Orientation="Horizontal" Margin="6 3">
         <StackPanel Orientation="Vertical" Width="65">
             <TextBlock Classes="label">Status</TextBlock>
-            <TextBlock FontSize="12" Margin="0 3 0 0" Text="{Binding StatusText}" />
+            <TextBlock FontSize="12" Margin="0 3 0 0" Text="{Binding ServerStatusText}" />
         </StackPanel>
         <Rectangle />
         <StackPanel Orientation="Vertical">

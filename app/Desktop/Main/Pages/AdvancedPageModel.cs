@@ -2,7 +2,6 @@ using System;
 using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Controls;
-using DHT.Desktop.Server;
 using DHT.Server;
 using DHT.Utils.Models;
 
@@ -15,17 +14,13 @@ sealed class AdvancedPageModel : BaseModel, IDisposable {
 	private readonly State state;
 
 	[Obsolete("Designer")]
-	public AdvancedPageModel() : this(null!, State.Dummy, new ServerManager(State.Dummy)) {}
+	public AdvancedPageModel() : this(null!, State.Dummy) {}
 
-	public AdvancedPageModel(Window window, State state, ServerManager serverManager) {
+	public AdvancedPageModel(Window window, State state) {
 		this.window = window;
 		this.state = state;
 
-		ServerConfigurationModel = new ServerConfigurationPanelModel(window, serverManager);
-	}
-
-	public void Initialize() {
-		ServerConfigurationModel.Initialize();
+		ServerConfigurationModel = new ServerConfigurationPanelModel(window, state);
 	}
 
 	public void Dispose() {

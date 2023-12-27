@@ -1,12 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Main.Pages;
-using DHT.Desktop.Server;
 using DHT.Server;
-using DHT.Server.Service;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Main.Screens;
@@ -49,18 +46,10 @@ sealed class MainContentScreenModel : IDisposable {
 		}
 	}
 
-	private readonly Window window;
-	private readonly ServerManager serverManager;
-
 	[Obsolete("Designer")]
 	public MainContentScreenModel() : this(null!, State.Dummy) {}
 
 	public MainContentScreenModel(Window window, State state) {
-		this.window = window;
-		this.serverManager = new ServerManager(state);
-
-		ServerLauncher.ServerManagementExceptionCaught += ServerLauncherOnServerManagementExceptionCaught;
-
 		DatabasePageModel = new DatabasePageModel(window, state);
 		DatabasePage = new DatabasePage { DataContext = DatabasePageModel };
 
@@ -73,7 +62,7 @@ sealed class MainContentScreenModel : IDisposable {
 		ViewerPageModel = new ViewerPageModel(window, state);
 		ViewerPage = new ViewerPage { DataContext = ViewerPageModel };
 
-		AdvancedPageModel = new AdvancedPageModel(window, state, serverManager);
+		AdvancedPageModel = new AdvancedPageModel(window, state);
 		AdvancedPage = new AdvancedPage { DataContext = AdvancedPageModel };
 
 		#if DEBUG
@@ -83,37 +72,17 @@ sealed class MainContentScreenModel : IDisposable {
 		DebugPage = null;
 		#endif
 
-		StatusBarModel = new StatusBarModel(state.Db.Statistics);
-
-		AdvancedPageModel.ServerConfigurationModel.ServerStatusChanged += OnServerStatusChanged;
-		DatabaseClosed += OnDatabaseClosed;
-
-		StatusBarModel.CurrentStatus = serverManager.IsRunning ? StatusBarModel.Status.Ready : StatusBarModel.Status.Stopped;
+		StatusBarModel = new StatusBarModel(state);
 	}
 
 	public async Task Initialize() {
 		await TrackingPageModel.Initialize();
-		AdvancedPageModel.Initialize();
-		serverManager.Launch();
 	}
 
 	public void Dispose() {
-		ServerLauncher.ServerManagementExceptionCaught -= ServerLauncherOnServerManagementExceptionCaught;
 		AttachmentsPageModel.Dispose();
 		ViewerPageModel.Dispose();
-		serverManager.Dispose();
-	}
-
-	private void OnServerStatusChanged(object? sender, StatusBarModel.Status e) {
-		StatusBarModel.CurrentStatus = e;
-	}
-
-	private void OnDatabaseClosed(object? sender, EventArgs e) {
-		serverManager.Stop();
-	}
-
-	private async void ServerLauncherOnServerManagementExceptionCaught(object? sender, Exception ex) {
-		Log.Error(ex);
-		await Dialog.ShowOk(window, "Internal Server Error", ex.Message);
+		AdvancedPageModel.Dispose();
+		StatusBarModel.Dispose();
 	}
 }

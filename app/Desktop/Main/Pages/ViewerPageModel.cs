@@ -110,7 +110,7 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 		TemporaryFiles.Add(fullPath);
 
 		Directory.CreateDirectory(rootPath);
-		await WriteViewerFile(fullPath, new LiveViewerExportStrategy(ServerManager.Port, ServerManager.Token));
+		await WriteViewerFile(fullPath, new LiveViewerExportStrategy(ServerConfiguration.Port, ServerConfiguration.Token));
 
 		Process.Start(new ProcessStartInfo(fullPath) { UseShellExecute = true });
 	}

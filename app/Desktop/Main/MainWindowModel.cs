@@ -8,12 +8,15 @@ using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Screens;
 using DHT.Desktop.Server;
 using DHT.Server;
+using DHT.Utils.Logging;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main;
 
 sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 	private const string DefaultTitle = "Discord History Tracker";
+	
+	private static readonly Log Log = Log.ForType<MainWindowModel>();
 
 	public string Title { get; private set; } = DefaultTitle;
 
@@ -63,11 +66,11 @@ sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 		}
 
 		if (args.ServerPort != null) {
-			ServerManager.Port = args.ServerPort.Value;
+			ServerConfiguration.Port = args.ServerPort.Value;
 		}
 
 		if (args.ServerToken != null) {
-			ServerManager.Token = args.ServerToken;
+			ServerConfiguration.Token = args.ServerToken;
 		}
 	}
 
@@ -82,15 +85,23 @@ sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 				await state.DisposeAsync();
 			}
 			
-			state = welcomeScreenModel.Db == null ? null : new State(welcomeScreenModel.Db);
-
-			if (state == null) {
+			if (welcomeScreenModel.Db == null) {
+				state = null;
 				Title = DefaultTitle;
 				mainContentScreenModel = null;
 				mainContentScreen = null;
 				CurrentScreen = welcomeScreen;
 			}
 			else {
+				state = new State(welcomeScreenModel.Db);
+
+				try {
+					await state.Server.Start(ServerConfiguration.Port, ServerConfiguration.Token);
+				} catch (Exception ex) {
+					Log.Error(ex);
+					await Dialog.ShowOk(window, "Internal Server Error", ex.Message);
+				}
+				
 				Title = Path.GetFileName(state.Db.Path) + " - " + DefaultTitle;
 				mainContentScreenModel = new MainContentScreenModel(window, state);
 				await mainContentScreenModel.Initialize();
