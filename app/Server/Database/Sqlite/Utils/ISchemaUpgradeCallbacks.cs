@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace DHT.Server.Database.Sqlite;
+namespace DHT.Server.Database.Sqlite.Utils;
 
 public interface ISchemaUpgradeCallbacks {
 	Task<bool> CanUpgrade();

@@ -30,10 +30,10 @@ sealed class DownloaderTask : IAsyncDisposable {
 
 	private readonly IDatabaseFile db;
 	private readonly Subject<DownloadItem> finishedItemPublisher = new ();
-	
+
 	private readonly Task queueWriterTask;
 	private readonly Task[] downloadTasks;
-	
+
 	public IObservable<DownloadItem> FinishedItems => finishedItemPublisher;
 
 	internal DownloaderTask(IDatabaseFile db) {
@@ -45,7 +45,7 @@ sealed class DownloaderTask : IAsyncDisposable {
 
 	private async Task RunQueueWriterTask() {
 		while (await downloadQueue.Writer.WaitToWriteAsync(cancellationToken)) {
-			var newItems = db.PullEnqueuedDownloadItems(QueueSize);
+			var newItems = await db.Downloads.PullEnqueuedDownloadItems(QueueSize, cancellationToken).ToListAsync(cancellationToken);
 			if (newItems.Count == 0) {
 				await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
 				continue;
@@ -70,14 +70,14 @@ sealed class DownloaderTask : IAsyncDisposable {
 
 			try {
 				var downloadedBytes = await client.GetByteArrayAsync(item.DownloadUrl, cancellationToken);
-				db.AddDownload(Data.Download.NewSuccess(item, downloadedBytes));
+				await db.Downloads.AddDownload(Data.Download.NewSuccess(item, downloadedBytes));
 			} catch (OperationCanceledException) {
 				// Ignore.
 			} catch (HttpRequestException e) {
-				db.AddDownload(Data.Download.NewFailure(item, e.StatusCode, item.Size));
+				await db.Downloads.AddDownload(Data.Download.NewFailure(item, e.StatusCode, item.Size));
 				log.Error(e);
 			} catch (Exception e) {
-				db.AddDownload(Data.Download.NewFailure(item, null, item.Size));
+				await db.Downloads.AddDownload(Data.Download.NewFailure(item, null, item.Size));
 				log.Error(e);
 			} finally {
 				try {

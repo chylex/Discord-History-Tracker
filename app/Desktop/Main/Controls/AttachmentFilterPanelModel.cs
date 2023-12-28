@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using DHT.Desktop.Common;
 using DHT.Server;
 using DHT.Server.Data.Filters;
@@ -13,17 +14,17 @@ namespace DHT.Desktop.Main.Controls;
 sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 	public sealed record Unit(string Name, uint Scale);
 
-	private static readonly Unit[] AllUnits = {
-		new ("B", 1),
-		new ("kB", 1024),
-		new ("MB", 1024 * 1024)
-	};
+	private static readonly Unit[] AllUnits = [
+		new Unit("B", 1),
+		new Unit("kB", 1024),
+		new Unit("MB", 1024 * 1024)
+	];
 
-	private static readonly HashSet<string> FilterProperties = new () {
+	private static readonly HashSet<string> FilterProperties = [
 		nameof(LimitSize),
 		nameof(MaximumSize),
 		nameof(MaximumSizeUnit)
-	};
+	];
 
 	public string FilterStatisticsText { get; private set; } = "";
 
@@ -51,7 +52,7 @@ sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 	private readonly State state;
 	private readonly string verb;
 
-	private readonly AsyncValueComputer<long> matchingAttachmentCountComputer;
+	private readonly RestartableTask<long> matchingAttachmentCountTask;
 	private long? matchingAttachmentCount;
 	private long? totalAttachmentCount;
 
@@ -62,7 +63,7 @@ sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 		this.state = state;
 		this.verb = verb;
 
-		this.matchingAttachmentCountComputer = AsyncValueComputer<long>.WithResultProcessor(SetAttachmentCounts).Build();
+		this.matchingAttachmentCountTask = new RestartableTask<long>(SetAttachmentCounts, TaskScheduler.FromCurrentSynchronizationContext());
 
 		UpdateFilterStatistics();
 
@@ -90,14 +91,14 @@ sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 	private void UpdateFilterStatistics() {
 		var filter = CreateFilter();
 		if (filter.IsEmpty) {
-			matchingAttachmentCountComputer.Cancel();
+			matchingAttachmentCountTask.Cancel();
 			matchingAttachmentCount = totalAttachmentCount;
 			UpdateFilterStatisticsText();
 		}
 		else {
 			matchingAttachmentCount = null;
 			UpdateFilterStatisticsText();
-			matchingAttachmentCountComputer.Compute(() => state.Db.CountAttachments(filter));
+			matchingAttachmentCountTask.Restart(cancellationToken => state.Db.Downloads.CountAttachments(filter, cancellationToken));
 		}
 	}
 
@@ -115,7 +116,7 @@ sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 	}
 
 	public AttachmentFilter CreateFilter() {
-		AttachmentFilter filter = new();
+		AttachmentFilter filter = new ();
 
 		if (LimitSize) {
 			try {

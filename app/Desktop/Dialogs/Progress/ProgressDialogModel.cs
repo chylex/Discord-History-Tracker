@@ -18,9 +18,10 @@ sealed class ProgressDialogModel : BaseModel {
 	[Obsolete("Designer")]
 	public ProgressDialogModel() {}
 
-	public ProgressDialogModel(TaskRunner task, int progressItems = 1) {
-		this.Items = Enumerable.Range(0, progressItems).Select(static _ => new ProgressItem()).ToArray();
+	public ProgressDialogModel(string title, TaskRunner task, int progressItems = 1) {
+		this.Title = title;
 		this.task = task;
+		this.Items = Enumerable.Range(0, progressItems).Select(static _ => new ProgressItem()).ToArray();
 	}
 
 	internal async Task StartTask() {
@@ -43,6 +44,16 @@ sealed class ProgressDialogModel : BaseModel {
 				item.Message = message;
 				item.Items = totalItems == 0 ? string.Empty : finishedItems.Format() + " / " + totalItems.Format();
 				item.Progress = totalItems == 0 ? 0 : 100 * finishedItems / totalItems;
+				item.IsIndeterminate = false;
+			});
+		}
+
+		public async Task UpdateIndeterminate(string message) {
+			await Dispatcher.UIThread.InvokeAsync(() => {
+				item.Message = message;
+				item.Items = string.Empty;
+				item.Progress = 0;
+				item.IsIndeterminate = true;
 			});
 		}
 

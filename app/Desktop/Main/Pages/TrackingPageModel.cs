@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
@@ -11,9 +12,16 @@ using static DHT.Desktop.Program;
 namespace DHT.Desktop.Main.Pages;
 
 sealed class TrackingPageModel : BaseModel {
-	private bool areDevToolsEnabled;
+	private bool isCopyTrackingScriptButtonEnabled = true;
 
-	private bool AreDevToolsEnabled {
+	public bool IsCopyTrackingScriptButtonEnabled {
+		get => isCopyTrackingScriptButtonEnabled;
+		set => Change(ref isCopyTrackingScriptButtonEnabled, value);
+	}
+
+	private bool? areDevToolsEnabled;
+
+	private bool? AreDevToolsEnabled {
 		get => areDevToolsEnabled;
 		set {
 			Change(ref areDevToolsEnabled, value);
@@ -21,15 +29,19 @@ sealed class TrackingPageModel : BaseModel {
 		}
 	}
 
-	public bool IsToggleAppDevToolsButtonEnabled { get; private set; } = true;
+	public bool IsToggleAppDevToolsButtonEnabled { get; private set; } = false;
 
 	public string ToggleAppDevToolsButtonText {
 		get {
+			if (!AreDevToolsEnabled.HasValue) {
+				return "Loading...";
+			}
+
 			if (!IsToggleAppDevToolsButtonEnabled) {
 				return "Unavailable";
 			}
 
-			return AreDevToolsEnabled ? "Disable Ctrl+Shift+I" : "Enable Ctrl+Shift+I";
+			return AreDevToolsEnabled.Value ? "Disable Ctrl+Shift+I" : "Enable Ctrl+Shift+I";
 		}
 	}
 
@@ -40,20 +52,21 @@ sealed class TrackingPageModel : BaseModel {
 
 	public TrackingPageModel(Window window) {
 		this.window = window;
+
+		Task.Factory.StartNew(InitializeDevToolsToggle, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
 	}
 
-	public async Task Initialize() {
-		bool? devToolsEnabled = await DiscordAppSettings.AreDevToolsEnabled();
-		if (devToolsEnabled.HasValue) {
-			AreDevToolsEnabled = devToolsEnabled.Value;
-		}
-		else {
-			IsToggleAppDevToolsButtonEnabled = false;
-			OnPropertyChanged(nameof(IsToggleAppDevToolsButtonEnabled));
+	public async Task<bool> OnClickCopyTrackingScript() {
+		IsCopyTrackingScriptButtonEnabled = false;
+
+		try {
+			return await CopyTrackingScript();
+		} finally {
+			IsCopyTrackingScriptButtonEnabled = true;
 		}
 	}
-	
-	public async Task<bool> OnClickCopyTrackingScript() {
+
+	private async Task<bool> CopyTrackingScript() {
 		string url = $"http://127.0.0.1:{ServerConfiguration.Port}/get-tracking-script?token={HttpUtility.UrlEncode(ServerConfiguration.Token)}";
 		string script = (await Resources.ReadTextAsync("tracker-loader.js")).Trim().Replace("{url}", url);
 
@@ -72,10 +85,28 @@ sealed class TrackingPageModel : BaseModel {
 		}
 	}
 
-	public async void OnClickToggleAppDevTools() {
+	private async Task InitializeDevToolsToggle() {
+		bool? devToolsEnabled = await DiscordAppSettings.AreDevToolsEnabled();
+
+		if (devToolsEnabled.HasValue) {
+			IsToggleAppDevToolsButtonEnabled = true;
+			AreDevToolsEnabled = devToolsEnabled.Value;
+		}
+		else {
+			IsToggleAppDevToolsButtonEnabled = false;
+		}
+
+		OnPropertyChanged(nameof(IsToggleAppDevToolsButtonEnabled));
+	}
+
+	public async Task OnClickToggleAppDevTools() {
 		const string DialogTitle = "Discord App Settings File";
 
-		bool oldState = AreDevToolsEnabled;
+		if (!AreDevToolsEnabled.HasValue) {
+			return;
+		}
+
+		bool oldState = AreDevToolsEnabled.Value;
 		bool newState = !oldState;
 
 		switch (await DiscordAppSettings.ConfigureDevTools(newState)) {

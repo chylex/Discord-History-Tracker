@@ -38,4 +38,11 @@ sealed class ProgressItem : BaseModel {
 		get => progress;
 		set => Change(ref progress, value);
 	}
+	
+	private bool isIndeterminate;
+
+	public bool IsIndeterminate {
+		get => isIndeterminate;
+		set => Change(ref isIndeterminate, value);
+	}
 }

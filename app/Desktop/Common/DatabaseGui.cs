@@ -11,6 +11,7 @@ using DHT.Desktop.Dialogs.Message;
 using DHT.Server.Database;
 using DHT.Server.Database.Exceptions;
 using DHT.Server.Database.Sqlite;
+using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Common;
@@ -20,9 +21,9 @@ static class DatabaseGui {
 
 	private const string DatabaseFileInitialName = "archive.dht";
 
-	private static readonly IReadOnlyList<FilePickerFileType> DatabaseFileDialogFilter = new List<FilePickerFileType> {
-		FileDialogs.CreateFilter("Discord History Tracker Database", new [] { "dht" })
-	};
+	private static readonly IReadOnlyList<FilePickerFileType> DatabaseFileDialogFilter = [
+		FileDialogs.CreateFilter("Discord History Tracker Database", ["dht"])
+	];
 
 	public static async Task<string[]> NewOpenDatabaseFilesDialog(Window window, string? suggestedDirectory) {
 		return await window.StorageProvider.OpenFiles(new FilePickerOpenOptions {

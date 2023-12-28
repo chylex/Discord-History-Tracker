@@ -10,15 +10,15 @@ namespace DHT.Server.Endpoints;
 sealed class GetAttachmentEndpoint : BaseEndpoint {
 	public GetAttachmentEndpoint(IDatabaseFile db) : base(db) {}
 
-	protected override Task<IHttpOutput> Respond(HttpContext ctx) {
+	protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
 		string attachmentUrl = WebUtility.UrlDecode((string) ctx.Request.RouteValues["url"]!);
-		DownloadedAttachment? maybeDownloadedAttachment = Db.GetDownloadedAttachment(attachmentUrl);
+		DownloadedAttachment? maybeDownloadedAttachment = await Db.Downloads.GetDownloadedAttachment(attachmentUrl);
 
 		if (maybeDownloadedAttachment is {} downloadedAttachment) {
-			return Task.FromResult<IHttpOutput>(new HttpOutput.File(downloadedAttachment.Type, downloadedAttachment.Data));
+			return new HttpOutput.File(downloadedAttachment.Type, downloadedAttachment.Data);
 		}
 		else {
-			return Task.FromResult<IHttpOutput>(new HttpOutput.Redirect(attachmentUrl, permanent: false));
+			return new HttpOutput.Redirect(attachmentUrl, permanent: false);
 		}
 	}
 }

@@ -1,6 +1,8 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
+using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Main.Controls;
 using DHT.Server;
 using DHT.Utils.Models;
@@ -9,7 +11,7 @@ namespace DHT.Desktop.Main.Pages;
 
 sealed class AdvancedPageModel : BaseModel, IDisposable {
 	public ServerConfigurationPanelModel ServerConfigurationModel { get; }
-
+	
 	private readonly Window window;
 	private readonly State state;
 
@@ -27,8 +29,9 @@ sealed class AdvancedPageModel : BaseModel, IDisposable {
 		ServerConfigurationModel.Dispose();
 	}
 
-	public async void VacuumDatabase() {
-		state.Db.Vacuum();
-		await Dialog.ShowOk(window, "Vacuum Database", "Done.");
+	public async Task VacuumDatabase() {
+		const string Title = "Vacuum Database";
+		await ProgressDialog.ShowIndeterminate(window, Title, "Vacuuming database...", _ => state.Db.Vacuum());
+		await Dialog.ShowOk(window, Title, "Done.");
 	}
 }

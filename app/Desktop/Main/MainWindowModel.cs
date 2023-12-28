@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -8,6 +7,7 @@ using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Screens;
 using DHT.Desktop.Server;
 using DHT.Server;
+using DHT.Server.Database;
 using DHT.Utils.Logging;
 using DHT.Utils.Models;
 
@@ -15,7 +15,7 @@ namespace DHT.Desktop.Main;
 
 sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 	private const string DefaultTitle = "Discord History Tracker";
-	
+
 	private static readonly Log Log = Log.ForType<MainWindowModel>();
 
 	public string Title { get; private set; } = DefaultTitle;
@@ -25,7 +25,6 @@ sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 	private readonly WelcomeScreen welcomeScreen;
 	private readonly WelcomeScreenModel welcomeScreenModel;
 
-	private MainContentScreen? mainContentScreen;
 	private MainContentScreenModel? mainContentScreenModel;
 
 	private readonly Window window;
@@ -39,10 +38,10 @@ sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 		this.window = window;
 
 		welcomeScreenModel = new WelcomeScreenModel(window);
+		welcomeScreenModel.DatabaseSelected += OnDatabaseSelected;
+
 		welcomeScreen = new WelcomeScreen { DataContext = welcomeScreenModel };
 		CurrentScreen = welcomeScreen;
-
-		welcomeScreenModel.PropertyChanged += WelcomeScreenModelOnPropertyChanged;
 
 		var dbFile = args.DatabaseFile;
 		if (!string.IsNullOrWhiteSpace(dbFile)) {
@@ -74,61 +73,59 @@ sealed class MainWindowModel : BaseModel, IAsyncDisposable {
 		}
 	}
 
-	private async void WelcomeScreenModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
-		if (e.PropertyName == nameof(welcomeScreenModel.Db)) {
-			if (mainContentScreenModel != null) {
-				mainContentScreenModel.DatabaseClosed -= MainContentScreenModelOnDatabaseClosed;
-				mainContentScreenModel.Dispose();
-			}
+	private async void OnDatabaseSelected(object? sender, IDatabaseFile db) {
+		welcomeScreenModel.DatabaseSelected -= OnDatabaseSelected;
+		
+		await DisposeState();
+		
+		state = new State(db);
 
-			if (state != null) {
-				await state.DisposeAsync();
-			}
-			
-			if (welcomeScreenModel.Db == null) {
-				state = null;
-				Title = DefaultTitle;
-				mainContentScreenModel = null;
-				mainContentScreen = null;
-				CurrentScreen = welcomeScreen;
-			}
-			else {
-				state = new State(welcomeScreenModel.Db);
-
-				try {
-					await state.Server.Start(ServerConfiguration.Port, ServerConfiguration.Token);
-				} catch (Exception ex) {
-					Log.Error(ex);
-					await Dialog.ShowOk(window, "Internal Server Error", ex.Message);
-				}
-				
-				Title = Path.GetFileName(state.Db.Path) + " - " + DefaultTitle;
-				mainContentScreenModel = new MainContentScreenModel(window, state);
-				await mainContentScreenModel.Initialize();
-				mainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
-				mainContentScreen = new MainContentScreen { DataContext = mainContentScreenModel };
-				CurrentScreen = mainContentScreen;
-			}
-
-			OnPropertyChanged(nameof(CurrentScreen));
-			OnPropertyChanged(nameof(Title));
-
-			window.Focus();
+		try {
+			await state.Server.Start(ServerConfiguration.Port, ServerConfiguration.Token);
+		} catch (Exception ex) {
+			Log.Error(ex);
+			await Dialog.ShowOk(window, "Internal Server Error", ex.Message);
 		}
+
+		mainContentScreenModel = new MainContentScreenModel(window, state);
+		mainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
+		
+		Title = Path.GetFileName(state.Db.Path) + " - " + DefaultTitle;
+		CurrentScreen = new MainContentScreen { DataContext = mainContentScreenModel };
+
+		OnPropertyChanged(nameof(Title));
+		OnPropertyChanged(nameof(CurrentScreen));
+
+		window.Focus();
 	}
 
-	private void MainContentScreenModelOnDatabaseClosed(object? sender, EventArgs e) {
-		welcomeScreenModel.CloseDatabase();
+	private async void MainContentScreenModelOnDatabaseClosed(object? sender, EventArgs e) {
+		if (mainContentScreenModel != null) {
+			mainContentScreenModel.DatabaseClosed -= MainContentScreenModelOnDatabaseClosed;
+			mainContentScreenModel.Dispose();
+			mainContentScreenModel = null;
+		}
+
+		await DisposeState();
+
+		Title = DefaultTitle;
+		CurrentScreen = welcomeScreen;
+
+		welcomeScreenModel.DatabaseSelected += OnDatabaseSelected;
+		
+		OnPropertyChanged(nameof(Title));
+		OnPropertyChanged(nameof(CurrentScreen));
 	}
 
-	public async ValueTask DisposeAsync() {
-		mainContentScreenModel?.Dispose();
-
+	private async Task DisposeState() {
 		if (state != null) {
 			await state.DisposeAsync();
 			state = null;
 		}
-		
-		welcomeScreenModel.Dispose();
+	}
+
+	public async ValueTask DisposeAsync() {
+		mainContentScreenModel?.Dispose();
+		await DisposeState();
 	}
 }

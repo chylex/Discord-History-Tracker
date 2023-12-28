@@ -7,17 +7,23 @@ using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
 using DHT.Server.Database;
-using DHT.Server.Database.Sqlite;
+using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Screens;
 
-sealed class WelcomeScreenModel : BaseModel, IDisposable {
+sealed class WelcomeScreenModel : BaseModel {
 	public string Version => Program.Version;
-
-	public IDatabaseFile? Db { get; private set; }
-	public bool HasDatabase => Db != null;
-
+	
+	private bool isOpenOrCreateDatabaseButtonEnabled = true;
+	
+	public bool IsOpenOrCreateDatabaseButtonEnabled {
+		get => isOpenOrCreateDatabaseButtonEnabled;
+		set => Change(ref isOpenOrCreateDatabaseButtonEnabled, value);
+	}
+	
+	public event EventHandler<IDatabaseFile>? DatabaseSelected; 
+	
 	private readonly Window window;
 
 	private string? dbFilePath;
@@ -29,23 +35,25 @@ sealed class WelcomeScreenModel : BaseModel, IDisposable {
 		this.window = window;
 	}
 
-	public async void OpenOrCreateDatabase() {
-		var path = await DatabaseGui.NewOpenOrCreateDatabaseFileDialog(window, Path.GetDirectoryName(dbFilePath));
-		if (path != null) {
-			await OpenOrCreateDatabaseFromPath(path);
+	public async Task OpenOrCreateDatabase() {
+		IsOpenOrCreateDatabaseButtonEnabled = false;
+		try {
+			var path = await DatabaseGui.NewOpenOrCreateDatabaseFileDialog(window, Path.GetDirectoryName(dbFilePath));
+			if (path != null) {
+				await OpenOrCreateDatabaseFromPath(path);
+			}
+		} finally {
+			IsOpenOrCreateDatabaseButtonEnabled = true;
 		}
 	}
 
 	public async Task OpenOrCreateDatabaseFromPath(string path) {
-		if (Db != null) {
-			Db = null;
-		}
-
 		dbFilePath = path;
-		Db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, window, new SchemaUpgradeCallbacks(window));
-
-		OnPropertyChanged(nameof(Db));
-		OnPropertyChanged(nameof(HasDatabase));
+		
+		var db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, window, new SchemaUpgradeCallbacks(window));
+		if (db != null) {
+			DatabaseSelected?.Invoke(this, db);
+		}
 	}
 
 	private sealed class SchemaUpgradeCallbacks : ISchemaUpgradeCallbacks {
@@ -67,12 +75,8 @@ sealed class WelcomeScreenModel : BaseModel, IDisposable {
 				await doUpgrade(reporter);
 				await Task.Delay(TimeSpan.FromMilliseconds(600));
 			}
-
-			await new ProgressDialog {
-				DataContext = new ProgressDialogModel(StartUpgrade, progressItems: 3) {
-					Title = "Upgrading Database"
-				}
-			}.ShowProgressDialog(window);
+			
+			await new ProgressDialog { DataContext = new ProgressDialogModel("Upgrading Database", StartUpgrade, progressItems: 3) }.ShowProgressDialog(window);
 		}
 
 		private sealed class ProgressReporter : ISchemaUpgradeCallbacks.IProgressReporter {
@@ -109,22 +113,11 @@ sealed class WelcomeScreenModel : BaseModel, IDisposable {
 		}
 	}
 
-	public void CloseDatabase() {
-		Dispose();
-		OnPropertyChanged(nameof(Db));
-		OnPropertyChanged(nameof(HasDatabase));
-	}
-
-	public async void ShowAboutDialog() {
-		await new AboutWindow { DataContext = new AboutWindowModel() }.ShowDialog(this.window);
+	public async Task ShowAboutDialog() {
+		await new AboutWindow { DataContext = new AboutWindowModel() }.ShowDialog(window);
 	}
 
 	public void Exit() {
 		window.Close();
-	}
-
-	public void Dispose() {
-		Db?.Dispose();
-		Db = null;
 	}
 }

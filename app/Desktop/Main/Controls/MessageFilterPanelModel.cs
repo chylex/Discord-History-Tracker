@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.CheckBox;
 using DHT.Desktop.Dialogs.Message;
+using DHT.Desktop.Dialogs.Progress;
 using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
@@ -18,7 +19,7 @@ using DHT.Utils.Tasks;
 namespace DHT.Desktop.Main.Controls;
 
 sealed class MessageFilterPanelModel : BaseModel, IDisposable {
-	private static readonly HashSet<string> FilterProperties = new () {
+	private static readonly HashSet<string> FilterProperties = [
 		nameof(FilterByDate),
 		nameof(StartDate),
 		nameof(EndDate),
@@ -26,7 +27,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		nameof(IncludedChannels),
 		nameof(FilterByUser),
 		nameof(IncludedUsers)
-	};
+	];
 
 	public string FilterStatisticsText { get; private set; } = "";
 
@@ -62,8 +63,8 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		set => Change(ref filterByChannel, value);
 	}
 
-	public HashSet<ulong> IncludedChannels {
-		get => includedChannels ?? state.Db.GetAllChannels().Select(static channel => channel.Id).ToHashSet();
+	public HashSet<ulong>? IncludedChannels {
+		get => includedChannels;
 		set => Change(ref includedChannels, value);
 	}
 
@@ -72,8 +73,8 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		set => Change(ref filterByUser, value);
 	}
 
-	public HashSet<ulong> IncludedUsers {
-		get => includedUsers ?? state.Db.GetAllUsers().Select(static user => user.Id).ToHashSet();
+	public HashSet<ulong>? IncludedUsers {
+		get => includedUsers;
 		set => Change(ref includedUsers, value);
 	}
 
@@ -95,7 +96,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 	private readonly State state;
 	private readonly string verb;
 
-	private readonly AsyncValueComputer<long> exportedMessageCountComputer;
+	private readonly RestartableTask<long> exportedMessageCountTask;
 	private long? exportedMessageCount;
 	private long? totalMessageCount;
 
@@ -107,7 +108,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		this.state = state;
 		this.verb = verb;
 
-		this.exportedMessageCountComputer = AsyncValueComputer<long>.WithResultProcessor(SetExportedMessageCount).Build();
+		this.exportedMessageCountTask = new RestartableTask<long>(SetExportedMessageCount, TaskScheduler.FromCurrentSynchronizationContext());
 
 		UpdateFilterStatistics();
 		UpdateChannelFilterLabel();
@@ -118,6 +119,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 	}
 
 	public void Dispose() {
+		exportedMessageCountTask.Cancel();
 		state.Db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
 	}
 
@@ -148,17 +150,29 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		}
 	}
 
+	private void UpdateChannelFilterLabel() {
+		long total = state.Db.Statistics.TotalChannels;
+		long included = FilterByChannel && IncludedChannels != null ? IncludedChannels.Count : total;
+		ChannelFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("channel") + ".";
+	}
+
+	private void UpdateUserFilterLabel() {
+		long total = state.Db.Statistics.TotalUsers;
+		long included = FilterByUser && IncludedUsers != null ? IncludedUsers.Count : total;
+		UserFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("user") + ".";
+	}
+
 	private void UpdateFilterStatistics() {
 		var filter = CreateFilter();
 		if (filter.IsEmpty) {
-			exportedMessageCountComputer.Cancel();
+			exportedMessageCountTask.Cancel();
 			exportedMessageCount = totalMessageCount;
 			UpdateFilterStatisticsText();
 		}
 		else {
 			exportedMessageCount = null;
 			UpdateFilterStatisticsText();
-			exportedMessageCountComputer.Compute(() => state.Db.CountMessages(filter));
+			exportedMessageCountTask.Restart(cancellationToken => state.Db.Messages.Count(filter, cancellationToken));
 		}
 	}
 
@@ -175,103 +189,98 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		OnPropertyChanged(nameof(FilterStatisticsText));
 	}
 
-	public async void OpenChannelFilterDialog() {
-		var servers = state.Db.GetAllServers().ToDictionary(static server => server.Id);
-		var items = new List<CheckBoxItem<ulong>>();
-		var included = IncludedChannels;
+	public async Task OpenChannelFilterDialog() {
+		async Task<List<CheckBoxItem<ulong>>> PrepareChannelItems(ProgressDialog dialog) {
+			var items = new List<CheckBoxItem<ulong>>();
+			var servers = await state.Db.Servers.Get().ToDictionaryAsync(static server => server.Id);
 
-		foreach (var channel in state.Db.GetAllChannels()) {
-			var channelId = channel.Id;
-			var channelName = channel.Name;
+			await foreach (var channel in state.Db.Channels.Get()) {
+				var channelId = channel.Id;
+				var channelName = channel.Name;
 
-			string title;
-			if (servers.TryGetValue(channel.Server, out var server)) {
-				var titleBuilder = new StringBuilder();
-				var serverType = server.Type;
+				string title;
+				if (servers.TryGetValue(channel.Server, out var server)) {
+					var titleBuilder = new StringBuilder();
+					var serverType = server.Type;
 
-				titleBuilder.Append('[')
-				            .Append(ServerTypes.ToString(serverType))
-				            .Append("] ");
+					titleBuilder.Append('[')
+					            .Append(ServerTypes.ToString(serverType))
+					            .Append("] ");
 
-				if (serverType == ServerType.DirectMessage) {
-					titleBuilder.Append(channelName);
+					if (serverType == ServerType.DirectMessage) {
+						titleBuilder.Append(channelName);
+					}
+					else {
+						titleBuilder.Append(server.Name)
+						            .Append(" - ")
+						            .Append(channelName);
+					}
+
+					title = titleBuilder.ToString();
 				}
 				else {
-					titleBuilder.Append(server.Name)
-					            .Append(" - ")
-					            .Append(channelName);
+					title = channelName;
 				}
 
-				title = titleBuilder.ToString();
-			}
-			else {
-				title = channelName;
+				items.Add(new CheckBoxItem<ulong>(channelId) {
+					Title = title,
+					Checked = IncludedChannels == null || IncludedChannels.Contains(channelId)
+				});
 			}
 
-			items.Add(new CheckBoxItem<ulong>(channelId) {
-				Title = title,
-				Checked = included.Contains(channelId)
-			});
+			return items;
+		}
+		
+		const string Title = "Included Channels";
+
+		List<CheckBoxItem<ulong>> items;
+		try {
+			items = await ProgressDialog.ShowIndeterminate(window, Title, "Loading channels...", PrepareChannelItems);
+		} catch (Exception e) {
+			await Dialog.ShowOk(window, Title, "Error loading channels: " + e.Message);
+			return;
 		}
 
-		var result = await OpenIdFilterDialog(window, "Included Channels", items);
+		var result = await OpenIdFilterDialog(Title, items);
 		if (result != null) {
 			IncludedChannels = result;
 		}
 	}
 
-	public async void OpenUserFilterDialog() {
-		var items = new List<CheckBoxItem<ulong>>();
-		var included = IncludedUsers;
+	public async Task OpenUserFilterDialog() {
+		async Task<List<CheckBoxItem<ulong>>> PrepareUserItems(ProgressDialog dialog) {
+			var checkBoxItems = new List<CheckBoxItem<ulong>>();
 
-		foreach (var user in state.Db.GetAllUsers()) {
-			var name = user.Name;
-			var discriminator = user.Discriminator;
+			await foreach (var user in state.Db.Users.Get()) {
+				var name = user.Name;
+				var discriminator = user.Discriminator;
 
-			items.Add(new CheckBoxItem<ulong>(user.Id) {
-				Title = discriminator == null ? name : name + " #" + discriminator,
-				Checked = included.Contains(user.Id)
-			});
+				checkBoxItems.Add(new CheckBoxItem<ulong>(user.Id) {
+					Title = discriminator == null ? name : name + " #" + discriminator,
+					Checked = IncludedUsers == null || IncludedUsers.Contains(user.Id)
+				});
+			}
+
+			return checkBoxItems;
 		}
 
-		var result = await OpenIdFilterDialog(window, "Included Users", items);
+		const string Title = "Included Users";
+		
+		List<CheckBoxItem<ulong>> items;
+		try {
+			items = await ProgressDialog.ShowIndeterminate(window, Title, "Loading users...", PrepareUserItems);
+		} catch (Exception e) {
+			await Dialog.ShowOk(window, Title, "Error loading users: " + e.Message);
+			return;
+		}
+
+		var result = await OpenIdFilterDialog(Title, items);
 		if (result != null) {
 			IncludedUsers = result;
 		}
 	}
 
-	private void UpdateChannelFilterLabel() {
-		long total = state.Db.Statistics.TotalChannels;
-		long included = FilterByChannel ? IncludedChannels.Count : total;
-		ChannelFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("channel") + ".";
-	}
-
-	private void UpdateUserFilterLabel() {
-		long total = state.Db.Statistics.TotalUsers;
-		long included = FilterByUser ? IncludedUsers.Count : total;
-		UserFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("user") + ".";
-	}
-
-	public MessageFilter CreateFilter() {
-		MessageFilter filter = new();
-
-		if (FilterByDate) {
-			filter.StartDate = StartDate;
-			filter.EndDate = EndDate?.AddDays(1).AddMilliseconds(-1);
-		}
-
-		if (FilterByChannel) {
-			filter.ChannelIds = new HashSet<ulong>(IncludedChannels);
-		}
-
-		if (FilterByUser) {
-			filter.UserIds = new HashSet<ulong>(IncludedUsers);
-		}
-
-		return filter;
-	}
-
-	private static async Task<HashSet<ulong>?> OpenIdFilterDialog(Window window, string title, List<CheckBoxItem<ulong>> items) {
+	private async Task<HashSet<ulong>?> OpenIdFilterDialog(string title, List<CheckBoxItem<ulong>> items) {
 		items.Sort(static (item1, item2) => item1.Title.CompareTo(item2.Title));
 
 		var model = new CheckBoxDialogModel<ulong>(items) {
@@ -282,5 +291,24 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		var result = await dialog.ShowDialog<DialogResult.OkCancel>(window);
 
 		return result == DialogResult.OkCancel.Ok ? model.SelectedItems.Select(static item => item.Item).ToHashSet() : null;
+	}
+
+	public MessageFilter CreateFilter() {
+		MessageFilter filter = new ();
+
+		if (FilterByDate) {
+			filter.StartDate = StartDate;
+			filter.EndDate = EndDate?.AddDays(1).AddMilliseconds(-1);
+		}
+
+		if (FilterByChannel && IncludedChannels != null) {
+			filter.ChannelIds = new HashSet<ulong>(IncludedChannels);
+		}
+
+		if (FilterByUser && IncludedUsers != null) {
+			filter.UserIds = new HashSet<ulong>(IncludedUsers);
+		}
+
+		return filter;
 	}
 }

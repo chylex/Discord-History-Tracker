@@ -10,7 +10,7 @@ public readonly struct Message {
 	public long Timestamp { get; init; }
 	public long? EditTimestamp { get; init; }
 	public ulong? RepliedToId { get; init; }
-	public ImmutableArray<Attachment> Attachments { get; init; }
-	public ImmutableArray<Embed> Embeds { get; init; }
-	public ImmutableArray<Reaction> Reactions { get; init; }
+	public ImmutableList<Attachment> Attachments { get; init; }
+	public ImmutableList<Embed> Embeds { get; init; }
+	public ImmutableList<Reaction> Reactions { get; init; }
 }

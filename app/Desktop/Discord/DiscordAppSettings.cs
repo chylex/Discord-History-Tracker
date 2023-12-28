@@ -39,7 +39,8 @@ static class DiscordAppSettings {
 
 	public static async Task<bool?> AreDevToolsEnabled() {
 		try {
-			return AreDevToolsEnabled(await ReadSettingsJson());
+			var settingsJson = await ReadSettingsJson().ConfigureAwait(false);
+			return AreDevToolsEnabled(settingsJson);
 		} catch (Exception e) {
 			Log.Error("Cannot read settings file.");
 			Log.Error(e);

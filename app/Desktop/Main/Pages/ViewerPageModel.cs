@@ -11,6 +11,7 @@ using Avalonia.Platform.Storage;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
+using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Server;
 using DHT.Server;
@@ -23,7 +24,11 @@ using static DHT.Desktop.Program;
 namespace DHT.Desktop.Main.Pages;
 
 sealed class ViewerPageModel : BaseModel, IDisposable {
-	public static readonly ConcurrentBag<string> TemporaryFiles = new ();
+	public static readonly ConcurrentBag<string> TemporaryFiles = [];
+
+	private static readonly FilePickerFileType[] ViewerFileTypes = [
+		FileDialogs.CreateFilter("Discord History Viewer", ["html"])
+	];
 
 	public bool DatabaseToolFilterModeKeep { get; set; } = true;
 	public bool DatabaseToolFilterModeRemove { get; set; } = false;
@@ -57,6 +62,58 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 
 	private void OnFilterPropertyChanged(object? sender, PropertyChangedEventArgs e) {
 		HasFilters = FilterModel.HasAnyFilters;
+	}
+
+	public async void OnClickOpenViewer() {
+		try {
+			var fullPath = await PrepareTemporaryViewerFile();
+			var strategy = new LiveViewerExportStrategy(ServerConfiguration.Port, ServerConfiguration.Token);
+
+			await WriteViewerFile(fullPath, strategy);
+			Process.Start(new ProcessStartInfo(fullPath) { UseShellExecute = true });
+		} catch (Exception e) {
+			await Dialog.ShowOk(window, "Open Viewer", "Could not save viewer: " + e.Message);
+		}
+	}
+
+	private async Task<string> PrepareTemporaryViewerFile() {
+		return await Task.Run(() => {
+			string rootPath = Path.Combine(Path.GetTempPath(), "DiscordHistoryTracker");
+			string filenameBase = Path.GetFileNameWithoutExtension(state.Db.Path) + "-" + DateTime.Now.ToString("yyyy-MM-dd");
+			string fullPath = Path.Combine(rootPath, filenameBase + ".html");
+			
+			int counter = 0;
+
+			while (File.Exists(fullPath)) {
+				++counter;
+				fullPath = Path.Combine(rootPath, filenameBase + "-" + counter + ".html");
+			}
+
+			TemporaryFiles.Add(fullPath);
+
+			Directory.CreateDirectory(rootPath);
+
+			return fullPath;
+		});
+	}
+
+	public async void OnClickSaveViewer() {
+		string? path = await window.StorageProvider.SaveFile(new FilePickerSaveOptions {
+			Title = "Save Viewer",
+			FileTypeChoices = ViewerFileTypes,
+			SuggestedFileName = Path.GetFileNameWithoutExtension(state.Db.Path) + ".html",
+			SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, Path.GetDirectoryName(state.Db.Path)),
+		});
+
+		if (path == null) {
+			return;
+		}
+
+		try {
+			await WriteViewerFile(path, StandaloneViewerExportStrategy.Instance);
+		} catch (Exception e) {
+			await Dialog.ShowOk(window, "Save Viewer", "Could not save viewer: " + e.Message);
+		}
 	}
 
 	private async Task WriteViewerFile(string path, IViewerExportStrategy strategy) {
@@ -96,54 +153,23 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 		File.Delete(jsonTempFile);
 	}
 
-	public async void OnClickOpenViewer() {
-		string rootPath = Path.Combine(Path.GetTempPath(), "DiscordHistoryTracker");
-		string filenameBase = Path.GetFileNameWithoutExtension(state.Db.Path) + "-" + DateTime.Now.ToString("yyyy-MM-dd");
-		string fullPath = Path.Combine(rootPath, filenameBase + ".html");
-		int counter = 0;
-
-		while (File.Exists(fullPath)) {
-			++counter;
-			fullPath = Path.Combine(rootPath, filenameBase + "-" + counter + ".html");
-		}
-
-		TemporaryFiles.Add(fullPath);
-
-		Directory.CreateDirectory(rootPath);
-		await WriteViewerFile(fullPath, new LiveViewerExportStrategy(ServerConfiguration.Port, ServerConfiguration.Token));
-
-		Process.Start(new ProcessStartInfo(fullPath) { UseShellExecute = true });
-	}
-
-	private static readonly FilePickerFileType[] ViewerFileTypes = {
-		FileDialogs.CreateFilter("Discord History Viewer", new string[] { "html" }),
-	};
-	
-	public async void OnClickSaveViewer() {
-		string? path = await window.StorageProvider.SaveFile(new FilePickerSaveOptions {
-			Title = "Save Viewer",
-			FileTypeChoices = ViewerFileTypes,
-			SuggestedFileName = Path.GetFileNameWithoutExtension(state.Db.Path) + ".html",
-			SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, Path.GetDirectoryName(state.Db.Path)),
-		});
-
-		if (path != null) {
-			await WriteViewerFile(path, StandaloneViewerExportStrategy.Instance);
-		}
-	}
-
-	public async void OnClickApplyFiltersToDatabase() {
+	public async Task OnClickApplyFiltersToDatabase() {
 		var filter = FilterModel.CreateFilter();
+		var messageCount = await ProgressDialog.ShowIndeterminate(window, "Apply Filters", "Counting matching messages...", _ => state.Db.Messages.Count(filter));
 
 		if (DatabaseToolFilterModeKeep) {
-			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Keep Matching Messages in This Database", state.Db.CountMessages(filter).Pluralize("message") + " will be kept, and the rest will be removed from this database. This action cannot be undone. Proceed?")) {
-				state.Db.RemoveMessages(filter, FilterRemovalMode.KeepMatching);
+			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Keep Matching Messages in This Database", messageCount.Pluralize("message") + " will be kept, and the rest will be removed from this database. This action cannot be undone. Proceed?")) {
+				await ApplyFilterToDatabase(filter, FilterRemovalMode.KeepMatching);
 			}
 		}
 		else if (DatabaseToolFilterModeRemove) {
-			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Remove Matching Messages in This Database", state.Db.CountMessages(filter).Pluralize("message") + " will be removed from this database. This action cannot be undone. Proceed?")) {
-				state.Db.RemoveMessages(filter, FilterRemovalMode.RemoveMatching);
+			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Remove Matching Messages in This Database", messageCount.Pluralize("message") + " will be removed from this database. This action cannot be undone. Proceed?")) {
+				await ApplyFilterToDatabase(filter, FilterRemovalMode.RemoveMatching);
 			}
 		}
+	}
+
+	private async Task ApplyFilterToDatabase(MessageFilter filter, FilterRemovalMode removalMode) {
+		await ProgressDialog.ShowIndeterminate(window, "Apply Filters", "Removing messages...", _ => state.Db.Messages.Remove(filter, removalMode));
 	}
 }

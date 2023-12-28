@@ -121,9 +121,10 @@ sealed class ServerConfigurationPanelModel : BaseModel, IDisposable {
 
 		ServerConfiguration.Port = port;
 		ServerConfiguration.Token = inputToken;
-		await StartServer();
 		
 		OnPropertyChanged(nameof(HasMadeChanges));
+		
+		await StartServer();
 	}
 
 	public void OnClickCancelChanges() {

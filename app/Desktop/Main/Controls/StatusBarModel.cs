@@ -34,7 +34,7 @@ sealed class StatusBarModel : BaseModel, IDisposable {
 	}
 
 	public void Dispose() {
-		state.Server.StatusChanged += OnServerStatusChanged;
+		state.Server.StatusChanged -= OnServerStatusChanged;
 	}
 
 	private void OnServerStatusChanged(object? sender, ServerManager.Status e) {

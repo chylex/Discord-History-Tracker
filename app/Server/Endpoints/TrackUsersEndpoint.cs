@@ -25,12 +25,12 @@ sealed class TrackUsersEndpoint : BaseEndpoint {
 			users[i++] = ReadUser(user, "user");
 		}
 
-		Db.AddUsers(users);
+		await Db.Users.Add(users);
 
 		return HttpOutput.None;
 	}
 
-	private static User ReadUser(JsonElement json, string path) => new() {
+	private static User ReadUser(JsonElement json, string path) => new () {
 		Id = json.RequireSnowflake("id", path),
 		Name = json.RequireString("name", path),
 		AvatarUrl = json.HasKey("avatar") ? json.RequireString("avatar", path) : null,

@@ -18,7 +18,7 @@ namespace DHT.Server.Endpoints;
 sealed class TrackMessagesEndpoint : BaseEndpoint {
 	private const string HasNewMessages = "1";
 	private const string NoNewMessages = "0";
-	
+
 	public TrackMessagesEndpoint(IDatabaseFile db) : base(db) {}
 
 	protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
@@ -39,14 +39,14 @@ sealed class TrackMessagesEndpoint : BaseEndpoint {
 		}
 
 		var addedMessageFilter = new MessageFilter { MessageIds = addedMessageIds };
-		bool anyNewMessages = Db.CountMessages(addedMessageFilter) < messages.Length;
+		bool anyNewMessages = await Db.Messages.Count(addedMessageFilter) < addedMessageIds.Count;
 
-		Db.AddMessages(messages);
+		await Db.Messages.Add(messages);
 
 		return new HttpOutput.Text(anyNewMessages ? HasNewMessages : NoNewMessages);
 	}
 
-	private static Message ReadMessage(JsonElement json, string path) => new() {
+	private static Message ReadMessage(JsonElement json, string path) => new () {
 		Id = json.RequireSnowflake("id", path),
 		Sender = json.RequireSnowflake("sender", path),
 		Channel = json.RequireSnowflake("channel", path),
@@ -54,9 +54,9 @@ sealed class TrackMessagesEndpoint : BaseEndpoint {
 		Timestamp = json.RequireLong("timestamp", path),
 		EditTimestamp = json.HasKey("editTimestamp") ? json.RequireLong("editTimestamp", path) : null,
 		RepliedToId = json.HasKey("repliedToId") ? json.RequireSnowflake("repliedToId", path) : null,
-		Attachments = json.HasKey("attachments") ? ReadAttachments(json.RequireArray("attachments", path + ".attachments"), path + ".attachments[]").ToImmutableArray() : ImmutableArray<Attachment>.Empty,
-		Embeds = json.HasKey("embeds") ? ReadEmbeds(json.RequireArray("embeds", path + ".embeds"), path + ".embeds[]").ToImmutableArray() : ImmutableArray<Embed>.Empty,
-		Reactions = json.HasKey("reactions") ? ReadReactions(json.RequireArray("reactions", path + ".reactions"), path + ".reactions[]").ToImmutableArray() : ImmutableArray<Reaction>.Empty,
+		Attachments = json.HasKey("attachments") ? ReadAttachments(json.RequireArray("attachments", path + ".attachments"), path + ".attachments[]").ToImmutableList() : ImmutableList<Attachment>.Empty,
+		Embeds = json.HasKey("embeds") ? ReadEmbeds(json.RequireArray("embeds", path + ".embeds"), path + ".embeds[]").ToImmutableList() : ImmutableList<Embed>.Empty,
+		Reactions = json.HasKey("reactions") ? ReadReactions(json.RequireArray("reactions", path + ".reactions"), path + ".reactions[]").ToImmutableList() : ImmutableList<Reaction>.Empty,
 	};
 
 	[SuppressMessage("ReSharper", "ConvertToLambdaExpression")]

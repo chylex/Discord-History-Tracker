@@ -18,7 +18,7 @@ using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Database;
 using DHT.Server.Database.Import;
-using DHT.Server.Database.Sqlite;
+using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
 using DHT.Utils.Models;
 
@@ -41,7 +41,7 @@ sealed class DatabasePageModel : BaseModel {
 		this.Db = state.Db;
 	}
 
-	public async void OpenDatabaseFolder() {
+	public async Task OpenDatabaseFolder() {
 		string file = Db.Path;
 		string? folder = Path.GetDirectoryName(file);
 
@@ -72,18 +72,11 @@ sealed class DatabasePageModel : BaseModel {
 		DatabaseClosed?.Invoke(this, EventArgs.Empty);
 	}
 
-	public async void MergeWithDatabase() {
+	public async Task MergeWithDatabase() {
 		var paths = await DatabaseGui.NewOpenDatabaseFilesDialog(window, Path.GetDirectoryName(Db.Path));
-		if (paths.Length == 0) {
-			return;
+		if (paths.Length > 0) {
+			await ProgressDialog.Show(window, "Database Merge", async (dialog, callback) => await MergeWithDatabaseFromPaths(Db, paths, dialog, callback));
 		}
-
-		ProgressDialog progressDialog = new ProgressDialog();
-		progressDialog.DataContext = new ProgressDialogModel(async callbacks => await MergeWithDatabaseFromPaths(Db, paths, progressDialog, callbacks[0])) {
-			Title = "Database Merge"
-		};
-
-		await progressDialog.ShowProgressDialog(window);
 	}
 
 	private static async Task MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
@@ -97,7 +90,7 @@ sealed class DatabasePageModel : BaseModel {
 			}
 
 			try {
-				target.AddFrom(db);
+				await target.AddFrom(db);
 				return true;
 			} finally {
 				db.Dispose();
@@ -140,23 +133,16 @@ sealed class DatabasePageModel : BaseModel {
 		}
 	}
 
-	public async void ImportLegacyArchive() {
+	public async Task ImportLegacyArchive() {
 		var paths = await window.StorageProvider.OpenFiles(new FilePickerOpenOptions {
 			Title = "Open Legacy DHT Archive",
 			SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, Path.GetDirectoryName(Db.Path)),
 			AllowMultiple = true
 		});
-			
-		if (paths.Length == 0) {
-			return;
+
+		if (paths.Length > 0) {
+			await ProgressDialog.Show(window, "Legacy Archive Import", async (dialog, callback) => await ImportLegacyArchiveFromPaths(Db, paths, dialog, callback));
 		}
-
-		ProgressDialog progressDialog = new ProgressDialog();
-		progressDialog.DataContext = new ProgressDialogModel(async callbacks => await ImportLegacyArchiveFromPaths(Db, paths, progressDialog, callbacks[0])) {
-			Title = "Legacy Archive Import"
-		};
-
-		await progressDialog.ShowProgressDialog(window);
 	}
 
 	private static async Task ImportLegacyArchiveFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
@@ -208,7 +194,7 @@ sealed class DatabasePageModel : BaseModel {
 
 	private static async Task PerformImport(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback, string neutralDialogTitle, string errorDialogTitle, string itemName, Func<string, Task<bool>> performImport) {
 		int total = paths.Length;
-		var oldStatistics = target.SnapshotStatistics();
+		var oldStatistics = await target.SnapshotStatistics();
 
 		int successful = 0;
 		int finished = 0;
@@ -239,7 +225,8 @@ sealed class DatabasePageModel : BaseModel {
 			return;
 		}
 
-		await Dialog.ShowOk(dialog, neutralDialogTitle, GetImportDialogMessage(oldStatistics, target.SnapshotStatistics(), successful, total, itemName));
+		var newStatistics = await target.SnapshotStatistics();
+		await Dialog.ShowOk(dialog, neutralDialogTitle, GetImportDialogMessage(oldStatistics, newStatistics, successful, total, itemName));
 	}
 
 	private static string GetImportDialogMessage(DatabaseStatisticsSnapshot oldStatistics, DatabaseStatisticsSnapshot newStatistics, int successfulItems, int totalItems, string itemName) {

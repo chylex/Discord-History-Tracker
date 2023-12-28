@@ -15,7 +15,7 @@ public sealed class AsyncValueComputer<TValue> {
 	private SoftHardCancellationToken? currentCancellationTokenSource;
 	private bool wasHardCancelled = false;
 
-	private Func<TValue>? currentComputeFunction;
+	private Func<Task<TValue>>? currentComputeFunction;
 	private bool hasComputeFunctionChanged = false;
 
 	private AsyncValueComputer(Action<TValue> resultProcessor, TaskScheduler resultTaskScheduler, bool processOutdatedResults) {
@@ -31,7 +31,7 @@ public sealed class AsyncValueComputer<TValue> {
 		}
 	}
 
-	public void Compute(Func<TValue> func) {
+	public void Compute(Func<Task<TValue>> func) {
 		lock (stateLock) {
 			wasHardCancelled = false;
 
@@ -47,7 +47,7 @@ public sealed class AsyncValueComputer<TValue> {
 	}
 
 	[SuppressMessage("ReSharper", "MethodSupportsCancellation")]
-	private void EnqueueComputation(Func<TValue> func) {
+	private void EnqueueComputation(Func<Task<TValue>> func) {
 		var cancellationTokenSource = new SoftHardCancellationToken();
 
 		currentCancellationTokenSource?.RequestSoftCancellation();
@@ -84,15 +84,19 @@ public sealed class AsyncValueComputer<TValue> {
 
 	public sealed class Single {
 		private readonly AsyncValueComputer<TValue> baseComputer;
-		private readonly Func<TValue> resultComputer;
+		private readonly Func<Task<TValue>> resultComputer;
 
-		internal Single(AsyncValueComputer<TValue> baseComputer, Func<TValue> resultComputer) {
+		internal Single(AsyncValueComputer<TValue> baseComputer, Func<Task<TValue>> resultComputer) {
 			this.baseComputer = baseComputer;
 			this.resultComputer = resultComputer;
 		}
 
 		public void Recompute() {
 			baseComputer.Compute(resultComputer);
+		}
+
+		public void Cancel() {
+			baseComputer.Cancel();
 		}
 	}
 
@@ -119,7 +123,7 @@ public sealed class AsyncValueComputer<TValue> {
 			return new AsyncValueComputer<TValue>(resultProcessor, resultTaskScheduler, processOutdatedResults);
 		}
 
-		public Single BuildWithComputer(Func<TValue> resultComputer) {
+		public Single BuildWithComputer(Func<Task<TValue>> resultComputer) {
 			return new Single(Build(), resultComputer);
 		}
 	}

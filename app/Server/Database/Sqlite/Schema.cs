@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading.Tasks;
 using DHT.Server.Database.Exceptions;
 using DHT.Server.Database.Sqlite.Utils;
@@ -168,7 +169,7 @@ sealed class Schema {
 			}
 		}
 
-		await using var tx = conn.BeginTransaction();
+		await using var tx = await conn.BeginTransactionAsync();
 
 		int totalUrls = normalizedUrls.Count;
 		int processedUrls = -1;
@@ -214,9 +215,9 @@ sealed class Schema {
 
 		conn.Execute("PRAGMA cache_size = -20000");
 
-		SqliteTransaction tx;
+		DbTransaction tx;
 		
-		await using (tx = conn.BeginTransaction()) {
+		await using (tx = await conn.BeginTransactionAsync()) {
 			await reporter.SubWork("Deleting duplicates...", 0, 0);
 
 			await using (var deleteCmd = conn.Delete("downloads", ("url", SqliteType.Text))) {
@@ -232,7 +233,7 @@ sealed class Schema {
 		int totalUrls = normalizedUrlsToOriginalUrls.Count;
 		int processedUrls = -1;
 
-		tx = conn.BeginTransaction();
+		tx = await conn.BeginTransactionAsync();
 		
 		await using (var updateCmd = conn.Command("UPDATE downloads SET download_url = :download_url, url = :normalized_url WHERE url = :download_url")) {
 			updateCmd.Add(":normalized_url", SqliteType.Text);
@@ -247,8 +248,8 @@ sealed class Schema {
 					await tx.CommitAsync();
 					await tx.DisposeAsync();
 					
-					tx = conn.BeginTransaction();
-					updateCmd.Transaction = tx;
+					tx = await conn.BeginTransactionAsync();
+					updateCmd.Transaction = (SqliteTransaction) tx;
 				}
 
 				updateCmd.Set(":normalized_url", normalizedUrl);

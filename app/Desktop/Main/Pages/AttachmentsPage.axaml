@@ -48,7 +48,7 @@
                 </DataGrid>
             </Expander>
             <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Command="{Binding OnClickRetryFailedDownloads}" IsEnabled="{Binding HasFailedDownloads}">Retry Failed Downloads</Button>
+                <Button Command="{Binding OnClickRetryFailedDownloads}" IsEnabled="{Binding IsRetryFailedOnDownloadsButtonEnabled}">Retry Failed Downloads</Button>
             </StackPanel>
         </StackPanel>
     </StackPanel>

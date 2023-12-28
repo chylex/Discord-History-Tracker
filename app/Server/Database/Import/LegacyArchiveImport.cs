@@ -33,10 +33,8 @@ public static class LegacyArchiveImport {
 			var servers = ReadServerList(meta, fakeSnowflake);
 
 			var newServersOnly = new HashSet<Data.Server>(servers);
-			var oldServersById = db.GetAllServers().ToDictionary(static server => server.Id, static server => server);
-
-			var oldChannels = db.GetAllChannels();
-			var oldChannelsById = oldChannels.ToDictionary(static channel => channel.Id, static channel => channel);
+			var oldServersById = await db.Servers.Get().ToDictionaryAsync(static server => server.Id, static server => server);
+			var oldChannelsById = await db.Channels.Get().ToDictionaryAsync(static channel => channel.Id, static channel => channel);
 
 			foreach (var (channelId, serverIndex) in ReadChannelToServerIndexMapping(meta, servers)) {
 				if (oldChannelsById.TryGetValue(channelId, out var oldChannel) && oldServersById.TryGetValue(oldChannel.Server, out var oldServer) && newServersOnly.Remove(servers[serverIndex])) {
@@ -66,17 +64,17 @@ public static class LegacyArchiveImport {
 
 			perf.Step("Read channel list");
 
-			var oldMessageIds = db.GetMessageIds();
+			var oldMessageIds = await db.Messages.GetIds().ToHashSetAsync();
 			var newMessages = channels.SelectMany(channel => ReadMessages(data, channel, users, fakeSnowflake))
 			                          .Where(message => !oldMessageIds.Contains(message.Id))
 			                          .ToArray();
 
 			perf.Step("Read messages");
 
-			db.AddUsers(users);
-			db.AddServers(servers);
-			db.AddChannels(channels);
-			db.AddMessages(newMessages);
+			await db.Users.Add(users);
+			await db.Servers.Add(servers);
+			await db.Channels.Add(channels);
+			await db.Messages.Add(newMessages);
 
 			perf.Step("Import into database");
 		} catch (HttpException e) {
@@ -179,9 +177,9 @@ public static class LegacyArchiveImport {
 				Timestamp = messageObj.RequireLong("t", path),
 				EditTimestamp = messageObj.HasKey("te") ? messageObj.RequireLong("te", path) : null,
 				RepliedToId = messageObj.HasKey("r") ? messageObj.RequireSnowflake("r", path) : null,
-				Attachments = messageObj.HasKey("a") ? ReadMessageAttachments(messageObj.RequireArray("a", path), fakeSnowflake, path + ".a[]").ToImmutableArray() : ImmutableArray<Attachment>.Empty,
-				Embeds = messageObj.HasKey("e") ? ReadMessageEmbeds(messageObj.RequireArray("e", path), path + ".e[]").ToImmutableArray() : ImmutableArray<Embed>.Empty,
-				Reactions = messageObj.HasKey("re") ? ReadMessageReactions(messageObj.RequireArray("re", path), path + ".re[]").ToImmutableArray() : ImmutableArray<Reaction>.Empty,
+				Attachments = messageObj.HasKey("a") ? ReadMessageAttachments(messageObj.RequireArray("a", path), fakeSnowflake, path + ".a[]").ToImmutableList() : ImmutableList<Attachment>.Empty,
+				Embeds = messageObj.HasKey("e") ? ReadMessageEmbeds(messageObj.RequireArray("e", path), path + ".e[]").ToImmutableList() : ImmutableList<Embed>.Empty,
+				Reactions = messageObj.HasKey("re") ? ReadMessageReactions(messageObj.RequireArray("re", path), path + ".re[]").ToImmutableList() : ImmutableList<Reaction>.Empty,
 			};
 		}).ToArray();
 	}

@@ -1,16 +1,12 @@
 using System;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Main.Pages;
 using DHT.Server;
-using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Main.Screens;
 
 sealed class MainContentScreenModel : IDisposable {
-	private static readonly Log Log = Log.ForType<MainContentScreenModel>();
-
 	public DatabasePage DatabasePage { get; }
 	private DatabasePageModel DatabasePageModel { get; }
 
@@ -73,10 +69,6 @@ sealed class MainContentScreenModel : IDisposable {
 		#endif
 
 		StatusBarModel = new StatusBarModel(state);
-	}
-
-	public async Task Initialize() {
-		await TrackingPageModel.Initialize();
 	}
 
 	public void Dispose() {

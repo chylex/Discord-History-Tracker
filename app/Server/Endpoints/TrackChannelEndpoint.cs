@@ -16,19 +16,19 @@ sealed class TrackChannelEndpoint : BaseEndpoint {
 		var server = ReadServer(root.RequireObject("server"), "server");
 		var channel = ReadChannel(root.RequireObject("channel"), "channel", server.Id);
 
-		Db.AddServer(server);
-		Db.AddChannel(channel);
+		await Db.Servers.Add([server]);
+		await Db.Channels.Add([channel]);
 
 		return HttpOutput.None;
 	}
 
-	private static Data.Server ReadServer(JsonElement json, string path) => new() {
+	private static Data.Server ReadServer(JsonElement json, string path) => new () {
 		Id = json.RequireSnowflake("id", path),
 		Name = json.RequireString("name", path),
 		Type = ServerTypes.FromString(json.RequireString("type", path)) ?? throw new HttpException(HttpStatusCode.BadRequest, "Server type must be either 'SERVER', 'GROUP', or 'DM'.")
 	};
 
-	private static Channel ReadChannel(JsonElement json, string path, ulong serverId) => new() {
+	private static Channel ReadChannel(JsonElement json, string path, ulong serverId) => new () {
 		Id = json.RequireSnowflake("id", path),
 		Server = serverId,
 		Name = json.RequireString("name", path),

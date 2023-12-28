@@ -44,13 +44,7 @@ namespace DHT.Desktop.Main.Pages {
 				return;
 			}
 
-			ProgressDialog progressDialog = new ProgressDialog {
-				DataContext = new ProgressDialogModel(async callbacks => await GenerateRandomData(channels, users, messages, callbacks[0])) {
-					Title = "Generating Random Data"
-				}
-			};
-
-			await progressDialog.ShowProgressDialog(window);
+			await ProgressDialog.Show(window, "Generating Random Data", async (_, callback) => await GenerateRandomData(channels, users, messages, callback));
 		}
 
 		private const int BatchSize = 500;
@@ -83,12 +77,9 @@ namespace DHT.Desktop.Main.Pages {
 				Discriminator = rand.Next(0, 9999).ToString(),
 			}).ToArray();
 
-			state.Db.AddServer(server);
-			state.Db.AddUsers(users);
-
-			foreach (var channel in channels) {
-				state.Db.AddChannel(channel);
-			}
+			await state.Db.Users.Add(users);
+			await state.Db.Servers.Add([server]);
+			await state.Db.Channels.Add(channels);
 
 			var now = DateTimeOffset.Now;
 			int batchIndex = 0;
@@ -111,13 +102,13 @@ namespace DHT.Desktop.Main.Pages {
 						Timestamp = timeMillis,
 						EditTimestamp = editMillis,
 						RepliedToId = null,
-						Attachments = ImmutableArray<Attachment>.Empty,
-						Embeds = ImmutableArray<Embed>.Empty,
-						Reactions = ImmutableArray<Reaction>.Empty,
+						Attachments = ImmutableList<Attachment>.Empty,
+						Embeds = ImmutableList<Embed>.Empty,
+						Reactions = ImmutableList<Reaction>.Empty,
 					};
 				}).ToArray();
 
-				state.Db.AddMessages(messages);
+				await state.Db.Messages.Add(messages);
 
 				messageCount -= BatchSize;
 				await callback.Update("Adding messages in batches of " + BatchSize, ++batchIndex, batchCount);

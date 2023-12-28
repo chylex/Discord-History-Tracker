@@ -8,9 +8,13 @@ using DHT.Server.Database.Sqlite.Utils;
 namespace DHT.Server.Database.Sqlite;
 
 static class SqliteFilters {
+	private static string WhereAll(bool invert) {
+		return invert ? "WHERE FALSE" : "";
+	}
+
 	public static string GenerateWhereClause(this MessageFilter? filter, string? tableAlias = null, bool invert = false) {
-		if (filter == null) {
-			return "";
+		if (filter == null || filter.IsEmpty) {
+			return WhereAll(invert);
 		}
 
 		var where = new SqliteWhereGenerator(tableAlias, invert);
@@ -39,8 +43,8 @@ static class SqliteFilters {
 	}
 
 	public static string GenerateWhereClause(this AttachmentFilter? filter, string? tableAlias = null, bool invert = false) {
-		if (filter == null) {
-			return "";
+		if (filter == null || filter.IsEmpty) {
+			return WhereAll(invert);
 		}
 
 		var where = new SqliteWhereGenerator(tableAlias, invert);
@@ -60,8 +64,8 @@ static class SqliteFilters {
 	}
 
 	public static string GenerateWhereClause(this DownloadItemFilter? filter, string? tableAlias = null, bool invert = false) {
-		if (filter == null) {
-			return "";
+		if (filter == null || filter.IsEmpty) {
+			return WhereAll(invert);
 		}
 
 		var where = new SqliteWhereGenerator(tableAlias, invert);

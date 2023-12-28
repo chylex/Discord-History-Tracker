@@ -21,7 +21,7 @@ public static class ViewerJsonExport {
 		var includedChannelIds = new HashSet<ulong>();
 		var includedServerIds = new HashSet<ulong>();
 
-		var includedMessages = db.GetMessages(filter);
+		var includedMessages = await db.Messages.Get(filter).ToListAsync();
 		var includedChannels = new List<Channel>();
 
 		foreach (var message in includedMessages) {
@@ -29,23 +29,23 @@ public static class ViewerJsonExport {
 			includedChannelIds.Add(message.Channel);
 		}
 
-		foreach (var channel in db.GetAllChannels()) {
+		await foreach (var channel in db.Channels.Get()) {
 			if (includedChannelIds.Contains(channel.Id)) {
 				includedChannels.Add(channel);
 				includedServerIds.Add(channel.Server);
 			}
 		}
 
-		var users = GenerateUserList(db, includedUserIds, out var userindex, out var userIndices);
-		var servers = GenerateServerList(db, includedServerIds, out var serverindex);
-		var channels = GenerateChannelList(includedChannels, serverindex);
+		var (users, userIndex, userIndices) = await GenerateUserList(db, includedUserIds);
+		var (servers, serverIndices) = await GenerateServerList(db, includedServerIds);
+		var channels = GenerateChannelList(includedChannels, serverIndices);
 
 		perf.Step("Collect database data");
 
 		var value = new ViewerJson {
 			Meta = new ViewerJson.JsonMeta {
 				Users = users,
-				Userindex = userindex,
+				Userindex = userIndex,
 				Servers = servers,
 				Channels = channels
 			},
@@ -60,12 +60,12 @@ public static class ViewerJsonExport {
 		perf.End();
 	}
 
-	private static Dictionary<Snowflake, ViewerJson.JsonUser> GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds, out List<Snowflake> userindex, out Dictionary<ulong, int> userIndices) {
+	private static async Task<(Dictionary<Snowflake, ViewerJson.JsonUser> Users, List<Snowflake> UserIndex, Dictionary<ulong, int> UserIndices)> GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds) {
 		var users = new Dictionary<Snowflake, ViewerJson.JsonUser>();
-		userindex = new List<Snowflake>();
-		userIndices = new Dictionary<ulong, int>();
+		var userIndex = new List<Snowflake>();
+		var userIndices = new Dictionary<ulong, int>();
 
-		foreach (var user in db.GetAllUsers()) {
+		await foreach (var user in db.Users.Get()) {
 			var id = user.Id;
 			if (!userIds.Contains(id)) {
 				continue;
@@ -73,7 +73,7 @@ public static class ViewerJsonExport {
 
 			var idSnowflake = new Snowflake(id);
 			userIndices[id] = users.Count;
-			userindex.Add(idSnowflake);
+			userIndex.Add(idSnowflake);
 			
 			users[idSnowflake] = new ViewerJson.JsonUser {
 				Name = user.Name,
@@ -82,14 +82,14 @@ public static class ViewerJsonExport {
 			};
 		}
 
-		return users;
+		return (users, userIndex, userIndices);
 	}
 
-	private static List<ViewerJson.JsonServer> GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds, out Dictionary<ulong, int> serverIndices) {
+	private static async Task<(List<ViewerJson.JsonServer> Servers, Dictionary<ulong, int> ServerIndices)> GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds) {
 		var servers = new List<ViewerJson.JsonServer>();
-		serverIndices = new Dictionary<ulong, int>();
+		var serverIndices = new Dictionary<ulong, int>();
 
-		foreach (var server in db.GetAllServers()) {
+		await foreach (var server in db.Servers.Get()) {
 			var id = server.Id;
 			if (!serverIds.Contains(id)) {
 				continue;
@@ -103,7 +103,7 @@ public static class ViewerJsonExport {
 			});
 		}
 
-		return servers;
+		return (servers, serverIndices);
 	}
 
 	private static Dictionary<Snowflake, ViewerJson.JsonChannel> GenerateChannelList(List<Channel> includedChannels, Dictionary<ulong, int> serverIndices) {

@@ -11,12 +11,15 @@ using DHT.Server.Data;
 using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
+using DHT.Utils.Logging;
 using DHT.Utils.Models;
 using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Pages;
 
 sealed class AttachmentsPageModel : BaseModel, IDisposable {
+	private static readonly Log Log = Log.ForType<AttachmentsPageModel>();
+
 	private static readonly DownloadItemFilter EnqueuedItemFilter = new () {
 		IncludeStatuses = new HashSet<DownloadStatus> {
 			DownloadStatus.Enqueued,
@@ -24,14 +27,26 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 		}
 	};
 
-	private bool isThreadDownloadButtonEnabled = true;
+	private bool isToggleDownloadButtonEnabled = true;
+
+	public bool IsToggleDownloadButtonEnabled {
+		get => isToggleDownloadButtonEnabled;
+		set => Change(ref isToggleDownloadButtonEnabled, value);
+	}
 
 	public string ToggleDownloadButtonText => IsDownloading ? "Stop Downloading" : "Start Downloading";
 
-	public bool IsToggleDownloadButtonEnabled {
-		get => isThreadDownloadButtonEnabled;
-		set => Change(ref isThreadDownloadButtonEnabled, value);
+	private bool isRetryingFailedDownloads = false;
+
+	public bool IsRetryingFailedDownloads {
+		get => isRetryingFailedDownloads;
+		set {
+			isRetryingFailedDownloads = value;
+			OnPropertyChanged(nameof(IsRetryFailedOnDownloadsButtonEnabled));
+		}
 	}
+
+	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && HasFailedDownloads;
 
 	public string DownloadMessage { get; set; } = "";
 	public double DownloadProgress => totalItemsToDownloadCount is null or 0 ? 0.0 : 100.0 * doneItemsCount / totalItemsToDownloadCount.Value;
@@ -43,23 +58,20 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 	private readonly StatisticsRow statisticsFailed = new ("Failed");
 	private readonly StatisticsRow statisticsSkipped = new ("Skipped");
 
-	public List<StatisticsRow> StatisticsRows {
-		get {
-			return new List<StatisticsRow> {
-				statisticsEnqueued,
-				statisticsDownloaded,
-				statisticsFailed,
-				statisticsSkipped
-			};
-		}
-	}
+	public List<StatisticsRow> StatisticsRows => [
+		statisticsEnqueued,
+		statisticsDownloaded,
+		statisticsFailed,
+		statisticsSkipped
+	];
 
 	public bool IsDownloading => state.Downloader.IsDownloading;
 	public bool HasFailedDownloads => statisticsFailed.Items > 0;
 
 	private readonly State state;
-	private readonly AsyncValueComputer<DownloadStatusStatistics>.Single downloadStatisticsComputer;
-	
+	private readonly ThrottledTask enqueueDownloadItemsTask;
+	private readonly ThrottledTask<DownloadStatusStatistics> downloadStatisticsTask;
+
 	private IDisposable? finishedItemsSubscription;
 	private int doneItemsCount;
 	private int initialFinishedCount;
@@ -72,14 +84,17 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 
 		FilterModel = new AttachmentFilterPanelModel(state);
 
-		downloadStatisticsComputer = AsyncValueComputer<DownloadStatusStatistics>.WithResultProcessor(UpdateStatistics).WithOutdatedResults().BuildWithComputer(state.Db.GetDownloadStatusStatistics);
-		downloadStatisticsComputer.Recompute();
+		enqueueDownloadItemsTask = new ThrottledTask(RecomputeDownloadStatistics, TaskScheduler.FromCurrentSynchronizationContext());
+		downloadStatisticsTask = new ThrottledTask<DownloadStatusStatistics>(UpdateStatistics, TaskScheduler.FromCurrentSynchronizationContext());
+		RecomputeDownloadStatistics();
 
 		state.Db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 	}
 
 	public void Dispose() {
 		state.Db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
+		enqueueDownloadItemsTask.Dispose();
+		downloadStatisticsTask.Dispose();
 		finishedItemsSubscription?.Dispose();
 		FilterModel.Dispose();
 	}
@@ -87,23 +102,35 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 	private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
 		if (e.PropertyName == nameof(DatabaseStatistics.TotalAttachments)) {
 			if (IsDownloading) {
-				EnqueueDownloadItems();
+				EnqueueDownloadItemsLater();
 			}
 			else {
-				downloadStatisticsComputer.Recompute();
+				RecomputeDownloadStatistics();
 			}
 		}
 		else if (e.PropertyName == nameof(DatabaseStatistics.TotalDownloads)) {
-			downloadStatisticsComputer.Recompute();
+			RecomputeDownloadStatistics();
 		}
 	}
 
-	private void EnqueueDownloadItems() {
+	private async Task EnqueueDownloadItems() {
+		await state.Db.Downloads.EnqueueDownloadItems(CreateAttachmentFilter());
+		RecomputeDownloadStatistics();
+	}
+
+	private void EnqueueDownloadItemsLater() {
+		var filter = CreateAttachmentFilter();
+		enqueueDownloadItemsTask.Post(cancellationToken => state.Db.Downloads.EnqueueDownloadItems(filter, cancellationToken));
+	}
+
+	private AttachmentFilter CreateAttachmentFilter() {
 		var filter = FilterModel.CreateFilter();
 		filter.DownloadItemRule = AttachmentFilter.DownloadItemRules.OnlyNotPresent;
-		state.Db.EnqueueDownloadItems(filter);
+		return filter;
+	}
 
-		downloadStatisticsComputer.Recompute();
+	private void RecomputeDownloadStatistics() {
+		downloadStatisticsTask.Post(state.Db.Downloads.GetStatistics);
 	}
 
 	private void UpdateStatistics(DownloadStatusStatistics statusStatistics) {
@@ -125,6 +152,7 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 
 		if (hadFailedDownloads != HasFailedDownloads) {
 			OnPropertyChanged(nameof(HasFailedDownloads));
+			OnPropertyChanged(nameof(IsRetryFailedOnDownloadsButtonEnabled));
 		}
 
 		totalItemsToDownloadCount = statisticsEnqueued.Items + statisticsDownloaded.Items + statisticsFailed.Items - initialFinishedCount;
@@ -138,24 +166,18 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 		OnPropertyChanged(nameof(DownloadProgress));
 	}
 
-	private void OnItemsFinished(int finishedItemCount) {
-		doneItemsCount += finishedItemCount;
-		UpdateDownloadMessage();
-		downloadStatisticsComputer.Recompute();
-	}
-
 	public async Task OnClickToggleDownload() {
 		IsToggleDownloadButtonEnabled = false;
-		
+
 		if (IsDownloading) {
 			await state.Downloader.Stop();
-			
+
 			finishedItemsSubscription?.Dispose();
 			finishedItemsSubscription = null;
-			
-			downloadStatisticsComputer.Recompute();
 
-			state.Db.RemoveDownloadItems(EnqueuedItemFilter, FilterRemovalMode.RemoveMatching);
+			RecomputeDownloadStatistics();
+
+			await state.Db.Downloads.RemoveDownloadItems(EnqueuedItemFilter, FilterRemovalMode.RemoveMatching);
 
 			doneItemsCount = 0;
 			initialFinishedCount = 0;
@@ -172,8 +194,8 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 			                                         .Where(static items => items > 0)
 			                                         .ObserveOn(AvaloniaScheduler.Instance)
 			                                         .Subscribe(OnItemsFinished);
-			
-			EnqueueDownloadItems();
+
+			await EnqueueDownloadItems();
 		}
 
 		OnPropertyChanged(nameof(ToggleDownloadButtonText));
@@ -181,19 +203,33 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 		IsToggleDownloadButtonEnabled = true;
 	}
 
-	public void OnClickRetryFailedDownloads() {
-		var allExceptFailedFilter = new DownloadItemFilter {
-			IncludeStatuses = new HashSet<DownloadStatus> {
-				DownloadStatus.Enqueued,
-				DownloadStatus.Downloading,
-				DownloadStatus.Success
+	private void OnItemsFinished(int finishedItemCount) {
+		doneItemsCount += finishedItemCount;
+		UpdateDownloadMessage();
+		RecomputeDownloadStatistics();
+	}
+
+	public async Task OnClickRetryFailedDownloads() {
+		IsRetryingFailedDownloads = true;
+
+		try {
+			var allExceptFailedFilter = new DownloadItemFilter {
+				IncludeStatuses = new HashSet<DownloadStatus> {
+					DownloadStatus.Enqueued,
+					DownloadStatus.Downloading,
+					DownloadStatus.Success
+				}
+			};
+
+			await state.Db.Downloads.RemoveDownloadItems(allExceptFailedFilter, FilterRemovalMode.KeepMatching);
+
+			if (IsDownloading) {
+				await EnqueueDownloadItems();
 			}
-		};
-
-		state.Db.RemoveDownloadItems(allExceptFailedFilter, FilterRemovalMode.KeepMatching);
-
-		if (IsDownloading) {
-			EnqueueDownloadItems();
+		} catch (Exception e) {
+			Log.Error(e);
+		} finally {
+			IsRetryingFailedDownloads = false;
 		}
 	}
 

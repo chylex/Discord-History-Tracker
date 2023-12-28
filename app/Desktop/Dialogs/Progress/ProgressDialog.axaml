@@ -40,7 +40,7 @@
                         <TextBlock DockPanel.Dock="Right" Text="{Binding Items}" Classes="items" />
                         <TextBlock DockPanel.Dock="Left" Text="{Binding Message}" />
                     </DockPanel>
-                    <ProgressBar Value="{Binding Progress}" />
+                    <ProgressBar IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" />
                 </StackPanel>
             </DataTemplate>
         </ItemsRepeater.ItemTemplate>

@@ -1,43 +1,19 @@
 using System;
-using System.Collections.Generic;
-using DHT.Server.Data;
-using DHT.Server.Data.Aggregations;
-using DHT.Server.Data.Filters;
-using DHT.Server.Download;
+using System.Threading.Tasks;
+using DHT.Server.Database.Repositories;
 
 namespace DHT.Server.Database;
 
 public interface IDatabaseFile : IDisposable {
 	string Path { get; }
 	DatabaseStatistics Statistics { get; }
-	DatabaseStatisticsSnapshot SnapshotStatistics();
+	Task<DatabaseStatisticsSnapshot> SnapshotStatistics();
 
-	void AddServer(Data.Server server);
-	List<Data.Server> GetAllServers();
+	IUserRepository Users { get; }
+	IServerRepository Servers { get; }
+	IChannelRepository Channels { get; }
+	IMessageRepository Messages { get; }
+	IDownloadRepository Downloads { get; }
 
-	void AddChannel(Channel channel);
-	List<Channel> GetAllChannels();
-
-	void AddUsers(User[] users);
-	List<User> GetAllUsers();
-
-	void AddMessages(Message[] messages);
-	int CountMessages(MessageFilter? filter = null);
-	List<Message> GetMessages(MessageFilter? filter = null);
-	HashSet<ulong> GetMessageIds(MessageFilter? filter = null);
-	void RemoveMessages(MessageFilter filter, FilterRemovalMode mode);
-
-	int CountAttachments(AttachmentFilter? filter = null);
-
-	void AddDownload(Data.Download download);
-	List<Data.Download> GetDownloadsWithoutData();
-	Data.Download GetDownloadWithData(Data.Download download);
-	DownloadedAttachment? GetDownloadedAttachment(string url);
-
-	void EnqueueDownloadItems(AttachmentFilter? filter = null);
-	List<DownloadItem> PullEnqueuedDownloadItems(int count);
-	void RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode);
-	DownloadStatusStatistics GetDownloadStatusStatistics();
-
-	void Vacuum();
+	Task Vacuum();
 }
