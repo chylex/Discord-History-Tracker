@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.Threading;
+using Avalonia.ReactiveUI;
 using DHT.Desktop.Common;
 using DHT.Desktop.Main.Controls;
 using DHT.Server;
@@ -11,7 +11,6 @@ using DHT.Server.Data;
 using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
-using DHT.Server.Download;
 using DHT.Utils.Models;
 using DHT.Utils.Tasks;
 
@@ -60,7 +59,8 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 
 	private readonly State state;
 	private readonly AsyncValueComputer<DownloadStatusStatistics>.Single downloadStatisticsComputer;
-
+	
+	private IDisposable? finishedItemsSubscription;
 	private int doneItemsCount;
 	private int initialFinishedCount;
 	private int? totalItemsToDownloadCount;
@@ -69,19 +69,18 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 
 	public AttachmentsPageModel(State state) {
 		this.state = state;
-		
+
 		FilterModel = new AttachmentFilterPanelModel(state);
 
 		downloadStatisticsComputer = AsyncValueComputer<DownloadStatusStatistics>.WithResultProcessor(UpdateStatistics).WithOutdatedResults().BuildWithComputer(state.Db.GetDownloadStatusStatistics);
 		downloadStatisticsComputer.Recompute();
 
 		state.Db.Statistics.PropertyChanged += OnDbStatisticsChanged;
-		state.Downloader.OnItemFinished += DownloaderOnOnItemFinished;
 	}
 
 	public void Dispose() {
 		state.Db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
-		state.Downloader.OnItemFinished -= DownloaderOnOnItemFinished;
+		finishedItemsSubscription?.Dispose();
 		FilterModel.Dispose();
 	}
 
@@ -139,19 +138,22 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 		OnPropertyChanged(nameof(DownloadProgress));
 	}
 
-	private void DownloaderOnOnItemFinished(object? sender, DownloadItem e) {
-		Interlocked.Increment(ref doneItemsCount);
-		
-		Dispatcher.UIThread.Invoke(UpdateDownloadMessage);
+	private void OnItemsFinished(int finishedItemCount) {
+		doneItemsCount += finishedItemCount;
+		UpdateDownloadMessage();
 		downloadStatisticsComputer.Recompute();
 	}
 
 	public async Task OnClickToggleDownload() {
+		IsToggleDownloadButtonEnabled = false;
+		
 		if (IsDownloading) {
-			IsToggleDownloadButtonEnabled = false;
 			await state.Downloader.Stop();
+			
+			finishedItemsSubscription?.Dispose();
+			finishedItemsSubscription = null;
+			
 			downloadStatisticsComputer.Recompute();
-			IsToggleDownloadButtonEnabled = true;
 
 			state.Db.RemoveDownloadItems(EnqueuedItemFilter, FilterRemovalMode.RemoveMatching);
 
@@ -161,13 +163,22 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 			UpdateDownloadMessage();
 		}
 		else {
+			var finishedItems = await state.Downloader.Start();
+
 			initialFinishedCount = statisticsDownloaded.Items + statisticsFailed.Items;
-			await state.Downloader.Start();
+			finishedItemsSubscription = finishedItems.Select(static _ => true)
+			                                         .Buffer(TimeSpan.FromMilliseconds(100))
+			                                         .Select(static items => items.Count)
+			                                         .Where(static items => items > 0)
+			                                         .ObserveOn(AvaloniaScheduler.Instance)
+			                                         .Subscribe(OnItemsFinished);
+			
 			EnqueueDownloadItems();
 		}
 
 		OnPropertyChanged(nameof(ToggleDownloadButtonText));
 		OnPropertyChanged(nameof(IsDownloading));
+		IsToggleDownloadButtonEnabled = true;
 	}
 
 	public void OnClickRetryFailedDownloads() {

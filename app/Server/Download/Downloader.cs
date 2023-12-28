@@ -9,8 +9,6 @@ public sealed class Downloader {
 	private DownloaderTask? current;
 	public bool IsDownloading => current != null;
 	
-	public event EventHandler<DownloadItem>? OnItemFinished;
-	
 	private readonly IDatabaseFile db;
 	private readonly SemaphoreSlim semaphore = new (1, 1);
 	
@@ -18,13 +16,11 @@ public sealed class Downloader {
 		this.db = db;
 	}
 
-	public async Task Start() {
+	public async Task<IObservable<DownloadItem>> Start() {
 		await semaphore.WaitAsync();
 		try {
-			if (current == null) {
-				current = new DownloaderTask(db);
-				current.OnItemFinished += DelegateOnItemFinished;
-			}
+			current ??= new DownloaderTask(db);
+			return current.FinishedItems;
 		} finally {
 			semaphore.Release();
 		}
@@ -34,16 +30,11 @@ public sealed class Downloader {
 		await semaphore.WaitAsync();
 		try {
 			if (current != null) {
-				await current.Stop();
-				current.OnItemFinished -= DelegateOnItemFinished;
+				await current.DisposeAsync();
 				current = null;
 			}
 		} finally {
 			semaphore.Release();
 		}
-	}
-
-	private void DelegateOnItemFinished(object? sender, DownloadItem e) {
-		OnItemFinished?.Invoke(this, e);
 	}
 }

@@ -1,24 +1,22 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using DHT.Server.Database;
 using DHT.Utils.Logging;
-using DHT.Utils.Models;
 using DHT.Utils.Tasks;
 
 namespace DHT.Server.Download;
 
-sealed class DownloaderTask : BaseModel {
+sealed class DownloaderTask : IAsyncDisposable {
 	private static readonly Log Log = Log.ForType<DownloaderTask>();
 
 	private const int DownloadTasks = 4;
 	private const int QueueSize = 25;
 	private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
-	internal event EventHandler<DownloadItem>? OnItemFinished;
 
 	private readonly Channel<DownloadItem> downloadQueue = Channel.CreateBounded<DownloadItem>(new BoundedChannelOptions(QueueSize) {
 		SingleReader = false,
@@ -31,12 +29,16 @@ sealed class DownloaderTask : BaseModel {
 	private readonly CancellationToken cancellationToken;
 
 	private readonly IDatabaseFile db;
+	private readonly Subject<DownloadItem> finishedItemPublisher = new ();
+	
 	private readonly Task queueWriterTask;
 	private readonly Task[] downloadTasks;
+	
+	public IObservable<DownloadItem> FinishedItems => finishedItemPublisher;
 
 	internal DownloaderTask(IDatabaseFile db) {
-		this.cancellationToken = cancellationTokenSource.Token;
 		this.db = db;
+		this.cancellationToken = cancellationTokenSource.Token;
 		this.queueWriterTask = Task.Run(RunQueueWriterTask);
 		this.downloadTasks = Enumerable.Range(1, DownloadTasks).Select(taskIndex => Task.Run(() => RunDownloadTask(taskIndex))).ToArray();
 	}
@@ -79,7 +81,7 @@ sealed class DownloaderTask : BaseModel {
 				log.Error(e);
 			} finally {
 				try {
-					OnItemFinished?.Invoke(this, item);
+					finishedItemPublisher.OnNext(item);
 				} catch (Exception e) {
 					log.Error("Caught exception in event handler: " + e);
 				}
@@ -87,7 +89,7 @@ sealed class DownloaderTask : BaseModel {
 		}
 	}
 
-	internal async Task Stop() {
+	public async ValueTask DisposeAsync() {
 		try {
 			await cancellationTokenSource.CancelAsync();
 		} catch (Exception) {
@@ -102,6 +104,7 @@ sealed class DownloaderTask : BaseModel {
 			await Task.WhenAll(downloadTasks).WaitIgnoringCancellation();
 		} finally {
 			cancellationTokenSource.Dispose();
+			finishedItemPublisher.OnCompleted();
 		}
 	}
 }
