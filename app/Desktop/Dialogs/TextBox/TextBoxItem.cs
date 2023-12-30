@@ -1,11 +1,11 @@
 using System;
 using System.Collections;
 using System.ComponentModel;
-using DHT.Utils.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace DHT.Desktop.Dialogs.TextBox;
 
-class TextBoxItem : BaseModel, INotifyDataErrorInfo {
+class TextBoxItem : ObservableObject, INotifyDataErrorInfo {
 	public string Title { get; init; } = "";
 	public object? Item { get; init; } = null;
 		
@@ -17,7 +17,7 @@ class TextBoxItem : BaseModel, INotifyDataErrorInfo {
 	public string Value {
 		get => this.value;
 		set {
-			Change(ref this.value, value);
+			SetProperty(ref this.value, value);
 			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(Value)));
 		}
 	}

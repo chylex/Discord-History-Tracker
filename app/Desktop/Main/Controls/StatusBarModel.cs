@@ -1,15 +1,17 @@
 using System;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Server;
 using DHT.Server.Database;
 using DHT.Server.Service;
-using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed class StatusBarModel : BaseModel, IDisposable {
+sealed partial class StatusBarModel : ObservableObject, IDisposable {
 	public DatabaseStatistics DatabaseStatistics { get; }
 
+	[ObservableProperty(Setter = Access.Private)]
+	[NotifyPropertyChangedFor(nameof(ServerStatusText))]
 	private ServerManager.Status serverStatus;
 
 	public string ServerStatusText => serverStatus switch {
@@ -38,9 +40,6 @@ sealed class StatusBarModel : BaseModel, IDisposable {
 	}
 
 	private void OnServerStatusChanged(object? sender, ServerManager.Status e) {
-		Dispatcher.UIThread.InvokeAsync(() => {
-			serverStatus = e;
-			OnPropertyChanged(nameof(ServerStatusText));
-		});
+		Dispatcher.UIThread.InvokeAsync(() => ServerStatus = e);
 	}
 }

@@ -3,33 +3,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Discord;
 using DHT.Desktop.Server;
-using DHT.Utils.Models;
 using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed class TrackingPageModel : BaseModel {
+sealed partial class TrackingPageModel : ObservableObject {
+	[ObservableProperty(Setter = Access.Private)]
 	private bool isCopyTrackingScriptButtonEnabled = true;
 
-	public bool IsCopyTrackingScriptButtonEnabled {
-		get => isCopyTrackingScriptButtonEnabled;
-		set => Change(ref isCopyTrackingScriptButtonEnabled, value);
-	}
+	[ObservableProperty(Setter = Access.Private)]
+	[NotifyPropertyChangedFor(nameof(ToggleAppDevToolsButtonText))]
+	private bool? areDevToolsEnabled = null;
 
-	private bool? areDevToolsEnabled;
-
-	private bool? AreDevToolsEnabled {
-		get => areDevToolsEnabled;
-		set {
-			Change(ref areDevToolsEnabled, value);
-			OnPropertyChanged(nameof(ToggleAppDevToolsButtonText));
-		}
-	}
-
-	public bool IsToggleAppDevToolsButtonEnabled { get; private set; } = false;
+	[ObservableProperty(Setter = Access.Private)]
+	[NotifyPropertyChangedFor(nameof(ToggleAppDevToolsButtonText))]
+	private bool isToggleAppDevToolsButtonEnabled = false;
 
 	public string ToggleAppDevToolsButtonText {
 		get {
@@ -89,14 +81,12 @@ sealed class TrackingPageModel : BaseModel {
 		bool? devToolsEnabled = await DiscordAppSettings.AreDevToolsEnabled();
 
 		if (devToolsEnabled.HasValue) {
-			IsToggleAppDevToolsButtonEnabled = true;
 			AreDevToolsEnabled = devToolsEnabled.Value;
+			IsToggleAppDevToolsButtonEnabled = true;
 		}
 		else {
 			IsToggleAppDevToolsButtonEnabled = false;
 		}
-
-		OnPropertyChanged(nameof(IsToggleAppDevToolsButtonEnabled));
 	}
 
 	public async Task OnClickToggleAppDevTools() {

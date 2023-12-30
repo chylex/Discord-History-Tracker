@@ -4,11 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using DHT.Desktop.Common;
-using DHT.Utils.Models;
 
 namespace DHT.Desktop.Dialogs.Progress;
 
-sealed class ProgressDialogModel : BaseModel {
+sealed class ProgressDialogModel {
 	public string Title { get; init; } = "";
 
 	public IReadOnlyList<ProgressItem> Items { get; } = Array.Empty<ProgressItem>();

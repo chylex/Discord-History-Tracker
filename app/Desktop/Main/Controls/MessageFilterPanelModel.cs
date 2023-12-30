@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.CheckBox;
 using DHT.Desktop.Dialogs.Message;
@@ -13,12 +14,11 @@ using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
-using DHT.Utils.Models;
 using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed class MessageFilterPanelModel : BaseModel, IDisposable {
+sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 	private static readonly HashSet<string> FilterProperties = [
 		nameof(FilterByDate),
 		nameof(StartDate),
@@ -35,62 +35,32 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 
 	public bool HasAnyFilters => FilterByDate || FilterByChannel || FilterByUser;
 
+	[ObservableProperty]
 	private bool filterByDate = false;
+
+	[ObservableProperty]
 	private DateTime? startDate = null;
+
+	[ObservableProperty]
 	private DateTime? endDate = null;
+
+	[ObservableProperty]
 	private bool filterByChannel = false;
+
+	[ObservableProperty]
 	private HashSet<ulong>? includedChannels = null;
+
+	[ObservableProperty]
 	private bool filterByUser = false;
+
+	[ObservableProperty]
 	private HashSet<ulong>? includedUsers = null;
 
-	public bool FilterByDate {
-		get => filterByDate;
-		set => Change(ref filterByDate, value);
-	}
-
-	public DateTime? StartDate {
-		get => startDate;
-		set => Change(ref startDate, value);
-	}
-
-	public DateTime? EndDate {
-		get => endDate;
-		set => Change(ref endDate, value);
-	}
-
-	public bool FilterByChannel {
-		get => filterByChannel;
-		set => Change(ref filterByChannel, value);
-	}
-
-	public HashSet<ulong>? IncludedChannels {
-		get => includedChannels;
-		set => Change(ref includedChannels, value);
-	}
-
-	public bool FilterByUser {
-		get => filterByUser;
-		set => Change(ref filterByUser, value);
-	}
-
-	public HashSet<ulong>? IncludedUsers {
-		get => includedUsers;
-		set => Change(ref includedUsers, value);
-	}
-
+	[ObservableProperty]
 	private string channelFilterLabel = "";
 
-	public string ChannelFilterLabel {
-		get => channelFilterLabel;
-		set => Change(ref channelFilterLabel, value);
-	}
-
+	[ObservableProperty]
 	private string userFilterLabel = "";
-
-	public string UserFilterLabel {
-		get => userFilterLabel;
-		set => Change(ref userFilterLabel, value);
-	}
 
 	private readonly Window window;
 	private readonly State state;
@@ -224,13 +194,13 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 
 				items.Add(new CheckBoxItem<ulong>(channelId) {
 					Title = title,
-					Checked = IncludedChannels == null || IncludedChannels.Contains(channelId)
+					IsChecked = IncludedChannels == null || IncludedChannels.Contains(channelId)
 				});
 			}
 
 			return items;
 		}
-		
+
 		const string Title = "Included Channels";
 
 		List<CheckBoxItem<ulong>> items;
@@ -257,7 +227,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 
 				checkBoxItems.Add(new CheckBoxItem<ulong>(user.Id) {
 					Title = discriminator == null ? name : name + " #" + discriminator,
-					Checked = IncludedUsers == null || IncludedUsers.Contains(user.Id)
+					IsChecked = IncludedUsers == null || IncludedUsers.Contains(user.Id)
 				});
 			}
 
@@ -265,7 +235,7 @@ sealed class MessageFilterPanelModel : BaseModel, IDisposable {
 		}
 
 		const string Title = "Included Users";
-		
+
 		List<CheckBoxItem<ulong>> items;
 		try {
 			items = await ProgressDialog.ShowIndeterminate(window, Title, "Loading users...", PrepareUserItems);

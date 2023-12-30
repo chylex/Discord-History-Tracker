@@ -1,18 +1,12 @@
-using DHT.Utils.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace DHT.Desktop.Dialogs.Progress;
 
-sealed class ProgressItem : BaseModel {
+sealed partial class ProgressItem : ObservableObject {
+	[ObservableProperty(Setter = Access.Private)]
+	[NotifyPropertyChangedFor(nameof(Opacity))]
 	private bool isVisible = false;
 
-	public bool IsVisible {
-		get => isVisible;
-		private set {
-			Change(ref isVisible, value);
-			OnPropertyChanged(nameof(Opacity));
-		}
-	}
-	
 	public double Opacity => IsVisible ? 1.0 : 0.0;
 
 	private string message = "";
@@ -20,29 +14,17 @@ sealed class ProgressItem : BaseModel {
 	public string Message {
 		get => message;
 		set {
-			Change(ref message, value);
+			SetProperty(ref message, value);
 			IsVisible = !string.IsNullOrEmpty(value);
 		}
 	}
 
+	[ObservableProperty]
 	private string items = "";
 
-	public string Items {
-		get => items;
-		set => Change(ref items, value);
-	}
-
+	[ObservableProperty]
 	private int progress = 0;
 
-	public int Progress {
-		get => progress;
-		set => Change(ref progress, value);
-	}
-	
+	[ObservableProperty]
 	private bool isIndeterminate;
-
-	public bool IsIndeterminate {
-		get => isIndeterminate;
-		set => Change(ref isIndeterminate, value);
-	}
 }

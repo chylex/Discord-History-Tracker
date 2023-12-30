@@ -2,46 +2,30 @@ using System;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Server;
 using DHT.Server;
 using DHT.Server.Service;
 using DHT.Utils.Logging;
-using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed class ServerConfigurationPanelModel : BaseModel, IDisposable {
+sealed partial class ServerConfigurationPanelModel : ObservableObject, IDisposable {
 	private static readonly Log Log = Log.ForType<ServerConfigurationPanelModel>();
 	
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(HasMadeChanges))]
 	private string inputPort;
 
-	public string InputPort {
-		get => inputPort;
-		set {
-			Change(ref inputPort, value);
-			OnPropertyChanged(nameof(HasMadeChanges));
-		}
-	}
-
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(HasMadeChanges))]
 	private string inputToken;
-
-	public string InputToken {
-		get => inputToken;
-		set {
-			Change(ref inputToken, value);
-			OnPropertyChanged(nameof(HasMadeChanges));
-		}
-	}
 
 	public bool HasMadeChanges => ServerConfiguration.Port.ToString() != InputPort || ServerConfiguration.Token != InputToken;
 
+	[ObservableProperty(Setter = Access.Private)]
 	private bool isToggleServerButtonEnabled = true;
-
-	public bool IsToggleServerButtonEnabled {
-		get => isToggleServerButtonEnabled;
-		set => Change(ref isToggleServerButtonEnabled, value);
-	}
 
 	public string ToggleServerButtonText => server.IsRunning ? "Stop Server" : "Start Server";
 

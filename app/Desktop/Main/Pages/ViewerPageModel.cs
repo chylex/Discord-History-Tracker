@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
@@ -18,12 +19,11 @@ using DHT.Server;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database.Export;
 using DHT.Server.Database.Export.Strategy;
-using DHT.Utils.Models;
 using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed class ViewerPageModel : BaseModel, IDisposable {
+sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 	public static readonly ConcurrentBag<string> TemporaryFiles = [];
 
 	private static readonly FilePickerFileType[] ViewerFileTypes = [
@@ -33,12 +33,8 @@ sealed class ViewerPageModel : BaseModel, IDisposable {
 	public bool DatabaseToolFilterModeKeep { get; set; } = true;
 	public bool DatabaseToolFilterModeRemove { get; set; } = false;
 
+	[ObservableProperty]
 	private bool hasFilters = false;
-
-	public bool HasFilters {
-		get => hasFilters;
-		set => Change(ref hasFilters, value);
-	}
 
 	public MessageFilterPanelModel FilterModel { get; }
 

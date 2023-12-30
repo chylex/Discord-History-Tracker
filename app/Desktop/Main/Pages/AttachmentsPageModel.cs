@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.ReactiveUI;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Main.Controls;
 using DHT.Server;
@@ -12,12 +13,11 @@ using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Utils.Logging;
-using DHT.Utils.Models;
 using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed class AttachmentsPageModel : BaseModel, IDisposable {
+sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 	private static readonly Log Log = Log.ForType<AttachmentsPageModel>();
 
 	private static readonly DownloadItemFilter EnqueuedItemFilter = new () {
@@ -27,28 +27,24 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 		}
 	};
 
+	[ObservableProperty(Setter = Access.Private)]
 	private bool isToggleDownloadButtonEnabled = true;
-
-	public bool IsToggleDownloadButtonEnabled {
-		get => isToggleDownloadButtonEnabled;
-		set => Change(ref isToggleDownloadButtonEnabled, value);
-	}
 
 	public string ToggleDownloadButtonText => IsDownloading ? "Stop Downloading" : "Start Downloading";
 
+	[ObservableProperty(Setter = Access.Private)]
+	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
 	private bool isRetryingFailedDownloads = false;
 
-	public bool IsRetryingFailedDownloads {
-		get => isRetryingFailedDownloads;
-		set {
-			isRetryingFailedDownloads = value;
-			OnPropertyChanged(nameof(IsRetryFailedOnDownloadsButtonEnabled));
-		}
-	}
+	[ObservableProperty(Setter = Access.Private)]
+	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
+	private bool hasFailedDownloads;
+	
+	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && hasFailedDownloads;
 
-	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && HasFailedDownloads;
-
-	public string DownloadMessage { get; set; } = "";
+	[ObservableProperty(Setter = Access.Private)]
+	private string downloadMessage = "";
+	
 	public double DownloadProgress => totalItemsToDownloadCount is null or 0 ? 0.0 : 100.0 * doneItemsCount / totalItemsToDownloadCount.Value;
 
 	public AttachmentFilterPanelModel FilterModel { get; }
@@ -66,7 +62,6 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 	];
 
 	public bool IsDownloading => state.Downloader.IsDownloading;
-	public bool HasFailedDownloads => statisticsFailed.Items > 0;
 
 	private readonly State state;
 	private readonly ThrottledTask<int> enqueueDownloadItemsTask;
@@ -206,8 +201,6 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 	}
 
 	private void UpdateStatistics(DownloadStatusStatistics statusStatistics) {
-		var hadFailedDownloads = HasFailedDownloads;
-
 		statisticsEnqueued.Items = statusStatistics.EnqueuedCount;
 		statisticsEnqueued.Size = statusStatistics.EnqueuedSize;
 
@@ -222,10 +215,7 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 
 		OnPropertyChanged(nameof(StatisticsRows));
 
-		if (hadFailedDownloads != HasFailedDownloads) {
-			OnPropertyChanged(nameof(HasFailedDownloads));
-			OnPropertyChanged(nameof(IsRetryFailedOnDownloadsButtonEnabled));
-		}
+		hasFailedDownloads = statusStatistics.FailedCount > 0;
 
 		UpdateDownloadMessage();
 	}
@@ -233,7 +223,6 @@ sealed class AttachmentsPageModel : BaseModel, IDisposable {
 	private void UpdateDownloadMessage() {
 		DownloadMessage = IsDownloading ? doneItemsCount.Format() + " / " + (totalItemsToDownloadCount?.Format() ?? "?") : "";
 
-		OnPropertyChanged(nameof(DownloadMessage));
 		OnPropertyChanged(nameof(DownloadProgress));
 	}
 

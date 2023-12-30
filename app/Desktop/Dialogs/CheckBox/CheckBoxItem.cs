@@ -1,17 +1,13 @@
-using DHT.Utils.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace DHT.Desktop.Dialogs.CheckBox;
 
-class CheckBoxItem : BaseModel {
+partial class CheckBoxItem : ObservableObject {
 	public string Title { get; init; } = "";
 	public object? Item { get; init; } = null;
 
+	[ObservableProperty]
 	private bool isChecked = false;
-
-	public bool Checked {
-		get => isChecked;
-		set => Change(ref isChecked, value);
-	}
 }
 
 sealed class CheckBoxItem<T> : CheckBoxItem {

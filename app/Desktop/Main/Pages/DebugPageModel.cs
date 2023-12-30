@@ -9,10 +9,9 @@ using DHT.Desktop.Dialogs.Progress;
 using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Service;
-using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Pages {
-	sealed class DebugPageModel : BaseModel {
+	sealed class DebugPageModel {
 		public string GenerateChannels { get; set; } = "0";
 		public string GenerateUsers { get; set; } = "0";
 		public string GenerateMessages { get; set; } = "0";
@@ -162,10 +161,8 @@ namespace DHT.Desktop.Main.Pages {
 	}
 }
 #else
-using DHT.Utils.Models;
-
 namespace DHT.Desktop.Main.Pages {
-	sealed class DebugPageModel : BaseModel {
+	sealed class DebugPageModel {
 		public string GenerateChannels { get; set; } = "0";
 		public string GenerateUsers { get; set; } = "0";
 		public string GenerateMessages { get; set; } = "0";

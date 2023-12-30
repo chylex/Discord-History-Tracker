@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Server;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
-using DHT.Utils.Models;
 using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
+sealed partial class AttachmentFilterPanelModel : ObservableObject, IDisposable {
 	public sealed record Unit(string Name, uint Scale);
 
 	private static readonly Unit[] AllUnits = [
@@ -28,24 +28,14 @@ sealed class AttachmentFilterPanelModel : BaseModel, IDisposable {
 
 	public string FilterStatisticsText { get; private set; } = "";
 
+	[ObservableProperty]
 	private bool limitSize = false;
+	
+	[ObservableProperty]
 	private ulong maximumSize = 0L;
+	
+	[ObservableProperty]
 	private Unit maximumSizeUnit = AllUnits[0];
-
-	public bool LimitSize {
-		get => limitSize;
-		set => Change(ref limitSize, value);
-	}
-
-	public ulong MaximumSize {
-		get => maximumSize;
-		set => Change(ref maximumSize, value);
-	}
-
-	public Unit MaximumSizeUnit {
-		get => maximumSizeUnit;
-		set => Change(ref maximumSizeUnit, value);
-	}
 
 	public IEnumerable<Unit> Units => AllUnits;
 

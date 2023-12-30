@@ -3,24 +3,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
 using DHT.Server.Database;
 using DHT.Server.Database.Sqlite.Utils;
-using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Screens;
 
-sealed class WelcomeScreenModel : BaseModel {
+sealed partial class WelcomeScreenModel : ObservableObject {
 	public string Version => Program.Version;
 	
+	[ObservableProperty(Setter = Access.Private)]
 	private bool isOpenOrCreateDatabaseButtonEnabled = true;
-	
-	public bool IsOpenOrCreateDatabaseButtonEnabled {
-		get => isOpenOrCreateDatabaseButtonEnabled;
-		set => Change(ref isOpenOrCreateDatabaseButtonEnabled, value);
-	}
 	
 	public event EventHandler<IDatabaseFile>? DatabaseSelected; 
 	

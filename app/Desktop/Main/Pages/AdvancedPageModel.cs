@@ -5,11 +5,10 @@ using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Main.Controls;
 using DHT.Server;
-using DHT.Utils.Models;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed class AdvancedPageModel : BaseModel, IDisposable {
+sealed class AdvancedPageModel : IDisposable {
 	public ServerConfigurationPanelModel ServerConfigurationModel { get; }
 	
 	private readonly Window window;
