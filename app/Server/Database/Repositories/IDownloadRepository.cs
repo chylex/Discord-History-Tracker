@@ -22,7 +22,7 @@ public interface IDownloadRepository {
 
 	Task<DownloadedAttachment?> GetDownloadedAttachment(string normalizedUrl);
 
-	Task EnqueueDownloadItems(AttachmentFilter? filter = null, CancellationToken cancellationToken = default);
+	Task<int> EnqueueDownloadItems(AttachmentFilter? filter = null, CancellationToken cancellationToken = default);
 
 	IAsyncEnumerable<DownloadItem> PullEnqueuedDownloadItems(int count, CancellationToken cancellationToken = default);
 
@@ -53,8 +53,8 @@ public interface IDownloadRepository {
 			return Task.FromResult<DownloadedAttachment?>(null);
 		}
 
-		public Task EnqueueDownloadItems(AttachmentFilter? filter, CancellationToken cancellationToken) {
-			return Task.CompletedTask;
+		public Task<int> EnqueueDownloadItems(AttachmentFilter? filter, CancellationToken cancellationToken) {
+			return Task.FromResult(0);
 		}
 
 		public IAsyncEnumerable<DownloadItem> PullEnqueuedDownloadItems(int count, CancellationToken cancellationToken) {

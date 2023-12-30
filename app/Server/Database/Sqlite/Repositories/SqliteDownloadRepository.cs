@@ -164,7 +164,7 @@ sealed class SqliteDownloadRepository : IDownloadRepository {
 		};
 	}
 
-	public async Task EnqueueDownloadItems(AttachmentFilter? filter, CancellationToken cancellationToken) {
+	public async Task<int> EnqueueDownloadItems(AttachmentFilter? filter, CancellationToken cancellationToken) {
 		using var conn = pool.Take();
 
 		await using var cmd = conn.Command(
@@ -178,7 +178,7 @@ sealed class SqliteDownloadRepository : IDownloadRepository {
 		);
 
 		cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
-		await cmd.ExecuteNonQueryAsync(cancellationToken);
+		return await cmd.ExecuteNonQueryAsync(cancellationToken);
 	}
 
 	public async IAsyncEnumerable<DownloadItem> PullEnqueuedDownloadItems(int count, [EnumeratorCancellation] CancellationToken cancellationToken) {
