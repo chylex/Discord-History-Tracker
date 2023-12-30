@@ -19,11 +19,6 @@ static class SqliteExtensions {
 		return cmd;
 	}
 
-	public static void Execute(this ISqliteConnection conn, string sql) {
-		using var cmd = conn.Command(sql);
-		cmd.ExecuteNonQuery();
-	}
-
 	public static async Task<int> ExecuteAsync(this ISqliteConnection conn, [LanguageInjection("sql")] string sql, CancellationToken cancellationToken = default) {
 		await using var cmd = conn.Command(sql);
 		return await cmd.ExecuteNonQueryAsync(cancellationToken);
@@ -34,11 +29,6 @@ static class SqliteExtensions {
 		await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
 		return reader.Read() ? readFunction(reader) : readFunction(null);
-	}
-
-	public static object? SelectScalar(this ISqliteConnection conn, string sql) {
-		using var cmd = conn.Command(sql);
-		return cmd.ExecuteScalar();
 	}
 
 	public static SqliteCommand Insert(this ISqliteConnection conn, string tableName, (string Name, SqliteType Type)[] columns) {
