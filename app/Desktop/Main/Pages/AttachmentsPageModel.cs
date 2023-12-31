@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.ReactiveUI;
@@ -52,12 +53,7 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 	private readonly StatisticsRow statisticsFailed = new ("Failed");
 	private readonly StatisticsRow statisticsSkipped = new ("Skipped");
 
-	public List<StatisticsRow> StatisticsRows => [
-		statisticsEnqueued,
-		statisticsDownloaded,
-		statisticsFailed,
-		statisticsSkipped
-	];
+	public ObservableCollection<StatisticsRow> StatisticsRows { get; }
 
 	public bool IsDownloading => state.Downloader.IsDownloading;
 
@@ -79,13 +75,20 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 		this.state = state;
 
 		FilterModel = new AttachmentFilterPanelModel(state);
+		
+		StatisticsRows = [
+			statisticsEnqueued,
+			statisticsDownloaded,
+			statisticsFailed,
+			statisticsSkipped
+		];
 
 		enqueueDownloadItemsTask = new ThrottledTask<int>(OnItemsEnqueued, TaskScheduler.FromCurrentSynchronizationContext());
 		downloadStatisticsTask = new ThrottledTask<DownloadStatusStatistics>(UpdateStatistics, TaskScheduler.FromCurrentSynchronizationContext());
-		
+
 		attachmentCountSubscription = state.Db.Attachments.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnAttachmentCountChanged);
 		downloadCountSubscription = state.Db.Downloads.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnDownloadCountChanged);
-		
+
 		RecomputeDownloadStatistics();
 	}
 
@@ -93,10 +96,10 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 		attachmentCountSubscription.Dispose();
 		downloadCountSubscription.Dispose();
 		finishedItemsSubscription?.Dispose();
-		
+
 		enqueueDownloadItemsTask.Dispose();
 		downloadStatisticsTask.Dispose();
-		
+
 		FilterModel.Dispose();
 	}
 
@@ -217,8 +220,6 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 		statisticsSkipped.Items = statusStatistics.SkippedCount;
 		statisticsSkipped.Size = statusStatistics.SkippedSize;
 
-		OnPropertyChanged(nameof(StatisticsRows));
-
 		hasFailedDownloads = statusStatistics.FailedCount > 0;
 
 		UpdateDownloadMessage();
@@ -230,13 +231,14 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 		OnPropertyChanged(nameof(DownloadProgress));
 	}
 
-	public sealed class StatisticsRow {
-		public string State { get; }
-		public int Items { get; set; }
-		public ulong? Size { get; set; }
+	[ObservableObject]
+	public sealed partial class StatisticsRow(string state) {
+		public string State { get; } = state;
 
-		public StatisticsRow(string state) {
-			State = state;
-		}
+		[ObservableProperty]
+		private int items;
+
+		[ObservableProperty]
+		private ulong? size;
 	}
 }
