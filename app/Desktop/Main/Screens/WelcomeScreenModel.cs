@@ -109,6 +109,10 @@ sealed partial class WelcomeScreenModel : ObservableObject {
 		}
 	}
 
+	public async Task CheckUpdates() {
+		// https://api.github.com/repos/chylex/Discord-History-Tracker/releases/latest
+	}
+	
 	public async Task ShowAboutDialog() {
 		await new AboutWindow { DataContext = new AboutWindowModel() }.ShowDialog(window);
 	}
