@@ -65,10 +65,13 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 			var fullPath = await PrepareTemporaryViewerFile();
 			var strategy = new LiveViewerExportStrategy(ServerConfiguration.Port, ServerConfiguration.Token);
 
-			await WriteViewerFile(fullPath, strategy);
-			Process.Start(new ProcessStartInfo(fullPath) { UseShellExecute = true });
+			await ProgressDialog.ShowIndeterminate(window, "Open Viewer", "Creating viewer...", _ => Task.Run(() => WriteViewerFile(fullPath, strategy)));
+			
+			Process.Start(new ProcessStartInfo(fullPath) {
+				UseShellExecute = true
+			});
 		} catch (Exception e) {
-			await Dialog.ShowOk(window, "Open Viewer", "Could not save viewer: " + e.Message);
+			await Dialog.ShowOk(window, "Open Viewer", "Could not create or save viewer: " + e.Message);
 		}
 	}
 
@@ -106,9 +109,9 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 		}
 
 		try {
-			await WriteViewerFile(path, StandaloneViewerExportStrategy.Instance);
+			await ProgressDialog.ShowIndeterminate(window, "Save Viewer", "Creating viewer...", _ => Task.Run(() => WriteViewerFile(path, StandaloneViewerExportStrategy.Instance)));
 		} catch (Exception e) {
-			await Dialog.ShowOk(window, "Save Viewer", "Could not save viewer: " + e.Message);
+			await Dialog.ShowOk(window, "Save Viewer", "Could not create or save viewer: " + e.Message);
 		}
 	}
 
