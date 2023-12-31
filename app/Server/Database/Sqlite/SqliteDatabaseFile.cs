@@ -16,14 +16,14 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 			Mode = SqliteOpenMode.ReadWriteCreate,
 		};
 
-		var pool = new SqliteConnectionPool(connectionString, DefaultPoolSize);
+		var pool = await SqliteConnectionPool.Create(connectionString, DefaultPoolSize);
 		bool wasOpened;
 
 		try {
-			using var conn = pool.Take();
+			await using var conn = await pool.Take();
 			wasOpened = await new Schema(conn).Setup(schemaUpgradeCallbacks);
 		} catch (Exception) {
-			pool.Dispose();
+			await pool.DisposeAsync();
 			throw;
 		}
 
@@ -31,7 +31,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 			return new SqliteDatabaseFile(path, pool);
 		}
 		else {
-			pool.Dispose();
+			await pool.DisposeAsync();
 			return null;
 		}
 	}
@@ -65,18 +65,18 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		downloads = new SqliteDownloadRepository(pool);
 	}
 
-	public void Dispose() {
+	public async ValueTask DisposeAsync() {
 		users.Dispose();
 		servers.Dispose();
 		channels.Dispose();
 		messages.Dispose();
 		attachments.Dispose();
 		downloads.Dispose();
-		pool.Dispose();
+		await pool.DisposeAsync();
 	}
 
 	public async Task Vacuum() {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 		await conn.ExecuteAsync("VACUUM");
 	}
 }

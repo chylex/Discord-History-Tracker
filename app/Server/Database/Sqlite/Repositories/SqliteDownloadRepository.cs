@@ -21,7 +21,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 	}
 
 	public async Task AddDownload(Data.Download download) {
-		using (var conn = pool.Take()) {
+		await using (var conn = await pool.Take()) {
 			await using var cmd = conn.Upsert("downloads", [
 				("normalized_url", SqliteType.Text),
 				("download_url", SqliteType.Text),
@@ -42,7 +42,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 	}
 
 	public override async Task<long> Count(CancellationToken cancellationToken) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM downloads", static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
@@ -97,14 +97,14 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 
 		var result = new DownloadStatusStatistics();
 
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 		await LoadUndownloadedStatistics(conn, result, cancellationToken);
 		await LoadSuccessStatistics(conn, result, cancellationToken);
 		return result;
 	}
 
 	public async IAsyncEnumerable<Data.Download> GetWithoutData() {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 
 		await using var cmd = conn.Command("SELECT normalized_url, download_url, status, size FROM downloads");
 		await using var reader = await cmd.ExecuteReaderAsync();
@@ -120,7 +120,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 	}
 
 	public async Task<Data.Download> HydrateWithData(Data.Download download) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 
 		await using var cmd = conn.Command("SELECT blob FROM downloads WHERE normalized_url = :url");
 		cmd.AddAndSet(":url", SqliteType.Text, download.NormalizedUrl);
@@ -136,7 +136,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 	}
 
 	public async Task<DownloadedAttachment?> GetDownloadedAttachment(string normalizedUrl) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 
 		await using var cmd = conn.Command(
 			"""
@@ -162,7 +162,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 	}
 
 	public async Task<int> EnqueueDownloadItems(AttachmentFilter? filter, CancellationToken cancellationToken) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 
 		await using var cmd = conn.Command(
 			$"""
@@ -181,7 +181,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 	public async IAsyncEnumerable<DownloadItem> PullEnqueuedDownloadItems(int count, [EnumeratorCancellation] CancellationToken cancellationToken) {
 		var found = new List<DownloadItem>();
 
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 
 		await using (var cmd = conn.Command("SELECT normalized_url, download_url, size FROM downloads WHERE status = :enqueued LIMIT :limit")) {
 			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
@@ -215,7 +215,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 	}
 
 	public async Task RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode) {
-		using (var conn = pool.Take()) {
+		await using (var conn = await pool.Take()) {
 			await conn.ExecuteAsync(
 				$"""
 				 -- noinspection SqlWithoutWhere

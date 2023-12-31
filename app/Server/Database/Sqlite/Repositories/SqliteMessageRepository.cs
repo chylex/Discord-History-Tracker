@@ -36,7 +36,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 
 		bool addedAttachments = false;
 
-		using (var conn = pool.Take()) {
+		await using (var conn = await pool.Take()) {
 			await using var tx = await conn.BeginTransactionAsync();
 
 			await using var messageCmd = conn.Upsert("messages", [
@@ -170,7 +170,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 	}
 	
 	public async Task<long> Count(MessageFilter? filter, CancellationToken cancellationToken) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM messages" + filter.GenerateWhereClause(), static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
@@ -205,7 +205,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 	}
 
 	public async IAsyncEnumerable<Message> Get(MessageFilter? filter) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 
 		const string AttachmentSql =
 			"""
@@ -281,7 +281,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 	}
 
 	public async IAsyncEnumerable<ulong> GetIds(MessageFilter? filter) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 		
 		await using var cmd = conn.Command("SELECT message_id FROM messages" + filter.GenerateWhereClause());
 		await using var reader = await cmd.ExecuteReaderAsync();
@@ -292,7 +292,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 	}
 
 	public async Task Remove(MessageFilter filter, FilterRemovalMode mode) {
-		using (var conn = pool.Take()) {
+		await using (var conn = await pool.Take()) {
 			await conn.ExecuteAsync(
 				$"""
 				 -- noinspection SqlWithoutWhere

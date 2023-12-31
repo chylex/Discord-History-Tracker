@@ -23,5 +23,7 @@ sealed class DummyDatabaseFile : IDatabaseFile {
 		return Task.CompletedTask;
 	}
 
-	public void Dispose() {}
+	public ValueTask DisposeAsync() {
+		return ValueTask.CompletedTask;
+	}
 }

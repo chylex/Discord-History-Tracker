@@ -22,7 +22,7 @@ sealed class SqliteAttachmentRepository : BaseSqliteRepository, IAttachmentRepos
 	}
 
 	public async Task<long> Count(AttachmentFilter? filter, CancellationToken cancellationToken) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 		return await conn.ExecuteReaderAsync("SELECT COUNT(DISTINCT normalized_url) FROM attachments a" + filter.GenerateWhereClause("a"), static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 }

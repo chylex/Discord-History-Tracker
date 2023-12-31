@@ -3,6 +3,6 @@ using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Utils;
 
-interface ISqliteConnection : IDisposable {
+interface ISqliteConnection : IAsyncDisposable {
 	SqliteConnection InnerConnection { get; }
 }

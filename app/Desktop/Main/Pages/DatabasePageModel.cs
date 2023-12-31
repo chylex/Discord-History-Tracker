@@ -92,7 +92,7 @@ sealed class DatabasePageModel {
 				await target.AddFrom(db);
 				return true;
 			} finally {
-				db.Dispose();
+				await db.DisposeAsync();
 			}
 		});
 	}

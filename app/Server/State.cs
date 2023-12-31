@@ -22,6 +22,6 @@ public sealed class State : IAsyncDisposable {
 	public async ValueTask DisposeAsync() {
 		await Downloader.Stop();
 		await Server.Stop();
-		Db.Dispose();
+		await Db.DisposeAsync();
 	}
 }

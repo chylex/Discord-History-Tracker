@@ -16,7 +16,7 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 	}
 	
 	public async Task Add(IReadOnlyList<User> users) {
-		using (var conn = pool.Take()) {
+		await using (var conn = await pool.Take()) {
 			await using var tx = await conn.BeginTransactionAsync();
 			
 			await using var cmd = conn.Upsert("users", [
@@ -41,12 +41,12 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 	}
 
 	public override async Task<long> Count(CancellationToken cancellationToken) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM users", static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
 	public async IAsyncEnumerable<User> Get() {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 		
 		await using var cmd = conn.Command("SELECT id, name, avatar_url, discriminator FROM users");
 		await using var reader = await cmd.ExecuteReaderAsync();

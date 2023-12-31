@@ -1,100 +1,77 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using DHT.Utils.Logging;
+using System.Threading.Tasks;
+using DHT.Utils.Collections;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Utils;
 
-sealed class SqliteConnectionPool : IDisposable {
+sealed class SqliteConnectionPool : IAsyncDisposable {
+	public static async Task<SqliteConnectionPool> Create(SqliteConnectionStringBuilder connectionStringBuilder, int poolSize) {
+		var pool = new SqliteConnectionPool(poolSize);
+		await pool.InitializePooledConnections(connectionStringBuilder);
+		return pool;
+	}
+
 	private static string GetConnectionString(SqliteConnectionStringBuilder connectionStringBuilder) {
 		connectionStringBuilder.Pooling = false;
 		return connectionStringBuilder.ToString();
 	}
 
-	private readonly object monitor = new ();
-	private readonly Random rand = new ();
-	private volatile bool isDisposed;
+	private readonly int poolSize;
+	private readonly List<PooledConnection> all;
+	private readonly ConcurrentPool<PooledConnection> free;
 
-	private readonly BlockingCollection<PooledConnection> free = new (new ConcurrentStack<PooledConnection>());
-	private readonly List<PooledConnection> used;
+	private readonly CancellationTokenSource disposalTokenSource = new ();
+	private readonly CancellationToken disposalToken;
 
-	public SqliteConnectionPool(SqliteConnectionStringBuilder connectionStringBuilder, int poolSize) {
+	private SqliteConnectionPool(int poolSize) {
+		this.poolSize = poolSize;
+		this.all = new List<PooledConnection>(poolSize);
+		this.free = new ConcurrentPool<PooledConnection>(poolSize);
+		this.disposalToken = disposalTokenSource.Token;
+	}
+
+	private async Task InitializePooledConnections(SqliteConnectionStringBuilder connectionStringBuilder) {
 		var connectionString = GetConnectionString(connectionStringBuilder);
 
 		for (int i = 0; i < poolSize; i++) {
 			var conn = new SqliteConnection(connectionString);
 			conn.Open();
 
-			var pooledConn = new PooledConnection(this, conn);
+			var pooledConnection = new PooledConnection(this, conn);
 
-			using (var cmd = pooledConn.Command("PRAGMA journal_mode=WAL")) {
-				cmd.ExecuteNonQuery();
+			await using (var cmd = pooledConnection.Command("PRAGMA journal_mode=WAL")) {
+				await cmd.ExecuteNonQueryAsync(disposalToken);
 			}
 
-			free.Add(pooledConn);
-		}
-
-		used = new List<PooledConnection>(poolSize);
-	}
-
-	private void ThrowIfDisposed() {
-		ObjectDisposedException.ThrowIf(isDisposed, nameof(SqliteConnectionPool));
-	}
-
-	public ISqliteConnection Take() {
-		while (true) {
-			ThrowIfDisposed();
-
-			lock (monitor) {
-				if (free.TryTake(out var conn)) {
-					used.Add(conn);
-					return conn;
-				}
-				else {
-					Log.ForType<SqliteConnectionPool>().Warn("Thread " + Environment.CurrentManagedThreadId + " is starving for connections.");
-				}
-			}
-
-			Thread.Sleep(TimeSpan.FromMilliseconds(rand.Next(100, 200)));
+			all.Add(pooledConnection);
+			await free.Push(pooledConnection, disposalToken);
 		}
 	}
 
-	private void Return(PooledConnection conn) {
-		ThrowIfDisposed();
-
-		lock (monitor) {
-			if (used.Remove(conn)) {
-				free.Add(conn);
-			}
-		}
+	public async Task<ISqliteConnection> Take() {
+		return await free.Pop(disposalToken);
 	}
 
-	public void Dispose() {
-		if (isDisposed) {
+	private async Task Return(PooledConnection conn) {
+		await free.Push(conn, disposalToken);
+	}
+
+	public async ValueTask DisposeAsync() {
+		if (disposalToken.IsCancellationRequested) {
 			return;
 		}
 
-		isDisposed = true;
-
-		lock (monitor) {
-			while (free.TryTake(out var conn)) {
-				Close(conn.InnerConnection);
-			}
-
-			foreach (var conn in used) {
-				Close(conn.InnerConnection);
-			}
-
-			free.Dispose();
-			used.Clear();
+		await disposalTokenSource.CancelAsync();
+		
+		foreach (var conn in all) {
+			await conn.InnerConnection.CloseAsync();
+			await conn.InnerConnection.DisposeAsync();
 		}
-	}
-
-	private static void Close(SqliteConnection conn) {
-		conn.Close();
-		conn.Dispose();
+		
+		disposalTokenSource.Dispose();
 	}
 
 	private sealed class PooledConnection : ISqliteConnection {
@@ -107,8 +84,8 @@ sealed class SqliteConnectionPool : IDisposable {
 			this.InnerConnection = conn;
 		}
 
-		void IDisposable.Dispose() {
-			pool.Return(this);
+		public async ValueTask DisposeAsync() {
+			await pool.Return(this);
 		}
 	}
 }

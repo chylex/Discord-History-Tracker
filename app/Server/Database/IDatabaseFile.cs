@@ -4,7 +4,7 @@ using DHT.Server.Database.Repositories;
 
 namespace DHT.Server.Database;
 
-public interface IDatabaseFile : IDisposable {
+public interface IDatabaseFile : IAsyncDisposable {
 	string Path { get; }
 
 	IUserRepository Users { get; }

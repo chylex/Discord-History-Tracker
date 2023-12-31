@@ -16,7 +16,7 @@ sealed class SqliteChannelRepository : BaseSqliteRepository, IChannelRepository 
 	}
 
 	public async Task Add(IReadOnlyList<Channel> channels) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 
 		await using (var tx = await conn.BeginTransactionAsync()) {
 			await using var cmd = conn.Upsert("channels", [
@@ -47,12 +47,12 @@ sealed class SqliteChannelRepository : BaseSqliteRepository, IChannelRepository 
 	}
 
 	public override async Task<long> Count(CancellationToken cancellationToken) {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM channels", static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
 	public async IAsyncEnumerable<Channel> Get() {
-		using var conn = pool.Take();
+		await using var conn = await pool.Take();
 
 		await using var cmd = conn.Command("SELECT id, server, name, parent_id, position, topic, nsfw FROM channels");
 		await using var reader = await cmd.ExecuteReaderAsync();
