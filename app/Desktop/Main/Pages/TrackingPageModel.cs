@@ -78,7 +78,7 @@ sealed partial class TrackingPageModel : ObservableObject {
 	}
 
 	private async Task InitializeDevToolsToggle() {
-		bool? devToolsEnabled = await DiscordAppSettings.AreDevToolsEnabled();
+		bool? devToolsEnabled = await Task.Run(DiscordAppSettings.AreDevToolsEnabled);
 
 		if (devToolsEnabled.HasValue) {
 			AreDevToolsEnabled = devToolsEnabled.Value;
