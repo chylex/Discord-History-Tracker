@@ -59,7 +59,7 @@ class CheckBoxDialogModel : ObservableObject {
 }
 
 sealed class CheckBoxDialogModel<T> : CheckBoxDialogModel {
-	public new IReadOnlyList<CheckBoxItem<T>> Items { get; }
+	private new IReadOnlyList<CheckBoxItem<T>> Items { get; }
 
 	public IEnumerable<CheckBoxItem<T>> SelectedItems => Items.Where(static item => item.IsChecked);
 

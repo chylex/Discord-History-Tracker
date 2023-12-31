@@ -19,13 +19,13 @@ sealed class BytesValueConverter : IValueConverter {
 		}
 	}
 
-	private static readonly Unit[] Units = {
-		new ("B", decimalPlaces: 0),
-		new ("kB", decimalPlaces: 0),
-		new ("MB", decimalPlaces: 1),
-		new ("GB", decimalPlaces: 1),
-		new ("TB", decimalPlaces: 1)
-	};
+	private static readonly Unit[] Units = [
+		new Unit("B", decimalPlaces: 0),
+		new Unit("kB", decimalPlaces: 0),
+		new Unit("MB", decimalPlaces: 1),
+		new Unit("GB", decimalPlaces: 1),
+		new Unit("TB", decimalPlaces: 1)
+	];
 
 	private const int Scale = 1000;
 

@@ -128,7 +128,7 @@ namespace DHT.Desktop.Main.Pages {
 			return options[(int) Math.Floor(options.Length * rand.NextDouble() * rand.NextDouble())];
 		}
 
-		private static readonly string[] RandomWords = {
+		private static readonly string[] RandomWords = [
 			"apple", "apricot", "artichoke", "arugula", "asparagus", "avocado",
 			"banana", "bean", "beechnut", "beet", "blackberry", "blackcurrant", "blueberry", "boysenberry", "bramble", "broccoli",
 			"cabbage", "cacao", "cantaloupe", "caper", "carambola", "carrot", "cauliflower", "celery", "chard", "cherry", "chokeberry", "citron", "clementine", "coconut", "corn", "crabapple", "cranberry", "cucumber", "currant",
@@ -151,8 +151,8 @@ namespace DHT.Desktop.Main.Pages {
 			"vanilla",
 			"watercress", "watermelon",
 			"yam",
-			"zucchini",
-		};
+			"zucchini"
+		];
 
 		private static string RandomText(Random rand, int maxWords) {
 			int wordCount = 1 + (int) Math.Floor(maxWords * Math.Pow(rand.NextDouble(), 3));

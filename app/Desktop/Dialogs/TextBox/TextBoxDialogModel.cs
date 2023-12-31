@@ -36,7 +36,7 @@ class TextBoxDialogModel : ObservableObject {
 }
 
 sealed class TextBoxDialogModel<T> : TextBoxDialogModel {
-	public new IReadOnlyList<TextBoxItem<T>> Items { get; }
+	private new IReadOnlyList<TextBoxItem<T>> Items { get; }
 
 	public IEnumerable<TextBoxItem<T>> ValidItems => Items.Where(static item => item.IsValid);
 

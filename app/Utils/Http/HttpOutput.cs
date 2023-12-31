@@ -13,42 +13,20 @@ public static class HttpOutput {
 		}
 	}
 
-	public sealed class Text : IHttpOutput {
-		private readonly string text;
-
-		public Text(string text) {
-			this.text = text;
-		}
-
+	public sealed class Text(string text) : IHttpOutput {
 		public Task WriteTo(HttpResponse response) {
 			return response.WriteAsync(text, Encoding.UTF8);
 		}
 	}
 
-	public sealed class File : IHttpOutput {
-		private readonly string? contentType;
-		private readonly byte[] bytes;
-
-		public File(string? contentType, byte[] bytes) {
-			this.contentType = contentType;
-			this.bytes = bytes;
-		}
-
+	public sealed class File(string? contentType, byte[] bytes) : IHttpOutput {
 		public async Task WriteTo(HttpResponse response) {
 			response.ContentType = contentType ?? string.Empty;
 			await response.Body.WriteAsync(bytes);
 		}
 	}
 
-	public sealed class Redirect : IHttpOutput {
-		private readonly string url;
-		private readonly bool permanent;
-
-		public Redirect(string url, bool permanent) {
-			this.url = url;
-			this.permanent = permanent;
-		}
-
+	public sealed class Redirect(string url, bool permanent) : IHttpOutput {
 		public Task WriteTo(HttpResponse response) {
 			response.Redirect(url, permanent);
 			return Task.CompletedTask;

@@ -4,7 +4,7 @@ using System.Collections.Frozen;
 namespace DHT.Server.Download;
 
 static class DiscordCdn {
-	private static FrozenSet<string> CdnHosts { get; } = new [] {
+	private static FrozenSet<string> CdnHosts { get; } = new[] {
 		"cdn.discordapp.com",
 		"cdn.discord.com",
 	}.ToFrozenSet();

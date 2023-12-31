@@ -6,13 +6,7 @@ using System.Threading.Tasks;
 
 namespace DHT.Utils.Resources;
 
-public sealed class ResourceLoader {
-	private readonly Assembly assembly;
-
-	public ResourceLoader(Assembly assembly) {
-		this.assembly = assembly;
-	}
-
+public sealed class ResourceLoader(Assembly assembly) {
 	private Stream GetEmbeddedStream(string filename) {
 		Stream? stream = null;
 		foreach (var embeddedName in assembly.GetManifestResourceNames()) {
@@ -35,7 +29,7 @@ public sealed class ResourceLoader {
 	}
 
 	public async Task<string> ReadJoinedAsync(string path, char separator) {
-		StringBuilder joined = new();
+		StringBuilder joined = new ();
 
 		foreach (var embeddedName in assembly.GetManifestResourceNames()) {
 			if (embeddedName.Replace('\\', '/').StartsWith(path)) {

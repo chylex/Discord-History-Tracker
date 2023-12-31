@@ -1,29 +1,30 @@
 using System;
+using System.Collections.Generic;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop;
 
 sealed class Arguments {
 	private static readonly Log Log = Log.ForType<Arguments>();
-	
+
 	private const int FirstArgument = 1;
 
-	public static Arguments Empty => new(Array.Empty<string>());
+	public static Arguments Empty => new (Array.Empty<string>());
 
 	public bool Console { get; }
 	public string? DatabaseFile { get; }
 	public ushort? ServerPort { get; }
 	public string? ServerToken { get; }
 
-	public Arguments(string[] args) {
-		for (int i = FirstArgument; i < args.Length; i++) {
+	public Arguments(IReadOnlyList<string> args) {
+		for (int i = FirstArgument; i < args.Count; i++) {
 			string key = args[i];
 
 			switch (key) {
 				case "-debug":
 					Log.IsDebugEnabled = true;
 					continue;
-				
+
 				case "-console":
 					Console = true;
 					continue;
@@ -35,7 +36,7 @@ sealed class Arguments {
 				value = key;
 				key = "-db";
 			}
-			else if (i >= args.Length - 1) {
+			else if (i >= args.Count - 1) {
 				Log.Warn("Missing value for command line argument: " + key);
 				continue;
 			}

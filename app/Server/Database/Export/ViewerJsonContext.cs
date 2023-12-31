@@ -3,9 +3,9 @@ using System.Text.Json.Serialization;
 namespace DHT.Server.Database.Export;
 
 [JsonSourceGenerationOptions(
-	Converters = new [] { typeof(SnowflakeJsonSerializer) },
+	Converters = [typeof(SnowflakeJsonSerializer)],
 	PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
 	GenerationMode = JsonSourceGenerationMode.Default
 )]
 [JsonSerializable(typeof(ViewerJson))]
-sealed partial class ViewerJsonContext : JsonSerializerContext {}
+sealed partial class ViewerJsonContext : JsonSerializerContext;

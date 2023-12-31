@@ -58,7 +58,7 @@ static class SqliteExtensions {
 
 	public static SqliteCommand Delete(this ISqliteConnection conn, string tableName, (string Name, SqliteType Type) column) {
 		var cmd = conn.Command("DELETE FROM " + tableName + " WHERE " + column.Name + " = :" + column.Name);
-		CreateParameters(cmd, new[] { column });
+		CreateParameters(cmd, [column]);
 		return cmd;
 	}
 

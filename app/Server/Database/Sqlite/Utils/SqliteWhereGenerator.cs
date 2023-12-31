@@ -5,7 +5,7 @@ namespace DHT.Server.Database.Sqlite.Utils;
 sealed class SqliteWhereGenerator {
 	private readonly string? tableAlias;
 	private readonly bool invert;
-	private readonly List<string> conditions = new ();
+	private readonly List<string> conditions = [];
 
 	public SqliteWhereGenerator(string? tableAlias, bool invert) {
 		this.tableAlias = tableAlias;

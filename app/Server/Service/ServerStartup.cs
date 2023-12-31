@@ -11,12 +11,12 @@ using Microsoft.Extensions.Hosting;
 namespace DHT.Server.Service;
 
 sealed class Startup {
-	private static readonly string[] AllowedOrigins = {
+	private static readonly string[] AllowedOrigins = [
 		"https://discord.com",
 		"https://ptb.discord.com",
 		"https://canary.discord.com",
-		"https://discordapp.com",
-	};
+		"https://discordapp.com"
+	];
 
 	public void ConfigureServices(IServiceCollection services) {
 		services.Configure<JsonOptions>(static options => {
