@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database.Repositories;
@@ -7,28 +8,17 @@ using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
-sealed class SqliteUserRepository : IUserRepository {
+sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 	private readonly SqliteConnectionPool pool;
-	private readonly DatabaseStatistics statistics;
 	
-	public SqliteUserRepository(SqliteConnectionPool pool, DatabaseStatistics statistics) {
+	public SqliteUserRepository(SqliteConnectionPool pool) {
 		this.pool = pool;
-		this.statistics = statistics;
-	}
-
-	internal async Task Initialize() {
-		using var conn = pool.Take();
-		await UpdateUserStatistics(conn);
 	}
 	
-	private async Task UpdateUserStatistics(ISqliteConnection conn) {
-		statistics.TotalUsers = await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM users", static reader => reader?.GetInt64(0) ?? 0L);
-	}
-
 	public async Task Add(IReadOnlyList<User> users) {
-		using var conn = pool.Take();
-
-		await using (var tx = await conn.BeginTransactionAsync()) {
+		using (var conn = pool.Take()) {
+			await using var tx = await conn.BeginTransactionAsync();
+			
 			await using var cmd = conn.Upsert("users", [
 				("id", SqliteType.Integer),
 				("name", SqliteType.Text),
@@ -46,8 +36,13 @@ sealed class SqliteUserRepository : IUserRepository {
 
 			await tx.CommitAsync();
 		}
-		
-		await UpdateUserStatistics(conn);
+
+		UpdateTotalCount();
+	}
+
+	public override async Task<long> Count(CancellationToken cancellationToken) {
+		using var conn = pool.Take();
+		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM users", static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
 	public async IAsyncEnumerable<User> Get() {

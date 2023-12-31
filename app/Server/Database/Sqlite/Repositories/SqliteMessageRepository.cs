@@ -7,20 +7,17 @@ using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Utils;
-using DHT.Utils.Tasks;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
-sealed class SqliteMessageRepository : IMessageRepository {
+sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository {
 	private readonly SqliteConnectionPool pool;
-	private readonly AsyncValueComputer<long>.Single totalMessagesComputer;
-	private readonly AsyncValueComputer<long>.Single totalAttachmentsComputer;
+	private readonly SqliteAttachmentRepository attachments;
 
-	public SqliteMessageRepository(SqliteConnectionPool pool, AsyncValueComputer<long>.Single totalMessagesComputer, AsyncValueComputer<long>.Single totalAttachmentsComputer) {
+	public SqliteMessageRepository(SqliteConnectionPool pool, SqliteAttachmentRepository attachments) {
 		this.pool = pool;
-		this.totalMessagesComputer = totalMessagesComputer;
-		this.totalAttachmentsComputer = totalAttachmentsComputer;
+		this.attachments = attachments;
 	}
 
 	public async Task Add(IReadOnlyList<Message> messages) {
@@ -161,13 +158,17 @@ sealed class SqliteMessageRepository : IMessageRepository {
 			await tx.CommitAsync();
 		}
 
-		totalMessagesComputer.Recompute();
+		UpdateTotalCount();
 
 		if (addedAttachments) {
-			totalAttachmentsComputer.Recompute();
+			attachments.UpdateTotalCount();
 		}
 	}
 
+	public override Task<long> Count(CancellationToken cancellationToken) {
+		return Count(filter: null, cancellationToken);
+	}
+	
 	public async Task<long> Count(MessageFilter? filter, CancellationToken cancellationToken) {
 		using var conn = pool.Take();
 		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM messages" + filter.GenerateWhereClause(), static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
@@ -301,6 +302,6 @@ sealed class SqliteMessageRepository : IMessageRepository {
 			);
 		}
 
-		totalMessagesComputer.Recompute();
+		UpdateTotalCount();
 	}
 }

@@ -11,10 +11,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="999.0.0-build.0.g0d941a6a62" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    <PackageReference Include="System.Reactive" Version="6.0.0" />
   </ItemGroup>
   
   <ItemGroup>

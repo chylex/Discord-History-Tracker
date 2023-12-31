@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database.Repositories;
@@ -7,22 +8,11 @@ using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
-sealed class SqliteServerRepository : IServerRepository {
+sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
 	private readonly SqliteConnectionPool pool;
-	private readonly DatabaseStatistics statistics;
 
-	public SqliteServerRepository(SqliteConnectionPool pool, DatabaseStatistics statistics) {
+	public SqliteServerRepository(SqliteConnectionPool pool) {
 		this.pool = pool;
-		this.statistics = statistics;
-	}
-
-	internal async Task Initialize() {
-		using var conn = pool.Take();
-		await UpdateServerStatistics(conn);
-	}
-
-	private async Task UpdateServerStatistics(ISqliteConnection conn) {
-		statistics.TotalServers = await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM servers", static reader => reader?.GetInt64(0) ?? 0L);
 	}
 
 	public async Task Add(IReadOnlyList<Data.Server> servers) {
@@ -45,7 +35,12 @@ sealed class SqliteServerRepository : IServerRepository {
 			await tx.CommitAsync();
 		}
 
-		await UpdateServerStatistics(conn);
+		UpdateTotalCount();
+	}
+
+	public override async Task<long> Count(CancellationToken cancellationToken) {
+		using var conn = pool.Take();
+		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM servers", static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
 	public async IAsyncEnumerable<Data.Server> Get() {

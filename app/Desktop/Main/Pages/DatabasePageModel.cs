@@ -80,7 +80,7 @@ sealed class DatabasePageModel {
 
 	private static async Task MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
 		var schemaUpgradeCallbacks = new SchemaUpgradeCallbacks(dialog, paths.Length);
-		
+
 		await PerformImport(target, paths, dialog, callback, "Database Merge", "Database Error", "database file", async path => {
 			IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, dialog, schemaUpgradeCallbacks);
 
@@ -101,7 +101,7 @@ sealed class DatabasePageModel {
 		private readonly ProgressDialog dialog;
 		private readonly int total;
 		private bool? decision;
-		
+
 		public SchemaUpgradeCallbacks(ProgressDialog dialog, int total) {
 			this.total = total;
 			this.dialog = dialog;
@@ -149,7 +149,7 @@ sealed class DatabasePageModel {
 
 		await PerformImport(target, paths, dialog, callback, "Legacy Archive Import", "Legacy Archive Error", "archive file", async path => {
 			await using var jsonStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-				
+
 			return await LegacyArchiveImport.Read(jsonStream, target, fakeSnowflake, async servers => {
 				SynchronizationContext? prevSyncContext = SynchronizationContext.Current;
 				SynchronizationContext.SetSynchronizationContext(new AvaloniaSynchronizationContext());
@@ -164,7 +164,7 @@ sealed class DatabasePageModel {
 		static bool IsValidSnowflake(string value) {
 			return string.IsNullOrEmpty(value) || ulong.TryParse(value, out _);
 		}
-			
+
 		var items = new List<TextBoxItem<DHT.Server.Data.Server>>();
 
 		foreach (var server in servers.OrderBy(static server => server.Type).ThenBy(static server => server.Name)) {
@@ -193,7 +193,7 @@ sealed class DatabasePageModel {
 
 	private static async Task PerformImport(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback, string neutralDialogTitle, string errorDialogTitle, string itemName, Func<string, Task<bool>> performImport) {
 		int total = paths.Length;
-		var oldStatistics = await target.SnapshotStatistics();
+		var oldStatistics = await DatabaseStatistics.Take(target);
 
 		int successful = 0;
 		int finished = 0;
@@ -224,15 +224,26 @@ sealed class DatabasePageModel {
 			return;
 		}
 
-		var newStatistics = await target.SnapshotStatistics();
+		var newStatistics = await DatabaseStatistics.Take(target);
 		await Dialog.ShowOk(dialog, neutralDialogTitle, GetImportDialogMessage(oldStatistics, newStatistics, successful, total, itemName));
 	}
 
-	private static string GetImportDialogMessage(DatabaseStatisticsSnapshot oldStatistics, DatabaseStatisticsSnapshot newStatistics, int successfulItems, int totalItems, string itemName) {
-		long newServers = newStatistics.TotalServers - oldStatistics.TotalServers;
-		long newChannels = newStatistics.TotalChannels - oldStatistics.TotalChannels;
-		long newUsers = newStatistics.TotalUsers - oldStatistics.TotalUsers;
-		long newMessages = newStatistics.TotalMessages - oldStatistics.TotalMessages;
+	private sealed record DatabaseStatistics(long ServerCount, long ChannelCount, long UserCount, long MessageCount) {
+		public static async Task<DatabaseStatistics> Take(IDatabaseFile db) {
+			return new DatabaseStatistics(
+				await db.Servers.Count(),
+				await db.Channels.Count(),
+				await db.Users.Count(),
+				await db.Messages.Count()
+			);
+		}
+	}
+
+	private static string GetImportDialogMessage(DatabaseStatistics oldStatistics, DatabaseStatistics newStatistics, int successfulItems, int totalItems, string itemName) {
+		long newServers = newStatistics.ServerCount - oldStatistics.ServerCount;
+		long newChannels = newStatistics.ChannelCount - oldStatistics.ChannelCount;
+		long newUsers = newStatistics.UserCount - oldStatistics.UserCount;
+		long newMessages = newStatistics.MessageCount - oldStatistics.MessageCount;
 
 		StringBuilder message = new StringBuilder();
 		message.Append("Processed ");

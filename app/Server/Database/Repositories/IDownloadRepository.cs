@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
@@ -10,7 +12,7 @@ using DHT.Server.Download;
 namespace DHT.Server.Database.Repositories;
 
 public interface IDownloadRepository {
-	Task<long> CountAttachments(AttachmentFilter? filter = null, CancellationToken cancellationToken = default);
+	IObservable<long> TotalCount { get; }
 
 	Task AddDownload(Data.Download download);
 
@@ -29,9 +31,7 @@ public interface IDownloadRepository {
 	Task RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode);
 
 	internal sealed class Dummy : IDownloadRepository {
-		public Task<long> CountAttachments(AttachmentFilter? filter, CancellationToken cancellationToken) {
-			return Task.FromResult(0L);
-		}
+		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
 
 		public Task AddDownload(Data.Download download) {
 			return Task.CompletedTask;

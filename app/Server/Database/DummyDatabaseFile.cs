@@ -9,19 +9,15 @@ sealed class DummyDatabaseFile : IDatabaseFile {
 	public static DummyDatabaseFile Instance { get; } = new ();
 
 	public string Path => "";
-	public DatabaseStatistics Statistics { get; } = new ();
 	
 	public IUserRepository Users { get; } = new IUserRepository.Dummy();
 	public IServerRepository Servers { get; } = new IServerRepository.Dummy();
 	public IChannelRepository Channels { get; } = new IChannelRepository.Dummy();
 	public IMessageRepository Messages { get; } = new IMessageRepository.Dummy();
+	public IAttachmentRepository Attachments { get; } = new IAttachmentRepository.Dummy();
 	public IDownloadRepository Downloads { get; } = new IDownloadRepository.Dummy();
 	
 	private DummyDatabaseFile() {}
-
-	public Task<DatabaseStatisticsSnapshot> SnapshotStatistics() {
-		return Task.FromResult(new DatabaseStatisticsSnapshot());
-	}
 
 	public Task Vacuum() {
 		return Task.CompletedTask;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database.Repositories;
@@ -7,22 +8,11 @@ using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
-sealed class SqliteChannelRepository : IChannelRepository {
+sealed class SqliteChannelRepository : BaseSqliteRepository, IChannelRepository {
 	private readonly SqliteConnectionPool pool;
-	private readonly DatabaseStatistics statistics;
 
-	public SqliteChannelRepository(SqliteConnectionPool pool, DatabaseStatistics statistics) {
+	public SqliteChannelRepository(SqliteConnectionPool pool) {
 		this.pool = pool;
-		this.statistics = statistics;
-	}
-
-	internal async Task Initialize() {
-		using var conn = pool.Take();
-		await UpdateChannelStatistics(conn);
-	}
-
-	private async Task UpdateChannelStatistics(ISqliteConnection conn) {
-		statistics.TotalChannels = await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM channels", static reader => reader?.GetInt64(0) ?? 0L);
 	}
 
 	public async Task Add(IReadOnlyList<Channel> channels) {
@@ -53,7 +43,12 @@ sealed class SqliteChannelRepository : IChannelRepository {
 			await tx.CommitAsync();
 		}
 
-		await UpdateChannelStatistics(conn);
+		UpdateTotalCount();
+	}
+
+	public override async Task<long> Count(CancellationToken cancellationToken) {
+		using var conn = pool.Take();
+		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM channels", static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
 	public async IAsyncEnumerable<Channel> Get() {

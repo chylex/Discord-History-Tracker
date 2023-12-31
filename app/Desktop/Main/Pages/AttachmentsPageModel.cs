@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.ReactiveUI;
@@ -11,7 +10,6 @@ using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
-using DHT.Server.Database;
 using DHT.Utils.Logging;
 using DHT.Utils.Tasks;
 
@@ -39,12 +37,12 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 	[ObservableProperty(Setter = Access.Private)]
 	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
 	private bool hasFailedDownloads;
-	
+
 	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && hasFailedDownloads;
 
 	[ObservableProperty(Setter = Access.Private)]
 	private string downloadMessage = "";
-	
+
 	public double DownloadProgress => totalItemsToDownloadCount is null or 0 ? 0.0 : 100.0 * doneItemsCount / totalItemsToDownloadCount.Value;
 
 	public AttachmentFilterPanelModel FilterModel { get; }
@@ -67,6 +65,9 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 	private readonly ThrottledTask<int> enqueueDownloadItemsTask;
 	private readonly ThrottledTask<DownloadStatusStatistics> downloadStatisticsTask;
 
+	private readonly IDisposable attachmentCountSubscription;
+	private readonly IDisposable downloadCountSubscription;
+
 	private IDisposable? finishedItemsSubscription;
 	private int doneItemsCount;
 	private int totalEnqueuedItemCount;
@@ -81,31 +82,35 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 
 		enqueueDownloadItemsTask = new ThrottledTask<int>(OnItemsEnqueued, TaskScheduler.FromCurrentSynchronizationContext());
 		downloadStatisticsTask = new ThrottledTask<DownloadStatusStatistics>(UpdateStatistics, TaskScheduler.FromCurrentSynchronizationContext());
+		
+		attachmentCountSubscription = state.Db.Attachments.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnAttachmentCountChanged);
+		downloadCountSubscription = state.Db.Downloads.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnDownloadCountChanged);
+		
 		RecomputeDownloadStatistics();
-
-		state.Db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 	}
 
 	public void Dispose() {
-		state.Db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
+		attachmentCountSubscription.Dispose();
+		downloadCountSubscription.Dispose();
+		finishedItemsSubscription?.Dispose();
+		
 		enqueueDownloadItemsTask.Dispose();
 		downloadStatisticsTask.Dispose();
-		finishedItemsSubscription?.Dispose();
+		
 		FilterModel.Dispose();
 	}
 
-	private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
-		if (e.PropertyName == nameof(DatabaseStatistics.TotalAttachments)) {
-			if (IsDownloading) {
-				EnqueueDownloadItemsLater();
-			}
-			else {
-				RecomputeDownloadStatistics();
-			}
+	private void OnAttachmentCountChanged(long newAttachmentCount) {
+		if (IsDownloading) {
+			EnqueueDownloadItemsLater();
 		}
-		else if (e.PropertyName == nameof(DatabaseStatistics.TotalDownloads)) {
+		else {
 			RecomputeDownloadStatistics();
 		}
+	}
+
+	private void OnDownloadCountChanged(long newDownloadCount) {
+		RecomputeDownloadStatistics();
 	}
 
 	private async Task EnqueueDownloadItems() {
@@ -169,7 +174,6 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 	private void OnItemsFinished(int finishedItemCount) {
 		doneItemsCount += finishedItemCount;
 		UpdateDownloadMessage();
-		RecomputeDownloadStatistics();
 	}
 
 	public async Task OnClickRetryFailedDownloads() {

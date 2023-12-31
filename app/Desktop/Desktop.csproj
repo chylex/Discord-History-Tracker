@@ -23,6 +23,7 @@
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.6" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.6" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.6" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="999.0.0-build.0.g0d941a6a62" />
   </ItemGroup>
   
   <ItemGroup>

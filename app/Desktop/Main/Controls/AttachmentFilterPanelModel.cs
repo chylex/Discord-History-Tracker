@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.ReactiveUI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Server;
 using DHT.Server.Data.Filters;
-using DHT.Server.Database;
 using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Controls;
@@ -44,6 +45,8 @@ sealed partial class AttachmentFilterPanelModel : ObservableObject, IDisposable 
 
 	private readonly RestartableTask<long> matchingAttachmentCountTask;
 	private long? matchingAttachmentCount;
+	
+	private readonly IDisposable attachmentCountSubscription;
 	private long? totalAttachmentCount;
 
 	[Obsolete("Designer")]
@@ -54,15 +57,15 @@ sealed partial class AttachmentFilterPanelModel : ObservableObject, IDisposable 
 		this.verb = verb;
 
 		this.matchingAttachmentCountTask = new RestartableTask<long>(SetAttachmentCounts, TaskScheduler.FromCurrentSynchronizationContext());
+		this.attachmentCountSubscription = state.Db.Attachments.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnAttachmentCountChanged);
 
 		UpdateFilterStatistics();
 
 		PropertyChanged += OnPropertyChanged;
-		state.Db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 	}
 
 	public void Dispose() {
-		state.Db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
+		attachmentCountSubscription.Dispose();
 	}
 
 	private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
@@ -70,13 +73,12 @@ sealed partial class AttachmentFilterPanelModel : ObservableObject, IDisposable 
 			UpdateFilterStatistics();
 		}
 	}
-
-	private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
-		if (e.PropertyName == nameof(DatabaseStatistics.TotalAttachments)) {
-			totalAttachmentCount = state.Db.Statistics.TotalAttachments;
-			UpdateFilterStatistics();
-		}
+	
+	private void OnAttachmentCountChanged(long newAttachmentCount) {
+		totalAttachmentCount = newAttachmentCount;
+		UpdateFilterStatistics();
 	}
+	
 
 	private void UpdateFilterStatistics() {
 		var filter = CreateFilter();
@@ -88,7 +90,7 @@ sealed partial class AttachmentFilterPanelModel : ObservableObject, IDisposable 
 		else {
 			matchingAttachmentCount = null;
 			UpdateFilterStatisticsText();
-			matchingAttachmentCountTask.Restart(cancellationToken => state.Db.Downloads.CountAttachments(filter, cancellationToken));
+			matchingAttachmentCountTask.Restart(cancellationToken => state.Db.Attachments.Count(filter, cancellationToken));
 		}
 	}
 

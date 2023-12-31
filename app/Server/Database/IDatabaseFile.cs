@@ -6,13 +6,12 @@ namespace DHT.Server.Database;
 
 public interface IDatabaseFile : IDisposable {
 	string Path { get; }
-	DatabaseStatistics Statistics { get; }
-	Task<DatabaseStatisticsSnapshot> SnapshotStatistics();
 
 	IUserRepository Users { get; }
 	IServerRepository Servers { get; }
 	IChannelRepository Channels { get; }
 	IMessageRepository Messages { get; }
+	IAttachmentRepository Attachments { get; }
 	IDownloadRepository Downloads { get; }
 
 	Task Vacuum();

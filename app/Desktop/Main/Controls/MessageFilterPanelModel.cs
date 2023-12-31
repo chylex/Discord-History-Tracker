@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.ReactiveUI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.CheckBox;
@@ -13,7 +15,6 @@ using DHT.Desktop.Dialogs.Progress;
 using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
-using DHT.Server.Database;
 using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Controls;
@@ -68,7 +69,15 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 
 	private readonly RestartableTask<long> exportedMessageCountTask;
 	private long? exportedMessageCount;
+	
+	private readonly IDisposable messageCountSubscription;
 	private long? totalMessageCount;
+	
+	private readonly IDisposable channelCountSubscription;
+	private long? totalChannelCount;
+	
+	private readonly IDisposable userCountSubscription;
+	private long? totalUserCount;
 
 	[Obsolete("Designer")]
 	public MessageFilterPanelModel() : this(null!, State.Dummy) {}
@@ -79,18 +88,24 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 		this.verb = verb;
 
 		this.exportedMessageCountTask = new RestartableTask<long>(SetExportedMessageCount, TaskScheduler.FromCurrentSynchronizationContext());
+		
+		this.messageCountSubscription = state.Db.Messages.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnMessageCountChanged);
+		this.channelCountSubscription = state.Db.Channels.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnChannelCountChanged);
+		this.userCountSubscription = state.Db.Users.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnUserCountChanged);
 
 		UpdateFilterStatistics();
 		UpdateChannelFilterLabel();
 		UpdateUserFilterLabel();
-
+		
 		PropertyChanged += OnPropertyChanged;
-		state.Db.Statistics.PropertyChanged += OnDbStatisticsChanged;
 	}
 
 	public void Dispose() {
 		exportedMessageCountTask.Cancel();
-		state.Db.Statistics.PropertyChanged -= OnDbStatisticsChanged;
+		
+		messageCountSubscription.Dispose();
+		channelCountSubscription.Dispose();
+		userCountSubscription.Dispose();
 	}
 
 	private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
@@ -107,29 +122,41 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 		}
 	}
 
-	private void OnDbStatisticsChanged(object? sender, PropertyChangedEventArgs e) {
-		if (e.PropertyName == nameof(DatabaseStatistics.TotalMessages)) {
-			totalMessageCount = state.Db.Statistics.TotalMessages;
-			UpdateFilterStatistics();
-		}
-		else if (e.PropertyName == nameof(DatabaseStatistics.TotalChannels)) {
-			UpdateChannelFilterLabel();
-		}
-		else if (e.PropertyName == nameof(DatabaseStatistics.TotalUsers)) {
-			UpdateUserFilterLabel();
-		}
+	private void OnMessageCountChanged(long newMessageCount) {
+		totalMessageCount = newMessageCount;
+		UpdateFilterStatistics();
+	}
+
+	private void OnChannelCountChanged(long newChannelCount) {
+		totalChannelCount = newChannelCount;
+		UpdateChannelFilterLabel();
+	}
+	
+	private void OnUserCountChanged(long newUserCount) {
+		totalUserCount = newUserCount;
+		UpdateUserFilterLabel();
 	}
 
 	private void UpdateChannelFilterLabel() {
-		long total = state.Db.Statistics.TotalChannels;
-		long included = FilterByChannel && IncludedChannels != null ? IncludedChannels.Count : total;
-		ChannelFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("channel") + ".";
+		if (totalChannelCount.HasValue) {
+			long total = totalChannelCount.Value;
+			long included = FilterByChannel && IncludedChannels != null ? IncludedChannels.Count : total;
+			ChannelFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("channel") + ".";
+		}
+		else {
+			ChannelFilterLabel = "Loading...";
+		}
 	}
 
 	private void UpdateUserFilterLabel() {
-		long total = state.Db.Statistics.TotalUsers;
-		long included = FilterByUser && IncludedUsers != null ? IncludedUsers.Count : total;
-		UserFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("user") + ".";
+		if (totalUserCount.HasValue) {
+			long total = totalUserCount.Value;
+			long included = FilterByUser && IncludedUsers != null ? IncludedUsers.Count : total;
+			UserFilterLabel = "Selected " + included.Format() + " / " + total.Pluralize("user") + ".";
+		}
+		else {
+			UserFilterLabel = "Loading...";
+		}
 	}
 
 	private void UpdateFilterStatistics() {

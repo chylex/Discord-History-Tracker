@@ -9,23 +9,15 @@ using DHT.Server.Data.Filters;
 using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Utils;
 using DHT.Server.Download;
-using DHT.Utils.Tasks;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
-sealed class SqliteDownloadRepository : IDownloadRepository {
+sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepository {
 	private readonly SqliteConnectionPool pool;
-	private readonly AsyncValueComputer<long>.Single totalDownloadsComputer;
 
-	public SqliteDownloadRepository(SqliteConnectionPool pool, AsyncValueComputer<long>.Single totalDownloadsComputer) {
+	public SqliteDownloadRepository(SqliteConnectionPool pool) {
 		this.pool = pool;
-		this.totalDownloadsComputer = totalDownloadsComputer;
-	}
-
-	public async Task<long> CountAttachments(AttachmentFilter? filter, CancellationToken cancellationToken) {
-		using var conn = pool.Take();
-		return await conn.ExecuteReaderAsync("SELECT COUNT(DISTINCT normalized_url) FROM attachments a" + filter.GenerateWhereClause("a"), static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
 	public async Task AddDownload(Data.Download download) {
@@ -46,7 +38,12 @@ sealed class SqliteDownloadRepository : IDownloadRepository {
 			await cmd.ExecuteNonQueryAsync();
 		}
 
-		totalDownloadsComputer.Recompute();
+		UpdateTotalCount();
+	}
+
+	public override async Task<long> Count(CancellationToken cancellationToken) {
+		using var conn = pool.Take();
+		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM downloads", static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
 	public async Task<DownloadStatusStatistics> GetStatistics(CancellationToken cancellationToken) {
@@ -81,7 +78,7 @@ sealed class SqliteDownloadRepository : IDownloadRepository {
 				FROM downloads
 				"""
 			);
-			
+
 			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
 			cmd.AddAndSet(":downloading", SqliteType.Integer, (int) DownloadStatus.Downloading);
 			cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
@@ -228,6 +225,6 @@ sealed class SqliteDownloadRepository : IDownloadRepository {
 			);
 		}
 
-		totalDownloadsComputer.Recompute();
+		UpdateTotalCount();
 	}
 }
