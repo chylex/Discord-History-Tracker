@@ -22,20 +22,21 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        <Style Selector="Button">
-            <Setter Property="Margin" Value="5 0" />
+        <Style Selector="Grid#ButtonPanel > Button">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>
     </UserControl.Styles>
 
     <Panel Name="RootPanel">
-        <StackPanel Margin="42">
-            <TextBlock Text="{Binding Version, StringFormat=Discord History Tracker v{0}}" FontSize="25" Margin="0 0 0 30" HorizontalAlignment="Center" />
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Command="{Binding OpenOrCreateDatabase}" IsEnabled="{Binding IsOpenOrCreateDatabaseButtonEnabled}">Open or Create Database</Button>
-                <Button Command="{Binding ShowAboutDialog}">About</Button>
-                <Button Command="{Binding Exit}">Exit</Button>
-            </StackPanel>
+        <StackPanel Margin="42 30">
+            <TextBlock Text="{Binding Version, StringFormat=Discord History Tracker v{0}}" FontSize="25" Margin="0 0 0 25" HorizontalAlignment="Center" />
+            
+            <Grid Name="ButtonPanel" RowDefinitions="Auto,12,Auto,12,Auto" ColumnDefinitions="*,12,*" Margin="12 0" HorizontalAlignment="Stretch">
+                <Button Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Command="{Binding OpenOrCreateDatabase}" IsEnabled="{Binding IsOpenOrCreateDatabaseButtonEnabled}">Open or Create Database</Button>
+                <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Command="{Binding CheckUpdates}">Check For Updates</Button>
+                <Button Grid.Row="4" Grid.Column="0" Command="{Binding ShowAboutDialog}">About</Button>
+                <Button Grid.Row="4" Grid.Column="2" Command="{Binding Exit}">Exit</Button>
+            </Grid>
         </StackPanel>
     </Panel>
 </UserControl>

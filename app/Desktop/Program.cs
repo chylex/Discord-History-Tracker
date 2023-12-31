@@ -9,17 +9,18 @@ namespace DHT.Desktop;
 
 static class Program {
 	public static string Version { get; }
+	public static Version AssemblyVersion { get; }
 	public static CultureInfo Culture { get; }
 	public static ResourceLoader Resources { get; }
 	public static Arguments Arguments { get; }
 
+	public const string Website = "https://dht.chylex.com";
+	
 	static Program() {
 		var assembly = Assembly.GetExecutingAssembly();
 
-		Version = assembly.GetName().Version?.ToString() ?? "";
-		while (Version.EndsWith(".0")) {
-			Version = Version[..^2];
-		}
+		AssemblyVersion = assembly.GetName().Version ?? new Version(0, 0, 0, 0);
+		Version = VersionToString(AssemblyVersion);
 
 		Culture = CultureInfo.CurrentCulture;
 		CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
@@ -29,6 +30,16 @@ static class Program {
 
 		Resources = new ResourceLoader(assembly);
 		Arguments = new Arguments(Environment.GetCommandLineArgs());
+	}
+	
+	public static string VersionToString(Version version) {
+		string versionStr = version.ToString();
+		
+		while (versionStr.EndsWith(".0")) {
+			versionStr = versionStr[..^2];
+		}
+		
+		return versionStr;
 	}
 
 	public static void Main(string[] args) {

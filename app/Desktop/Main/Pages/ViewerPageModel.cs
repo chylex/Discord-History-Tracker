@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
@@ -52,10 +51,7 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 			string serverUrl = "http://127.0.0.1:" + ServerConfiguration.Port;
 			string serverToken = ServerConfiguration.Token;
 			string sessionId = state.ViewerSessions.Register(new ViewerSession(FilterModel.CreateFilter())).ToString();
-			
-			Process.Start(new ProcessStartInfo(serverUrl + "/viewer/?token=" + HttpUtility.UrlEncode(serverToken) + "&session=" + HttpUtility.UrlEncode(sessionId)) {
-				UseShellExecute = true
-			});
+			SystemUtils.OpenUrl(serverUrl + "/viewer/?token=" + HttpUtility.UrlEncode(serverToken) + "&session=" + HttpUtility.UrlEncode(sessionId));
 		} catch (Exception e) {
 			await Dialog.ShowOk(window, "Open Viewer", "Could not open viewer: " + e.Message);
 		}
