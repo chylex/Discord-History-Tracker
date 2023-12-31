@@ -8,7 +8,7 @@
         x:DataType="main:MainWindowModel"
         Title="{Binding Title}"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
-        Width="800" Height="500"
+        Width="820" Height="520"
         MinWidth="520" MinHeight="300"
         WindowStartupLocation="CenterScreen"
         Closing="OnClosing">
