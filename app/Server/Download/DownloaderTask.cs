@@ -29,7 +29,7 @@ sealed class DownloaderTask : IAsyncDisposable {
 	private readonly CancellationToken cancellationToken;
 
 	private readonly IDatabaseFile db;
-	private readonly Subject<DownloadItem> finishedItemPublisher = new ();
+	private readonly ISubject<DownloadItem> finishedItemPublisher = Subject.Synchronize(new Subject<DownloadItem>());
 
 	private readonly Task queueWriterTask;
 	private readonly Task[] downloadTasks;
