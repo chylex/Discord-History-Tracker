@@ -9,7 +9,7 @@ using DHT.Desktop.Dialogs.Message;
 using DHT.Server.Database;
 using DHT.Server.Database.Exceptions;
 using DHT.Server.Database.Sqlite;
-using DHT.Server.Database.Sqlite.Utils;
+using DHT.Server.Database.Sqlite.Schema;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Common;

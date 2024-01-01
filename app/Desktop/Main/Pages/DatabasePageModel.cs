@@ -18,7 +18,7 @@ using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Database;
 using DHT.Server.Database.Import;
-using DHT.Server.Database.Sqlite.Utils;
+using DHT.Server.Database.Sqlite.Schema;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Main.Pages;

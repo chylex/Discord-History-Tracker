@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Repositories;
+using DHT.Server.Database.Sqlite.Schema;
 using DHT.Server.Database.Sqlite.Utils;
 using Microsoft.Data.Sqlite;
 
@@ -21,7 +22,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 
 		try {
 			await using var conn = await pool.Take();
-			wasOpened = await new Schema(conn).Setup(schemaUpgradeCallbacks);
+			wasOpened = await new SqliteSchema(conn).Setup(schemaUpgradeCallbacks);
 		} catch (Exception) {
 			await pool.DisposeAsync();
 			throw;

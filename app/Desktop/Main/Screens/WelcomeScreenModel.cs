@@ -8,7 +8,7 @@ using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
 using DHT.Server.Database;
-using DHT.Server.Database.Sqlite.Utils;
+using DHT.Server.Database.Sqlite.Schema;
 
 namespace DHT.Desktop.Main.Screens;
 
