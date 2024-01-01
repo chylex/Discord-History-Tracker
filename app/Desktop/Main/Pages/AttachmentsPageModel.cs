@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.ReactiveUI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
+using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Controls;
 using DHT.Server;
 using DHT.Server.Data;
@@ -39,7 +41,7 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
 	private bool hasFailedDownloads;
 
-	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && hasFailedDownloads;
+	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && HasFailedDownloads;
 
 	[ObservableProperty(Setter = Access.Private)]
 	private string downloadMessage = "";
@@ -57,6 +59,7 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 
 	public bool IsDownloading => state.Downloader.IsDownloading;
 
+	private readonly Window window;
 	private readonly State state;
 	private readonly ThrottledTask<int> enqueueDownloadItemsTask;
 	private readonly ThrottledTask<DownloadStatusStatistics> downloadStatisticsTask;
@@ -69,9 +72,10 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 	private int totalEnqueuedItemCount;
 	private int? totalItemsToDownloadCount;
 
-	public AttachmentsPageModel() : this(State.Dummy) {}
+	public AttachmentsPageModel() : this(null!, State.Dummy) {}
 
-	public AttachmentsPageModel(State state) {
+	public AttachmentsPageModel(Window window, State state) {
+		this.window = window;
 		this.state = state;
 
 		FilterModel = new AttachmentFilterPanelModel(state);
@@ -117,7 +121,12 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 	}
 
 	private async Task EnqueueDownloadItems() {
-		OnItemsEnqueued(await state.Db.Downloads.EnqueueDownloadItems(CreateAttachmentFilter()));
+		try {
+			OnItemsEnqueued(await state.Db.Downloads.EnqueueDownloadItems(CreateAttachmentFilter()));
+		} catch (Exception e) {
+			Log.Error(e);
+			await Dialog.ShowOk(window, "Download Error", "Failed to enqueue items for download.");
+		}
 	}
 
 	private void EnqueueDownloadItemsLater() {
@@ -220,7 +229,7 @@ sealed partial class AttachmentsPageModel : ObservableObject, IDisposable {
 		statisticsSkipped.Items = statusStatistics.SkippedCount;
 		statisticsSkipped.Size = statusStatistics.SkippedSize;
 
-		hasFailedDownloads = statusStatistics.FailedCount > 0;
+		HasFailedDownloads = statusStatistics.FailedCount > 0;
 
 		UpdateDownloadMessage();
 	}

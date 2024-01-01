@@ -52,7 +52,7 @@ sealed class MainContentScreenModel : IDisposable {
 		TrackingPageModel = new TrackingPageModel(window);
 		TrackingPage = new TrackingPage { DataContext = TrackingPageModel };
 
-		AttachmentsPageModel = new AttachmentsPageModel(state);
+		AttachmentsPageModel = new AttachmentsPageModel(window, state);
 		AttachmentsPage = new AttachmentsPage { DataContext = AttachmentsPageModel };
 
 		ViewerPageModel = new ViewerPageModel(window, state);
