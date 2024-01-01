@@ -51,7 +51,7 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 		await using var cmd = conn.Command("SELECT id, name, avatar_url, discriminator FROM users");
 		await using var reader = await cmd.ExecuteReaderAsync();
 
-		while (reader.Read()) {
+		while (await reader.ReadAsync()) {
 			yield return new User {
 				Id = reader.GetUint64(0),
 				Name = reader.GetString(1),

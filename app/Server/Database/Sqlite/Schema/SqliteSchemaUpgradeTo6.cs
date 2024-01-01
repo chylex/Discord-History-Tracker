@@ -32,7 +32,7 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 		await using (var selectCmd = conn.Command("SELECT attachment_id, url FROM attachments")) {
 			await using var reader = await selectCmd.ExecuteReaderAsync();
 
-			while (reader.Read()) {
+			while (await reader.ReadAsync()) {
 				var attachmentId = reader.GetInt64(0);
 				var originalUrl = reader.GetString(1);
 				normalizedUrls[attachmentId] = DiscordCdn.NormalizeUrl(originalUrl);
@@ -55,7 +55,7 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 
 				updateCmd.Set(":attachment_id", attachmentId);
 				updateCmd.Set(":normalized_url", normalizedUrl);
-				updateCmd.ExecuteNonQuery();
+				await updateCmd.ExecuteNonQueryAsync();
 			}
 		}
 
@@ -73,7 +73,7 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 		await using (var selectCmd = conn.Command("SELECT url FROM downloads ORDER BY CASE WHEN status = 200 THEN 0 ELSE 1 END")) {
 			await using var reader = await selectCmd.ExecuteReaderAsync();
 
-			while (reader.Read()) {
+			while (await reader.ReadAsync()) {
 				var originalUrl = reader.GetString(0);
 				var normalizedUrl = DiscordCdn.NormalizeUrl(originalUrl);
 
@@ -93,7 +93,7 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 			await using (var deleteCmd = conn.Delete("downloads", ("url", SqliteType.Text))) {
 				foreach (var duplicateUrl in duplicateUrlsToDelete) {
 					deleteCmd.Set(":url", duplicateUrl);
-					deleteCmd.ExecuteNonQuery();
+					await deleteCmd.ExecuteNonQueryAsync();
 				}
 			}
 
@@ -124,7 +124,7 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 
 				updateCmd.Set(":normalized_url", normalizedUrl);
 				updateCmd.Set(":download_url", downloadUrl);
-				updateCmd.ExecuteNonQuery();
+				await updateCmd.ExecuteNonQueryAsync();
 			}
 		}
 

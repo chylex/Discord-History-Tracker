@@ -57,7 +57,7 @@ sealed class SqliteChannelRepository : BaseSqliteRepository, IChannelRepository 
 		await using var cmd = conn.Command("SELECT id, server, name, parent_id, position, topic, nsfw FROM channels");
 		await using var reader = await cmd.ExecuteReaderAsync();
 
-		while (reader.Read()) {
+		while (await reader.ReadAsync()) {
 			yield return new Channel {
 				Id = reader.GetUint64(0),
 				Server = reader.GetUint64(1),

@@ -49,7 +49,7 @@ sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
 		await using var cmd = conn.Command("SELECT id, name, type FROM servers");
 		await using var reader = await cmd.ExecuteReaderAsync();
 
-		while (reader.Read()) {
+		while (await reader.ReadAsync()) {
 			yield return new Data.Server {
 				Id = reader.GetUint64(0),
 				Name = reader.GetString(1),

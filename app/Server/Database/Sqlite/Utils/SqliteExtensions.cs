@@ -28,7 +28,7 @@ static class SqliteExtensions {
 		await using var cmd = conn.Command(sql);
 		await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
-		return reader.Read() ? readFunction(reader) : readFunction(null);
+		return await reader.ReadAsync(cancellationToken) ? readFunction(reader) : readFunction(null);
 	}
 
 	public static SqliteCommand Insert(this ISqliteConnection conn, string tableName, (string Name, SqliteType Type)[] columns) {

@@ -59,7 +59,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
-			if (reader.Read()) {
+			if (await reader.ReadAsync(cancellationToken)) {
 				result.SkippedCount = reader.GetInt32(0);
 				result.SkippedSize = reader.GetUint64(1);
 			}
@@ -85,7 +85,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
-			if (reader.Read()) {
+			if (await reader.ReadAsync(cancellationToken)) {
 				result.EnqueuedCount = reader.GetInt32(0);
 				result.EnqueuedSize = reader.GetUint64(1);
 				result.SuccessfulCount = reader.GetInt32(2);
@@ -109,7 +109,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 		await using var cmd = conn.Command("SELECT normalized_url, download_url, status, size FROM downloads");
 		await using var reader = await cmd.ExecuteReaderAsync();
 
-		while (reader.Read()) {
+		while (await reader.ReadAsync()) {
 			string normalizedUrl = reader.GetString(0);
 			string downloadUrl = reader.GetString(1);
 			var status = (DownloadStatus) reader.GetInt32(2);
@@ -127,7 +127,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 
 		await using var reader = await cmd.ExecuteReaderAsync();
 
-		if (reader.Read() && !reader.IsDBNull(0)) {
+		if (await reader.ReadAsync() && !reader.IsDBNull(0)) {
 			return download.WithData((byte[]) reader["blob"]);
 		}
 		else {
@@ -151,7 +151,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 
 		await using var reader = await cmd.ExecuteReaderAsync();
 
-		if (!reader.Read()) {
+		if (!await reader.ReadAsync()) {
 			return null;
 		}
 
@@ -189,7 +189,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
-			while (reader.Read()) {
+			while (await reader.ReadAsync(cancellationToken)) {
 				found.Add(new DownloadItem {
 					NormalizedUrl = reader.GetString(0),
 					DownloadUrl = reader.GetString(1),
