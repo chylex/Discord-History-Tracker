@@ -29,7 +29,7 @@ sealed class BytesValueConverter : IValueConverter {
 
 	private const int Scale = 1000;
 
-	private static string Convert(ulong size) {
+	public static string Convert(ulong size) {
 		int power = size == 0L ? 0 : (int) Math.Log(size, Scale);
 		int unit = power >= Units.Length ? Units.Length - 1 : power;
 		return Units[unit].Format(unit == 0 ? size : size / Math.Pow(Scale, unit));

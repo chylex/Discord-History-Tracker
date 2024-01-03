@@ -74,7 +74,7 @@
     <DockPanel>
         <Border Classes="statusBar" DockPanel.Dock="Bottom">
             <DockPanel>
-                <TextBlock Classes="invisibleTabItem" DockPanel.Dock="Left">Attachments</TextBlock>
+                <TextBlock Classes="invisibleTabItem" DockPanel.Dock="Left">Downloads</TextBlock>
                 <controls:StatusBar DataContext="{Binding StatusBarModel}" DockPanel.Dock="Right" />
             </DockPanel>
         </Border>
@@ -94,9 +94,9 @@
                     <ContentPresenter Content="{Binding TrackingPage}" Classes="page" />
                 </ScrollViewer>
             </TabItem>
-            <TabItem x:Name="TabAttachments" Header="Attachments" Grid.Row="2">
+            <TabItem x:Name="TabDownloads" Header="Downloads" Grid.Row="2">
                 <ScrollViewer>
-                    <ContentPresenter Content="{Binding AttachmentsPage}" Classes="page" />
+                    <ContentPresenter Content="{Binding DownloadsPage}" Classes="page" />
                 </ScrollViewer>
             </TabItem>
             <TabItem x:Name="TabViewer" Header="Viewer" Grid.Row="3">

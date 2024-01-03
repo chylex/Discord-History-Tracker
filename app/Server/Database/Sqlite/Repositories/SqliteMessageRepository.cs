@@ -7,17 +7,21 @@ using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Utils;
+using DHT.Server.Download;
+using DHT.Utils.Logging;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
 sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository {
+	private static readonly Log Log = Log.ForType<SqliteMessageRepository>();
+	
 	private readonly SqliteConnectionPool pool;
-	private readonly SqliteAttachmentRepository attachments;
+	private readonly SqliteDownloadRepository downloads;
 
-	public SqliteMessageRepository(SqliteConnectionPool pool, SqliteAttachmentRepository attachments) {
+	public SqliteMessageRepository(SqliteConnectionPool pool, SqliteDownloadRepository downloads) : base(Log) {
 		this.pool = pool;
-		this.attachments = attachments;
+		this.downloads = downloads;
 	}
 
 	public async Task Add(IReadOnlyList<Message> messages) {
@@ -33,8 +37,6 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 			cmd.Set(":message_id", id);
 			await cmd.ExecuteNonQueryAsync();
 		}
-
-		bool addedAttachments = false;
 
 		await using (var conn = await pool.Take()) {
 			await using var tx = await conn.BeginTransactionAsync();
@@ -88,6 +90,8 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 				("emoji_flags", SqliteType.Integer),
 				("count", SqliteType.Integer)
 			]);
+			
+			await using var downloadCollector = new SqliteDownloadRepository.NewDownloadCollector(downloads, conn);
 
 			foreach (var message in messages) {
 				object messageId = message.Id;
@@ -119,8 +123,6 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 				}
 
 				if (!message.Attachments.IsEmpty) {
-					addedAttachments = true;
-
 					foreach (var attachment in message.Attachments) {
 						attachmentCmd.Set(":message_id", messageId);
 						attachmentCmd.Set(":attachment_id", attachment.Id);
@@ -132,6 +134,8 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 						attachmentCmd.Set(":width", attachment.Width);
 						attachmentCmd.Set(":height", attachment.Height);
 						await attachmentCmd.ExecuteNonQueryAsync();
+						
+						await downloadCollector.Add(DownloadLinkExtractor.FromAttachment(attachment));
 					}
 				}
 
@@ -140,6 +144,10 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 						embedCmd.Set(":message_id", messageId);
 						embedCmd.Set(":json", embed.Json);
 						await embedCmd.ExecuteNonQueryAsync();
+
+						if (DownloadLinkExtractor.TryFromEmbedJson(embed.Json) is {} download) {
+							await downloadCollector.Add(download);
+						}
 					}
 				}
 
@@ -151,18 +159,19 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 						reactionCmd.Set(":emoji_flags", (int) reaction.EmojiFlags);
 						reactionCmd.Set(":count", reaction.Count);
 						await reactionCmd.ExecuteNonQueryAsync();
+
+						if (reaction.EmojiId is {} emojiId) {
+							await downloadCollector.Add(DownloadLinkExtractor.FromEmoji(emojiId, reaction.EmojiFlags));
+						}
 					}
 				}
 			}
 
 			await tx.CommitAsync();
+			downloadCollector.OnCommitted();
 		}
 
 		UpdateTotalCount();
-
-		if (addedAttachments) {
-			attachments.UpdateTotalCount();
-		}
 	}
 
 	public override Task<long> Count(CancellationToken cancellationToken) {
@@ -171,7 +180,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 	
 	public async Task<long> Count(MessageFilter? filter, CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
-		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM messages" + filter.GenerateWhereClause(), static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
+		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM messages" + filter.GenerateConditions().BuildWhereClause(), static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
 	private sealed class MesageToManyCommand<T> : IAsyncDisposable {
@@ -256,7 +265,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 			 FROM messages m
 			 LEFT JOIN edit_timestamps et ON m.message_id = et.message_id
 			 LEFT JOIN replied_to rt ON m.message_id = rt.message_id
-			 {filter.GenerateWhereClause("m")}
+			 {filter.GenerateConditions("m").BuildWhereClause()}
 			 """
 		);
 
@@ -283,7 +292,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 	public async IAsyncEnumerable<ulong> GetIds(MessageFilter? filter) {
 		await using var conn = await pool.Take();
 		
-		await using var cmd = conn.Command("SELECT message_id FROM messages" + filter.GenerateWhereClause());
+		await using var cmd = conn.Command("SELECT message_id FROM messages" + filter.GenerateConditions().BuildWhereClause());
 		await using var reader = await cmd.ExecuteReaderAsync();
 
 		while (await reader.ReadAsync()) {
@@ -297,7 +306,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 				$"""
 				 -- noinspection SqlWithoutWhere
 				 DELETE FROM messages
-				 {filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching)}
+				 {filter.GenerateConditions(invert: mode == FilterRemovalMode.KeepMatching).BuildWhereClause()}
 				 """
 			);
 		}

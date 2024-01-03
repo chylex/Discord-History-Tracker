@@ -14,7 +14,6 @@ sealed class DummyDatabaseFile : IDatabaseFile {
 	public IServerRepository Servers { get; } = new IServerRepository.Dummy();
 	public IChannelRepository Channels { get; } = new IChannelRepository.Dummy();
 	public IMessageRepository Messages { get; } = new IMessageRepository.Dummy();
-	public IAttachmentRepository Attachments { get; } = new IAttachmentRepository.Dummy();
 	public IDownloadRepository Downloads { get; } = new IDownloadRepository.Dummy();
 	
 	private DummyDatabaseFile() {}

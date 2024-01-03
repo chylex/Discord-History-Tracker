@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using DHT.Utils.Logging;
 
 namespace DHT.Utils.Tasks;
 
@@ -14,8 +15,11 @@ public abstract class ThrottledTaskBase<T> : IDisposable {
 	});
 	
 	private readonly CancellationTokenSource cancellationTokenSource = new ();
+	private readonly Log log;
 	
-	internal ThrottledTaskBase() {}
+	internal ThrottledTaskBase(Log log) {
+		this.log = log;
+	}
 
 	protected async Task ReaderTask() {
 		var cancellationToken = cancellationTokenSource.Token;
@@ -26,8 +30,8 @@ public abstract class ThrottledTaskBase<T> : IDisposable {
 					await Run(item, cancellationToken);
 				} catch (OperationCanceledException) {
 					throw;
-				} catch (Exception) {
-					// Ignore.
+				} catch (Exception e) {
+					log.Error("Caught exception in task: " + e);
 				}
 			}
 		} catch (OperationCanceledException) {
@@ -53,7 +57,7 @@ public sealed class ThrottledTask : ThrottledTaskBase<Task> {
 	private readonly Action resultProcessor;
 	private readonly TaskScheduler resultScheduler;
 
-	public ThrottledTask(Action resultProcessor, TaskScheduler resultScheduler) {
+	public ThrottledTask(Log log, Action resultProcessor, TaskScheduler resultScheduler) : base(log) {
 		this.resultProcessor = resultProcessor;
 		this.resultScheduler = resultScheduler;
 
@@ -70,7 +74,7 @@ public sealed class ThrottledTask<T> : ThrottledTaskBase<Task<T>> {
 	private readonly Action<T> resultProcessor;
 	private readonly TaskScheduler resultScheduler;
 
-	public ThrottledTask(Action<T> resultProcessor, TaskScheduler resultScheduler) {
+	public ThrottledTask(Log log, Action<T> resultProcessor, TaskScheduler resultScheduler) : base(log) {
 		this.resultProcessor = resultProcessor;
 		this.resultScheduler = resultScheduler;
 

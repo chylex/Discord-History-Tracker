@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 
 namespace DHT.Server.Download;
@@ -16,10 +17,10 @@ public sealed class Downloader {
 		this.db = db;
 	}
 
-	public async Task<IObservable<DownloadItem>> Start() {
+	public async Task<IObservable<DownloadItem>> Start(DownloadItemFilter filter) {
 		await semaphore.WaitAsync();
 		try {
-			current ??= new DownloaderTask(db);
+			current ??= new DownloaderTask(db, filter);
 			return current.FinishedItems;
 		} finally {
 			semaphore.Release();

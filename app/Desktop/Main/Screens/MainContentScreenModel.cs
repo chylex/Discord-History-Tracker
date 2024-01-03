@@ -13,8 +13,8 @@ sealed class MainContentScreenModel : IDisposable {
 	public TrackingPage TrackingPage { get; }
 	private TrackingPageModel TrackingPageModel { get; }
 
-	public AttachmentsPage AttachmentsPage { get; }
-	private AttachmentsPageModel AttachmentsPageModel { get; }
+	public DownloadsPage DownloadsPage { get; }
+	private DownloadsPageModel DownloadsPageModel { get; }
 
 	public ViewerPage ViewerPage { get; }
 	private ViewerPageModel ViewerPageModel { get; }
@@ -52,8 +52,8 @@ sealed class MainContentScreenModel : IDisposable {
 		TrackingPageModel = new TrackingPageModel(window);
 		TrackingPage = new TrackingPage { DataContext = TrackingPageModel };
 
-		AttachmentsPageModel = new AttachmentsPageModel(window, state);
-		AttachmentsPage = new AttachmentsPage { DataContext = AttachmentsPageModel };
+		DownloadsPageModel = new DownloadsPageModel(state);
+		DownloadsPage = new DownloadsPage { DataContext = DownloadsPageModel };
 
 		ViewerPageModel = new ViewerPageModel(window, state);
 		ViewerPage = new ViewerPage { DataContext = ViewerPageModel };
@@ -72,7 +72,7 @@ sealed class MainContentScreenModel : IDisposable {
 	}
 
 	public void Dispose() {
-		AttachmentsPageModel.Dispose();
+		DownloadsPageModel.Dispose();
 		ViewerPageModel.Dispose();
 		AdvancedPageModel.Dispose();
 		StatusBarModel.Dispose();

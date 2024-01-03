@@ -43,7 +43,6 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 	public IServerRepository Servers => servers;
 	public IChannelRepository Channels => channels;
 	public IMessageRepository Messages => messages;
-	public IAttachmentRepository Attachments => attachments;
 	public IDownloadRepository Downloads => downloads;
 	
 	private readonly SqliteConnectionPool pool;
@@ -52,18 +51,17 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 	private readonly SqliteServerRepository servers;
 	private readonly SqliteChannelRepository channels;
 	private readonly SqliteMessageRepository messages;
-	private readonly SqliteAttachmentRepository attachments;
 	private readonly SqliteDownloadRepository downloads;
 	
 	private SqliteDatabaseFile(string path, SqliteConnectionPool pool) {
 		this.Path = path;
 		this.pool = pool;
 
-		users = new SqliteUserRepository(pool);
+		downloads = new SqliteDownloadRepository(pool);
+		users = new SqliteUserRepository(pool, downloads);
 		servers = new SqliteServerRepository(pool);
 		channels = new SqliteChannelRepository(pool);
-		messages = new SqliteMessageRepository(pool, attachments = new SqliteAttachmentRepository(pool));
-		downloads = new SqliteDownloadRepository(pool);
+		messages = new SqliteMessageRepository(pool, downloads);
 	}
 
 	public async ValueTask DisposeAsync() {
@@ -71,7 +69,6 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		servers.Dispose();
 		channels.Dispose();
 		messages.Dispose();
-		attachments.Dispose();
 		downloads.Dispose();
 		await pool.DisposeAsync();
 	}

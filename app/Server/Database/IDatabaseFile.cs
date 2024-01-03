@@ -11,7 +11,6 @@ public interface IDatabaseFile : IAsyncDisposable {
 	IServerRepository Servers { get; }
 	IChannelRepository Channels { get; }
 	IMessageRepository Messages { get; }
-	IAttachmentRepository Attachments { get; }
 	IDownloadRepository Downloads { get; }
 
 	Task Vacuum();

@@ -8,77 +8,53 @@ using DHT.Server.Database.Sqlite.Utils;
 namespace DHT.Server.Database.Sqlite;
 
 static class SqliteFilters {
-	private static string WhereAll(bool invert) {
-		return invert ? "WHERE FALSE" : "";
+	public static SqliteConditionBuilder GenerateConditions(this MessageFilter? filter, string? tableAlias = null, bool invert = false) {
+		var builder = new SqliteConditionBuilder(tableAlias, invert);
+
+		if (filter != null) {
+			if (filter.StartDate != null) {
+				builder.AddCondition("timestamp >= " + new DateTimeOffset(filter.StartDate.Value).ToUnixTimeMilliseconds());
+			}
+
+			if (filter.EndDate != null) {
+				builder.AddCondition("timestamp <= " + new DateTimeOffset(filter.EndDate.Value).ToUnixTimeMilliseconds());
+			}
+
+			if (filter.ChannelIds != null) {
+				builder.AddCondition("channel_id IN (" + string.Join(",", filter.ChannelIds) + ")");
+			}
+
+			if (filter.UserIds != null) {
+				builder.AddCondition("sender_id IN (" + string.Join(",", filter.UserIds) + ")");
+			}
+
+			if (filter.MessageIds != null) {
+				builder.AddCondition("message_id IN (" + string.Join(",", filter.MessageIds) + ")");
+			}
+		}
+
+		return builder;
 	}
 
-	public static string GenerateWhereClause(this MessageFilter? filter, string? tableAlias = null, bool invert = false) {
-		if (filter == null || filter.IsEmpty) {
-			return WhereAll(invert);
+	public static SqliteConditionBuilder GenerateConditions(this DownloadItemFilter? filter, string? tableAlias = null, bool invert = false) {
+		var builder = new SqliteConditionBuilder(tableAlias, invert);
+
+		if (filter != null) {
+			if (filter.IncludeStatuses != null) {
+				builder.AddCondition("status IN (" + filter.IncludeStatuses.In() + ")");
+			}
+
+			if (filter.ExcludeStatuses != null) {
+				builder.AddCondition("status NOT IN (" + filter.ExcludeStatuses.In() + ")");
+			}
+
+			if (filter.MaxBytes != null) {
+				builder.AddCondition("size IS NOT NULL");
+				builder.AddCondition("size <= " + filter.MaxBytes);
+			}
 		}
 
-		var where = new SqliteWhereGenerator(tableAlias, invert);
-
-		if (filter.StartDate != null) {
-			where.AddCondition("timestamp >= " + new DateTimeOffset(filter.StartDate.Value).ToUnixTimeMilliseconds());
-		}
-
-		if (filter.EndDate != null) {
-			where.AddCondition("timestamp <= " + new DateTimeOffset(filter.EndDate.Value).ToUnixTimeMilliseconds());
-		}
-
-		if (filter.ChannelIds != null) {
-			where.AddCondition("channel_id IN (" + string.Join(",", filter.ChannelIds) + ")");
-		}
-
-		if (filter.UserIds != null) {
-			where.AddCondition("sender_id IN (" + string.Join(",", filter.UserIds) + ")");
-		}
-
-		if (filter.MessageIds != null) {
-			where.AddCondition("message_id IN (" + string.Join(",", filter.MessageIds) + ")");
-		}
-
-		return where.Generate();
-	}
-
-	public static string GenerateWhereClause(this AttachmentFilter? filter, string? tableAlias = null, bool invert = false) {
-		if (filter == null || filter.IsEmpty) {
-			return WhereAll(invert);
-		}
-
-		var where = new SqliteWhereGenerator(tableAlias, invert);
-
-		if (filter.MaxBytes != null) {
-			where.AddCondition("size <= " + filter.MaxBytes);
-		}
-
-		if (filter.DownloadItemRule == AttachmentFilter.DownloadItemRules.OnlyNotPresent) {
-			where.AddCondition("normalized_url NOT IN (SELECT normalized_url FROM downloads)");
-		}
-		else if (filter.DownloadItemRule == AttachmentFilter.DownloadItemRules.OnlyPresent) {
-			where.AddCondition("normalized_url IN (SELECT normalized_url FROM downloads)");
-		}
-
-		return where.Generate();
-	}
-
-	public static string GenerateWhereClause(this DownloadItemFilter? filter, string? tableAlias = null, bool invert = false) {
-		if (filter == null || filter.IsEmpty) {
-			return WhereAll(invert);
-		}
-
-		var where = new SqliteWhereGenerator(tableAlias, invert);
-
-		if (filter.IncludeStatuses != null) {
-			where.AddCondition("status IN (" + filter.IncludeStatuses.In() + ")");
-		}
-
-		if (filter.ExcludeStatuses != null) {
-			where.AddCondition("status NOT IN (" + filter.ExcludeStatuses.In() + ")");
-		}
-
-		return where.Generate();
+		return builder;
 	}
 
 	private static string In(this ISet<DownloadStatus> statuses) {

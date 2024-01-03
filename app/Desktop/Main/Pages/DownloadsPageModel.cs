@@ -1,0 +1,186 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using Avalonia.ReactiveUI;
+using CommunityToolkit.Mvvm.ComponentModel;
+using DHT.Desktop.Common;
+using DHT.Desktop.Main.Controls;
+using DHT.Server;
+using DHT.Server.Data.Aggregations;
+using DHT.Server.Data.Filters;
+using DHT.Server.Download;
+using DHT.Utils.Logging;
+using DHT.Utils.Tasks;
+
+namespace DHT.Desktop.Main.Pages;
+
+sealed partial class DownloadsPageModel : ObservableObject, IDisposable {
+	private static readonly Log Log = Log.ForType<DownloadsPageModel>();
+
+	[ObservableProperty(Setter = Access.Private)]
+	private bool isToggleDownloadButtonEnabled = true;
+
+	public string ToggleDownloadButtonText => IsDownloading ? "Stop Downloading" : "Start Downloading";
+
+	[ObservableProperty(Setter = Access.Private)]
+	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
+	private bool isRetryingFailedDownloads = false;
+
+	[ObservableProperty(Setter = Access.Private)]
+	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
+	private bool hasFailedDownloads;
+
+	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && HasFailedDownloads;
+
+	[ObservableProperty(Setter = Access.Private)]
+	private string downloadMessage = "";
+
+	public DownloadItemFilterPanelModel FilterModel { get; }
+
+	private readonly StatisticsRow statisticsPending = new ("Pending");
+	private readonly StatisticsRow statisticsDownloaded = new ("Downloaded");
+	private readonly StatisticsRow statisticsFailed = new ("Failed");
+	private readonly StatisticsRow statisticsSkipped = new ("Skipped");
+
+	public ObservableCollection<StatisticsRow> StatisticsRows { get; }
+
+	public bool IsDownloading => state.Downloader.IsDownloading;
+
+	private readonly State state;
+	private readonly ThrottledTask<DownloadStatusStatistics> downloadStatisticsTask;
+	private readonly IDisposable downloadItemCountSubscription;
+	
+	private IDisposable? finishedItemsSubscription;
+	private DownloadItemFilter? currentDownloadFilter;
+
+	public DownloadsPageModel() : this(State.Dummy) {}
+
+	public DownloadsPageModel(State state) {
+		this.state = state;
+
+		FilterModel = new DownloadItemFilterPanelModel(state);
+		
+		StatisticsRows = [
+			statisticsPending,
+			statisticsDownloaded,
+			statisticsFailed,
+			statisticsSkipped
+		];
+
+		downloadStatisticsTask = new ThrottledTask<DownloadStatusStatistics>(Log, UpdateStatistics, TaskScheduler.FromCurrentSynchronizationContext());
+		downloadItemCountSubscription = state.Db.Downloads.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnDownloadCountChanged);
+
+		RecomputeDownloadStatistics();
+	}
+
+	public void Dispose() {
+		finishedItemsSubscription?.Dispose();
+		
+		downloadItemCountSubscription.Dispose();
+		downloadStatisticsTask.Dispose();
+
+		FilterModel.Dispose();
+	}
+
+	private void OnDownloadCountChanged(long newDownloadCount) {
+		RecomputeDownloadStatistics();
+	}
+
+	public async Task OnClickToggleDownload() {
+		IsToggleDownloadButtonEnabled = false;
+
+		if (IsDownloading) {
+			await state.Downloader.Stop();
+			await state.Db.Downloads.MoveDownloadingItemsBackToQueue();
+
+			finishedItemsSubscription?.Dispose();
+			finishedItemsSubscription = null;
+			
+			currentDownloadFilter = null;
+		}
+		else {
+			await state.Db.Downloads.MoveDownloadingItemsBackToQueue();
+			
+			var finishedItems = await state.Downloader.Start(currentDownloadFilter = FilterModel.CreateFilter());
+			finishedItemsSubscription = finishedItems.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnItemFinished);
+		}
+
+		RecomputeDownloadStatistics();
+
+		OnPropertyChanged(nameof(ToggleDownloadButtonText));
+		OnPropertyChanged(nameof(IsDownloading));
+		IsToggleDownloadButtonEnabled = true;
+	}
+
+	private void OnItemFinished(DownloadItem item) {
+		RecomputeDownloadStatistics();
+	}
+
+	public async Task OnClickRetryFailedDownloads() {
+		IsRetryingFailedDownloads = true;
+
+		try {
+			await state.Db.Downloads.RetryFailed();
+			RecomputeDownloadStatistics();
+		} catch (Exception e) {
+			Log.Error(e);
+		} finally {
+			IsRetryingFailedDownloads = false;
+		}
+	}
+
+	private void RecomputeDownloadStatistics() {
+		downloadStatisticsTask.Post(cancellationToken => state.Db.Downloads.GetStatistics(currentDownloadFilter ?? new DownloadItemFilter(), cancellationToken));
+	}
+
+	private void UpdateStatistics(DownloadStatusStatistics statusStatistics) {
+		statisticsPending.Items = statusStatistics.PendingCount;
+		statisticsPending.Size = statusStatistics.PendingTotalSize;
+		statisticsPending.HasFilesWithUnknownSize = statusStatistics.PendingWithUnknownSizeCount > 0;
+
+		statisticsDownloaded.Items = statusStatistics.SuccessfulCount;
+		statisticsDownloaded.Size = statusStatistics.SuccessfulTotalSize;
+		statisticsDownloaded.HasFilesWithUnknownSize = statusStatistics.SuccessfulWithUnknownSizeCount > 0;
+
+		statisticsFailed.Items = statusStatistics.FailedCount;
+		statisticsFailed.Size = statusStatistics.FailedTotalSize;
+		statisticsFailed.HasFilesWithUnknownSize = statusStatistics.FailedWithUnknownSizeCount > 0;
+		
+		statisticsSkipped.Items = statusStatistics.SkippedCount;
+		statisticsSkipped.Size = statusStatistics.SkippedTotalSize;
+		statisticsSkipped.HasFilesWithUnknownSize = statusStatistics.SkippedWithUnknownSizeCount > 0;
+
+		HasFailedDownloads = statusStatistics.FailedCount > 0;
+	}
+
+	[ObservableObject]
+	public sealed partial class StatisticsRow(string state) {
+		public string State { get; } = state;
+
+		[ObservableProperty]
+		private int items;
+
+		[ObservableProperty]
+		[NotifyPropertyChangedFor(nameof(SizeText))]
+		private ulong? size;
+		
+		[ObservableProperty]
+		[NotifyPropertyChangedFor(nameof(SizeText))]
+		private bool hasFilesWithUnknownSize;
+
+		public string SizeText {
+			get {
+				if (size == null) {
+					return "-";
+				}
+				else if (hasFilesWithUnknownSize) {
+					return "\u2265 " + BytesValueConverter.Convert(size.Value);
+				}
+				else {
+					return BytesValueConverter.Convert(size.Value);
+				}
+			}
+		}
+	}
+}

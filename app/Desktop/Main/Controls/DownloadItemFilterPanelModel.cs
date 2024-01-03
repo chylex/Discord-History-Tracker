@@ -12,7 +12,7 @@ using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed partial class AttachmentFilterPanelModel : ObservableObject, IDisposable {
+sealed partial class DownloadItemFilterPanelModel : ObservableObject, IDisposable {
 	public sealed record Unit(string Name, uint Scale);
 
 	private static readonly Unit[] AllUnits = [
@@ -43,21 +43,21 @@ sealed partial class AttachmentFilterPanelModel : ObservableObject, IDisposable 
 	private readonly State state;
 	private readonly string verb;
 
-	private readonly RestartableTask<long> matchingAttachmentCountTask;
-	private long? matchingAttachmentCount;
+	private readonly RestartableTask<long> downloadItemCountTask;
+	private long? matchingItemCount;
 	
-	private readonly IDisposable attachmentCountSubscription;
-	private long? totalAttachmentCount;
+	private readonly IDisposable downloadItemCountSubscription;
+	private long? totalItemCount;
 
 	[Obsolete("Designer")]
-	public AttachmentFilterPanelModel() : this(State.Dummy) {}
+	public DownloadItemFilterPanelModel() : this(State.Dummy) {}
 
-	public AttachmentFilterPanelModel(State state, string verb = "Matches") {
+	public DownloadItemFilterPanelModel(State state, string verb = "Matches") {
 		this.state = state;
 		this.verb = verb;
 
-		this.matchingAttachmentCountTask = new RestartableTask<long>(SetAttachmentCounts, TaskScheduler.FromCurrentSynchronizationContext());
-		this.attachmentCountSubscription = state.Db.Attachments.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnAttachmentCountChanged);
+		this.downloadItemCountTask = new RestartableTask<long>(SetMatchingCount, TaskScheduler.FromCurrentSynchronizationContext());
+		this.downloadItemCountSubscription = state.Db.Downloads.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnDownloadItemCountChanged);
 
 		UpdateFilterStatistics();
 
@@ -65,7 +65,8 @@ sealed partial class AttachmentFilterPanelModel : ObservableObject, IDisposable 
 	}
 
 	public void Dispose() {
-		attachmentCountSubscription.Dispose();
+		downloadItemCountTask.Cancel();
+		downloadItemCountSubscription.Dispose();
 	}
 
 	private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
@@ -74,8 +75,8 @@ sealed partial class AttachmentFilterPanelModel : ObservableObject, IDisposable 
 		}
 	}
 	
-	private void OnAttachmentCountChanged(long newAttachmentCount) {
-		totalAttachmentCount = newAttachmentCount;
+	private void OnDownloadItemCountChanged(long newItemCount) {
+		totalItemCount = newItemCount;
 		UpdateFilterStatistics();
 	}
 	
@@ -83,32 +84,32 @@ sealed partial class AttachmentFilterPanelModel : ObservableObject, IDisposable 
 	private void UpdateFilterStatistics() {
 		var filter = CreateFilter();
 		if (filter.IsEmpty) {
-			matchingAttachmentCountTask.Cancel();
-			matchingAttachmentCount = totalAttachmentCount;
+			downloadItemCountTask.Cancel();
+			matchingItemCount = totalItemCount;
 			UpdateFilterStatisticsText();
 		}
 		else {
-			matchingAttachmentCount = null;
+			matchingItemCount = null;
 			UpdateFilterStatisticsText();
-			matchingAttachmentCountTask.Restart(cancellationToken => state.Db.Attachments.Count(filter, cancellationToken));
+			downloadItemCountTask.Restart(cancellationToken => state.Db.Downloads.Count(filter, cancellationToken));
 		}
 	}
 
-	private void SetAttachmentCounts(long matchingAttachmentCount) {
-		this.matchingAttachmentCount = matchingAttachmentCount;
+	private void SetMatchingCount(long matchingAttachmentCount) {
+		this.matchingItemCount = matchingAttachmentCount;
 		UpdateFilterStatisticsText();
 	}
 
 	private void UpdateFilterStatisticsText() {
-		var matchingAttachmentCountStr = matchingAttachmentCount?.Format() ?? "(...)";
-		var totalAttachmentCountStr = totalAttachmentCount?.Format() ?? "(...)";
+		var matchingItemCountStr = matchingItemCount?.Format() ?? "(...)";
+		var totalItemCountStr = totalItemCount?.Format() ?? "(...)";
 
-		FilterStatisticsText = verb + " " + matchingAttachmentCountStr + " out of " + totalAttachmentCountStr + " attachment" + (totalAttachmentCount is null or 1 ? "." : "s.");
+		FilterStatisticsText = verb + " " + matchingItemCountStr + " out of " + totalItemCountStr + " file" + (totalItemCount is null or 1 ? "." : "s.");
 		OnPropertyChanged(nameof(FilterStatisticsText));
 	}
 
-	public AttachmentFilter CreateFilter() {
-		AttachmentFilter filter = new ();
+	public DownloadItemFilter CreateFilter() {
+		DownloadItemFilter filter = new ();
 
 		if (LimitSize) {
 			try {

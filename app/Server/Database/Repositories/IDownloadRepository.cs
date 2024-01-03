@@ -14,55 +14,61 @@ namespace DHT.Server.Database.Repositories;
 public interface IDownloadRepository {
 	IObservable<long> TotalCount { get; }
 
-	Task AddDownload(Data.Download download);
+	Task AddDownload(DownloadWithData item);
 
-	Task<DownloadStatusStatistics> GetStatistics(CancellationToken cancellationToken = default);
+	Task<long> Count(DownloadItemFilter filter, CancellationToken cancellationToken = default);
 	
-	IAsyncEnumerable<Data.Download> GetWithoutData();
+	Task<DownloadStatusStatistics> GetStatistics(DownloadItemFilter nonSkippedFilter, CancellationToken cancellationToken = default);
+	
+	IAsyncEnumerable<Data.Download> Get();
 
-	Task<Data.Download> HydrateWithData(Data.Download download);
+	Task<DownloadWithData> HydrateWithData(Data.Download download);
 
-	Task<DownloadedAttachment?> GetDownloadedAttachment(string normalizedUrl);
+	Task<DownloadWithData?> GetSuccessfulDownloadWithData(string normalizedUrl);
 
-	Task<int> EnqueueDownloadItems(AttachmentFilter? filter = null, CancellationToken cancellationToken = default);
-
-	IAsyncEnumerable<DownloadItem> PullEnqueuedDownloadItems(int count, CancellationToken cancellationToken = default);
-
-	Task RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode);
+	IAsyncEnumerable<DownloadItem> PullPendingDownloadItems(int count, DownloadItemFilter filter, CancellationToken cancellationToken = default);
+	
+	Task MoveDownloadingItemsBackToQueue(CancellationToken cancellationToken = default);
+	
+	Task<int> RetryFailed(CancellationToken cancellationToken = default);
 
 	internal sealed class Dummy : IDownloadRepository {
 		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
 
-		public Task AddDownload(Data.Download download) {
+		public Task AddDownload(DownloadWithData item) {
 			return Task.CompletedTask;
 		}
 
-		public Task<DownloadStatusStatistics> GetStatistics(CancellationToken cancellationToken) {
+		public Task<long> Count(DownloadItemFilter filter, CancellationToken cancellationToken) {
+			return Task.FromResult(0L);
+		}
+
+		public Task<DownloadStatusStatistics> GetStatistics(DownloadItemFilter nonSkippedFilter, CancellationToken cancellationToken) {
 			return Task.FromResult(new DownloadStatusStatistics());
 		}
 
-		public IAsyncEnumerable<Data.Download> GetWithoutData() {
+		public IAsyncEnumerable<Data.Download> Get() {
 			return AsyncEnumerable.Empty<Data.Download>();
 		}
 
-		public Task<Data.Download> HydrateWithData(Data.Download download) {
-			return Task.FromResult(download);
+		public Task<DownloadWithData> HydrateWithData(Data.Download download) {
+			return Task.FromResult(new DownloadWithData(download, Data: null));
 		}
 
-		public Task<DownloadedAttachment?> GetDownloadedAttachment(string normalizedUrl) {
-			return Task.FromResult<DownloadedAttachment?>(null);
+		public Task<DownloadWithData?> GetSuccessfulDownloadWithData(string normalizedUrl) {
+			return Task.FromResult<DownloadWithData?>(null);
 		}
 
-		public Task<int> EnqueueDownloadItems(AttachmentFilter? filter, CancellationToken cancellationToken) {
-			return Task.FromResult(0);
-		}
-
-		public IAsyncEnumerable<DownloadItem> PullEnqueuedDownloadItems(int count, CancellationToken cancellationToken) {
+		public IAsyncEnumerable<DownloadItem> PullPendingDownloadItems(int count, DownloadItemFilter filter, CancellationToken cancellationToken) {
 			return AsyncEnumerable.Empty<DownloadItem>();
 		}
 
-		public Task RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode) {
+		public Task MoveDownloadingItemsBackToQueue(CancellationToken cancellationToken) {
 			return Task.CompletedTask;
+		}
+
+		public Task<int> RetryFailed(CancellationToken cancellationToken) {
+			return Task.FromResult(0);
 		}
 	}
 }

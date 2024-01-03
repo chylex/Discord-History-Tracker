@@ -13,7 +13,7 @@ static class SqliteExtensions {
 		return conn.InnerConnection.BeginTransactionAsync();
 	}
 
-	public static SqliteCommand Command(this ISqliteConnection conn, string sql) {
+	public static SqliteCommand Command(this ISqliteConnection conn, [LanguageInjection("sql")] string sql) {
 		var cmd = conn.InnerConnection.CreateCommand();
 		cmd.CommandText = sql;
 		return cmd;

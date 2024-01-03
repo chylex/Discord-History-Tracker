@@ -5,6 +5,7 @@ using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Utils.Logging;
 using DHT.Utils.Tasks;
@@ -29,6 +30,7 @@ sealed class DownloaderTask : IAsyncDisposable {
 	private readonly CancellationToken cancellationToken;
 
 	private readonly IDatabaseFile db;
+	private readonly DownloadItemFilter filter;
 	private readonly ISubject<DownloadItem> finishedItemPublisher = Subject.Synchronize(new Subject<DownloadItem>());
 
 	private readonly Task queueWriterTask;
@@ -36,8 +38,9 @@ sealed class DownloaderTask : IAsyncDisposable {
 
 	public IObservable<DownloadItem> FinishedItems => finishedItemPublisher;
 
-	internal DownloaderTask(IDatabaseFile db) {
+	internal DownloaderTask(IDatabaseFile db, DownloadItemFilter filter) {
 		this.db = db;
+		this.filter = filter;
 		this.cancellationToken = cancellationTokenSource.Token;
 		this.queueWriterTask = Task.Run(RunQueueWriterTask);
 		this.downloadTasks = Enumerable.Range(1, DownloadTasks).Select(taskIndex => Task.Run(() => RunDownloadTask(taskIndex))).ToArray();
@@ -45,7 +48,7 @@ sealed class DownloaderTask : IAsyncDisposable {
 
 	private async Task RunQueueWriterTask() {
 		while (await downloadQueue.Writer.WaitToWriteAsync(cancellationToken)) {
-			var newItems = await db.Downloads.PullEnqueuedDownloadItems(QueueSize, cancellationToken).ToListAsync(cancellationToken);
+			var newItems = await db.Downloads.PullPendingDownloadItems(QueueSize, filter, cancellationToken).ToListAsync(cancellationToken);
 			if (newItems.Count == 0) {
 				await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
 				continue;
@@ -70,14 +73,14 @@ sealed class DownloaderTask : IAsyncDisposable {
 
 			try {
 				var downloadedBytes = await client.GetByteArrayAsync(item.DownloadUrl, cancellationToken);
-				await db.Downloads.AddDownload(Data.Download.NewSuccess(item, downloadedBytes));
+				await db.Downloads.AddDownload(item.ToSuccess(downloadedBytes));
 			} catch (OperationCanceledException) {
 				// Ignore.
 			} catch (HttpRequestException e) {
-				await db.Downloads.AddDownload(Data.Download.NewFailure(item, e.StatusCode, item.Size));
+				await db.Downloads.AddDownload(item.ToFailure(e.StatusCode));
 				log.Error(e);
 			} catch (Exception e) {
-				await db.Downloads.AddDownload(Data.Download.NewFailure(item, null, item.Size));
+				await db.Downloads.AddDownload(item.ToFailure());
 				log.Error(e);
 			} finally {
 				try {

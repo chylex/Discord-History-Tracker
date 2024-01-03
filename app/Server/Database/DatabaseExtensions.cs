@@ -25,8 +25,8 @@ public static class DatabaseExtensions {
 		
 		await target.Messages.Add(batchedMessages);
 
-		await foreach (var download in source.Downloads.GetWithoutData()) {
-			await target.Downloads.AddDownload(download.Status == DownloadStatus.Success ? await source.Downloads.HydrateWithData(download) : download);
+		await foreach (var download in source.Downloads.Get()) {
+			await target.Downloads.AddDownload(await source.Downloads.HydrateWithData(download));
 		}
 	}
 }

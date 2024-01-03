@@ -4,14 +4,17 @@ using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Utils;
+using DHT.Utils.Logging;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
 sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
+	private static readonly Log Log = Log.ForType<SqliteServerRepository>();
+	
 	private readonly SqliteConnectionPool pool;
 
-	public SqliteServerRepository(SqliteConnectionPool pool) {
+	public SqliteServerRepository(SqliteConnectionPool pool) : base(Log) {
 		this.pool = pool;
 	}
 

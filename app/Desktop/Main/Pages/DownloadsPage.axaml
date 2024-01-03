@@ -5,11 +5,11 @@
              xmlns:pages="clr-namespace:DHT.Desktop.Main.Pages"
              xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DHT.Desktop.Main.Pages.AttachmentsPage"
-             x:DataType="pages:AttachmentsPageModel">
+             x:Class="DHT.Desktop.Main.Pages.DownloadsPage"
+             x:DataType="pages:DownloadsPageModel">
 
     <Design.DataContext>
-        <pages:AttachmentsPageModel />
+        <pages:DownloadsPageModel />
     </Design.DataContext>
 
     <UserControl.Styles>
@@ -31,19 +31,15 @@
     </UserControl.Styles>
 
     <StackPanel Orientation="Vertical" Spacing="20">
-        <DockPanel>
-            <Button Command="{Binding OnClickToggleDownload}" Content="{Binding ToggleDownloadButtonText}" IsEnabled="{Binding IsToggleDownloadButtonEnabled}" DockPanel.Dock="Left" />
-            <TextBlock Text="{Binding DownloadMessage}" MinWidth="100" Margin="10 0 0 0" VerticalAlignment="Center" TextAlignment="Right" DockPanel.Dock="Left" />
-            <ProgressBar Value="{Binding DownloadProgress}" IsVisible="{Binding IsDownloading}" Margin="15 0" VerticalAlignment="Center" DockPanel.Dock="Right" />
-        </DockPanel>
-        <controls:AttachmentFilterPanel DataContext="{Binding FilterModel}" IsEnabled="{Binding !IsDownloading, RelativeSource={RelativeSource AncestorType=pages:AttachmentsPageModel}}" />
+        <Button Command="{Binding OnClickToggleDownload}" Content="{Binding ToggleDownloadButtonText}" IsEnabled="{Binding IsToggleDownloadButtonEnabled}" />
+        <controls:DownloadItemFilterPanel DataContext="{Binding FilterModel}" IsEnabled="{Binding !$parent[UserControl].((pages:DownloadsPageModel)DataContext).IsDownloading}" />
         <StackPanel Orientation="Vertical" Spacing="12">
             <Expander Header="Download Status" IsExpanded="True">
                 <DataGrid ItemsSource="{Binding StatisticsRows}" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" IsReadOnly="True">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="State" Binding="{Binding State}" Width="*" />
-                        <DataGridTextColumn Header="Attachments" Binding="{Binding Items, Mode=OneWay, Converter={StaticResource NumberValueConverter}}" Width="*" CellStyleClasses="right" />
-                        <DataGridTextColumn Header="Size" Binding="{Binding Size, Mode=OneWay, Converter={StaticResource BytesValueConverter}}" Width="*" CellStyleClasses="right" />
+                        <DataGridTextColumn Header="State" Binding="{Binding State, Mode=OneWay}" Width="*" />
+                        <DataGridTextColumn Header="Files" Binding="{Binding Items, Mode=OneWay, Converter={StaticResource NumberValueConverter}}" Width="*" CellStyleClasses="right" />
+                        <DataGridTextColumn Header="Size" Binding="{Binding SizeText, Mode=OneWay}" Width="*" CellStyleClasses="right" />
                     </DataGrid.Columns>
                 </DataGrid>
             </Expander>

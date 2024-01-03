@@ -41,7 +41,7 @@ sealed class Startup {
 		
 		app.UseEndpoints(endpoints => {
 			endpoints.MapGet("/get-tracking-script", new GetTrackingScriptEndpoint(db, parameters).Handle);
-			endpoints.MapGet("/get-attachment/{url}", new GetAttachmentEndpoint(db).Handle);
+			endpoints.MapGet("/get-downloaded-file/{url}", new GetDownloadedFileEndpoint(db).Handle);
 			endpoints.MapPost("/track-channel", new TrackChannelEndpoint(db).Handle);
 			endpoints.MapPost("/track-users", new TrackUsersEndpoint(db).Handle);
 			endpoints.MapPost("/track-messages", new TrackMessagesEndpoint(db).Handle);

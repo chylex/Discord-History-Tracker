@@ -4,11 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:DHT.Desktop.Main.Controls"
              mc:Ignorable="d"
-             x:Class="DHT.Desktop.Main.Controls.AttachmentFilterPanel"
-             x:DataType="controls:AttachmentFilterPanelModel">
+             x:Class="DHT.Desktop.Main.Controls.DownloadItemFilterPanel"
+             x:DataType="controls:DownloadItemFilterPanelModel">
 
     <Design.DataContext>
-        <controls:AttachmentFilterPanelModel />
+        <controls:DownloadItemFilterPanelModel />
     </Design.DataContext>
 
     <UserControl.Styles>

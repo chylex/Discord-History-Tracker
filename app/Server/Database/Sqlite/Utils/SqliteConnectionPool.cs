@@ -42,9 +42,8 @@ sealed class SqliteConnectionPool : IAsyncDisposable {
 
 			var pooledConnection = new PooledConnection(this, conn);
 
-			await using (var cmd = pooledConnection.Command("PRAGMA journal_mode=WAL")) {
-				await cmd.ExecuteNonQueryAsync(disposalToken);
-			}
+			await pooledConnection.ExecuteAsync("PRAGMA journal_mode=WAL", disposalToken);
+			await pooledConnection.ExecuteAsync("PRAGMA foreign_keys=ON", disposalToken);
 
 			all.Add(pooledConnection);
 			await free.Push(pooledConnection, disposalToken);

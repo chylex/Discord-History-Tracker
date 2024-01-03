@@ -1,15 +1,19 @@
 namespace DHT.Server.Data.Aggregations;
 
 public sealed class DownloadStatusStatistics {
-	public int EnqueuedCount { get; internal set; }
-	public ulong EnqueuedSize { get; internal set; }
+	public int PendingCount { get; internal init; }
+	public ulong PendingTotalSize { get; internal init; }
+	public int PendingWithUnknownSizeCount { get; internal init; }
 
-	public int SuccessfulCount { get; internal set; }
-	public ulong SuccessfulSize { get; internal set; }
+	public int SuccessfulCount { get; internal init; }
+	public ulong SuccessfulTotalSize { get; internal init; }
+	public int SuccessfulWithUnknownSizeCount { get; internal init; }
 
-	public int FailedCount { get; internal set; }
-	public ulong FailedSize { get; internal set; }
-
-	public int SkippedCount { get; internal set; }
-	public ulong SkippedSize { get; internal set; }
+	public int FailedCount { get; internal init; }
+	public ulong FailedTotalSize { get; internal init; }
+	public int FailedWithUnknownSizeCount { get; internal init; }
+	
+	public int SkippedCount { get; internal init; }
+	public ulong SkippedTotalSize { get; internal init; }
+	public int SkippedWithUnknownSizeCount { get; internal init; }
 }

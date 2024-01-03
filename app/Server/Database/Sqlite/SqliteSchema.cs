@@ -8,7 +8,7 @@ using DHT.Utils.Logging;
 namespace DHT.Server.Database.Sqlite;
 
 sealed class SqliteSchema {
-	internal const int Version = 6;
+	internal const int Version = 7;
 
 	private static readonly Log Log = Log.ForType<SqliteSchema>();
 
@@ -116,26 +116,7 @@ sealed class SqliteSchema {
 
 		await CreateMessageEditTimestampTable(conn);
 		await CreateMessageRepliedToTable(conn);
-
-		await conn.ExecuteAsync("""
-		                        CREATE TABLE downloads (
-		                        	normalized_url TEXT NOT NULL PRIMARY KEY,
-		                        	download_url   TEXT,
-		                        	status         INTEGER NOT NULL,
-		                        	size           INTEGER NOT NULL,
-		                        	blob           BLOB
-		                        )
-		                        """);
-
-		await conn.ExecuteAsync("""
-		                        CREATE TABLE reactions (
-		                        	message_id  INTEGER NOT NULL,
-		                        	emoji_id    INTEGER,
-		                        	emoji_name  TEXT,
-		                        	emoji_flags INTEGER NOT NULL,
-		                        	count       INTEGER NOT NULL
-		                        )
-		                        """);
+		await CreateDownloadTables(conn);
 
 		await conn.ExecuteAsync("CREATE INDEX attachments_message_ix ON attachments(message_id)");
 		await conn.ExecuteAsync("CREATE INDEX embeds_message_ix ON embeds(message_id)");
@@ -162,6 +143,26 @@ sealed class SqliteSchema {
 		                        """);
 	}
 
+	internal static async Task CreateDownloadTables(ISqliteConnection conn) {
+		await conn.ExecuteAsync("""
+		                        CREATE TABLE download_metadata (
+		                        	normalized_url TEXT NOT NULL PRIMARY KEY,
+		                        	download_url   TEXT NOT NULL,
+		                        	status         INTEGER NOT NULL,
+		                        	type           TEXT,
+		                        	size           INTEGER
+		                        )
+		                        """);
+
+		await conn.ExecuteAsync("""
+		                        CREATE TABLE download_blobs (
+		                        	normalized_url TEXT NOT NULL PRIMARY KEY,
+		                        	blob           BLOB NOT NULL,
+		                        	FOREIGN KEY (normalized_url) REFERENCES download_metadata (normalized_url) ON UPDATE CASCADE ON DELETE CASCADE
+		                        )
+		                        """);
+	}
+
 	private async Task UpgradeSchemas(int dbVersion, ISchemaUpgradeCallbacks.IProgressReporter reporter) {
 		var upgrades = new Dictionary<int, ISchemaUpgrade> {
 			{ 1, new SqliteSchemaUpgradeTo2() },
@@ -169,6 +170,7 @@ sealed class SqliteSchema {
 			{ 3, new SqliteSchemaUpgradeTo4() },
 			{ 4, new SqliteSchemaUpgradeTo5() },
 			{ 5, new SqliteSchemaUpgradeTo6() },
+			{ 6, new SqliteSchemaUpgradeTo7() },
 		};
 
 		var perf = Log.Start("from version " + dbVersion);

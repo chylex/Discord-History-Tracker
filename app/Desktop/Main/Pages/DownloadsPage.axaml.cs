@@ -4,8 +4,8 @@ using Avalonia.Controls;
 namespace DHT.Desktop.Main.Pages;
 
 [SuppressMessage("ReSharper", "MemberCanBeInternal")]
-public sealed partial class AttachmentsPage : UserControl {
-	public AttachmentsPage() {
+public sealed partial class DownloadsPage : UserControl {
+	public DownloadsPage() {
 		InitializeComponent();
 	}
 }

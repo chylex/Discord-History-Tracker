@@ -9,140 +9,204 @@ using DHT.Server.Data.Filters;
 using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Utils;
 using DHT.Server.Download;
+using DHT.Utils.Logging;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
 sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepository {
+	private static readonly Log Log = Log.ForType<SqliteDownloadRepository>();
+	
 	private readonly SqliteConnectionPool pool;
 
-	public SqliteDownloadRepository(SqliteConnectionPool pool) {
+	public SqliteDownloadRepository(SqliteConnectionPool pool) : base(Log) {
 		this.pool = pool;
 	}
 
-	public async Task AddDownload(Data.Download download) {
+	internal sealed class NewDownloadCollector : IAsyncDisposable {
+		private readonly SqliteDownloadRepository repository;
+		private bool hasAdded = false;
+
+		private readonly SqliteCommand metadataCmd;
+
+		public NewDownloadCollector(SqliteDownloadRepository repository, ISqliteConnection conn) {
+			this.repository = repository;
+
+			metadataCmd = conn.Command(
+				"""
+				INSERT INTO download_metadata (normalized_url, download_url, status, type, size)
+				VALUES (:normalized_url, :download_url, :status, :type, :size)
+				ON CONFLICT DO NOTHING
+				"""
+			);
+			metadataCmd.Add(":normalized_url", SqliteType.Text);
+			metadataCmd.Add(":download_url", SqliteType.Text);
+			metadataCmd.Add(":status", SqliteType.Integer);
+			metadataCmd.Add(":type", SqliteType.Text);
+			metadataCmd.Add(":size", SqliteType.Integer);
+		}
+
+		public async Task Add(Data.Download download) {
+			metadataCmd.Set(":normalized_url", download.NormalizedUrl);
+			metadataCmd.Set(":download_url", download.DownloadUrl);
+			metadataCmd.Set(":status", (int) download.Status);
+			metadataCmd.Set(":type", download.Type);
+			metadataCmd.Set(":size", download.Size);
+			hasAdded |= await metadataCmd.ExecuteNonQueryAsync() > 0;
+		}
+
+		public void OnCommitted() {
+			if (hasAdded) {
+				repository.UpdateTotalCount();
+			}
+		}
+
+		public async ValueTask DisposeAsync() {
+			await metadataCmd.DisposeAsync();
+		}
+	}
+
+	public async Task AddDownload(DownloadWithData item) {
+		var (download, data) = item;
+
 		await using (var conn = await pool.Take()) {
-			await using var cmd = conn.Upsert("downloads", [
+			var tx = await conn.BeginTransactionAsync();
+
+			await using var metadataCmd = conn.Upsert("download_metadata", [
 				("normalized_url", SqliteType.Text),
 				("download_url", SqliteType.Text),
 				("status", SqliteType.Integer),
+				("type", SqliteType.Text),
 				("size", SqliteType.Integer),
-				("blob", SqliteType.Blob)
 			]);
 
-			cmd.Set(":normalized_url", download.NormalizedUrl);
-			cmd.Set(":download_url", download.DownloadUrl);
-			cmd.Set(":status", (int) download.Status);
-			cmd.Set(":size", download.Size);
-			cmd.Set(":blob", download.Data);
-			await cmd.ExecuteNonQueryAsync();
+			metadataCmd.Set(":normalized_url", download.NormalizedUrl);
+			metadataCmd.Set(":download_url", download.DownloadUrl);
+			metadataCmd.Set(":status", (int) download.Status);
+			metadataCmd.Set(":type", download.Type);
+			metadataCmd.Set(":size", download.Size);
+			await metadataCmd.ExecuteNonQueryAsync();
+
+			if (data == null) {
+				await using var deleteBlobCmd = conn.Command("DELETE FROM download_blobs WHERE normalized_url = :normalized_url");
+				deleteBlobCmd.AddAndSet(":normalized_url", SqliteType.Text, download.NormalizedUrl);
+				await deleteBlobCmd.ExecuteNonQueryAsync();
+			}
+			else {
+				await using var upsertBlobCmd = conn.Upsert("download_blobs", [
+					("normalized_url", SqliteType.Text),
+					("blob", SqliteType.Blob)
+				]);
+
+				upsertBlobCmd.Set(":normalized_url", download.NormalizedUrl);
+				upsertBlobCmd.Set(":blob", data);
+				await upsertBlobCmd.ExecuteNonQueryAsync();
+			}
+
+			await tx.CommitAsync();
 		}
 
 		UpdateTotalCount();
 	}
 
-	public override async Task<long> Count(CancellationToken cancellationToken) {
-		await using var conn = await pool.Take();
-		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM downloads", static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
+	public override Task<long> Count(CancellationToken cancellationToken) {
+		return Count(filter: null, cancellationToken);
 	}
 
-	public async Task<DownloadStatusStatistics> GetStatistics(CancellationToken cancellationToken) {
-		static async Task LoadUndownloadedStatistics(ISqliteConnection conn, DownloadStatusStatistics result, CancellationToken cancellationToken) {
-			await using var cmd = conn.Command(
-				"""
-				SELECT IFNULL(COUNT(size), 0), IFNULL(SUM(size), 0)
-				FROM (SELECT MAX(a.size) size
-				      FROM attachments a
-				      WHERE a.normalized_url NOT IN (SELECT d.normalized_url FROM downloads d)
-				      GROUP BY a.normalized_url)
-				""");
-
-			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-			if (await reader.ReadAsync(cancellationToken)) {
-				result.SkippedCount = reader.GetInt32(0);
-				result.SkippedSize = reader.GetUint64(1);
-			}
-		}
-
-		static async Task LoadSuccessStatistics(ISqliteConnection conn, DownloadStatusStatistics result, CancellationToken cancellationToken) {
-			await using var cmd = conn.Command(
-				"""
-				SELECT
-				IFNULL(SUM(CASE WHEN status IN (:enqueued, :downloading) THEN 1 ELSE 0 END), 0),
-				IFNULL(SUM(CASE WHEN status IN (:enqueued, :downloading) THEN size ELSE 0 END), 0),
-				IFNULL(SUM(CASE WHEN status = :success THEN 1 ELSE 0 END), 0),
-				IFNULL(SUM(CASE WHEN status = :success THEN size ELSE 0 END), 0),
-				IFNULL(SUM(CASE WHEN status NOT IN (:enqueued, :downloading) AND status != :success THEN 1 ELSE 0 END), 0),
-				IFNULL(SUM(CASE WHEN status NOT IN (:enqueued, :downloading) AND status != :success THEN size ELSE 0 END), 0)
-				FROM downloads
-				"""
-			);
-
-			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
-			cmd.AddAndSet(":downloading", SqliteType.Integer, (int) DownloadStatus.Downloading);
-			cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
-
-			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-			if (await reader.ReadAsync(cancellationToken)) {
-				result.EnqueuedCount = reader.GetInt32(0);
-				result.EnqueuedSize = reader.GetUint64(1);
-				result.SuccessfulCount = reader.GetInt32(2);
-				result.SuccessfulSize = reader.GetUint64(3);
-				result.FailedCount = reader.GetInt32(4);
-				result.FailedSize = reader.GetUint64(5);
-			}
-		}
-
-		var result = new DownloadStatusStatistics();
-
+	public async Task<long> Count(DownloadItemFilter? filter, CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
-		await LoadUndownloadedStatistics(conn, result, cancellationToken);
-		await LoadSuccessStatistics(conn, result, cancellationToken);
-		return result;
+		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM download_metadata" + filter.GenerateConditions().BuildWhereClause(), static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
-	public async IAsyncEnumerable<Data.Download> GetWithoutData() {
+	public async Task<DownloadStatusStatistics> GetStatistics(DownloadItemFilter nonSkippedFilter, CancellationToken cancellationToken) {
+		nonSkippedFilter.IncludeStatuses = null;
+		nonSkippedFilter.ExcludeStatuses = null;
+		string nonSkippedFilterConditions = nonSkippedFilter.GenerateConditions().Build();
+
 		await using var conn = await pool.Take();
 
-		await using var cmd = conn.Command("SELECT normalized_url, download_url, status, size FROM downloads");
+		await using var cmd = conn.Command(
+			$"""
+			 SELECT
+			 IFNULL(SUM(CASE WHEN (status = :downloading) OR (status = :pending AND {nonSkippedFilterConditions}) THEN 1 ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN (status = :downloading) OR (status = :pending AND {nonSkippedFilterConditions}) THEN IFNULL(size, 0) ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN ((status = :downloading) OR (status = :pending AND {nonSkippedFilterConditions})) AND size IS NULL THEN 1 ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN status = :success THEN 1 ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN status = :success THEN IFNULL(size, 0) ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN status = :success AND size IS NULL THEN 1 ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN status NOT IN (:pending, :downloading, :success) THEN 1 ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN status NOT IN (:pending, :downloading, :success) THEN IFNULL(size, 0) ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN status NOT IN (:pending, :downloading, :success) AND size IS NULL THEN 1 ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN status = :pending AND NOT ({nonSkippedFilterConditions}) THEN 1 ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN status = :pending AND NOT ({nonSkippedFilterConditions}) THEN IFNULL(size, 0) ELSE 0 END), 0),
+			 IFNULL(SUM(CASE WHEN status = :pending AND NOT ({nonSkippedFilterConditions}) AND size IS NULL THEN 1 ELSE 0 END), 0)
+			 FROM download_metadata
+			 """
+		);
+
+		cmd.AddAndSet(":pending", SqliteType.Integer, (int) DownloadStatus.Pending);
+		cmd.AddAndSet(":downloading", SqliteType.Integer, (int) DownloadStatus.Downloading);
+		cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
+
+		await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+		if (!await reader.ReadAsync(cancellationToken)) {
+			return new DownloadStatusStatistics();
+		}
+
+		return new DownloadStatusStatistics {
+			PendingCount = reader.GetInt32(0),
+			PendingTotalSize = reader.GetUint64(1),
+			PendingWithUnknownSizeCount = reader.GetInt32(2),
+			SuccessfulCount = reader.GetInt32(3),
+			SuccessfulTotalSize = reader.GetUint64(4),
+			SuccessfulWithUnknownSizeCount = reader.GetInt32(5),
+			FailedCount = reader.GetInt32(6),
+			FailedTotalSize = reader.GetUint64(7),
+			FailedWithUnknownSizeCount = reader.GetInt32(8),
+			SkippedCount = reader.GetInt32(9),
+			SkippedTotalSize = reader.GetUint64(10),
+			SkippedWithUnknownSizeCount = reader.GetInt32(11)
+		};
+	}
+
+	public async IAsyncEnumerable<Data.Download> Get() {
+		await using var conn = await pool.Take();
+
+		await using var cmd = conn.Command("SELECT normalized_url, download_url, status, type, size FROM download_metadata");
 		await using var reader = await cmd.ExecuteReaderAsync();
 
 		while (await reader.ReadAsync()) {
 			string normalizedUrl = reader.GetString(0);
 			string downloadUrl = reader.GetString(1);
 			var status = (DownloadStatus) reader.GetInt32(2);
-			ulong size = reader.GetUint64(3);
+			string? type = reader.IsDBNull(3) ? null : reader.GetString(3);
+			ulong? size = reader.IsDBNull(4) ? null : reader.GetUint64(4);
 
-			yield return new Data.Download(normalizedUrl, downloadUrl, status, size);
+			yield return new Data.Download(normalizedUrl, downloadUrl, status, type, size);
 		}
 	}
 
-	public async Task<Data.Download> HydrateWithData(Data.Download download) {
+	public async Task<DownloadWithData> HydrateWithData(Data.Download download) {
 		await using var conn = await pool.Take();
 
-		await using var cmd = conn.Command("SELECT blob FROM downloads WHERE normalized_url = :url");
+		await using var cmd = conn.Command("SELECT blob FROM download_blobs WHERE normalized_url = :url");
 		cmd.AddAndSet(":url", SqliteType.Text, download.NormalizedUrl);
 
 		await using var reader = await cmd.ExecuteReaderAsync();
-
-		if (await reader.ReadAsync() && !reader.IsDBNull(0)) {
-			return download.WithData((byte[]) reader["blob"]);
-		}
-		else {
-			return download;
-		}
+		var data = await reader.ReadAsync() && !reader.IsDBNull(0) ? (byte[]) reader["blob"] : null;
+		
+		return new DownloadWithData(download, data);
 	}
 
-	public async Task<DownloadedAttachment?> GetDownloadedAttachment(string normalizedUrl) {
+	public async Task<DownloadWithData?> GetSuccessfulDownloadWithData(string normalizedUrl) {
 		await using var conn = await pool.Take();
 
 		await using var cmd = conn.Command(
 			"""
-			SELECT a.type, d.blob FROM downloads d
-			LEFT JOIN attachments a ON d.normalized_url = a.normalized_url
-			WHERE d.normalized_url = :normalized_url AND d.status = :success AND d.blob IS NOT NULL
+			SELECT dm.download_url, dm.type, db.blob FROM download_metadata dm
+			JOIN download_blobs db ON dm.normalized_url = db.normalized_url
+			WHERE dm.normalized_url = :normalized_url AND dm.status = :success IS NOT NULL
 			"""
 		);
 
@@ -155,36 +219,31 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 			return null;
 		}
 
-		return new DownloadedAttachment {
-			Type = reader.IsDBNull(0) ? null : reader.GetString(0),
-			Data = (byte[]) reader["blob"],
-		};
+		var downloadUrl = reader.GetString(0);
+		var type = reader.IsDBNull(1) ? null : reader.GetString(1);
+		var data = (byte[]) reader[2];
+		var size = (ulong) data.LongLength;
+		var download = new Data.Download(normalizedUrl, downloadUrl, DownloadStatus.Success, type, size);
+		
+		return new DownloadWithData(download, data);
 	}
 
-	public async Task<int> EnqueueDownloadItems(AttachmentFilter? filter, CancellationToken cancellationToken) {
-		await using var conn = await pool.Take();
+	public async IAsyncEnumerable<DownloadItem> PullPendingDownloadItems(int count, DownloadItemFilter filter, [EnumeratorCancellation] CancellationToken cancellationToken) {
+		filter.IncludeStatuses = [DownloadStatus.Pending];
+		filter.ExcludeStatuses = null;
 
-		await using var cmd = conn.Command(
-			$"""
-			 INSERT INTO downloads (normalized_url, download_url, status, size)
-			 SELECT a.normalized_url, a.download_url, :enqueued, MAX(a.size)
-			 FROM attachments a
-			 {filter.GenerateWhereClause("a")}
-			 GROUP BY a.normalized_url
-			 """
-		);
-
-		cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
-		return await cmd.ExecuteNonQueryAsync(cancellationToken);
-	}
-
-	public async IAsyncEnumerable<DownloadItem> PullEnqueuedDownloadItems(int count, [EnumeratorCancellation] CancellationToken cancellationToken) {
 		var found = new List<DownloadItem>();
 
 		await using var conn = await pool.Take();
 
-		await using (var cmd = conn.Command("SELECT normalized_url, download_url, size FROM downloads WHERE status = :enqueued LIMIT :limit")) {
-			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
+		var sql = $"""
+		           SELECT normalized_url, download_url, type, size
+		           FROM download_metadata
+		           {filter.GenerateConditions().BuildWhereClause()}
+		           LIMIT :limit
+		           """;
+
+		await using (var cmd = conn.Command(sql)) {
 			cmd.AddAndSet(":limit", SqliteType.Integer, Math.Max(0, count));
 
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
@@ -193,14 +252,15 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 				found.Add(new DownloadItem {
 					NormalizedUrl = reader.GetString(0),
 					DownloadUrl = reader.GetString(1),
-					Size = reader.GetUint64(2),
+					Type = reader.IsDBNull(2) ? null : reader.GetString(2),
+					Size = reader.IsDBNull(3) ? null : reader.GetUint64(3)
 				});
 			}
 		}
 
 		if (found.Count != 0) {
-			await using var cmd = conn.Command("UPDATE downloads SET status = :downloading WHERE normalized_url = :normalized_url AND status = :enqueued");
-			cmd.AddAndSet(":enqueued", SqliteType.Integer, (int) DownloadStatus.Enqueued);
+			await using var cmd = conn.Command("UPDATE download_metadata SET status = :downloading WHERE normalized_url = :normalized_url AND status = :pending");
+			cmd.AddAndSet(":pending", SqliteType.Integer, (int) DownloadStatus.Pending);
 			cmd.AddAndSet(":downloading", SqliteType.Integer, (int) DownloadStatus.Downloading);
 			cmd.Add(":normalized_url", SqliteType.Text);
 
@@ -214,17 +274,23 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 		}
 	}
 
-	public async Task RemoveDownloadItems(DownloadItemFilter? filter, FilterRemovalMode mode) {
-		await using (var conn = await pool.Take()) {
-			await conn.ExecuteAsync(
-				$"""
-				 -- noinspection SqlWithoutWhere
-				 DELETE FROM downloads
-				 {filter.GenerateWhereClause(invert: mode == FilterRemovalMode.KeepMatching)}
-				 """
-			);
-		}
+	public async Task MoveDownloadingItemsBackToQueue(CancellationToken cancellationToken) {
+		await using var conn = await pool.Take();
 
-		UpdateTotalCount();
+		await using var cmd = conn.Command("UPDATE download_metadata SET status = :pending WHERE status = :downloading");
+		cmd.AddAndSet(":pending", SqliteType.Integer, (int) DownloadStatus.Pending);
+		cmd.AddAndSet(":downloading", SqliteType.Integer, (int) DownloadStatus.Downloading);
+		await cmd.ExecuteNonQueryAsync(cancellationToken);
+	}
+
+	public async Task<int> RetryFailed(CancellationToken cancellationToken) {
+		await using var conn = await pool.Take();
+
+		await using var cmd = conn.Command("UPDATE download_metadata SET status = :pending WHERE status = :generic_error OR (status > :last_custom_code AND status != :success)");
+		cmd.AddAndSet(":pending", SqliteType.Integer, (int) DownloadStatus.Pending);
+		cmd.AddAndSet(":generic_error", SqliteType.Integer, (int) DownloadStatus.GenericError);
+		cmd.AddAndSet(":last_custom_code", SqliteType.Integer, (int) DownloadStatus.LastCustomCode);
+		cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
+		return await cmd.ExecuteNonQueryAsync(cancellationToken);
 	}
 }
