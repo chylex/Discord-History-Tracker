@@ -18,7 +18,6 @@ using DHT.Desktop.Server;
 using DHT.Server;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database.Export;
-using DHT.Server.Database.Export.Strategy;
 using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages;
@@ -63,9 +62,13 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 	public async void OnClickOpenViewer() {
 		try {
 			var fullPath = await PrepareTemporaryViewerFile();
-			var strategy = new LiveViewerExportStrategy(ServerConfiguration.Port, ServerConfiguration.Token);
+			
+			string jsConstants = $"""
+			                      window.DHT_SERVER_URL = "{HttpUtility.JavaScriptStringEncode("http://127.0.0.1:" + ServerConfiguration.Port)}";
+			                      window.DHT_SERVER_TOKEN = "{HttpUtility.JavaScriptStringEncode(ServerConfiguration.Token)}";
+			                      """;
 
-			await ProgressDialog.ShowIndeterminate(window, "Open Viewer", "Creating viewer...", _ => Task.Run(() => WriteViewerFile(fullPath, strategy)));
+			await ProgressDialog.ShowIndeterminate(window, "Open Viewer", "Creating viewer...", _ => Task.Run(() => WriteViewerFile(fullPath, jsConstants)));
 			
 			Process.Start(new ProcessStartInfo(fullPath) {
 				UseShellExecute = true
@@ -109,17 +112,18 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 		}
 
 		try {
-			await ProgressDialog.ShowIndeterminate(window, "Save Viewer", "Creating viewer...", _ => Task.Run(() => WriteViewerFile(path, StandaloneViewerExportStrategy.Instance)));
+			await ProgressDialog.ShowIndeterminate(window, "Save Viewer", "Creating viewer...", _ => Task.Run(() => WriteViewerFile(path, string.Empty)));
 		} catch (Exception e) {
 			await Dialog.ShowOk(window, "Save Viewer", "Could not create or save viewer: " + e.Message);
 		}
 	}
 
-	private async Task WriteViewerFile(string path, IViewerExportStrategy strategy) {
+	private async Task WriteViewerFile(string path, string jsConstants) {
 		const string ArchiveTag = "/*[ARCHIVE]*/";
 
 		string indexFile = await Resources.ReadTextAsync("Viewer/index.html");
-		string viewerTemplate = indexFile.Replace("/*[JS]*/", await Resources.ReadJoinedAsync("Viewer/scripts/", '\n'))
+		string viewerTemplate = indexFile.Replace("/*[CONSTANTS]*/", jsConstants)
+		                                 .Replace("/*[JS]*/", await Resources.ReadJoinedAsync("Viewer/scripts/", '\n'))
 		                                 .Replace("/*[CSS]*/", await Resources.ReadJoinedAsync("Viewer/styles/", '\n'));
 
 		int viewerArchiveTagStart = viewerTemplate.IndexOf(ArchiveTag);
@@ -128,7 +132,7 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 		string jsonTempFile = path + ".tmp";
 
 		await using (var jsonStream = new FileStream(jsonTempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)) {
-			await ViewerJsonExport.Generate(jsonStream, strategy, state.Db, FilterModel.CreateFilter());
+			await ViewerJsonExport.Generate(jsonStream, state.Db, FilterModel.CreateFilter());
 
 			char[] jsonBuffer = new char[Math.Min(32768, jsonStream.Position)];
 			jsonStream.Position = 0;

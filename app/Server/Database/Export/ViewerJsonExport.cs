@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
-using DHT.Server.Database.Export.Strategy;
 using DHT.Utils.Logging;
 
 namespace DHT.Server.Database.Export;
@@ -14,7 +13,7 @@ namespace DHT.Server.Database.Export;
 public static class ViewerJsonExport {
 	private static readonly Log Log = Log.ForType(typeof(ViewerJsonExport));
 
-	public static async Task Generate(Stream stream, IViewerExportStrategy strategy, IDatabaseFile db, MessageFilter? filter = null) {
+	public static async Task Generate(Stream stream, IDatabaseFile db, MessageFilter? filter = null) {
 		var perf = Log.Start();
 
 		var includedUserIds = new HashSet<ulong>();
@@ -49,7 +48,7 @@ public static class ViewerJsonExport {
 				Servers = servers,
 				Channels = channels
 			},
-			Data = GenerateMessageList(includedMessages, userIndices, strategy)
+			Data = GenerateMessageList(includedMessages, userIndices)
 		};
 
 		perf.Step("Generate value object");
@@ -125,7 +124,7 @@ public static class ViewerJsonExport {
 		return channels;
 	}
 
-	private static Dictionary<Snowflake, Dictionary<Snowflake, ViewerJson.JsonMessage>> GenerateMessageList(List<Message> includedMessages, Dictionary<ulong, int> userIndices, IViewerExportStrategy strategy) {
+	private static Dictionary<Snowflake, Dictionary<Snowflake, ViewerJson.JsonMessage>> GenerateMessageList(List<Message> includedMessages, Dictionary<ulong, int> userIndices) {
 		var data = new Dictionary<Snowflake, Dictionary<Snowflake, ViewerJson.JsonMessage>>();
 
 		foreach (var grouping in includedMessages.GroupBy(static message => message.Channel)) {
@@ -142,9 +141,9 @@ public static class ViewerJsonExport {
 					Te = message.EditTimestamp,
 					R = message.RepliedToId?.ToString(),
 					
-					A = message.Attachments.IsEmpty ? null : message.Attachments.Select(attachment => {
+					A = message.Attachments.IsEmpty ? null : message.Attachments.Select(static attachment => {
 						var a = new ViewerJson.JsonMessageAttachment {
-							Url = strategy.GetAttachmentUrl(attachment),
+							Url = attachment.DownloadUrl,
 							Name = Uri.TryCreate(attachment.NormalizedUrl, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.NormalizedUrl
 						};
 

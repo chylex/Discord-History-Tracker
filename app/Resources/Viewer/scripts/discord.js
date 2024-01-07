@@ -35,6 +35,23 @@ const DISCORD = (function() {
 	let templateReaction;
 	let templateReactionCustom;
 	
+	const fileUrlProcessor = function(serverUrl, serverToken) {
+		if (typeof serverUrl === "string" && typeof serverToken === "string") {
+			return url => serverUrl + "/get-downloaded-file/" + encodeURIComponent(url) + "?token=" + encodeURIComponent(serverToken);
+		}
+		else {
+			return url => url;
+		}
+	}(
+		window["DHT_SERVER_URL"],
+		window["DHT_SERVER_TOKEN"]
+	);
+	
+	const getEmoji = function(name, id, extension) {
+		const tag = ":" + name + ":";
+		return "<img src='" + fileUrlProcessor("https://cdn.discordapp.com/emojis/" + id + "." + extension) + "' alt='" + tag + "' title='" + tag + "' class='emoji'>";
+	};
+	
 	const processMessageContents = function(contents) {
 		let processed = DOM.escapeHTML(contents.replace(regex.formatUrlNoEmbed, "$1"));
 		
@@ -54,17 +71,21 @@ const DISCORD = (function() {
 				.replace(regex.formatStrike, "<s>$1</s>");
 		}
 		
-		const animatedEmojiExtension = SETTINGS.enableAnimatedEmoji ? "gif" : "png";
+		const animatedEmojiExtension = SETTINGS.enableAnimatedEmoji ? "gif" : "webp";
 		
 		// noinspection HtmlUnknownTarget
 		processed = processed
 			.replace(regex.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
 			.replace(regex.mentionChannel, (full, match) => "<span class='link mention-chat'>#" + STATE.getChannelName(match) + "</span>")
 			.replace(regex.mentionUser, (full, match) => "<span class='link mention-user' title='#" + (STATE.getUserTag(match) || "????") + "'>@" + STATE.getUserName(match) + "</span>")
-			.replace(regex.customEmojiStatic, "<img src='https://cdn.discordapp.com/emojis/$2.png' alt=':$1:' title=':$1:' class='emoji'>")
-			.replace(regex.customEmojiAnimated, "<img src='https://cdn.discordapp.com/emojis/$2." + animatedEmojiExtension + "' alt=':$1:' title=':$1:' class='emoji'>");
+			.replace(regex.customEmojiStatic, (full, m1, m2) => getEmoji(m1, m2, "webp"))
+			.replace(regex.customEmojiAnimated, (full, m1, m2) => getEmoji(m1, m2, animatedEmojiExtension));
 		
 		return "<p>" + processed + "</p>";
+	};
+	
+	const getAvatarUrlObject = function(avatar) {
+		return { url: fileUrlProcessor("https://cdn.discordapp.com/avatars/" + avatar.id + "/" + avatar.path + ".webp") };
 	};
 	
 	const getImageEmbed = function(url, image) {
@@ -73,10 +94,10 @@ const DISCORD = (function() {
 		}
 		
 		if (image.width && image.height) {
-			return templateEmbedImageWithSize.apply({ url, src: image.url, width: image.width, height: image.height });
+			return templateEmbedImageWithSize.apply({ url: fileUrlProcessor(url), src: fileUrlProcessor(image.url), width: image.width, height: image.height });
 		}
 		else {
-			return templateEmbedImage.apply({ url, src: image.url });
+			return templateEmbedImage.apply({ url: fileUrlProcessor(url), src: fileUrlProcessor(image.url) });
 		}
 	};
 	
@@ -125,8 +146,9 @@ const DISCORD = (function() {
 				"</div>"
 			].join(""));
 			
+			// noinspection HtmlUnknownTarget
 			templateUserAvatar = new TEMPLATE([
-				"<img src='https://cdn.discordapp.com/avatars/{id}/{path}.webp?size=128' alt=''>"
+				"<img src='{url}' alt=''>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
@@ -167,8 +189,9 @@ const DISCORD = (function() {
 				"<span class='reaction-wrapper'><span class='reaction-emoji'>{n}</span><span class='count'>{c}</span></span>"
 			].join(""));
 			
+			// noinspection HtmlUnknownTarget
 			templateReactionCustom = new TEMPLATE([
-				"<span class='reaction-wrapper'><img src='https://cdn.discordapp.com/emojis/{id}.{ext}' alt=':{n}:' title=':{n}:' class='reaction-emoji-custom'><span class='count'>{c}</span></span>"
+				"<span class='reaction-wrapper'><img src='{url}' alt=':{n}:' title=':{n}:' class='reaction-emoji-custom'><span class='count'>{c}</span></span>"
 			].join(""));
 		},
 		
@@ -199,7 +222,7 @@ const DISCORD = (function() {
 		getMessageHTML(message) { // noinspection FunctionWithInconsistentReturnsJS
 			return (SETTINGS.enableUserAvatars ? templateMessageWithAvatar : templateMessageNoAvatar).apply(message, (property, value) => {
 				if (property === "avatar") {
-					return value ? templateUserAvatar.apply(value) : "";
+					return value ? templateUserAvatar.apply(getAvatarUrlObject(value)) : "";
 				}
 				else if (property === "user.tag") {
 					return value ? value : "????";
@@ -220,10 +243,10 @@ const DISCORD = (function() {
 							return templateEmbedUnsupported.apply(embed);
 						}
 						else if ("image" in embed && embed.image.url) {
-							return getImageEmbed(embed.url, embed.image);
+							return getImageEmbed(fileUrlProcessor(embed.url), embed.image);
 						}
 						else if ("thumbnail" in embed && embed.thumbnail.url) {
-							return getImageEmbed(embed.url, embed.thumbnail);
+							return getImageEmbed(fileUrlProcessor(embed.url), embed.thumbnail);
 						}
 						else if ("title" in embed && "description" in embed) {
 							return templateEmbedRich.apply(embed);
@@ -242,14 +265,16 @@ const DISCORD = (function() {
 					}
 					
 					return value.map(attachment => {
+						const url = fileUrlProcessor(attachment.url);
+						
 						if (!DISCORD.isImageAttachment(attachment) || !SETTINGS.enableImagePreviews) {
-							return templateAttachmentDownload.apply(attachment);
+							return templateAttachmentDownload.apply({ url, name: attachment.name });
 						}
 						else if ("width" in attachment && "height" in attachment) {
-							return templateEmbedImageWithSize.apply({ url: attachment.url, src: attachment.url, width: attachment.width, height: attachment.height });
+							return templateEmbedImageWithSize.apply({ url, src: url, width: attachment.width, height: attachment.height });
 						}
 						else {
-							return templateEmbedImage.apply({ url: attachment.url, src: attachment.url });
+							return templateEmbedImage.apply({ url, src: url });
 						}
 					}).join("");
 				}
@@ -265,7 +290,7 @@ const DISCORD = (function() {
 					}
 					
 					const user = "<span class='reply-username' title='#" + (value.user.tag ? value.user.tag : "????") + "'>" + value.user.name + "</span>";
-					const avatar = SETTINGS.enableUserAvatars && value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(value.avatar) + "</span>" : "";
+					const avatar = SETTINGS.enableUserAvatars && value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(getAvatarUrlObject(value.avatar)) + "</span>" : "";
 					const contents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
 					
 					return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
@@ -277,9 +302,10 @@ const DISCORD = (function() {
 					
 					return "<div class='reactions'>" + value.map(reaction => {
 						if ("id" in reaction){
-							// noinspection JSUnusedGlobalSymbols, JSUnresolvedVariable
-							reaction.ext = reaction.a && SETTINGS.enableAnimatedEmoji ? "gif" : "png";
-							return templateReactionCustom.apply(reaction);
+							const ext = reaction.a && SETTINGS.enableAnimatedEmoji ? "gif" : "webp";
+							const url = fileUrlProcessor("https://cdn.discordapp.com/emojis/" + reaction.id + "." + ext);
+							// noinspection JSUnusedGlobalSymbols
+							return templateReactionCustom.apply({ url, n: reaction.n, c: reaction.c });
 						}
 						else {
 							return templateReaction.apply(reaction);
