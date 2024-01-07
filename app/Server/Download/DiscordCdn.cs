@@ -38,14 +38,6 @@ static class DiscordCdn {
 		query.Remove("is");
 		query.Remove("hm");
 
-		var builder = new UriBuilder(uri) {
-			Query = query.ToString()
-		};
-
-		if (uri.IsDefaultPort) {
-			builder.Port = -1;
-		}
-		
-		return builder.ToString();
+		return new UriBuilder(uri) { Query = query.ToString() }.Uri.ToString();
 	}
 }
