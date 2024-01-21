@@ -149,6 +149,9 @@
     <ScssCodeStyleSettings>
       <option name="HEX_COLOR_LOWER_CASE" value="true" />
     </ScssCodeStyleSettings>
+    <Shell_Script>
+      <option name="KEEP_COLUMN_ALIGNMENT_PADDING" value="true" />
+    </Shell_Script>
     <SqlCodeStyleSettings version="6">
       <option name="KEYWORD_CASE" value="2" />
       <option name="TYPE_CASE" value="2" />
@@ -173,6 +176,7 @@
       <option name="CONSTRAINT_WRAP_3" value="true" />
       <option name="CONSTRAINT_WRAP_4" value="true" />
       <option name="VIEW_INDENT_QUERY" value="true" />
+      <option name="IMP_LOOP_LOOP_INDENT" value="false" />
       <option name="EXPR_CASE_WHEN_WRAP" value="false" />
     </SqlCodeStyleSettings>
     <SybaseCodeStyleSettings version="6">
@@ -200,6 +204,11 @@
       <indentOptions>
         <option name="INDENT_SIZE" value="2" />
         <option name="TAB_SIZE" value="2" />
+        <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
+      </indentOptions>
+    </codeStyleSettings>
+    <codeStyleSettings language="Gherkin">
+      <indentOptions>
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
       </indentOptions>
     </codeStyleSettings>
@@ -282,6 +291,13 @@
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
       </indentOptions>
     </codeStyleSettings>
+    <codeStyleSettings language="Markdown">
+      <indentOptions>
+        <option name="INDENT_SIZE" value="2" />
+        <option name="CONTINUATION_INDENT_SIZE" value="2" />
+        <option name="TAB_SIZE" value="2" />
+      </indentOptions>
+    </codeStyleSettings>
     <codeStyleSettings language="ObjectiveC">
       <option name="LINE_COMMENT_AT_FIRST_COLUMN" value="false" />
       <option name="BLOCK_COMMENT_AT_FIRST_COLUMN" value="false" />
@@ -342,7 +358,6 @@
       </indentOptions>
     </codeStyleSettings>
     <codeStyleSettings language="Rust">
-      <option name="RIGHT_MARGIN" value="140" />
       <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="true" />
       <indentOptions>
         <option name="USE_TAB_CHARACTER" value="true" />
@@ -357,6 +372,7 @@
     </codeStyleSettings>
     <codeStyleSettings language="SCSS">
       <indentOptions>
+        <option name="CONTINUATION_INDENT_SIZE" value="2" />
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
       </indentOptions>
     </codeStyleSettings>
@@ -365,13 +381,6 @@
         <option name="USE_TAB_CHARACTER" value="true" />
         <option name="SMART_TABS" value="true" />
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
-      </indentOptions>
-    </codeStyleSettings>
-    <codeStyleSettings language="Shell Script">
-      <indentOptions>
-        <option name="INDENT_SIZE" value="4" />
-        <option name="TAB_SIZE" value="4" />
-        <option name="USE_TAB_CHARACTER" value="true" />
       </indentOptions>
     </codeStyleSettings>
     <codeStyleSettings language="TOML">
@@ -427,6 +436,9 @@
     </codeStyleSettings>
     <codeStyleSettings language="liquid">
       <indentOptions>
+        <option name="INDENT_SIZE" value="2" />
+        <option name="CONTINUATION_INDENT_SIZE" value="2" />
+        <option name="TAB_SIZE" value="2" />
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
       </indentOptions>
     </codeStyleSettings>
