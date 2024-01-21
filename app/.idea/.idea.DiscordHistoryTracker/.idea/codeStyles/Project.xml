@@ -13,10 +13,10 @@
     <CssCodeStyleSettings>
       <option name="HEX_COLOR_LOWER_CASE" value="true" />
     </CssCodeStyleSettings>
-    <DB2CodeStyleSettings version="6">
+    <DB2CodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
     </DB2CodeStyleSettings>
-    <DerbyCodeStyleSettings version="6">
+    <DerbyCodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
     </DerbyCodeStyleSettings>
     <GoCodeStyleSettings>
@@ -26,10 +26,10 @@
       <option name="WRAP_FUNC_PARAMS" value="5" />
       <option name="WRAP_FUNC_RESULT" value="5" />
     </GoCodeStyleSettings>
-    <H2CodeStyleSettings version="6">
+    <H2CodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
     </H2CodeStyleSettings>
-    <HSQLCodeStyleSettings version="6">
+    <HSQLCodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
     </HSQLCodeStyleSettings>
     <HTMLCodeStyleSettings>
@@ -85,10 +85,10 @@
     <LessCodeStyleSettings>
       <option name="HEX_COLOR_LOWER_CASE" value="true" />
     </LessCodeStyleSettings>
-    <MSSQLCodeStyleSettings version="6">
+    <MSSQLCodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
     </MSSQLCodeStyleSettings>
-    <MySQLCodeStyleSettings version="6">
+    <MySQLCodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
     </MySQLCodeStyleSettings>
     <Objective-C>
@@ -98,7 +98,7 @@
       <option name="SPACE_BEFORE_INIT_LIST" value="true" />
       <option name="SPACE_AFTER_DICTIONARY_LITERAL_COLON" value="false" />
     </Objective-C>
-    <OracleCodeStyleSettings version="6">
+    <OracleCodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
     </OracleCodeStyleSettings>
     <PHPCodeStyleSettings>
@@ -116,7 +116,7 @@
       <option name="NEW_LINE_AFTER_PHP_OPENING_TAG" value="true" />
       <option name="SPACE_AROUND_ASSIGNMENT_IN_DECLARE" value="true" />
     </PHPCodeStyleSettings>
-    <PostgresCodeStyleSettings version="6">
+    <PostgresCodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
     </PostgresCodeStyleSettings>
     <Properties>
@@ -143,13 +143,16 @@
       <option name="INDENT_WHEN_CASES" value="true" />
       <option name="CHAIN_CALLS_ALIGNMENT" value="2" />
     </Ruby>
-    <SQLiteCodeStyleSettings version="6">
+    <SQLiteCodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
     </SQLiteCodeStyleSettings>
     <ScssCodeStyleSettings>
       <option name="HEX_COLOR_LOWER_CASE" value="true" />
     </ScssCodeStyleSettings>
-    <SqlCodeStyleSettings version="6">
+    <Shell_Script>
+      <option name="KEEP_COLUMN_ALIGNMENT_PADDING" value="true" />
+    </Shell_Script>
+    <SqlCodeStyleSettings version="7">
       <option name="KEYWORD_CASE" value="2" />
       <option name="TYPE_CASE" value="2" />
       <option name="CUSTOM_TYPE_CASE" value="2" />
@@ -173,9 +176,10 @@
       <option name="CONSTRAINT_WRAP_3" value="true" />
       <option name="CONSTRAINT_WRAP_4" value="true" />
       <option name="VIEW_INDENT_QUERY" value="true" />
+      <option name="IMP_LOOP_LOOP_INDENT" value="false" />
       <option name="EXPR_CASE_WHEN_WRAP" value="false" />
     </SqlCodeStyleSettings>
-    <SybaseCodeStyleSettings version="6">
+    <SybaseCodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
     </SybaseCodeStyleSettings>
     <TypeScriptCodeStyleSettings version="0">
@@ -200,6 +204,11 @@
       <indentOptions>
         <option name="INDENT_SIZE" value="2" />
         <option name="TAB_SIZE" value="2" />
+        <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
+      </indentOptions>
+    </codeStyleSettings>
+    <codeStyleSettings language="Gherkin">
+      <indentOptions>
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
       </indentOptions>
     </codeStyleSettings>
@@ -282,6 +291,13 @@
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
       </indentOptions>
     </codeStyleSettings>
+    <codeStyleSettings language="Markdown">
+      <indentOptions>
+        <option name="INDENT_SIZE" value="2" />
+        <option name="CONTINUATION_INDENT_SIZE" value="2" />
+        <option name="TAB_SIZE" value="2" />
+      </indentOptions>
+    </codeStyleSettings>
     <codeStyleSettings language="ObjectiveC">
       <option name="LINE_COMMENT_AT_FIRST_COLUMN" value="false" />
       <option name="BLOCK_COMMENT_AT_FIRST_COLUMN" value="false" />
@@ -342,7 +358,6 @@
       </indentOptions>
     </codeStyleSettings>
     <codeStyleSettings language="Rust">
-      <option name="RIGHT_MARGIN" value="140" />
       <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="true" />
       <indentOptions>
         <option name="USE_TAB_CHARACTER" value="true" />
@@ -357,6 +372,7 @@
     </codeStyleSettings>
     <codeStyleSettings language="SCSS">
       <indentOptions>
+        <option name="CONTINUATION_INDENT_SIZE" value="2" />
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
       </indentOptions>
     </codeStyleSettings>
@@ -365,13 +381,6 @@
         <option name="USE_TAB_CHARACTER" value="true" />
         <option name="SMART_TABS" value="true" />
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
-      </indentOptions>
-    </codeStyleSettings>
-    <codeStyleSettings language="Shell Script">
-      <indentOptions>
-        <option name="INDENT_SIZE" value="4" />
-        <option name="TAB_SIZE" value="4" />
-        <option name="USE_TAB_CHARACTER" value="true" />
       </indentOptions>
     </codeStyleSettings>
     <codeStyleSettings language="TOML">
@@ -427,6 +436,9 @@
     </codeStyleSettings>
     <codeStyleSettings language="liquid">
       <indentOptions>
+        <option name="INDENT_SIZE" value="2" />
+        <option name="CONTINUATION_INDENT_SIZE" value="2" />
+        <option name="TAB_SIZE" value="2" />
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
       </indentOptions>
     </codeStyleSettings>

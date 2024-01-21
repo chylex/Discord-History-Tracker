@@ -91,7 +91,6 @@
     <inspection_tool class="ComparatorNotSerializable" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CompareToUsesNonFinalVariable" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ComparisonOfShortAndChar" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="ComposeMissingKeys" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="ConditionSignal" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ConditionalExpression" enabled="true" level="INFORMATION" enabled_by_default="true">
       <option name="ignoreSimpleAssignmentsAndReturns" value="true" />
@@ -362,7 +361,7 @@
     </inspection_tool>
     <inspection_tool class="LocalVariableDeclarationSideOnly" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="LocalVariableNamingConventionJS" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="m_regex" value="[a-z][A-Za-z]*" />
+      <option name="m_regex" value="[a-z][A-Za-z0-9]*" />
       <option name="m_minLength" value="0" />
       <option name="m_maxLength" value="99" />
     </inspection_tool>
