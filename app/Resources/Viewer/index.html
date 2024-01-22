@@ -2,16 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <meta name="referrer" content="no-referrer">
+    
     <title>Discord Offline History</title>
     
+    <link rel="icon" href="favicon.ico">
+    
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/menu.css">
+    <link rel="stylesheet" href="styles/channels.css">
+    <link rel="stylesheet" href="styles/messages.css">
+    <link rel="stylesheet" href="styles/modal.css">
+    
     <script type="text/javascript">
-		window.DHT_EMBEDDED = "/*[ARCHIVE]*/";
-		/*[CONSTANTS]*/
-		/*[JS]*/
+		const query = new URLSearchParams(location.search);
+		window.DHT_SERVER_TOKEN = query.get("token");
+		window.DHT_SERVER_SESSION = query.get("session");
     </script>
-    <style>
-      /*[CSS]*/
-    </style>
+    <script type="module" src="scripts/bootstrap.mjs"></script>
   </head>
   <body>
     <div id="menu">
@@ -65,7 +73,9 @@
     </div>
     
     <div id="app">
-      <div id="channels"></div>
+      <div id="channels">
+        <div class="loading"></div>
+      </div>
       <div id="messages"></div>
     </div>
     

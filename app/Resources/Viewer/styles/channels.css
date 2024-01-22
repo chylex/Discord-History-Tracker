@@ -3,18 +3,24 @@
   min-width: 215px;
   max-width: 300px;
   overflow-y: auto;
+  color: #eee;
   background-color: #1c1e22;
+  font-size: 15px;
 }
 
-#channels > div {
+#channels > div.loading {
+  margin: 0 auto;
+  width: 150px;
+  height: 150px;
+}
+
+#channels > div.channel {
   cursor: pointer;
   padding: 10px 12px;
-  color: #eee;
-  font-size: 15px;
   border-bottom: 1px solid #333333;
 }
 
-#channels > div:hover, #channels > div.active {
+#channels > div.channel:hover, #channels > div.channel.active {
   background-color: #282b30;
 }
 

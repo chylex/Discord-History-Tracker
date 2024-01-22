@@ -1,4 +1,4 @@
-const SETTINGS = (function() {
+export default (function() {
 	/**
 	 * @type {{}}
 	 * @property {Function} onSettingsChanged

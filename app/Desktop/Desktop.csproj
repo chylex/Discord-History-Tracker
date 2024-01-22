@@ -39,11 +39,6 @@
     <EmbeddedResource Include="Resources/tracker-loader.js">
       <LogicalName>tracker-loader.js</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="../Resources/Viewer/**">
-      <LogicalName>Viewer\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
-      <Link>Resources/Viewer/%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <Visible>false</Visible>
-    </EmbeddedResource>
   </ItemGroup>
   
 </Project>

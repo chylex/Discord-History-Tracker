@@ -1,10 +1,16 @@
-const GUI = (function() {
+import dom from "./dom.mjs";
+import discord from "./discord.mjs";
+import settings from "./settings.mjs";
+import state from "./state.mjs";
+
+export default (function() {
 	let eventOnOptMessagesPerPageChanged;
 	let eventOnOptMessageFilterChanged;
 	let eventOnNavButtonClicked;
 	
 	const getActiveFilter = function() {
-		const active = DOM.fcls("active", DOM.id("opt-filter-list"));
+		/** @type HTMLSelectElement */
+		const active = dom.fcls("active", dom.id("opt-filter-list"));
 		
 		return active && active.value !== "" ? {
 			"type": active.getAttribute("data-filter-type"),
@@ -17,12 +23,12 @@ const GUI = (function() {
 	};
 	
 	const showModal = function(width, html) {
-		const dialog = DOM.id("dialog");
+		const dialog = dom.id("dialog");
 		dialog.innerHTML = html;
 		dialog.style.width = width + "px";
 		dialog.style.marginLeft = (-width / 2) + "px";
 		
-		DOM.id("modal").classList.add("visible");
+		dom.id("modal").classList.add("visible");
 		return dialog;
 	};
 	
@@ -38,9 +44,9 @@ const GUI = (function() {
 <label><input id='dht-cfg-animemoji' type='checkbox'> Animated Emoji</label><br>`);
 		
 		const setupCheckBox = function(id, settingName) {
-			const ele = DOM.id(id);
-			ele.checked = SETTINGS[settingName];
-			ele.addEventListener("change", () => SETTINGS[settingName] = ele.checked);
+			const ele = dom.id(id);
+			ele.checked = settings[settingName];
+			ele.addEventListener("change", () => settings[settingName] = ele.checked);
 		};
 		
 		setupCheckBox("dht-cfg-imgpreviews", "enableImagePreviews");
@@ -65,20 +71,20 @@ const GUI = (function() {
 		// ---------
 		
 		setup() {
-			const inputMessageFilter = DOM.id("opt-messages-filter");
-			const containerFilterList = DOM.id("opt-filter-list");
+			const inputMessageFilter = dom.id("opt-messages-filter");
+			const containerFilterList = dom.id("opt-filter-list");
 			
 			const resetActiveFilter = function() {
 				inputMessageFilter.value = "";
 				inputMessageFilter.dispatchEvent(new Event("change"));
 				
-				DOM.id("opt-filter-contents").value = "";
+				dom.id("opt-filter-contents").value = "";
 			};
 			
 			inputMessageFilter.value = ""; // required to prevent browsers from remembering old value
 			
 			inputMessageFilter.addEventListener("change", () => {
-				DOM.cls("active", containerFilterList).forEach(ele => ele.classList.remove("active"));
+				dom.cls("active", containerFilterList).forEach(ele => ele.classList.remove("active"));
 				
 				if (inputMessageFilter.value) {
 					containerFilterList.querySelector("[data-filter-type='" + inputMessageFilter.value + "']").classList.add("active");
@@ -91,11 +97,11 @@ const GUI = (function() {
 				ele.addEventListener(ele.tagName === "SELECT" ? "change" : "input", () => triggerFilterChanged());
 			});
 			
-			DOM.id("opt-messages-per-page").addEventListener("change", () => {
+			dom.id("opt-messages-per-page").addEventListener("change", () => {
 				eventOnOptMessagesPerPageChanged && eventOnOptMessagesPerPageChanged();
 			});
 			
-			DOM.tag("button", DOM.fcls("nav")).forEach(button => {
+			dom.tag("button", dom.fcls("nav")).forEach(button => {
 				button.disabled = true;
 				
 				button.addEventListener("click", () => {
@@ -103,34 +109,34 @@ const GUI = (function() {
 				});
 			});
 			
-			DOM.id("btn-settings").addEventListener("click", () => {
+			dom.id("btn-settings").addEventListener("click", () => {
 				showSettingsModal();
 			});
 			
-			DOM.id("btn-about").addEventListener("click", () => {
+			dom.id("btn-about").addEventListener("click", () => {
 				showInfoModal();
 			});
 			
-			DOM.id("messages").addEventListener("click", e => {
+			dom.id("messages").addEventListener("click", e => {
 				const jump = e.target.getAttribute("data-jump");
 				
 				if (jump) {
 					resetActiveFilter();
 					
-					const index = STATE.navigateToMessage(jump);
+					const index = state.navigateToMessage(jump);
 					
 					if (index === -1) {
 						alert("Message not found.");
 					}
 					else {
-						DOM.id("messages").children[index].scrollIntoView();
+						dom.id("messages").children[index].scrollIntoView();
 					}
 				}
 			});
 			
-			DOM.id("overlay").addEventListener("click", () => {
-				DOM.id("modal").classList.remove("visible");
-				DOM.id("dialog").innerHTML = "";
+			dom.id("overlay").addEventListener("click", () => {
+				dom.id("modal").classList.remove("visible");
+				dom.id("dialog").innerHTML = "";
 			});
 		},
 		
@@ -168,19 +174,19 @@ const GUI = (function() {
 		 */
 		getOptionMessagesPerPage() {
 			/** @type HTMLInputElement */
-			const messagesPerPage = DOM.id("opt-messages-per-page");
+			const messagesPerPage = dom.id("opt-messages-per-page");
 			return parseInt(messagesPerPage.value, 10);
 		},
 		
 		updateNavigation(currentPage, totalPages) {
-			DOM.id("nav-page-current").innerHTML = currentPage;
-			DOM.id("nav-page-total").innerHTML = totalPages || "?";
+			dom.id("nav-page-current").innerHTML = currentPage;
+			dom.id("nav-page-total").innerHTML = totalPages || "?";
 			
-			DOM.id("nav-first").disabled = currentPage === 1;
-			DOM.id("nav-prev").disabled = currentPage === 1;
-			DOM.id("nav-pick").disabled = (totalPages || 0) <= 1;
-			DOM.id("nav-next").disabled = currentPage === (totalPages || 1);
-			DOM.id("nav-last").disabled = currentPage === (totalPages || 1);
+			dom.id("nav-first").disabled = currentPage === 1;
+			dom.id("nav-prev").disabled = currentPage === 1;
+			dom.id("nav-pick").disabled = (totalPages || 0) <= 1;
+			dom.id("nav-next").disabled = currentPage === (totalPages || 1);
+			dom.id("nav-last").disabled = currentPage === (totalPages || 1);
 		},
 		
 		// --------------
@@ -191,7 +197,7 @@ const GUI = (function() {
 		 * Updates the channel list and sets up their click events. The callback is triggered whenever a channel is selected, and takes the channel ID as its argument.
 		 */
 		updateChannelList(channels, selected, callback) {
-			const eleChannels = DOM.id("channels");
+			const eleChannels = dom.id("channels");
 			
 			if (!channels) {
 				eleChannels.innerHTML = "";
@@ -201,11 +207,11 @@ const GUI = (function() {
 					channels = channels.filter(channel => channel.msgcount > 0);
 				}
 				
-				eleChannels.innerHTML = channels.map(channel => DISCORD.getChannelHTML(channel)).join("");
+				eleChannels.innerHTML = channels.map(channel => discord.getChannelHTML(channel)).join("");
 				
 				Array.prototype.forEach.call(eleChannels.children, ele => {
 					ele.addEventListener("click", () => {
-						const currentChannel = DOM.fcls("active", eleChannels);
+						const currentChannel = dom.fcls("active", eleChannels);
 						
 						if (currentChannel) {
 							currentChannel.classList.remove("active");
@@ -224,12 +230,12 @@ const GUI = (function() {
 		},
 		
 		updateMessageList(messages) {
-			DOM.id("messages").innerHTML = messages ? messages.map(message => DISCORD.getMessageHTML(message)).join("") : "";
+			dom.id("messages").innerHTML = messages ? messages.map(message => discord.getMessageHTML(message)).join("") : "";
 		},
 		
 		updateUserList(users) {
 			/** @type HTMLSelectElement */
-			const eleSelect = DOM.id("opt-filter-user");
+			const eleSelect = dom.id("opt-filter-user");
 			
 			while (eleSelect.length > 1) {
 				eleSelect.remove(1);
@@ -249,7 +255,7 @@ const GUI = (function() {
 		},
 		
 		scrollMessagesToTop() {
-			DOM.id("messages").scrollTop = 0;
+			dom.id("messages").scrollTop = 0;
 		}
 	};
 })();

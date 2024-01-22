@@ -8,9 +8,12 @@ const HTML_ENTITY_MAP = {
 
 const HTML_ENTITY_REGEX = /[&<>"']/g;
 
-class DOM {
+export default class {
 	/**
 	 * Returns a child element by its ID. Parent defaults to the entire document.
+	 * @param {string} id
+	 * @param {HTMLElement} [parent]
+	 * @returns {HTMLElement|null}
 	 */
 	static id(id, parent) {
 		return (parent || document).getElementById(id);
@@ -18,6 +21,9 @@ class DOM {
 	
 	/**
 	 * Returns an array of all child elements containing the specified class. Parent defaults to the entire document.
+	 * @param {string} cls
+	 * @param {HTMLElement} [parent]
+	 * @returns {HTMLElement[]}
 	 */
 	static cls(cls, parent) {
 		return Array.prototype.slice.call((parent || document).getElementsByClassName(cls));
@@ -25,6 +31,9 @@ class DOM {
 	
 	/**
 	 * Returns an array of all child elements that have the specified tag. Parent defaults to the entire document.
+	 * @param {string} tag
+	 * @param {HTMLElement} [parent]
+	 * @returns {HTMLElement[]}
 	 */
 	static tag(tag, parent) {
 		return Array.prototype.slice.call((parent || document).getElementsByTagName(tag));
@@ -32,6 +41,9 @@ class DOM {
 	
 	/**
 	 * Returns the first child element containing the specified class. Parent defaults to the entire document.
+	 * @param {string} cls
+	 * @param {HTMLElement} [parent]
+	 * @returns {HTMLElement}
 	 */
 	static fcls(cls, parent) {
 		return (parent || document).getElementsByClassName(cls)[0];

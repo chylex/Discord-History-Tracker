@@ -1,9 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using DHT.Desktop.Main.Pages;
 using DHT.Utils.Logging;
 using JetBrains.Annotations;
 
@@ -41,14 +39,6 @@ public sealed partial class MainWindow : Window {
 				await model.DisposeAsync();
 			} catch (Exception ex) {
 				Log.Error("Caught exception while disposing window: " + ex);
-			}
-		}
-
-		foreach (var temporaryFile in ViewerPageModel.TemporaryFiles) {
-			try {
-				File.Delete(temporaryFile);
-			} catch (Exception) {
-				// ignored
 			}
 		}
 	}

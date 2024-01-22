@@ -1,8 +1,11 @@
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Database;
+using DHT.Server.Service.Viewer;
 using DHT.Utils.Logging;
+using DHT.Utils.Resources;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,10 +28,12 @@ public sealed class ServerManager {
 	}
 
 	private readonly IDatabaseFile db;
+	private readonly ViewerSessions viewerSessions;
 	private readonly SemaphoreSlim semaphore = new (1, 1);
 
-	internal ServerManager(IDatabaseFile db) {
+	internal ServerManager(IDatabaseFile db, ViewerSessions viewerSessions) {
 		this.db = db;
+		this.viewerSessions = viewerSessions;
 	}
 
 	public async Task Start(ushort port, string token) {
@@ -57,6 +62,8 @@ public sealed class ServerManager {
 		void AddServices(IServiceCollection services) {
 			services.AddSingleton(typeof(IDatabaseFile), db);
 			services.AddSingleton(typeof(ServerParameters), new ServerParameters(port, token));
+			services.AddSingleton(typeof(ResourceLoader), new ResourceLoader(Assembly.GetExecutingAssembly()));
+			services.AddSingleton(typeof(ViewerSessions), viewerSessions);
 		}
 
 		void SetKestrelOptions(KestrelServerOptions options) {

@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 using DHT.Server.Database;
 using DHT.Server.Endpoints;
 using DHT.Server.Service.Middlewares;
+using DHT.Server.Service.Viewer;
+using DHT.Utils.Resources;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,14 +35,23 @@ sealed class Startup {
 	}
 
 	[SuppressMessage("ReSharper", "UnusedMember.Global")]
-	public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, IDatabaseFile db, ServerParameters parameters) {
+	public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, IDatabaseFile db, ServerParameters parameters, ResourceLoader resources, ViewerSessions viewerSessions) {
 		app.UseMiddleware<ServerLoggingMiddleware>();
 		app.UseCors();
-		app.UseMiddleware<ServerAuthorizationMiddleware>();
-		app.UseRouting();
 		
+		app.Map("/viewer", node => {
+			node.UseRouting();
+			node.UseEndpoints(endpoints => {
+				endpoints.MapGet("/{**path}", new ViewerEndpoint(db, resources).Handle);
+			});
+		});
+		
+		app.UseMiddleware<ServerAuthorizationMiddleware>();
+		
+		app.UseRouting();
 		app.UseEndpoints(endpoints => {
-			endpoints.MapGet("/get-tracking-script", new GetTrackingScriptEndpoint(db, parameters).Handle);
+			endpoints.MapGet("/get-tracking-script", new GetTrackingScriptEndpoint(db, parameters, resources).Handle);
+			endpoints.MapGet("/get-viewer-data", new GetViewerDataEndpoint(db, viewerSessions).Handle);
 			endpoints.MapGet("/get-downloaded-file/{url}", new GetDownloadedFileEndpoint(db).Handle);
 			endpoints.MapPost("/track-channel", new TrackChannelEndpoint(db).Handle);
 			endpoints.MapPost("/track-users", new TrackUsersEndpoint(db).Handle);

@@ -1,5 +1,8 @@
+import settings from "./settings.mjs";
+import processor from "./processor.mjs";
+
 // noinspection FunctionWithInconsistentReturnsJS
-const STATE = (function() {
+export default (function() {
 	/**
 	 * @type {{}}
 	 * @property {{}} users
@@ -173,7 +176,7 @@ const STATE = (function() {
 	};
 	
 	const getMessageChannel = function(id) {
-		for (const [ channel, messages ] of Object.entries(loadedFileData)) {
+		for (const [ channel, messages ] of Object.entries(loadedFileData)) { 
 			if (id in messages) {
 				return channel;
 			}
@@ -313,7 +316,7 @@ const STATE = (function() {
 			triggerChannelsRefreshed();
 			triggerMessagesRefreshed();
 			
-			SETTINGS.onSettingsChanged(() => triggerMessagesRefreshed());
+			settings.onSettingsChanged(() => triggerMessagesRefreshed());
 		},
 		
 		getChannelName(channel) {
@@ -335,7 +338,7 @@ const STATE = (function() {
 			currentPage = 1;
 			selectedChannel = channel;
 			
-			loadedMessages = getFilteredMessageKeys(channel).sort(PROCESSOR.SORTER.oldestToNewest);
+			loadedMessages = getFilteredMessageKeys(channel).sort(processor.SORTER.oldestToNewest);
 			triggerMessagesRefreshed();
 		},
 		
@@ -416,23 +419,23 @@ const STATE = (function() {
 		setActiveFilter(filter) {
 			switch (filter ? filter.type : "") {
 				case "user":
-					filterFunction = PROCESSOR.FILTER.byUser(loadedFileMeta.userindex.indexOf(filter.value));
+					filterFunction = processor.FILTER.byUser(loadedFileMeta.userindex.indexOf(filter.value));
 					break;
 				
 				case "contents":
-					filterFunction = PROCESSOR.FILTER.byContents(filter.value);
+					filterFunction = processor.FILTER.byContents(filter.value);
 					break;
 				
 				case "withimages":
-					filterFunction = PROCESSOR.FILTER.withImages();
+					filterFunction = processor.FILTER.withImages();
 					break;
 				
 				case "withdownloads":
-					filterFunction = PROCESSOR.FILTER.withDownloads();
+					filterFunction = processor.FILTER.withDownloads();
 					break;
 				
 				case "edited":
-					filterFunction = PROCESSOR.FILTER.isEdited();
+					filterFunction = processor.FILTER.isEdited();
 					break;
 				
 				default:

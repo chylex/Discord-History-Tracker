@@ -1,34 +1,22 @@
 using System;
-using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
-using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
-using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Server;
 using DHT.Server;
 using DHT.Server.Data.Filters;
-using DHT.Server.Database.Export;
-using static DHT.Desktop.Program;
+using DHT.Server.Service.Viewer;
 
 namespace DHT.Desktop.Main.Pages;
 
 sealed partial class ViewerPageModel : ObservableObject, IDisposable {
-	public static readonly ConcurrentBag<string> TemporaryFiles = [];
-
-	private static readonly FilePickerFileType[] ViewerFileTypes = [
-		FileDialogs.CreateFilter("Discord History Viewer", ["html"])
-	];
-
 	public bool DatabaseToolFilterModeKeep { get; set; } = true;
 	public bool DatabaseToolFilterModeRemove { get; set; } = false;
 
@@ -61,99 +49,16 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 
 	public async void OnClickOpenViewer() {
 		try {
-			var fullPath = await PrepareTemporaryViewerFile();
+			string serverUrl = "http://127.0.0.1:" + ServerConfiguration.Port;
+			string serverToken = ServerConfiguration.Token;
+			string sessionId = state.ViewerSessions.Register(new ViewerSession(FilterModel.CreateFilter())).ToString();
 			
-			string jsConstants = $"""
-			                      window.DHT_SERVER_URL = "{HttpUtility.JavaScriptStringEncode("http://127.0.0.1:" + ServerConfiguration.Port)}";
-			                      window.DHT_SERVER_TOKEN = "{HttpUtility.JavaScriptStringEncode(ServerConfiguration.Token)}";
-			                      """;
-
-			await ProgressDialog.ShowIndeterminate(window, "Open Viewer", "Creating viewer...", _ => Task.Run(() => WriteViewerFile(fullPath, jsConstants)));
-			
-			Process.Start(new ProcessStartInfo(fullPath) {
+			Process.Start(new ProcessStartInfo(serverUrl + "/viewer/?token=" + HttpUtility.UrlEncode(serverToken) + "&session=" + HttpUtility.UrlEncode(sessionId)) {
 				UseShellExecute = true
 			});
 		} catch (Exception e) {
-			await Dialog.ShowOk(window, "Open Viewer", "Could not create or save viewer: " + e.Message);
+			await Dialog.ShowOk(window, "Open Viewer", "Could not open viewer: " + e.Message);
 		}
-	}
-
-	private async Task<string> PrepareTemporaryViewerFile() {
-		return await Task.Run(() => {
-			string rootPath = Path.Combine(Path.GetTempPath(), "DiscordHistoryTracker");
-			string filenameBase = Path.GetFileNameWithoutExtension(state.Db.Path) + "-" + DateTime.Now.ToString("yyyy-MM-dd");
-			string fullPath = Path.Combine(rootPath, filenameBase + ".html");
-			
-			int counter = 0;
-
-			while (File.Exists(fullPath)) {
-				++counter;
-				fullPath = Path.Combine(rootPath, filenameBase + "-" + counter + ".html");
-			}
-
-			TemporaryFiles.Add(fullPath);
-
-			Directory.CreateDirectory(rootPath);
-
-			return fullPath;
-		});
-	}
-
-	public async void OnClickSaveViewer() {
-		string? path = await window.StorageProvider.SaveFile(new FilePickerSaveOptions {
-			Title = "Save Viewer",
-			FileTypeChoices = ViewerFileTypes,
-			SuggestedFileName = Path.GetFileNameWithoutExtension(state.Db.Path) + ".html",
-			SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, Path.GetDirectoryName(state.Db.Path)),
-		});
-
-		if (path == null) {
-			return;
-		}
-
-		try {
-			await ProgressDialog.ShowIndeterminate(window, "Save Viewer", "Creating viewer...", _ => Task.Run(() => WriteViewerFile(path, string.Empty)));
-		} catch (Exception e) {
-			await Dialog.ShowOk(window, "Save Viewer", "Could not create or save viewer: " + e.Message);
-		}
-	}
-
-	private async Task WriteViewerFile(string path, string jsConstants) {
-		const string ArchiveTag = "/*[ARCHIVE]*/";
-
-		string indexFile = await Resources.ReadTextAsync("Viewer/index.html");
-		string viewerTemplate = indexFile.Replace("/*[CONSTANTS]*/", jsConstants)
-		                                 .Replace("/*[JS]*/", await Resources.ReadJoinedAsync("Viewer/scripts/", '\n'))
-		                                 .Replace("/*[CSS]*/", await Resources.ReadJoinedAsync("Viewer/styles/", '\n'));
-
-		int viewerArchiveTagStart = viewerTemplate.IndexOf(ArchiveTag);
-		int viewerArchiveTagEnd = viewerArchiveTagStart + ArchiveTag.Length;
-
-		string jsonTempFile = path + ".tmp";
-
-		await using (var jsonStream = new FileStream(jsonTempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)) {
-			await ViewerJsonExport.Generate(jsonStream, state.Db, FilterModel.CreateFilter());
-
-			char[] jsonBuffer = new char[Math.Min(32768, jsonStream.Position)];
-			jsonStream.Position = 0;
-
-			await using (var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read))
-			await using (var outputWriter = new StreamWriter(outputStream, Encoding.UTF8)) {
-				await outputWriter.WriteAsync(viewerTemplate[..viewerArchiveTagStart]);
-
-				using (var jsonReader = new StreamReader(jsonStream, Encoding.UTF8)) {
-					int readBytes;
-					while ((readBytes = await jsonReader.ReadAsync(jsonBuffer, 0, jsonBuffer.Length)) > 0) {
-						string jsonChunk = new string(jsonBuffer, 0, readBytes);
-						await outputWriter.WriteAsync(HttpUtility.JavaScriptStringEncode(jsonChunk));
-					}
-				}
-
-				await outputWriter.WriteAsync(viewerTemplate[viewerArchiveTagEnd..]);
-			}
-		}
-
-		File.Delete(jsonTempFile);
 	}
 
 	public async Task OnClickApplyFiltersToDatabase() {

@@ -10,7 +10,7 @@ using DHT.Utils.Logging;
 
 namespace DHT.Server.Database.Export;
 
-public static class ViewerJsonExport {
+static class ViewerJsonExport {
 	private static readonly Log Log = Log.ForType(typeof(ViewerJsonExport));
 
 	public static async Task Generate(Stream stream, IDatabaseFile db, MessageFilter? filter = null) {

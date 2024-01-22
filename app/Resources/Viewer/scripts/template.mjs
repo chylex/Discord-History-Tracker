@@ -1,6 +1,8 @@
+import dom from "./dom.mjs";
+
 const TEMPLATE_REGEX = /{([^{}]+?)}/g;
 
-class TEMPLATE {
+export default class {
 	constructor(contents) {
 		this.contents = contents;
 	};
@@ -11,10 +13,10 @@ class TEMPLATE {
 			
 			if (processor) {
 				const updated = processor(match, value);
-				return typeof updated === "undefined" ? DOM.escapeHTML(value) : updated;
+				return typeof updated === "undefined" ? dom.escapeHTML(value) : updated;
 			}
 			
-			return DOM.escapeHTML(value);
+			return dom.escapeHTML(value);
 		});
 	}
 }
