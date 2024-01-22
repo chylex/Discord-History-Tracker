@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 namespace DHT.Utils.Resources;
 
 public sealed class ResourceLoader(Assembly assembly) {
-	private Stream GetEmbeddedStream(string filename) {
+	private Stream? TryGetEmbeddedStream(string filename) {
 		Stream? stream = null;
+		
 		foreach (var embeddedName in assembly.GetManifestResourceNames()) {
 			if (embeddedName.Replace('\\', '/') == filename) {
 				stream = assembly.GetManifestResourceStream(embeddedName);
@@ -16,16 +17,30 @@ public sealed class ResourceLoader(Assembly assembly) {
 			}
 		}
 
-		return stream ?? throw new ArgumentException("Missing embedded resource: " + filename);
+		return stream;
+	}
+	
+	private Stream GetEmbeddedStream(string filename) {
+		return TryGetEmbeddedStream(filename) ?? throw new ArgumentException("Missing embedded resource: " + filename);
 	}
 
 	private async Task<string> ReadTextAsync(Stream stream) {
 		using var reader = new StreamReader(stream, Encoding.UTF8);
 		return await reader.ReadToEndAsync();
 	}
+	
+	private async Task<byte[]> ReadBytesAsync(Stream stream) {
+		using var memoryStream = new MemoryStream();
+		await stream.CopyToAsync(memoryStream);
+		return memoryStream.ToArray();
+	}
 
 	public async Task<string> ReadTextAsync(string filename) {
 		return await ReadTextAsync(GetEmbeddedStream(filename));
+	}
+	
+	public async Task<byte[]?> ReadBytesAsyncIfExists(string filename) {
+		return TryGetEmbeddedStream(filename) is {} stream ? await ReadBytesAsync(stream) : null;
 	}
 
 	public async Task<string> ReadJoinedAsync(string path, char separator) {

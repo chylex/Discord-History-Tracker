@@ -1,6 +1,6 @@
-import discord from "./discord";
-import gui from "./gui";
-import state from "./state";
+import discord from "./discord.mjs";
+import gui from "./gui.mjs";
+import state from "./state.mjs";
 
 window.DISCORD = discord;
 

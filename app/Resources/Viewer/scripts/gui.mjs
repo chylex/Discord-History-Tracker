@@ -1,4 +1,4 @@
-import dom from "./dom";
+import dom from "./dom.mjs";
 import discord from "./discord.mjs";
 import settings from "./settings.mjs";
 import state from "./state.mjs";

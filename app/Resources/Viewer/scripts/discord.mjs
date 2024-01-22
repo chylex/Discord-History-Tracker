@@ -1,6 +1,6 @@
-import discord from "./discord";
-import dom from "./dom";
-import template from "./template";
+import discord from "./discord.mjs";
+import dom from "./dom.mjs";
+import template from "./template.mjs";
 import settings from "./settings.mjs";
 import state from "./state.mjs";
 

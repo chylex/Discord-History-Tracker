@@ -1,8 +1,10 @@
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Database;
 using DHT.Utils.Logging;
+using DHT.Utils.Resources;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,6 +59,7 @@ public sealed class ServerManager {
 		void AddServices(IServiceCollection services) {
 			services.AddSingleton(typeof(IDatabaseFile), db);
 			services.AddSingleton(typeof(ServerParameters), new ServerParameters(port, token));
+			services.AddSingleton(typeof(ResourceLoader), new ResourceLoader(Assembly.GetExecutingAssembly()));
 		}
 
 		void SetKestrelOptions(KestrelServerOptions options) {

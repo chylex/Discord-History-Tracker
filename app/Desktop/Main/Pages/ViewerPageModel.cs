@@ -2,8 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
@@ -17,8 +15,6 @@ using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Server;
 using DHT.Server;
 using DHT.Server.Data.Filters;
-using DHT.Server.Database.Export;
-using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages;
 
@@ -70,43 +66,6 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 		} catch (Exception e) {
 			await Dialog.ShowOk(window, "Open Viewer", "Could not open viewer: " + e.Message);
 		}
-	}
-
-	private async Task WriteViewerFile(string path, string url, string token) {
-		const string ArchiveTag = "/*[ARCHIVE]*/";
-
-		string indexFile = await Resources.ReadTextAsync("Viewer/index.html");
-		string viewerTemplate = indexFile.Replace("/*[SERVER_URL]*/", HttpUtility.JavaScriptStringEncode(url))
-		                                 .Replace("/*[SERVER_TOKEN]*/", HttpUtility.JavaScriptStringEncode(token));
-
-		int viewerArchiveTagStart = viewerTemplate.IndexOf(ArchiveTag);
-		int viewerArchiveTagEnd = viewerArchiveTagStart + ArchiveTag.Length;
-
-		string jsonTempFile = path + ".tmp";
-
-		await using (var jsonStream = new FileStream(jsonTempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read)) {
-			await ViewerJsonExport.Generate(jsonStream, state.Db, FilterModel.CreateFilter());
-
-			char[] jsonBuffer = new char[Math.Min(32768, jsonStream.Position)];
-			jsonStream.Position = 0;
-
-			await using (var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read))
-			await using (var outputWriter = new StreamWriter(outputStream, Encoding.UTF8)) {
-				await outputWriter.WriteAsync(viewerTemplate[..viewerArchiveTagStart]);
-
-				using (var jsonReader = new StreamReader(jsonStream, Encoding.UTF8)) {
-					int readBytes;
-					while ((readBytes = await jsonReader.ReadAsync(jsonBuffer, 0, jsonBuffer.Length)) > 0) {
-						string jsonChunk = new string(jsonBuffer, 0, readBytes);
-						await outputWriter.WriteAsync(HttpUtility.JavaScriptStringEncode(jsonChunk));
-					}
-				}
-
-				await outputWriter.WriteAsync(viewerTemplate[viewerArchiveTagEnd..]);
-			}
-		}
-
-		File.Delete(jsonTempFile);
 	}
 
 	public async Task OnClickApplyFiltersToDatabase() {
