@@ -1,4 +1,10 @@
-const DISCORD = (function() {
+import discord from "./discord";
+import dom from "./dom";
+import template from "./template";
+import settings from "./settings.mjs";
+import state from "./state.mjs";
+
+export default (function() {
 	const regex = {
 		formatBold: /\*\*([\s\S]+?)\*\*(?!\*)/g,
 		formatItalic1: /\*([\s\S]+?)\*(?!\*)/g,
@@ -53,9 +59,9 @@ const DISCORD = (function() {
 	};
 	
 	const processMessageContents = function(contents) {
-		let processed = DOM.escapeHTML(contents.replace(regex.formatUrlNoEmbed, "$1"));
+		let processed = dom.escapeHTML(contents.replace(regex.formatUrlNoEmbed, "$1"));
 		
-		if (SETTINGS.enableFormatting) {
+		if (settings.enableFormatting) {
 			const escapeHtmlMatch = (full, match) => "&#" + match.charCodeAt(0) + ";";
 			
 			processed = processed
@@ -71,13 +77,13 @@ const DISCORD = (function() {
 				.replace(regex.formatStrike, "<s>$1</s>");
 		}
 		
-		const animatedEmojiExtension = SETTINGS.enableAnimatedEmoji ? "gif" : "webp";
+		const animatedEmojiExtension = settings.enableAnimatedEmoji ? "gif" : "webp";
 		
 		// noinspection HtmlUnknownTarget
 		processed = processed
 			.replace(regex.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
-			.replace(regex.mentionChannel, (full, match) => "<span class='link mention-chat'>#" + STATE.getChannelName(match) + "</span>")
-			.replace(regex.mentionUser, (full, match) => "<span class='link mention-user' title='#" + (STATE.getUserTag(match) || "????") + "'>@" + STATE.getUserName(match) + "</span>")
+			.replace(regex.mentionChannel, (full, match) => "<span class='link mention-chat'>#" + state.getChannelName(match) + "</span>")
+			.replace(regex.mentionUser, (full, match) => "<span class='link mention-user' title='#" + (state.getUserTag(match) || "????") + "'>@" + state.getUserName(match) + "</span>")
 			.replace(regex.customEmojiStatic, (full, m1, m2) => getEmoji(m1, m2, "webp"))
 			.replace(regex.customEmojiAnimated, (full, m1, m2) => getEmoji(m1, m2, animatedEmojiExtension));
 		
@@ -89,7 +95,7 @@ const DISCORD = (function() {
 	};
 	
 	const getImageEmbed = function(url, image) {
-		if (!SETTINGS.enableImagePreviews) {
+		if (!settings.enableImagePreviews) {
 			return "";
 		}
 		
@@ -109,21 +115,21 @@ const DISCORD = (function() {
 	
 	return {
 		setup() {
-			templateChannelServer = new TEMPLATE([
+			templateChannelServer = new template([
 				"<div data-channel='{id}'>",
 				"<div class='info' title='{topic}'><strong class='name'>#{name}</strong>{nsfw}<span class='tag'>{msgcount}</span></div>",
 				"<span class='server'>{server.name} ({server.type})</span>",
 				"</div>"
 			].join(""));
 			
-			templateChannelPrivate = new TEMPLATE([
+			templateChannelPrivate = new template([
 				"<div data-channel='{id}'>",
 				"<div class='info'><strong class='name'>{name}</strong><span class='tag'>{msgcount}</span></div>",
 				"<span class='server'>({server.type})</span>",
 				"</div>"
 			].join(""));
 			
-			templateMessageNoAvatar = new TEMPLATE([
+			templateMessageNoAvatar = new template([
 				"<div>",
 				"<div class='reply-message'>{reply}</div>",
 				"<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
@@ -132,7 +138,7 @@ const DISCORD = (function() {
 				"</div>"
 			].join(""));
 			
-			templateMessageWithAvatar = new TEMPLATE([
+			templateMessageWithAvatar = new template([
 				"<div>",
 				"<div class='reply-message reply-message-with-avatar'>{reply}</div>",
 				"<div class='avatar-wrapper'>",
@@ -147,50 +153,50 @@ const DISCORD = (function() {
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
-			templateUserAvatar = new TEMPLATE([
+			templateUserAvatar = new template([
 				"<img src='{url}' alt=''>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
-			templateAttachmentDownload = new TEMPLATE([
+			templateAttachmentDownload = new template([
 				"<a href='{url}' class='embed download'>Download {name}</a>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
-			templateEmbedImage = new TEMPLATE([
+			templateEmbedImage = new template([
 				"<a href='{url}' class='embed thumbnail loading'><img src='{src}' alt='' onload='DISCORD.handleImageLoad(this)' onerror='DISCORD.handleImageLoadError(this)'></a><br>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
-			templateEmbedImageWithSize = new TEMPLATE([
+			templateEmbedImageWithSize = new template([
 				"<a href='{url}' class='embed thumbnail loading'><img src='{src}' width='{width}' height='{height}' alt='' onload='DISCORD.handleImageLoad(this)' onerror='DISCORD.handleImageLoadError(this)'></a><br>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
-			templateEmbedRich = new TEMPLATE([
+			templateEmbedRich = new template([
 				"<div class='embed download'><a href='{url}' class='title'>{title}</a><p class='desc'>{description}</p></div>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
-			templateEmbedRichNoDescription = new TEMPLATE([
+			templateEmbedRichNoDescription = new template([
 				"<div class='embed download'><a href='{url}' class='title'>{title}</a></div>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
-			templateEmbedUrl = new TEMPLATE([
+			templateEmbedUrl = new template([
 				"<a href='{url}' class='embed download'>{url}</a>"
 			].join(""));
 			
-			templateEmbedUnsupported = new TEMPLATE([
+			templateEmbedUnsupported = new template([
 				"<div class='embed download'><p>(Unsupported embed)</p></div>"
 			].join(""));
 			
-			templateReaction = new TEMPLATE([
+			templateReaction = new template([
 				"<span class='reaction-wrapper'><span class='reaction-emoji'>{n}</span><span class='count'>{c}</span></span>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
-			templateReactionCustom = new TEMPLATE([
+			templateReactionCustom = new template([
 				"<span class='reaction-wrapper'><img src='{url}' alt=':{n}:' title=':{n}:' class='reaction-emoji-custom'><span class='count'>{c}</span></span>"
 			].join(""));
 		},
@@ -207,7 +213,7 @@ const DISCORD = (function() {
 		},
 		
 		isImageAttachment(attachment) {
-			const url = DOM.tryParseUrl(attachment.url);
+			const url = dom.tryParseUrl(attachment.url);
 			return url != null && isImageUrl(url);
 		},
 		
@@ -220,7 +226,7 @@ const DISCORD = (function() {
 		},
 		
 		getMessageHTML(message) { // noinspection FunctionWithInconsistentReturnsJS
-			return (SETTINGS.enableUserAvatars ? templateMessageWithAvatar : templateMessageNoAvatar).apply(message, (property, value) => {
+			return (settings.enableUserAvatars ? templateMessageWithAvatar : templateMessageNoAvatar).apply(message, (property, value) => {
 				if (property === "avatar") {
 					return value ? templateUserAvatar.apply(getAvatarUrlObject(value)) : "";
 				}
@@ -228,7 +234,7 @@ const DISCORD = (function() {
 					return value ? value : "????";
 				}
 				else if (property === "timestamp") {
-					return DOM.getHumanReadableTime(value);
+					return dom.getHumanReadableTime(value);
 				}
 				else if (property === "contents") {
 					return value && value.length > 0 ? processMessageContents(value) : "";
@@ -267,7 +273,7 @@ const DISCORD = (function() {
 					return value.map(attachment => {
 						const url = fileUrlProcessor(attachment.url);
 						
-						if (!DISCORD.isImageAttachment(attachment) || !SETTINGS.enableImagePreviews) {
+						if (!discord.isImageAttachment(attachment) || !settings.enableImagePreviews) {
 							return templateAttachmentDownload.apply({ url, name: attachment.name });
 						}
 						else if ("width" in attachment && "height" in attachment) {
@@ -279,10 +285,10 @@ const DISCORD = (function() {
 					}).join("");
 				}
 				else if (property === "edit") {
-					return value ? "<span class='info edited'>Edited " + DOM.getHumanReadableTime(value) + "</span>" : "";
+					return value ? "<span class='info edited'>Edited " + dom.getHumanReadableTime(value) + "</span>" : "";
 				}
 				else if (property === "jump") {
-					return STATE.hasActiveFilter ? "<span class='info jump' data-jump='" + value + "'>Jump to message</span>" : "";
+					return state.hasActiveFilter ? "<span class='info jump' data-jump='" + value + "'>Jump to message</span>" : "";
 				}
 				else if (property === "reply") {
 					if (!value) {
@@ -290,7 +296,7 @@ const DISCORD = (function() {
 					}
 					
 					const user = "<span class='reply-username' title='#" + (value.user.tag ? value.user.tag : "????") + "'>" + value.user.name + "</span>";
-					const avatar = SETTINGS.enableUserAvatars && value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(getAvatarUrlObject(value.avatar)) + "</span>" : "";
+					const avatar = settings.enableUserAvatars && value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(getAvatarUrlObject(value.avatar)) + "</span>" : "";
 					const contents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
 					
 					return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
@@ -302,7 +308,7 @@ const DISCORD = (function() {
 					
 					return "<div class='reactions'>" + value.map(reaction => {
 						if ("id" in reaction){
-							const ext = reaction.a && SETTINGS.enableAnimatedEmoji ? "gif" : "webp";
+							const ext = reaction.a && settings.enableAnimatedEmoji ? "gif" : "webp";
 							const url = fileUrlProcessor("https://cdn.discordapp.com/emojis/" + reaction.id + "." + ext);
 							// noinspection JSUnusedGlobalSymbols
 							return templateReactionCustom.apply({ url, n: reaction.n, c: reaction.c });

@@ -40,6 +40,7 @@ sealed class Startup {
 		app.UseRouting();
 		
 		app.UseEndpoints(endpoints => {
+			endpoints.MapGet("/viewer/{**path}", new ViewerEndpoint(db, parameters).Handle);
 			endpoints.MapGet("/get-tracking-script", new GetTrackingScriptEndpoint(db, parameters).Handle);
 			endpoints.MapGet("/get-downloaded-file/{url}", new GetDownloadedFileEndpoint(db).Handle);
 			endpoints.MapPost("/track-channel", new TrackChannelEndpoint(db).Handle);

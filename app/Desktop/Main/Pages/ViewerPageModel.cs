@@ -61,70 +61,23 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 
 	public async void OnClickOpenViewer() {
 		try {
-			var fullPath = await PrepareTemporaryViewerFile();
+			string serverUrl = "http://127.0.0.1:" + ServerConfiguration.Port;
+			string serverToken = ServerConfiguration.Token;
 			
-			string jsConstants = $"""
-			                      window.DHT_SERVER_URL = "{HttpUtility.JavaScriptStringEncode("http://127.0.0.1:" + ServerConfiguration.Port)}";
-			                      window.DHT_SERVER_TOKEN = "{HttpUtility.JavaScriptStringEncode(ServerConfiguration.Token)}";
-			                      """;
-
-			await ProgressDialog.ShowIndeterminate(window, "Open Viewer", "Creating viewer...", _ => Task.Run(() => WriteViewerFile(fullPath, jsConstants)));
-			
-			Process.Start(new ProcessStartInfo(fullPath) {
+			Process.Start(new ProcessStartInfo(serverUrl + "/viewer?token=" + HttpUtility.UrlEncode(serverToken)) {
 				UseShellExecute = true
 			});
 		} catch (Exception e) {
-			await Dialog.ShowOk(window, "Open Viewer", "Could not create or save viewer: " + e.Message);
+			await Dialog.ShowOk(window, "Open Viewer", "Could not open viewer: " + e.Message);
 		}
 	}
 
-	private async Task<string> PrepareTemporaryViewerFile() {
-		return await Task.Run(() => {
-			string rootPath = Path.Combine(Path.GetTempPath(), "DiscordHistoryTracker");
-			string filenameBase = Path.GetFileNameWithoutExtension(state.Db.Path) + "-" + DateTime.Now.ToString("yyyy-MM-dd");
-			string fullPath = Path.Combine(rootPath, filenameBase + ".html");
-			
-			int counter = 0;
-
-			while (File.Exists(fullPath)) {
-				++counter;
-				fullPath = Path.Combine(rootPath, filenameBase + "-" + counter + ".html");
-			}
-
-			TemporaryFiles.Add(fullPath);
-
-			Directory.CreateDirectory(rootPath);
-
-			return fullPath;
-		});
-	}
-
-	public async void OnClickSaveViewer() {
-		string? path = await window.StorageProvider.SaveFile(new FilePickerSaveOptions {
-			Title = "Save Viewer",
-			FileTypeChoices = ViewerFileTypes,
-			SuggestedFileName = Path.GetFileNameWithoutExtension(state.Db.Path) + ".html",
-			SuggestedStartLocation = await FileDialogs.GetSuggestedStartLocation(window, Path.GetDirectoryName(state.Db.Path)),
-		});
-
-		if (path == null) {
-			return;
-		}
-
-		try {
-			await ProgressDialog.ShowIndeterminate(window, "Save Viewer", "Creating viewer...", _ => Task.Run(() => WriteViewerFile(path, string.Empty)));
-		} catch (Exception e) {
-			await Dialog.ShowOk(window, "Save Viewer", "Could not create or save viewer: " + e.Message);
-		}
-	}
-
-	private async Task WriteViewerFile(string path, string jsConstants) {
+	private async Task WriteViewerFile(string path, string url, string token) {
 		const string ArchiveTag = "/*[ARCHIVE]*/";
 
 		string indexFile = await Resources.ReadTextAsync("Viewer/index.html");
-		string viewerTemplate = indexFile.Replace("/*[CONSTANTS]*/", jsConstants)
-		                                 .Replace("/*[JS]*/", await Resources.ReadJoinedAsync("Viewer/scripts/", '\n'))
-		                                 .Replace("/*[CSS]*/", await Resources.ReadJoinedAsync("Viewer/styles/", '\n'));
+		string viewerTemplate = indexFile.Replace("/*[SERVER_URL]*/", HttpUtility.JavaScriptStringEncode(url))
+		                                 .Replace("/*[SERVER_TOKEN]*/", HttpUtility.JavaScriptStringEncode(token));
 
 		int viewerArchiveTagStart = viewerTemplate.IndexOf(ArchiveTag);
 		int viewerArchiveTagEnd = viewerArchiveTagStart + ArchiveTag.Length;
