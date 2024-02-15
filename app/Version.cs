@@ -8,5 +8,5 @@ using DHT.Utils;
 namespace DHT.Utils;
 
 static class Version {
-	public const string Tag = "41.0.0.0";
+	public const string Tag = "41.1.0.0";
 }
