@@ -48,6 +48,16 @@ const STATE = (function() {
 		});
 	};
 	
+	const getDate = function(date) {
+		if (date instanceof Date) {
+			return date;
+		}
+		else {
+			// noinspection JSUnresolvedReference
+			return date.toDate();
+		}
+	};
+	
 	const trackingStateChangedListeners = [];
 	let isTracking = false;
 	
@@ -69,8 +79,8 @@ const STATE = (function() {
 	 * @property {String} channel_id
 	 * @property {DiscordUser} author
 	 * @property {String} content
-	 * @property {Timestamp} timestamp
-	 * @property {Timestamp|null} editedTimestamp
+	 * @property {Date} timestamp
+	 * @property {Date|null} editedTimestamp
 	 * @property {DiscordAttachment[]} attachments
 	 * @property {Object[]} embeds
 	 * @property {DiscordMessageReaction[]} [reactions]
@@ -104,11 +114,6 @@ const STATE = (function() {
 	 * @property {String|null} id
 	 * @property {String|null} name
 	 * @property {Boolean} animated
-	 */
-	
-	/**
-	 * @name Timestamp
-	 * @property {Function} toDate
 	 */
 	
 	return {
@@ -223,12 +228,12 @@ const STATE = (function() {
 					sender: msg.author.id,
 					channel: msg.channel_id,
 					text: msg.content,
-					timestamp: msg.timestamp.toDate().getTime()
+					timestamp: getDate(msg.timestamp).getTime()
 				};
 				
 				if (msg.editedTimestamp !== null) {
 					// noinspection JSUnusedGlobalSymbols
-					obj.editTimestamp = msg.editedTimestamp.toDate().getTime();
+					obj.editTimestamp = getDate(msg.editedTimestamp).getTime();
 				}
 				
 				if (msg.messageReference !== null) {
