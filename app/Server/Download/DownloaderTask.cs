@@ -15,9 +15,13 @@ namespace DHT.Server.Download;
 sealed class DownloaderTask : IAsyncDisposable {
 	private static readonly Log Log = Log.ForType<DownloaderTask>();
 
-	private const int DownloadTasks = 4;
+	private const int DefaultConcurrentDownloads = 4;
 	private const int QueueSize = 25;
 	private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+	private static int GetDownloadTaskCount(int? concurrentDownloads) {
+		return Math.Max(1, concurrentDownloads ?? DefaultConcurrentDownloads);
+	}
 
 	private readonly Channel<DownloadItem> downloadQueue = Channel.CreateBounded<DownloadItem>(new BoundedChannelOptions(QueueSize) {
 		SingleReader = false,
@@ -38,12 +42,12 @@ sealed class DownloaderTask : IAsyncDisposable {
 
 	public IObservable<DownloadItem> FinishedItems => finishedItemPublisher;
 
-	internal DownloaderTask(IDatabaseFile db, DownloadItemFilter filter) {
+	internal DownloaderTask(IDatabaseFile db, DownloadItemFilter filter, int? concurrentDownloads) {
 		this.db = db;
 		this.filter = filter;
 		this.cancellationToken = cancellationTokenSource.Token;
 		this.queueWriterTask = Task.Run(RunQueueWriterTask);
-		this.downloadTasks = Enumerable.Range(1, DownloadTasks).Select(taskIndex => Task.Run(() => RunDownloadTask(taskIndex))).ToArray();
+		this.downloadTasks = Enumerable.Range(1, GetDownloadTaskCount(concurrentDownloads)).Select(taskIndex => Task.Run(() => RunDownloadTask(taskIndex))).ToArray();
 	}
 
 	private async Task RunQueueWriterTask() {

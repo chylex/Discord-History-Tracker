@@ -15,6 +15,7 @@ sealed class Arguments {
 	public string? DatabaseFile { get; }
 	public ushort? ServerPort { get; }
 	public string? ServerToken { get; }
+	public byte? ConcurrentDownloads { get; }
 
 	public Arguments(IReadOnlyList<string> args) {
 		for (int i = FirstArgument; i < args.Count; i++) {
@@ -50,11 +51,11 @@ sealed class Arguments {
 					continue;
 
 				case "-port": {
-					if (ushort.TryParse(value, out var port)) {
-						ServerPort = port;
+					if (!ushort.TryParse(value, out var port)) {
+						Log.Warn("Invalid port number: " + value);
 					}
 					else {
-						Log.Warn("Invalid port number: " + value);
+						ServerPort = port;
 					}
 
 					continue;
@@ -62,6 +63,20 @@ sealed class Arguments {
 
 				case "-token":
 					ServerToken = value;
+					continue;
+				
+				case "-concurrentdownloads":
+					if (!ulong.TryParse(value, out var concurrentDownloads) || concurrentDownloads == 0) {
+						Log.Warn("Invalid concurrent downloads count: " + value);
+					}
+					else if (concurrentDownloads > 10) {
+						Log.Warn("Limiting concurrent downloads to 10");
+						ConcurrentDownloads = 10;
+					}
+					else {
+						ConcurrentDownloads = (byte) concurrentDownloads;
+					}
+					
 					continue;
 
 				default:

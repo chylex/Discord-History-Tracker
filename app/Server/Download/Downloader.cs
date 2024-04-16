@@ -11,16 +11,18 @@ public sealed class Downloader {
 	public bool IsDownloading => current != null;
 	
 	private readonly IDatabaseFile db;
+	private readonly int? concurrentDownloads;
 	private readonly SemaphoreSlim semaphore = new (1, 1);
 	
-	internal Downloader(IDatabaseFile db) {
+	internal Downloader(IDatabaseFile db, int? concurrentDownloads) {
 		this.db = db;
+		this.concurrentDownloads = concurrentDownloads;
 	}
 
 	public async Task<IObservable<DownloadItem>> Start(DownloadItemFilter filter) {
 		await semaphore.WaitAsync();
 		try {
-			current ??= new DownloaderTask(db, filter);
+			current ??= new DownloaderTask(db, filter, concurrentDownloads);
 			return current.FinishedItems;
 		} finally {
 			semaphore.Release();

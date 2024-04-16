@@ -30,6 +30,7 @@ sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
 	private MainContentScreenModel? mainContentScreenModel;
 
 	private readonly Window window;
+	private readonly int? concurrentDownloads;
 
 	private State? state;
 
@@ -73,6 +74,8 @@ sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
 		if (args.ServerToken != null) {
 			ServerConfiguration.Token = args.ServerToken;
 		}
+		
+		concurrentDownloads = args.ConcurrentDownloads;
 	}
 
 	private async void OnDatabaseSelected(object? sender, IDatabaseFile db) {
@@ -80,7 +83,7 @@ sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
 		
 		await DisposeState();
 		
-		state = new State(db);
+		state = new State(db, concurrentDownloads);
 
 		try {
 			await state.Server.Start(ServerConfiguration.Port, ServerConfiguration.Token);
