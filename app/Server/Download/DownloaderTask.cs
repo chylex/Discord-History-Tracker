@@ -78,8 +78,12 @@ sealed class DownloaderTask : IAsyncDisposable {
 			try {
 				var downloadedBytes = await client.GetByteArrayAsync(item.DownloadUrl, cancellationToken);
 				await db.Downloads.AddDownload(item.ToSuccess(downloadedBytes));
-			} catch (OperationCanceledException) {
+			} catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken) {
 				// Ignore.
+			} catch (TaskCanceledException e) {
+				// HttpClient request timed out.
+				await db.Downloads.AddDownload(item.ToFailure());
+				log.Error(e.Message);
 			} catch (HttpRequestException e) {
 				await db.Downloads.AddDownload(item.ToFailure(e.StatusCode));
 				log.Error(e);
