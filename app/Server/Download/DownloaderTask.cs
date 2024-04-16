@@ -67,9 +67,12 @@ sealed class DownloaderTask : IAsyncDisposable {
 	private async Task RunDownloadTask(int taskIndex) {
 		var log = Log.ForType<DownloaderTask>("Task " + taskIndex);
 
-		var client = new HttpClient();
+		var client = new HttpClient(new SocketsHttpHandler {
+			ConnectTimeout = TimeSpan.FromSeconds(30)
+		});
+		
+		client.Timeout = Timeout.InfiniteTimeSpan;
 		client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
-		client.Timeout = TimeSpan.FromSeconds(30);
 
 		while (!cancellationToken.IsCancellationRequested) {
 			var item = await downloadQueue.Reader.ReadAsync(cancellationToken);
@@ -80,10 +83,9 @@ sealed class DownloaderTask : IAsyncDisposable {
 				await db.Downloads.AddDownload(item.ToSuccess(downloadedBytes));
 			} catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken) {
 				// Ignore.
-			} catch (TaskCanceledException e) {
-				// HttpClient request timed out.
+			} catch (TaskCanceledException e) when (e.InnerException is TimeoutException) {
 				await db.Downloads.AddDownload(item.ToFailure());
-				log.Error(e.Message);
+				log.Error("Download timed out: " + item.DownloadUrl);
 			} catch (HttpRequestException e) {
 				await db.Downloads.AddDownload(item.ToFailure(e.StatusCode));
 				log.Error(e);
