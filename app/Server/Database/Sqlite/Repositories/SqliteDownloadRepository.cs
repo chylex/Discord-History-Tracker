@@ -15,14 +15,8 @@ using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
-sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepository {
+sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRepository(Log), IDownloadRepository {
 	private static readonly Log Log = Log.ForType<SqliteDownloadRepository>();
-	
-	private readonly SqliteConnectionPool pool;
-
-	public SqliteDownloadRepository(SqliteConnectionPool pool) : base(Log) {
-		this.pool = pool;
-	}
 
 	internal sealed class NewDownloadCollector : IAsyncDisposable {
 		private readonly SqliteDownloadRepository repository;

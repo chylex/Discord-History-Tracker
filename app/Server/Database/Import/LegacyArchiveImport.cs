@@ -161,7 +161,7 @@ public static class LegacyArchiveImport {
 
 		var messagesObj = data.HasKey(channelIdStr) ? data.RequireObject(channelIdStr, DataPath) : (JsonElement?) null;
 		if (messagesObj == null) {
-			return Array.Empty<Message>();
+			return [];
 		}
 
 		return messagesObj.Value.EnumerateObject().Select(item => {

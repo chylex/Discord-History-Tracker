@@ -183,11 +183,11 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM messages" + filter.GenerateConditions().BuildWhereClause(), static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
-	private sealed class MesageToManyCommand<T> : IAsyncDisposable {
+	private sealed class MessageToManyCommand<T> : IAsyncDisposable {
 		private readonly SqliteCommand cmd;
 		private readonly Func<SqliteDataReader, T> readItem;
 
-		public MesageToManyCommand(ISqliteConnection conn, string sql, Func<SqliteDataReader, T> readItem) {
+		public MessageToManyCommand(ISqliteConnection conn, string sql, Func<SqliteDataReader, T> readItem) {
 			this.cmd = conn.Command(sql);
 			this.cmd.Add(":message_id", SqliteType.Integer);
 
@@ -223,7 +223,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 			WHERE message_id = :message_id
 			""";
 
-		await using var attachmentCmd = new MesageToManyCommand<Attachment>(conn, AttachmentSql, static reader => new Attachment {
+		await using var attachmentCmd = new MessageToManyCommand<Attachment>(conn, AttachmentSql, static reader => new Attachment {
 			Id = reader.GetUint64(0),
 			Name = reader.GetString(1),
 			Type = reader.IsDBNull(2) ? null : reader.GetString(2),
@@ -241,7 +241,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 			WHERE message_id = :message_id
 			""";
 
-		await using var embedCmd = new MesageToManyCommand<Embed>(conn, EmbedSql, static reader => new Embed {
+		await using var embedCmd = new MessageToManyCommand<Embed>(conn, EmbedSql, static reader => new Embed {
 			Json = reader.GetString(0)
 		});
 
@@ -252,7 +252,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 			WHERE message_id = :message_id
 			""";
 
-		await using var reactionsCmd = new MesageToManyCommand<Reaction>(conn, ReactionSql, static reader => new Reaction {
+		await using var reactionsCmd = new MessageToManyCommand<Reaction>(conn, ReactionSql, static reader => new Reaction {
 			EmojiId = reader.IsDBNull(0) ? null : reader.GetUint64(0),
 			EmojiName = reader.IsDBNull(1) ? null : reader.GetString(1),
 			EmojiFlags = (EmojiFlags) reader.GetInt16(2),

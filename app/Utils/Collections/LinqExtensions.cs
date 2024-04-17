@@ -8,7 +8,7 @@ public static class LinqExtensions {
 		HashSet<TKey>? seenKeys = null;
 
 		foreach (var item in collection) {
-			seenKeys ??= new HashSet<TKey>();
+			seenKeys ??= [];
 
 			if (seenKeys.Add(getKeyFromItem(item))) {
 				yield return item;
