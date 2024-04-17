@@ -15,14 +15,12 @@ using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
-sealed class TrackMessagesEndpoint : BaseEndpoint {
+sealed class TrackMessagesEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
 	private const string HasNewMessages = "1";
 	private const string NoNewMessages = "0";
 
-	public TrackMessagesEndpoint(IDatabaseFile db) : base(db) {}
-
-	protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
-		var root = await ReadJson(ctx);
+	protected override async Task Respond(HttpRequest request, HttpResponse response) {
+		var root = await ReadJson(request);
 
 		if (root.ValueKind != JsonValueKind.Array) {
 			throw new HttpException(HttpStatusCode.BadRequest, "Expected root element to be an array.");
@@ -43,7 +41,7 @@ sealed class TrackMessagesEndpoint : BaseEndpoint {
 
 		await Db.Messages.Add(messages);
 
-		return new HttpOutput.Text(anyNewMessages ? HasNewMessages : NoNewMessages);
+		await response.WriteTextAsync(anyNewMessages ? HasNewMessages : NoNewMessages);
 	}
 
 	private static Message ReadMessage(JsonElement json, string path) => new () {

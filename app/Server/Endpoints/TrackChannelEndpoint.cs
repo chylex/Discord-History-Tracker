@@ -8,18 +8,14 @@ using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
-sealed class TrackChannelEndpoint : BaseEndpoint {
-	public TrackChannelEndpoint(IDatabaseFile db) : base(db) {}
-
-	protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
-		var root = await ReadJson(ctx);
+sealed class TrackChannelEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
+	protected override async Task Respond(HttpRequest request, HttpResponse response) {
+		var root = await ReadJson(request);
 		var server = ReadServer(root.RequireObject("server"), "server");
 		var channel = ReadChannel(root.RequireObject("channel"), "channel", server.Id);
 
 		await Db.Servers.Add([server]);
 		await Db.Channels.Add([channel]);
-
-		return HttpOutput.None;
 	}
 
 	private static Data.Server ReadServer(JsonElement json, string path) => new () {

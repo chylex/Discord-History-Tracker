@@ -205,12 +205,12 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 		return new DownloadWithData(download, data);
 	}
 
-	public async Task<DownloadWithData?> GetSuccessfulDownloadWithData(string normalizedUrl) {
+	public async Task<bool> GetSuccessfulDownloadWithData(string normalizedUrl, Func<Data.Download, Stream, Task> dataProcessor) {
 		await using var conn = await pool.Take();
 
 		await using var cmd = conn.Command(
 			"""
-			SELECT dm.download_url, dm.type, db.blob FROM download_metadata dm
+			SELECT dm.download_url, dm.type, db.rowid FROM download_metadata dm
 			JOIN download_blobs db ON dm.normalized_url = db.normalized_url
 			WHERE dm.normalized_url = :normalized_url AND dm.status = :success IS NOT NULL
 			"""
@@ -219,19 +219,25 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 		cmd.AddAndSet(":normalized_url", SqliteType.Text, normalizedUrl);
 		cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
 
-		await using var reader = await cmd.ExecuteReaderAsync();
+		string downloadUrl;
+		string? type;
+		long rowid;
+		
+		await using (var reader = await cmd.ExecuteReaderAsync()) {
+			if (!await reader.ReadAsync()) {
+				return false;
+			}
 
-		if (!await reader.ReadAsync()) {
-			return null;
+			downloadUrl = reader.GetString(0);
+			type = reader.IsDBNull(1) ? null : reader.GetString(1);
+			rowid = reader.GetInt64(2);
+		}
+		
+		await using (var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid, readOnly: true)) {
+			await dataProcessor(new Data.Download(normalizedUrl, downloadUrl, DownloadStatus.Success, type, (ulong) blob.Length), blob);
 		}
 
-		var downloadUrl = reader.GetString(0);
-		var type = reader.IsDBNull(1) ? null : reader.GetString(1);
-		var data = (byte[]) reader[2];
-		var size = (ulong) data.LongLength;
-		var download = new Data.Download(normalizedUrl, downloadUrl, DownloadStatus.Success, type, size);
-		
-		return new DownloadWithData(download, data);
+		return true;
 	}
 
 	public async IAsyncEnumerable<DownloadItem> PullPendingDownloadItems(int count, DownloadItemFilter filter, [EnumeratorCancellation] CancellationToken cancellationToken) {

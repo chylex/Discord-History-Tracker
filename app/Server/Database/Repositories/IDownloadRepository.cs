@@ -25,7 +25,7 @@ public interface IDownloadRepository {
 
 	Task<DownloadWithData> HydrateWithData(Data.Download download);
 
-	Task<DownloadWithData?> GetSuccessfulDownloadWithData(string normalizedUrl);
+	Task<bool> GetSuccessfulDownloadWithData(string normalizedUrl, Func<Data.Download, Stream, Task> dataProcessor);
 
 	IAsyncEnumerable<DownloadItem> PullPendingDownloadItems(int count, DownloadItemFilter filter, CancellationToken cancellationToken = default);
 	
@@ -56,8 +56,8 @@ public interface IDownloadRepository {
 			return Task.FromResult(new DownloadWithData(download, Data: null));
 		}
 
-		public Task<DownloadWithData?> GetSuccessfulDownloadWithData(string normalizedUrl) {
-			return Task.FromResult<DownloadWithData?>(null);
+		public Task<bool> GetSuccessfulDownloadWithData(string normalizedUrl, Func<Data.Download, Stream, Task> dataProcessor) {
+			return Task.FromResult(false);
 		}
 
 		public IAsyncEnumerable<DownloadItem> PullPendingDownloadItems(int count, DownloadItemFilter filter, CancellationToken cancellationToken) {

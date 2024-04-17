@@ -8,11 +8,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
-sealed class TrackUsersEndpoint : BaseEndpoint {
-	public TrackUsersEndpoint(IDatabaseFile db) : base(db) {}
-
-	protected override async Task<IHttpOutput> Respond(HttpContext ctx) {
-		var root = await ReadJson(ctx);
+sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
+	protected override async Task Respond(HttpRequest request, HttpResponse response) {
+		var root = await ReadJson(request);
 
 		if (root.ValueKind != JsonValueKind.Array) {
 			throw new HttpException(HttpStatusCode.BadRequest, "Expected root element to be an array.");
@@ -26,8 +24,6 @@ sealed class TrackUsersEndpoint : BaseEndpoint {
 		}
 
 		await Db.Users.Add(users);
-
-		return HttpOutput.None;
 	}
 
 	private static User ReadUser(JsonElement json, string path) => new () {

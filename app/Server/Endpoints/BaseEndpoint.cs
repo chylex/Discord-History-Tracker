@@ -9,37 +9,37 @@ using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
-abstract class BaseEndpoint {
+abstract class BaseEndpoint(IDatabaseFile db) {
 	private static readonly Log Log = Log.ForType<BaseEndpoint>();
 
-	protected IDatabaseFile Db { get; }
-
-	protected BaseEndpoint(IDatabaseFile db) {
-		this.Db = db;
-	}
+	protected IDatabaseFile Db { get; } = db;
 
 	public async Task Handle(HttpContext ctx) {
 		var response = ctx.Response;
 
 		try {
 			response.StatusCode = (int) HttpStatusCode.OK;
-			var output = await Respond(ctx);
-			await output.WriteTo(response);
+			await Respond(ctx.Request, response);
 		} catch (HttpException e) {
 			Log.Error(e);
 			response.StatusCode = (int) e.StatusCode;
-			await response.WriteAsync(e.Message);
+			if (response.HasStarted) {
+				Log.Warn("Response has already started, cannot write status message: " + e.Message);
+			}
+			else {
+				await response.WriteAsync(e.Message);
+			}
 		} catch (Exception e) {
 			Log.Error(e);
 			response.StatusCode = (int) HttpStatusCode.InternalServerError;
 		}
 	}
 
-	protected abstract Task<IHttpOutput> Respond(HttpContext ctx);
+	protected abstract Task Respond(HttpRequest request, HttpResponse response);
 
-	protected static async Task<JsonElement> ReadJson(HttpContext ctx) {
+	protected static async Task<JsonElement> ReadJson(HttpRequest request) {
 		try {
-			return await ctx.Request.ReadFromJsonAsync(JsonElementContext.Default.JsonElement);
+			return await request.ReadFromJsonAsync(JsonElementContext.Default.JsonElement);
 		} catch (JsonException) {
 			throw new HttpException(HttpStatusCode.UnsupportedMediaType, "This endpoint only accepts JSON.");
 		}
