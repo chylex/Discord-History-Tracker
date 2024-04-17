@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DHT.Server.Data;
@@ -27,8 +26,9 @@ public static class DatabaseExtensions {
 		await target.Messages.Add(batchedMessages);
 
 		await foreach (var download in source.Downloads.Get()) {
-			var downloadWithData = await source.Downloads.HydrateWithData(download);
-			await target.Downloads.AddDownload(downloadWithData.Download, downloadWithData.Data is {} data ? new MemoryStream(data) : null);
+			if (download.Status != DownloadStatus.Success || !await source.Downloads.GetDownloadData(download.NormalizedUrl, stream => target.Downloads.AddDownload(download, stream))) {
+				await target.Downloads.AddDownload(download, stream: null);
+			}
 		}
 	}
 }

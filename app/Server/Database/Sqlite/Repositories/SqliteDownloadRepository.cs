@@ -193,16 +193,27 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 		}
 	}
 
-	public async Task<DownloadWithData> HydrateWithData(Data.Download download) {
+	public async Task<bool> GetDownloadData(string normalizedUrl, Func<Stream, Task> dataProcessor) {
 		await using var conn = await pool.Take();
 
-		await using var cmd = conn.Command("SELECT blob FROM download_blobs WHERE normalized_url = :url");
-		cmd.AddAndSet(":url", SqliteType.Text, download.NormalizedUrl);
-
-		await using var reader = await cmd.ExecuteReaderAsync();
-		var data = await reader.ReadAsync() && !reader.IsDBNull(0) ? (byte[]) reader["blob"] : null;
+		await using var cmd = conn.Command("SELECT rowid FROM download_blobs WHERE normalized_url = :normalized_url");
+		cmd.AddAndSet(":normalized_url", SqliteType.Text, normalizedUrl);
 		
-		return new DownloadWithData(download, data);
+		long rowid;
+		
+		await using (var reader = await cmd.ExecuteReaderAsync()) {
+			if (!await reader.ReadAsync()) {
+				return false;
+			}
+
+			rowid = reader.GetInt64(0);
+		}
+		
+		await using (var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid, readOnly: true)) {
+			await dataProcessor(blob);
+		}
+
+		return true;
 	}
 
 	public async Task<bool> GetSuccessfulDownloadWithData(string normalizedUrl, Func<Data.Download, Stream, Task> dataProcessor) {

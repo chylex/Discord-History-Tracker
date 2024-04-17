@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using DHT.Server.Data;
 using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
 using DHT.Server.Download;
@@ -23,8 +22,8 @@ public interface IDownloadRepository {
 	
 	IAsyncEnumerable<Data.Download> Get();
 
-	Task<DownloadWithData> HydrateWithData(Data.Download download);
-
+	Task<bool> GetDownloadData(string normalizedUrl, Func<Stream, Task> dataProcessor);
+	
 	Task<bool> GetSuccessfulDownloadWithData(string normalizedUrl, Func<Data.Download, Stream, Task> dataProcessor);
 
 	IAsyncEnumerable<DownloadItem> PullPendingDownloadItems(int count, DownloadItemFilter filter, CancellationToken cancellationToken = default);
@@ -52,8 +51,8 @@ public interface IDownloadRepository {
 			return AsyncEnumerable.Empty<Data.Download>();
 		}
 
-		public Task<DownloadWithData> HydrateWithData(Data.Download download) {
-			return Task.FromResult(new DownloadWithData(download, Data: null));
+		public Task<bool> GetDownloadData(string normalizedUrl, Func<Stream, Task> dataProcessor) {
+			return Task.FromResult(false);
 		}
 
 		public Task<bool> GetSuccessfulDownloadWithData(string normalizedUrl, Func<Data.Download, Stream, Task> dataProcessor) {
