@@ -70,8 +70,8 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 		var (download, data) = item;
 
 		await using (var conn = await pool.Take()) {
-			var tx = await conn.BeginTransactionAsync();
-
+			await conn.BeginTransactionAsync();
+			
 			await using var metadataCmd = conn.Upsert("download_metadata", [
 				("normalized_url", SqliteType.Text),
 				("download_url", SqliteType.Text),
@@ -103,7 +103,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 				await upsertBlobCmd.ExecuteNonQueryAsync();
 			}
 
-			await tx.CommitAsync();
+			await conn.CommitTransactionAsync();
 		}
 
 		UpdateTotalCount();

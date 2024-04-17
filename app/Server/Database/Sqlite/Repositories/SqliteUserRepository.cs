@@ -23,7 +23,7 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 
 	public async Task Add(IReadOnlyList<User> users) {
 		await using (var conn = await pool.Take()) {
-			await using var tx = await conn.BeginTransactionAsync();
+			await conn.BeginTransactionAsync();
 
 			await using var cmd = conn.Upsert("users", [
 				("id", SqliteType.Integer),
@@ -46,7 +46,7 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 				}
 			}
 
-			await tx.CommitAsync();
+			await conn.CommitTransactionAsync();
 			downloadCollector.OnCommitted();
 		}
 

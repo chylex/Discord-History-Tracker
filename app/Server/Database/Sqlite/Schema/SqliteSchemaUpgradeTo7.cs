@@ -11,56 +11,55 @@ sealed class SqliteSchemaUpgradeTo7 : ISchemaUpgrade {
 	async Task ISchemaUpgrade.Run(ISqliteConnection conn, ISchemaUpgradeCallbacks.IProgressReporter reporter) {
 		await reporter.MainWork("Applying schema changes...", 0, 6);
 		await SqliteSchema.CreateDownloadTables(conn);
-		
+
 		await reporter.MainWork("Migrating download metadata...", 1, 6);
 		await conn.ExecuteAsync("INSERT INTO download_metadata (normalized_url, download_url, status, size) SELECT normalized_url, download_url, status, size FROM downloads");
-		
+
 		await reporter.MainWork("Merging attachment metadata...", 2, 6);
 		await conn.ExecuteAsync("UPDATE download_metadata SET type = (SELECT type FROM attachments WHERE download_metadata.normalized_url = attachments.normalized_url)");
-		
+
 		await reporter.MainWork("Migrating downloaded files...", 3, 6);
 		await MigrateDownloadBlobsToNewTable(conn, reporter);
-		
+
 		await reporter.MainWork("Applying schema changes...", 4, 6);
 		await conn.ExecuteAsync("DROP TABLE downloads");
-		
+
 		await reporter.MainWork("Discovering downloadable links...", 5, 6);
 		await DiscoverDownloadableLinks(conn, reporter);
 	}
 
 	private async Task MigrateDownloadBlobsToNewTable(ISqliteConnection conn, ISchemaUpgradeCallbacks.IProgressReporter reporter) {
 		await reporter.SubWork("Listing downloaded files...", 0, 0);
-		
+
 		var urlsToMigrate = await GetDownloadedFileUrls(conn);
 		int totalFiles = urlsToMigrate.Count;
 		int processedFiles = -1;
 
 		await reporter.SubWork("Processing downloaded files...", 0, totalFiles);
-		
-		var tx = await conn.BeginTransactionAsync();
+
+		await conn.BeginTransactionAsync();
 
 		await using (var insertCmd = conn.Command("INSERT INTO download_blobs (normalized_url, blob) SELECT normalized_url, blob FROM downloads WHERE normalized_url = :normalized_url"))
 		await using (var deleteCmd = conn.Command("DELETE FROM downloads WHERE normalized_url = :normalized_url")) {
 			insertCmd.Add(":normalized_url", SqliteType.Text);
 			deleteCmd.Add(":normalized_url", SqliteType.Text);
-			
+
 			foreach (var url in urlsToMigrate) {
 				if (++processedFiles % 10 == 0) {
 					await reporter.SubWork("Processing downloaded files...", processedFiles, totalFiles);
-			
+
 					// Not proper way of dealing with transactions, but it avoids a long commit at the end.
 					// Schema upgrades are already non-atomic anyways, so this doesn't make it worse.
-					await tx.CommitAsync();
-					await tx.DisposeAsync();
-			
-					tx = await conn.BeginTransactionAsync();
-					insertCmd.Transaction = (SqliteTransaction) tx;
-					deleteCmd.Transaction = (SqliteTransaction) tx;
+					await conn.CommitTransactionAsync();
+					
+					await conn.BeginTransactionAsync();
+					conn.AssignActiveTransaction(insertCmd);
+					conn.AssignActiveTransaction(deleteCmd);
 				}
-				
+
 				insertCmd.Set(":normalized_url", url);
 				await insertCmd.ExecuteNonQueryAsync();
-				
+
 				deleteCmd.Set(":normalized_url", url);
 				await deleteCmd.ExecuteNonQueryAsync();
 			}
@@ -68,8 +67,7 @@ sealed class SqliteSchemaUpgradeTo7 : ISchemaUpgrade {
 
 		await reporter.SubWork("Processing downloaded files...", totalFiles, totalFiles);
 
-		await tx.CommitAsync();
-		await tx.DisposeAsync();
+		await conn.CommitTransactionAsync();
 	}
 
 	private async Task<List<string>> GetDownloadedFileUrls(ISqliteConnection conn) {
@@ -110,46 +108,46 @@ sealed class SqliteSchemaUpgradeTo7 : ISchemaUpgrade {
 			insertCmd.Set(":size", download.Size);
 			await insertCmd.ExecuteNonQueryAsync();
 		}
-		
-		await using (var tx = await conn.BeginTransactionAsync()) {
-			await using var insertCmd = conn.Command("INSERT OR IGNORE INTO download_metadata (normalized_url, download_url, status, type, size) VALUES (:normalized_url, :download_url, :status, :type, :size)");
-			insertCmd.Add(":normalized_url", SqliteType.Text);
-			insertCmd.Add(":download_url", SqliteType.Text);
-			insertCmd.Add(":status", SqliteType.Integer);
-			insertCmd.Add(":type", SqliteType.Text);
-			insertCmd.Add(":size", SqliteType.Integer);
 
-			await reporter.SubWork("Processing embeds...", 1, 4);
-			
-			await using (var embedCmd = conn.Command("SELECT json FROM embeds")) {
-				await using var reader = await embedCmd.ExecuteReaderAsync();
+		await conn.BeginTransactionAsync();
 
-				while (await reader.ReadAsync()) {
-					await InsertDownload(insertCmd, await DownloadLinkExtractor.TryFromEmbedJson(reader.GetStream(0)));
-				}
+		await using var insertCmd = conn.Command("INSERT OR IGNORE INTO download_metadata (normalized_url, download_url, status, type, size) VALUES (:normalized_url, :download_url, :status, :type, :size)");
+		insertCmd.Add(":normalized_url", SqliteType.Text);
+		insertCmd.Add(":download_url", SqliteType.Text);
+		insertCmd.Add(":status", SqliteType.Integer);
+		insertCmd.Add(":type", SqliteType.Text);
+		insertCmd.Add(":size", SqliteType.Integer);
+
+		await reporter.SubWork("Processing embeds...", 1, 4);
+
+		await using (var embedCmd = conn.Command("SELECT json FROM embeds")) {
+			await using var reader = await embedCmd.ExecuteReaderAsync();
+
+			while (await reader.ReadAsync()) {
+				await InsertDownload(insertCmd, await DownloadLinkExtractor.TryFromEmbedJson(reader.GetStream(0)));
 			}
-
-			await reporter.SubWork("Processing users...", 2, 4);
-			
-			await using (var avatarCmd = conn.Command("SELECT id, avatar_url FROM users WHERE avatar_url IS NOT NULL")) {
-				await using var reader = await avatarCmd.ExecuteReaderAsync();
-
-				while (await reader.ReadAsync()) {
-					await InsertDownload(insertCmd, DownloadLinkExtractor.FromUserAvatar(reader.GetUint64(0), reader.GetString(1)));
-				}
-			}
-			
-			await reporter.SubWork("Processing reactions...", 3, 4);
-			
-			await using (var avatarCmd = conn.Command("SELECT DISTINCT emoji_id, emoji_flags FROM reactions WHERE emoji_id IS NOT NULL")) {
-				await using var reader = await avatarCmd.ExecuteReaderAsync();
-
-				while (await reader.ReadAsync()) {
-					await InsertDownload(insertCmd, DownloadLinkExtractor.FromEmoji(reader.GetUint64(0), (EmojiFlags) reader.GetInt16(1)));
-				}
-			}
-			
-			await tx.CommitAsync();
 		}
+
+		await reporter.SubWork("Processing users...", 2, 4);
+
+		await using (var avatarCmd = conn.Command("SELECT id, avatar_url FROM users WHERE avatar_url IS NOT NULL")) {
+			await using var reader = await avatarCmd.ExecuteReaderAsync();
+
+			while (await reader.ReadAsync()) {
+				await InsertDownload(insertCmd, DownloadLinkExtractor.FromUserAvatar(reader.GetUint64(0), reader.GetString(1)));
+			}
+		}
+
+		await reporter.SubWork("Processing reactions...", 3, 4);
+
+		await using (var avatarCmd = conn.Command("SELECT DISTINCT emoji_id, emoji_flags FROM reactions WHERE emoji_id IS NOT NULL")) {
+			await using var reader = await avatarCmd.ExecuteReaderAsync();
+
+			while (await reader.ReadAsync()) {
+				await InsertDownload(insertCmd, DownloadLinkExtractor.FromEmoji(reader.GetUint64(0), (EmojiFlags) reader.GetInt16(1)));
+			}
+		}
+
+		await conn.CommitTransactionAsync();
 	}
 }

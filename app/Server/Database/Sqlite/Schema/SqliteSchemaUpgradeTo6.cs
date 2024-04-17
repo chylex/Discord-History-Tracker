@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Threading.Tasks;
 using DHT.Server.Database.Sqlite.Utils;
 using DHT.Server.Download;
@@ -23,7 +22,7 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 		await conn.ExecuteAsync("ALTER TABLE attachments RENAME COLUMN url TO normalized_url");
 		await conn.ExecuteAsync("ALTER TABLE downloads RENAME COLUMN url TO normalized_url");
 	}
-	
+
 	private async Task NormalizeAttachmentUrls(ISqliteConnection conn, ISchemaUpgradeCallbacks.IProgressReporter reporter) {
 		await reporter.SubWork("Preparing attachments...", 0, 0);
 
@@ -39,7 +38,7 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 			}
 		}
 
-		await using var tx = await conn.BeginTransactionAsync();
+		await conn.BeginTransactionAsync();
 
 		int totalUrls = normalizedUrls.Count;
 		int processedUrls = -1;
@@ -61,7 +60,7 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 
 		await reporter.SubWork("Updating URLs...", totalUrls, totalUrls);
 
-		await tx.CommitAsync();
+		await conn.CommitTransactionAsync();
 	}
 
 	private async Task NormalizeDownloadUrls(ISqliteConnection conn, ISchemaUpgradeCallbacks.IProgressReporter reporter) {
@@ -84,26 +83,23 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 		}
 
 		await conn.ExecuteAsync("PRAGMA cache_size = -20000");
+		await conn.BeginTransactionAsync();
+		
+		await reporter.SubWork("Deleting duplicates...", 0, 0);
 
-		DbTransaction tx;
-
-		await using (tx = await conn.BeginTransactionAsync()) {
-			await reporter.SubWork("Deleting duplicates...", 0, 0);
-
-			await using (var deleteCmd = conn.Delete("downloads", ("url", SqliteType.Text))) {
-				foreach (var duplicateUrl in duplicateUrlsToDelete) {
-					deleteCmd.Set(":url", duplicateUrl);
-					await deleteCmd.ExecuteNonQueryAsync();
-				}
+		await using (var deleteCmd = conn.Delete("downloads", ("url", SqliteType.Text))) {
+			foreach (var duplicateUrl in duplicateUrlsToDelete) {
+				deleteCmd.Set(":url", duplicateUrl);
+				await deleteCmd.ExecuteNonQueryAsync();
 			}
-
-			await tx.CommitAsync();
 		}
+
+		await conn.CommitTransactionAsync();
 
 		int totalUrls = normalizedUrlsToOriginalUrls.Count;
 		int processedUrls = -1;
 
-		tx = await conn.BeginTransactionAsync();
+		await conn.BeginTransactionAsync();
 
 		await using (var updateCmd = conn.Command("UPDATE downloads SET download_url = :download_url, url = :normalized_url WHERE url = :download_url")) {
 			updateCmd.Add(":normalized_url", SqliteType.Text);
@@ -115,11 +111,10 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 
 					// Not proper way of dealing with transactions, but it avoids a long commit at the end.
 					// Schema upgrades are already non-atomic anyways, so this doesn't make it worse.
-					await tx.CommitAsync();
-					await tx.DisposeAsync();
+					await conn.CommitTransactionAsync();
 
-					tx = await conn.BeginTransactionAsync();
-					updateCmd.Transaction = (SqliteTransaction) tx;
+					await conn.BeginTransactionAsync();
+					conn.AssignActiveTransaction(updateCmd);
 				}
 
 				updateCmd.Set(":normalized_url", normalizedUrl);
@@ -130,8 +125,7 @@ sealed class SqliteSchemaUpgradeTo6 : ISchemaUpgrade {
 
 		await reporter.SubWork("Updating URLs...", totalUrls, totalUrls);
 
-		await tx.CommitAsync();
-		await tx.DisposeAsync();
+		await conn.CommitTransactionAsync();
 
 		await conn.ExecuteAsync("PRAGMA cache_size = -2000");
 	}

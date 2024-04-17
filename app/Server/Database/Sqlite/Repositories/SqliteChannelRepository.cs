@@ -19,9 +19,9 @@ sealed class SqliteChannelRepository : BaseSqliteRepository, IChannelRepository 
 	}
 
 	public async Task Add(IReadOnlyList<Channel> channels) {
-		await using var conn = await pool.Take();
-
-		await using (var tx = await conn.BeginTransactionAsync()) {
+		await using (var conn = await pool.Take()) {
+			await conn.BeginTransactionAsync();
+			
 			await using var cmd = conn.Upsert("channels", [
 				("id", SqliteType.Integer),
 				("server", SqliteType.Integer),
@@ -43,7 +43,7 @@ sealed class SqliteChannelRepository : BaseSqliteRepository, IChannelRepository 
 				await cmd.ExecuteNonQueryAsync();
 			}
 
-			await tx.CommitAsync();
+			await conn.CommitTransactionAsync();
 		}
 
 		UpdateTotalCount();

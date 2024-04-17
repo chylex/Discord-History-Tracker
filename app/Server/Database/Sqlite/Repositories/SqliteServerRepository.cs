@@ -19,9 +19,9 @@ sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
 	}
 
 	public async Task Add(IReadOnlyList<Data.Server> servers) {
-		await using var conn = await pool.Take();
-
-		await using (var tx = await conn.BeginTransactionAsync()) {
+		await using (var conn = await pool.Take()) {
+			await conn.BeginTransactionAsync();
+			
 			await using var cmd = conn.Upsert("servers", [
 				("id", SqliteType.Integer),
 				("name", SqliteType.Text),
@@ -35,7 +35,7 @@ sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
 				await cmd.ExecuteNonQueryAsync();
 			}
 
-			await tx.CommitAsync();
+			await conn.CommitTransactionAsync();
 		}
 
 		UpdateTotalCount();

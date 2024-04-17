@@ -1,5 +1,4 @@
 using System;
-using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,10 +8,6 @@ using Microsoft.Data.Sqlite;
 namespace DHT.Server.Database.Sqlite.Utils;
 
 static class SqliteExtensions {
-	public static ValueTask<DbTransaction> BeginTransactionAsync(this ISqliteConnection conn) {
-		return conn.InnerConnection.BeginTransactionAsync();
-	}
-
 	public static SqliteCommand Command(this ISqliteConnection conn, [LanguageInjection("sql")] string sql) {
 		var cmd = conn.InnerConnection.CreateCommand();
 		cmd.CommandText = sql;

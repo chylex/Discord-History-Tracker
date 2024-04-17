@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Utils.Collections;
@@ -73,17 +74,48 @@ sealed class SqliteConnectionPool : IAsyncDisposable {
 		disposalTokenSource.Dispose();
 	}
 
-	private sealed class PooledConnection : ISqliteConnection {
-		public SqliteConnection InnerConnection { get; }
+	private sealed class PooledConnection(SqliteConnectionPool pool, SqliteConnection conn) : ISqliteConnection {
+		public SqliteConnection InnerConnection { get; } = conn;
 
-		private readonly SqliteConnectionPool pool;
+		private DbTransaction? activeTransaction;
 
-		public PooledConnection(SqliteConnectionPool pool, SqliteConnection conn) {
-			this.pool = pool;
-			this.InnerConnection = conn;
+		public async Task BeginTransactionAsync() {
+			if (activeTransaction != null) {
+				throw new InvalidOperationException("A transaction is already active.");
+			}
+			
+			activeTransaction = await InnerConnection.BeginTransactionAsync();
+		}
+
+		public async Task CommitTransactionAsync() {
+			if (activeTransaction == null) {
+				throw new InvalidOperationException("No active transaction to commit.");
+			}
+
+			await activeTransaction.CommitAsync();
+			await activeTransaction.DisposeAsync();
+			activeTransaction = null;
+		}
+
+		public async Task RollbackTransactionAsync() {
+			if (activeTransaction == null) {
+				throw new InvalidOperationException("No active transaction to rollback.");
+			}
+			
+			await activeTransaction.RollbackAsync();
+			await activeTransaction.DisposeAsync();
+			activeTransaction = null;
+		}
+
+		public void AssignActiveTransaction(SqliteCommand command) {
+			command.Transaction = (SqliteTransaction?) activeTransaction;
 		}
 
 		public async ValueTask DisposeAsync() {
+			if (activeTransaction != null) {
+				await RollbackTransactionAsync();
+			}
+			
 			await pool.Return(this);
 		}
 	}

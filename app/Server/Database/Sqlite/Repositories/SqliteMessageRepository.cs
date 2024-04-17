@@ -39,7 +39,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 		}
 
 		await using (var conn = await pool.Take()) {
-			await using var tx = await conn.BeginTransactionAsync();
+			await conn.BeginTransactionAsync();
 
 			await using var messageCmd = conn.Upsert("messages", [
 				("message_id", SqliteType.Integer),
@@ -167,7 +167,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 				}
 			}
 
-			await tx.CommitAsync();
+			await conn.CommitTransactionAsync();
 			downloadCollector.OnCommitted();
 		}
 
