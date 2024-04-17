@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,9 +67,7 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 		}
 	}
 
-	public async Task AddDownload(DownloadWithData item) {
-		var (download, data) = item;
-
+	public async Task AddDownload(Data.Download item, Stream? stream) {
 		await using (var conn = await pool.Take()) {
 			await conn.BeginTransactionAsync();
 			
@@ -80,27 +79,34 @@ sealed class SqliteDownloadRepository : BaseSqliteRepository, IDownloadRepositor
 				("size", SqliteType.Integer),
 			]);
 
-			metadataCmd.Set(":normalized_url", download.NormalizedUrl);
-			metadataCmd.Set(":download_url", download.DownloadUrl);
-			metadataCmd.Set(":status", (int) download.Status);
-			metadataCmd.Set(":type", download.Type);
-			metadataCmd.Set(":size", download.Size);
+			metadataCmd.Set(":normalized_url", item.NormalizedUrl);
+			metadataCmd.Set(":download_url", item.DownloadUrl);
+			metadataCmd.Set(":status", (int) item.Status);
+			metadataCmd.Set(":type", item.Type);
+			metadataCmd.Set(":size", item.Size);
 			await metadataCmd.ExecuteNonQueryAsync();
 
-			if (data == null) {
+			if (stream == null) {
 				await using var deleteBlobCmd = conn.Command("DELETE FROM download_blobs WHERE normalized_url = :normalized_url");
-				deleteBlobCmd.AddAndSet(":normalized_url", SqliteType.Text, download.NormalizedUrl);
+				deleteBlobCmd.AddAndSet(":normalized_url", SqliteType.Text, item.NormalizedUrl);
 				await deleteBlobCmd.ExecuteNonQueryAsync();
 			}
 			else {
-				await using var upsertBlobCmd = conn.Upsert("download_blobs", [
-					("normalized_url", SqliteType.Text),
-					("blob", SqliteType.Blob)
-				]);
+				await using var upsertBlobCmd = conn.Command(
+					"""
+					INSERT INTO download_blobs (normalized_url, blob)
+					VALUES (:normalized_url, ZEROBLOB(:blob_length))
+					ON CONFLICT (normalized_url) DO UPDATE SET blob = excluded.blob
+					RETURNING rowid
+					"""
+				);
+				
+				upsertBlobCmd.AddAndSet(":normalized_url", SqliteType.Text, item.NormalizedUrl);
+				upsertBlobCmd.AddAndSet(":blob_length", SqliteType.Integer, item.Size);
+				long rowid = await upsertBlobCmd.ExecuteLongScalarAsync();
 
-				upsertBlobCmd.Set(":normalized_url", download.NormalizedUrl);
-				upsertBlobCmd.Set(":blob", data);
-				await upsertBlobCmd.ExecuteNonQueryAsync();
+				await using var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid);
+				await stream.CopyToAsync(blob);
 			}
 
 			await conn.CommitTransactionAsync();

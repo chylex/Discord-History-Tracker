@@ -10,13 +10,12 @@ public readonly struct DownloadItem {
 	public string? Type { get; init; }
 	public ulong? Size { get; init; }
 	
-	internal DownloadWithData ToSuccess(byte[] data) {
-		var size = (ulong) Math.Max(data.LongLength, 0);
-		return new DownloadWithData(new Data.Download(NormalizedUrl, DownloadUrl, DownloadStatus.Success, Type, size), data);
+	internal Data.Download ToSuccess(long size) {
+		return new Data.Download(NormalizedUrl, DownloadUrl, DownloadStatus.Success, Type, (ulong) Math.Max(size, 0));
 	}
 	
-	internal DownloadWithData ToFailure(HttpStatusCode? statusCode = null) {
+	internal Data.Download ToFailure(HttpStatusCode? statusCode = null) {
 		var status = statusCode.HasValue ? (DownloadStatus) (int) statusCode : DownloadStatus.GenericError;
-		return new DownloadWithData(new Data.Download(NormalizedUrl, DownloadUrl, status, Type, Size), Data: null);
+		return new Data.Download(NormalizedUrl, DownloadUrl, status, Type, Size);
 	}
 }

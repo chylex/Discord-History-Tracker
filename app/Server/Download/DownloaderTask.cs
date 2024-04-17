@@ -79,18 +79,27 @@ sealed class DownloaderTask : IAsyncDisposable {
 			log.Debug("Downloading " + item.DownloadUrl + "...");
 
 			try {
-				var downloadedBytes = await client.GetByteArrayAsync(item.DownloadUrl, cancellationToken);
-				await db.Downloads.AddDownload(item.ToSuccess(downloadedBytes));
+				var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, item.DownloadUrl), HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+				response.EnsureSuccessStatusCode();
+
+				if (response.Content.Headers.ContentLength is {} contentLength) {
+					await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+					await db.Downloads.AddDownload(item.ToSuccess(contentLength), stream);
+				}
+				else {
+					await db.Downloads.AddDownload(item.ToFailure(), stream: null);
+					log.Error("Download response has no content length: " + item.DownloadUrl);
+				}
 			} catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken) {
 				// Ignore.
 			} catch (TaskCanceledException e) when (e.InnerException is TimeoutException) {
-				await db.Downloads.AddDownload(item.ToFailure());
+				await db.Downloads.AddDownload(item.ToFailure(), stream: null);
 				log.Error("Download timed out: " + item.DownloadUrl);
 			} catch (HttpRequestException e) {
-				await db.Downloads.AddDownload(item.ToFailure(e.StatusCode));
+				await db.Downloads.AddDownload(item.ToFailure(e.StatusCode), stream: null);
 				log.Error(e);
 			} catch (Exception e) {
-				await db.Downloads.AddDownload(item.ToFailure());
+				await db.Downloads.AddDownload(item.ToFailure(), stream: null);
 				log.Error(e);
 			} finally {
 				try {

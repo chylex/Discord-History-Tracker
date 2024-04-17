@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
@@ -14,7 +15,7 @@ namespace DHT.Server.Database.Repositories;
 public interface IDownloadRepository {
 	IObservable<long> TotalCount { get; }
 
-	Task AddDownload(DownloadWithData item);
+	Task AddDownload(Data.Download item, Stream? stream);
 
 	Task<long> Count(DownloadItemFilter filter, CancellationToken cancellationToken = default);
 	
@@ -35,7 +36,7 @@ public interface IDownloadRepository {
 	internal sealed class Dummy : IDownloadRepository {
 		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
 
-		public Task AddDownload(DownloadWithData item) {
+		public Task AddDownload(Data.Download item, Stream? stream) {
 			return Task.CompletedTask;
 		}
 

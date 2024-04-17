@@ -25,6 +25,10 @@ static class SqliteExtensions {
 
 		return await reader.ReadAsync(cancellationToken) ? readFunction(reader) : readFunction(null);
 	}
+	
+	public static async Task<long> ExecuteLongScalarAsync(this SqliteCommand command) {
+		return (long) (await command.ExecuteScalarAsync())!;
+	}
 
 	public static SqliteCommand Insert(this ISqliteConnection conn, string tableName, (string Name, SqliteType Type)[] columns) {
 		string columnNames = string.Join(',', columns.Select(static c => c.Name));
