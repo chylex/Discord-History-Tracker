@@ -3,14 +3,10 @@ using System.Text.Json.Serialization;
 
 namespace DHT.Server.Database.Export;
 
-sealed class ViewerJson {
-	public required JsonMeta Meta { get; init; }
-	public required Dictionary<Snowflake, Dictionary<Snowflake, JsonMessage>> Data { get; init; }
-
+static class ViewerJson {
 	public sealed class JsonMeta {
 		public required Dictionary<Snowflake, JsonUser> Users { get; init; }
-		public required List<Snowflake> Userindex { get; init; }
-		public required List<JsonServer> Servers { get; init; }
+		public required Dictionary<Snowflake, JsonServer> Servers { get; init; }
 		public required Dictionary<Snowflake, JsonChannel> Channels { get; init; }
 	}
 	
@@ -30,7 +26,7 @@ sealed class ViewerJson {
 	}
 
 	public sealed class JsonChannel {
-		public required int Server { get; init; }
+		public required Snowflake Server { get; init; }
 		public required string Name { get; init; }
 		
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -47,7 +43,9 @@ sealed class ViewerJson {
 	}
 
 	public sealed class JsonMessage {
-		public required int U { get; init; }
+		public required Snowflake Id { get; init; }
+		public required Snowflake C { get; init; }
+		public required Snowflake U { get; init; }
 		public required long T { get; init; }
 
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

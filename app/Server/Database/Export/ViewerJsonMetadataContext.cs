@@ -7,5 +7,5 @@ namespace DHT.Server.Database.Export;
 	PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
 	GenerationMode = JsonSourceGenerationMode.Default
 )]
-[JsonSerializable(typeof(ViewerJson))]
-sealed partial class ViewerJsonContext : JsonSerializerContext;
+[JsonSerializable(typeof(ViewerJson.JsonMeta))]
+sealed partial class ViewerJsonMetadataContext : JsonSerializerContext;

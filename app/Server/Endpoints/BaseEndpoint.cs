@@ -47,4 +47,13 @@ abstract class BaseEndpoint(IDatabaseFile db) {
 			throw new HttpException(HttpStatusCode.UnsupportedMediaType, "This endpoint only accepts JSON.");
 		}
 	}
+	
+	protected static Guid GetSessionId(HttpRequest request) {
+		if (request.Query.TryGetValue("session", out var sessionIdValue) && sessionIdValue.Count == 1 && Guid.TryParse(sessionIdValue[0], out Guid sessionId)) {
+			return sessionId;
+		}
+		else {
+			throw new HttpException(HttpStatusCode.BadRequest, "Invalid session ID.");
+		}
+	}
 }

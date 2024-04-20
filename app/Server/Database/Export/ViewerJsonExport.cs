@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,106 +15,90 @@ namespace DHT.Server.Database.Export;
 static class ViewerJsonExport {
 	private static readonly Log Log = Log.ForType(typeof(ViewerJsonExport));
 
-	public static async Task Generate(Stream stream, IDatabaseFile db, MessageFilter? filter = null, CancellationToken cancellationToken = default) {
+	public static async Task GetMetadata(Stream stream, IDatabaseFile db, MessageFilter? filter = null, CancellationToken cancellationToken = default) {
 		var perf = Log.Start();
 
-		var includedUserIds = new HashSet<ulong>();
-		var includedChannelIds = new HashSet<ulong>();
+		var includedChannels = new List<Channel>();
 		var includedServerIds = new HashSet<ulong>();
 
-		var includedMessages = await db.Messages.Get(filter, cancellationToken).ToListAsync(cancellationToken);
-		var includedChannels = new List<Channel>();
-
-		foreach (var message in includedMessages) {
-			includedUserIds.Add(message.Sender);
-			includedChannelIds.Add(message.Channel);
-		}
+		var channelIdFilter = filter?.ChannelIds;
 
 		await foreach (var channel in db.Channels.Get(cancellationToken)) {
-			if (includedChannelIds.Contains(channel.Id)) {
+			if (channelIdFilter == null || channelIdFilter.Contains(channel.Id)) {
 				includedChannels.Add(channel);
 				includedServerIds.Add(channel.Server);
 			}
 		}
 
-		var (users, userIndex, userIndices) = await GenerateUserList(db, includedUserIds, cancellationToken);
-		var (servers, serverIndices) = await GenerateServerList(db, includedServerIds, cancellationToken);
-		var channels = GenerateChannelList(includedChannels, serverIndices);
+		var users = await GenerateUserList(db, cancellationToken);
+		var servers = await GenerateServerList(db, includedServerIds, cancellationToken);
+		var channels = GenerateChannelList(includedChannels);
+
+		var meta = new ViewerJson.JsonMeta {
+			Users = users,
+			Servers = servers,
+			Channels = channels
+		};
 
 		perf.Step("Collect database data");
 
-		var value = new ViewerJson {
-			Meta = new ViewerJson.JsonMeta {
-				Users = users,
-				Userindex = userIndex,
-				Servers = servers,
-				Channels = channels
-			},
-			Data = GenerateMessageList(includedMessages, userIndices)
-		};
-
-		perf.Step("Generate value object");
-
-		await JsonSerializer.SerializeAsync(stream, value, ViewerJsonContext.Default.ViewerJson, cancellationToken);
+		await JsonSerializer.SerializeAsync(stream, meta, ViewerJsonMetadataContext.Default.JsonMeta, cancellationToken);
 
 		perf.Step("Serialize to JSON");
 		perf.End();
 	}
 
-	private static async Task<(Dictionary<Snowflake, ViewerJson.JsonUser> Users, List<Snowflake> UserIndex, Dictionary<ulong, int> UserIndices)> GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds, CancellationToken cancellationToken) {
+	public static async Task GetMessages(Stream stream, IDatabaseFile db, MessageFilter? filter = null, CancellationToken cancellationToken = default) {
+		var perf = Log.Start();
+
+		ReadOnlyMemory<byte> newLine = "\n"u8.ToArray();
+		
+		await foreach(var message in GenerateMessageList(db, filter, cancellationToken)) {
+			await JsonSerializer.SerializeAsync(stream, message, ViewerJsonMessageContext.Default.JsonMessage, cancellationToken);
+			await stream.WriteAsync(newLine, cancellationToken);
+		}
+
+		perf.Step("Generate and serialize messages to JSON");
+		perf.End();
+	}
+
+	private static async Task<Dictionary<Snowflake, ViewerJson.JsonUser>> GenerateUserList(IDatabaseFile db, CancellationToken cancellationToken) {
 		var users = new Dictionary<Snowflake, ViewerJson.JsonUser>();
-		var userIndex = new List<Snowflake>();
-		var userIndices = new Dictionary<ulong, int>();
 
 		await foreach (var user in db.Users.Get(cancellationToken)) {
-			var id = user.Id;
-			if (!userIds.Contains(id)) {
-				continue;
-			}
-
-			var idSnowflake = new Snowflake(id);
-			userIndices[id] = users.Count;
-			userIndex.Add(idSnowflake);
-			
-			users[idSnowflake] = new ViewerJson.JsonUser {
+			users[user.Id] = new ViewerJson.JsonUser {
 				Name = user.Name,
 				Avatar = user.AvatarUrl,
 				Tag = user.Discriminator
 			};
 		}
 
-		return (users, userIndex, userIndices);
+		return users;
 	}
 
-	private static async Task<(List<ViewerJson.JsonServer> Servers, Dictionary<ulong, int> ServerIndices)> GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds, CancellationToken cancellationToken) {
-		var servers = new List<ViewerJson.JsonServer>();
-		var serverIndices = new Dictionary<ulong, int>();
+	private static async Task<Dictionary<Snowflake, ViewerJson.JsonServer>> GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds, CancellationToken cancellationToken) {
+		var servers = new Dictionary<Snowflake, ViewerJson.JsonServer>();
 
 		await foreach (var server in db.Servers.Get(cancellationToken)) {
-			var id = server.Id;
-			if (!serverIds.Contains(id)) {
+			if (!serverIds.Contains(server.Id)) {
 				continue;
 			}
 
-			serverIndices[id] = servers.Count;
-			
-			servers.Add(new ViewerJson.JsonServer {
+			servers[server.Id] = new ViewerJson.JsonServer {
 				Name = server.Name,
 				Type = ServerTypes.ToJsonViewerString(server.Type)
-			});
+			};
 		}
 
-		return (servers, serverIndices);
+		return servers;
 	}
 
-	private static Dictionary<Snowflake, ViewerJson.JsonChannel> GenerateChannelList(List<Channel> includedChannels, Dictionary<ulong, int> serverIndices) {
+	private static Dictionary<Snowflake, ViewerJson.JsonChannel> GenerateChannelList(List<Channel> includedChannels) {
 		var channels = new Dictionary<Snowflake, ViewerJson.JsonChannel>();
 
 		foreach (var channel in includedChannels) {
-			var channelIdSnowflake = new Snowflake(channel.Id);
-			
-			channels[channelIdSnowflake] = new ViewerJson.JsonChannel {
-				Server = serverIndices[channel.Server],
+			channels[channel.Id] = new ViewerJson.JsonChannel {
+				Server = channel.Server,
 				Name = channel.Name,
 				Parent = channel.ParentId?.ToString(),
 				Position = channel.Position,
@@ -125,51 +110,40 @@ static class ViewerJsonExport {
 		return channels;
 	}
 
-	private static Dictionary<Snowflake, Dictionary<Snowflake, ViewerJson.JsonMessage>> GenerateMessageList(List<Message> includedMessages, Dictionary<ulong, int> userIndices) {
-		var data = new Dictionary<Snowflake, Dictionary<Snowflake, ViewerJson.JsonMessage>>();
+	private static async IAsyncEnumerable<ViewerJson.JsonMessage> GenerateMessageList(IDatabaseFile db, MessageFilter? filter, [EnumeratorCancellation] CancellationToken cancellationToken) {
+		await foreach (var message in db.Messages.Get(filter, cancellationToken)) {
+			yield return new ViewerJson.JsonMessage {
+				Id = message.Id,
+				C = message.Channel,
+				U = message.Sender,
+				T = message.Timestamp,
+				M = string.IsNullOrEmpty(message.Text) ? null : message.Text,
+				Te = message.EditTimestamp,
+				R = message.RepliedToId?.ToString(),
 
-		foreach (var grouping in includedMessages.GroupBy(static message => message.Channel)) {
-			var channelIdSnowflake = new Snowflake(grouping.Key);
-			var channelData = new Dictionary<Snowflake, ViewerJson.JsonMessage>();
+				A = message.Attachments.IsEmpty ? null : message.Attachments.Select(static attachment => {
+					var a = new ViewerJson.JsonMessageAttachment {
+						Url = attachment.DownloadUrl,
+						Name = Uri.TryCreate(attachment.NormalizedUrl, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.NormalizedUrl
+					};
 
-			foreach (var message in grouping) {
-				var messageIdSnowflake = new Snowflake(message.Id);
-				
-				channelData[messageIdSnowflake] = new ViewerJson.JsonMessage {
-					U = userIndices[message.Sender],
-					T = message.Timestamp,
-					M = string.IsNullOrEmpty(message.Text) ? null : message.Text,
-					Te = message.EditTimestamp,
-					R = message.RepliedToId?.ToString(),
-					
-					A = message.Attachments.IsEmpty ? null : message.Attachments.Select(static attachment => {
-						var a = new ViewerJson.JsonMessageAttachment {
-							Url = attachment.DownloadUrl,
-							Name = Uri.TryCreate(attachment.NormalizedUrl, UriKind.Absolute, out var uri) ? Path.GetFileName(uri.LocalPath) : attachment.NormalizedUrl
-						};
+					if (attachment is { Width: not null, Height: not null }) {
+						a.Width = attachment.Width;
+						a.Height = attachment.Height;
+					}
 
-						if (attachment is { Width: not null, Height: not null }) {
-							a.Width = attachment.Width;
-							a.Height = attachment.Height;
-						}
+					return a;
+				}).ToArray(),
 
-						return a;
-					}).ToArray(),
-					
-					E = message.Embeds.IsEmpty ? null : message.Embeds.Select(static embed => embed.Json).ToArray(),
-					
-					Re = message.Reactions.IsEmpty ? null : message.Reactions.Select(static reaction => new ViewerJson.JsonMessageReaction {
-						Id = reaction.EmojiId?.ToString(),
-						N = reaction.EmojiName,
-						A = reaction.EmojiFlags.HasFlag(EmojiFlags.Animated),
-						C = reaction.Count
-					}).ToArray()
-				};
-			}
+				E = message.Embeds.IsEmpty ? null : message.Embeds.Select(static embed => embed.Json).ToArray(),
 
-			data[channelIdSnowflake] = channelData;
+				Re = message.Reactions.IsEmpty ? null : message.Reactions.Select(static reaction => new ViewerJson.JsonMessageReaction {
+					Id = reaction.EmojiId?.ToString(),
+					N = reaction.EmojiName,
+					A = reaction.EmojiFlags.HasFlag(EmojiFlags.Animated),
+					C = reaction.Count
+				}).ToArray()
+			};
 		}
-
-		return data;
 	}
 }

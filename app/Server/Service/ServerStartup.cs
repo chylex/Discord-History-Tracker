@@ -51,7 +51,8 @@ sealed class Startup {
 		app.UseRouting();
 		app.UseEndpoints(endpoints => {
 			endpoints.MapGet("/get-tracking-script", new GetTrackingScriptEndpoint(db, parameters, resources).Handle);
-			endpoints.MapGet("/get-viewer-data", new GetViewerDataEndpoint(db, viewerSessions).Handle);
+			endpoints.MapGet("/get-viewer-metadata", new GetViewerMetadataEndpoint(db, viewerSessions).Handle);
+			endpoints.MapGet("/get-viewer-messages", new GetViewerMessagesEndpoint(db, viewerSessions).Handle);
 			endpoints.MapGet("/get-downloaded-file/{url}", new GetDownloadedFileEndpoint(db).Handle);
 			endpoints.MapPost("/track-channel", new TrackChannelEndpoint(db).Handle);
 			endpoints.MapPost("/track-users", new TrackUsersEndpoint(db).Handle);

@@ -5,7 +5,7 @@ import discord from "./discord.mjs";
 // ------------------------
 
 const filter = {
-	byUser: ((userindex) => message => message.u === userindex),
+	byUser: ((user) => message => message.u === user),
 	byTime: ((timeStart, timeEnd) => message => message.t >= timeStart && message.t <= timeEnd),
 	byContents: ((substr) => message => ("m" in message ? message.m : "").indexOf(substr) !== -1),
 	byRegex: ((regex) => message => regex.test("m" in message ? message.m : "")),

@@ -6,8 +6,7 @@ export default (function() {
 	/**
 	 * @type {{}}
 	 * @property {{}} users
-	 * @property {String[]} userindex
-	 * @property {{}[]} servers
+	 * @property {{}} servers
 	 * @property {{}} channels
 	 */
 	let loadedFileMeta;
@@ -20,20 +19,16 @@ export default (function() {
 	let currentPage;
 	let messagesPerPage;
 	
-	const getUser = function(index) {
-		return loadedFileMeta.users[loadedFileMeta.userindex[index]] || { "name": "&lt;unknown&gt;" };
-	};
-	
-	const getUserId = function(index) {
-		return loadedFileMeta.userindex[index];
+	const getUser = function(id) {
+		return loadedFileMeta.users[id] || { "name": "&lt;unknown&gt;" };
 	};
 	
 	const getUserList = function() {
 		return loadedFileMeta ? loadedFileMeta.users : [];
 	};
 	
-	const getServer = function(index) {
-		return loadedFileMeta.servers[index] || { "name": "&lt;unknown&gt;", "type": "unknown" };
+	const getServer = function(id) {
+		return loadedFileMeta.servers[id] || { "name": "&lt;unknown&gt;", "type": "unknown" };
 	};
 	
 	const generateChannelHierarchy = function() {
@@ -207,7 +202,7 @@ export default (function() {
 			 */
 			const message = messages[key];
 			const user = getUser(message.u);
-			const avatar = user.avatar ? { id: getUserId(message.u), path: user.avatar } : null;
+			const avatar = user.avatar ? { id: message.u, path: user.avatar } : null;
 			
 			const obj = {
 				user,
@@ -235,7 +230,7 @@ export default (function() {
 			if ("r" in message) {
 				const replyMessage = getMessageById(message.r);
 				const replyUser = replyMessage ? getUser(replyMessage.u) : null;
-				const replyAvatar = replyUser && replyUser.avatar ? { id: getUserId(replyMessage.u), path: replyUser.avatar } : null;
+				const replyAvatar = replyUser && replyUser.avatar ? { id: replyMessage.u, path: replyUser.avatar } : null;
 				
 				obj["reply"] = replyMessage ? {
 					"id": message.r,
@@ -293,20 +288,17 @@ export default (function() {
 			eventOnUsersRefreshed = callback;
 		},
 		
-		/**
-		 * @param {{ meta, data }} file
-		 */
-		uploadFile(file) {
+		uploadFile(meta, data) {
 			if (loadedFileMeta != null) {
 				throw "A file is already loaded!";
 			}
 			
-			if (!file || typeof file.meta !== "object" || typeof file.data !== "object") {
+			if (typeof meta !== "object" || typeof data !== "object") {
 				throw "Invalid file format!";
 			}
 			
-			loadedFileMeta = file.meta;
-			loadedFileData = file.data;
+			loadedFileMeta = meta;
+			loadedFileData = data;
 			loadedMessages = null;
 			
 			selectedChannel = null;
@@ -419,7 +411,7 @@ export default (function() {
 		setActiveFilter(filter) {
 			switch (filter ? filter.type : "") {
 				case "user":
-					filterFunction = processor.FILTER.byUser(loadedFileMeta.userindex.indexOf(filter.value));
+					filterFunction = processor.FILTER.byUser(filter.value);
 					break;
 				
 				case "contents":
