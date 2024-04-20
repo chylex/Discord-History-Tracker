@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
@@ -213,7 +214,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 		}
 	}
 
-	public async IAsyncEnumerable<Message> Get(MessageFilter? filter) {
+	public async IAsyncEnumerable<Message> Get(MessageFilter? filter, [EnumeratorCancellation] CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
 
 		const string AttachmentSql =
@@ -269,9 +270,9 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 			 """
 		);
 
-		await using var reader = await messageCmd.ExecuteReaderAsync();
+		await using var reader = await messageCmd.ExecuteReaderAsync(cancellationToken);
 
-		while (await reader.ReadAsync()) {
+		while (await reader.ReadAsync(cancellationToken)) {
 			ulong messageId = reader.GetUint64(0);
 
 			yield return new Message {

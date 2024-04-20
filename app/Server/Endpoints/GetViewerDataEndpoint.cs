@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Mime;
+using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Database;
 using DHT.Server.Database.Export;
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.Http;
 namespace DHT.Server.Endpoints; 
 
 sealed class GetViewerDataEndpoint(IDatabaseFile db, ViewerSessions viewerSessions) : BaseEndpoint(db) {
-	protected override async Task Respond(HttpRequest request, HttpResponse response) {
+	protected override Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
 		if (!request.Query.TryGetValue("session", out var sessionIdValue) || sessionIdValue.Count != 1 || !Guid.TryParse(sessionIdValue[0], out Guid sessionId)) {
 			throw new HttpException(HttpStatusCode.BadRequest, "Invalid session ID.");
 		}
@@ -19,6 +20,6 @@ sealed class GetViewerDataEndpoint(IDatabaseFile db, ViewerSessions viewerSessio
 		response.ContentType = MediaTypeNames.Application.Json;
 		
 		var session = viewerSessions.Get(sessionId);
-		await ViewerJsonExport.Generate(response.Body, Db, session.MessageFilter);
+		return ViewerJsonExport.Generate(response.Body, Db, session.MessageFilter, cancellationToken);
 	}
 }

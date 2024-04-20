@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 namespace DHT.Server.Endpoints;
 
 sealed class TrackChannelEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
-	protected override async Task Respond(HttpRequest request, HttpResponse response) {
+	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
 		var root = await ReadJson(request);
 		var server = ReadServer(root.RequireObject("server"), "server");
 		var channel = ReadChannel(root.RequireObject("channel"), "channel", server.Id);

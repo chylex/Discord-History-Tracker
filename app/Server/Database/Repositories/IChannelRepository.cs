@@ -15,7 +15,7 @@ public interface IChannelRepository {
 	
 	Task<long> Count(CancellationToken cancellationToken = default);
 	
-	IAsyncEnumerable<Channel> Get();
+	IAsyncEnumerable<Channel> Get(CancellationToken cancellationToken = default);
 
 	internal sealed class Dummy : IChannelRepository {
 		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
@@ -28,7 +28,7 @@ public interface IChannelRepository {
 			return Task.FromResult(0L);
 		}
 
-		public IAsyncEnumerable<Channel> Get() {
+		public IAsyncEnumerable<Channel> Get(CancellationToken cancellationToken) {
 			return AsyncEnumerable.Empty<Channel>();
 		}
 	}

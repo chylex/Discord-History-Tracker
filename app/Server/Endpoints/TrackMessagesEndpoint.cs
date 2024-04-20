@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
@@ -19,7 +20,7 @@ sealed class TrackMessagesEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
 	private const string HasNewMessages = "1";
 	private const string NoNewMessages = "0";
 
-	protected override async Task Respond(HttpRequest request, HttpResponse response) {
+	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
 		var root = await ReadJson(request);
 
 		if (root.ValueKind != JsonValueKind.Array) {
@@ -37,11 +38,11 @@ sealed class TrackMessagesEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
 		}
 
 		var addedMessageFilter = new MessageFilter { MessageIds = addedMessageIds };
-		bool anyNewMessages = await Db.Messages.Count(addedMessageFilter) < addedMessageIds.Count;
+		bool anyNewMessages = await Db.Messages.Count(addedMessageFilter, CancellationToken.None) < addedMessageIds.Count;
 
 		await Db.Messages.Add(messages);
 
-		await response.WriteTextAsync(anyNewMessages ? HasNewMessages : NoNewMessages);
+		await response.WriteTextAsync(anyNewMessages ? HasNewMessages : NoNewMessages, cancellationToken);
 	}
 
 	private static Message ReadMessage(JsonElement json, string path) => new () {

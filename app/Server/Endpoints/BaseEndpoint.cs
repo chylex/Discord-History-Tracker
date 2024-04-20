@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Database;
 using DHT.Utils.Http;
@@ -19,7 +20,9 @@ abstract class BaseEndpoint(IDatabaseFile db) {
 
 		try {
 			response.StatusCode = (int) HttpStatusCode.OK;
-			await Respond(ctx.Request, response);
+			await Respond(ctx.Request, response, ctx.RequestAborted);
+		} catch (OperationCanceledException) {
+			throw;
 		} catch (HttpException e) {
 			Log.Error(e);
 			response.StatusCode = (int) e.StatusCode;
@@ -35,7 +38,7 @@ abstract class BaseEndpoint(IDatabaseFile db) {
 		}
 	}
 
-	protected abstract Task Respond(HttpRequest request, HttpResponse response);
+	protected abstract Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken);
 
 	protected static async Task<JsonElement> ReadJson(HttpRequest request) {
 		try {

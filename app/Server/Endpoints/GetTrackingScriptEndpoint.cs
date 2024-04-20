@@ -1,4 +1,5 @@
 using System.Net.Mime;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using DHT.Server.Database;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Http;
 namespace DHT.Server.Endpoints;
 
 sealed class GetTrackingScriptEndpoint(IDatabaseFile db, ServerParameters parameters, ResourceLoader resources) : BaseEndpoint(db) {
-	protected override async Task Respond(HttpRequest request, HttpResponse response) {
+	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
 		string bootstrap = await resources.ReadTextAsync("Tracker/bootstrap.js");
 		string script = bootstrap.Replace("= 0; /*[PORT]*/", "= " + parameters.Port + ";")
 		                         .Replace("/*[TOKEN]*/", HttpUtility.JavaScriptStringEncode(parameters.Token))
@@ -20,6 +21,6 @@ sealed class GetTrackingScriptEndpoint(IDatabaseFile db, ServerParameters parame
 		                         .Replace("/*[DEBUGGER]*/", request.Query.ContainsKey("debug") ? "debugger;" : "");
 		
 		response.Headers.Append("X-DHT", "1");
-		await response.WriteTextAsync(MediaTypeNames.Text.JavaScript, script);
+		await response.WriteTextAsync(MediaTypeNames.Text.JavaScript, script, cancellationToken);
 	}
 }

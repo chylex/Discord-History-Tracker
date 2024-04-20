@@ -16,7 +16,7 @@ public interface IMessageRepository {
 	
 	Task<long> Count(MessageFilter? filter = null, CancellationToken cancellationToken = default);
 	
-	IAsyncEnumerable<Message> Get(MessageFilter? filter = null);
+	IAsyncEnumerable<Message> Get(MessageFilter? filter = null, CancellationToken cancellationToken = default);
 	
 	IAsyncEnumerable<ulong> GetIds(MessageFilter? filter = null);
 	
@@ -33,7 +33,7 @@ public interface IMessageRepository {
 			return Task.FromResult(0L);
 		}
 
-		public IAsyncEnumerable<Message> Get(MessageFilter? filter) {
+		public IAsyncEnumerable<Message> Get(MessageFilter? filter, CancellationToken cancellationToken) {
 			return AsyncEnumerable.Empty<Message>();
 		}
 

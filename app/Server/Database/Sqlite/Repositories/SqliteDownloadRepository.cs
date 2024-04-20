@@ -210,7 +210,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 		return true;
 	}
 
-	public async Task<bool> GetSuccessfulDownloadWithData(string normalizedUrl, Func<Data.Download, Stream, Task> dataProcessor) {
+	public async Task<bool> GetSuccessfulDownloadWithData(string normalizedUrl, Func<Data.Download, Stream, CancellationToken, Task> dataProcessor, CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
 
 		await using var cmd = conn.Command(
@@ -228,8 +228,8 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 		string? type;
 		long rowid;
 		
-		await using (var reader = await cmd.ExecuteReaderAsync()) {
-			if (!await reader.ReadAsync()) {
+		await using (var reader = await cmd.ExecuteReaderAsync(cancellationToken)) {
+			if (!await reader.ReadAsync(cancellationToken)) {
 				return false;
 			}
 
@@ -239,7 +239,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 		}
 		
 		await using (var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid, readOnly: true)) {
-			await dataProcessor(new Data.Download(normalizedUrl, downloadUrl, DownloadStatus.Success, type, (ulong) blob.Length), blob);
+			await dataProcessor(new Data.Download(normalizedUrl, downloadUrl, DownloadStatus.Success, type, (ulong) blob.Length), blob, cancellationToken);
 		}
 
 		return true;

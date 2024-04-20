@@ -15,7 +15,7 @@ public interface IUserRepository {
 	
 	Task<long> Count(CancellationToken cancellationToken = default);
 	
-	IAsyncEnumerable<User> Get();
+	IAsyncEnumerable<User> Get(CancellationToken cancellationToken = default);
 
 	internal sealed class Dummy : IUserRepository {
 		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
@@ -28,7 +28,7 @@ public interface IUserRepository {
 			return Task.FromResult(0L);
 		}
 
-		public IAsyncEnumerable<User> Get() {
+		public IAsyncEnumerable<User> Get(CancellationToken cancellationToken) {
 			return AsyncEnumerable.Empty<User>();
 		}
 	}

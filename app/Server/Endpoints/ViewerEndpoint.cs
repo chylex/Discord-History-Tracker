@@ -16,13 +16,13 @@ sealed class ViewerEndpoint(IDatabaseFile db, ResourceLoader resources) : BaseEn
 	private readonly Dictionary<string, byte[]?> cache = new ();
 	private readonly SemaphoreSlim cacheSemaphore = new (1);
 
-	protected override async Task Respond(HttpRequest request, HttpResponse response) {
+	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
 		string path = (string?) request.RouteValues["path"] ?? "index.html";
 		string resourcePath = "Viewer/" + path;
 		
 		byte[]? resourceBytes;
 
-		await cacheSemaphore.WaitAsync();
+		await cacheSemaphore.WaitAsync(cancellationToken);
 		try {
 			if (!cache.TryGetValue(resourcePath, out resourceBytes)) {
 				cache[resourcePath] = resourceBytes = await resources.ReadBytesAsyncIfExists(resourcePath);
@@ -36,7 +36,7 @@ sealed class ViewerEndpoint(IDatabaseFile db, ResourceLoader resources) : BaseEn
 		}
 		else {
 			var contentType = ContentTypeProvider.TryGetContentType(path, out string? type) ? type : null;
-			await response.WriteFileAsync(contentType, resourceBytes);
+			await response.WriteFileAsync(contentType, resourceBytes, cancellationToken);
 		}
 	}
 }

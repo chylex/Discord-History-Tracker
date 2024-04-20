@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
@@ -46,13 +47,13 @@ sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
 		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM servers", static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
 
-	public async IAsyncEnumerable<Data.Server> Get() {
+	public async IAsyncEnumerable<Data.Server> Get([EnumeratorCancellation] CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
 
 		await using var cmd = conn.Command("SELECT id, name, type FROM servers");
-		await using var reader = await cmd.ExecuteReaderAsync();
+		await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
-		while (await reader.ReadAsync()) {
+		while (await reader.ReadAsync(cancellationToken)) {
 			yield return new Data.Server {
 				Id = reader.GetUint64(0),
 				Name = reader.GetString(1),

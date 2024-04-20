@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
@@ -13,14 +14,14 @@ namespace DHT.Server.Database.Export;
 static class ViewerJsonExport {
 	private static readonly Log Log = Log.ForType(typeof(ViewerJsonExport));
 
-	public static async Task Generate(Stream stream, IDatabaseFile db, MessageFilter? filter = null) {
+	public static async Task Generate(Stream stream, IDatabaseFile db, MessageFilter? filter = null, CancellationToken cancellationToken = default) {
 		var perf = Log.Start();
 
 		var includedUserIds = new HashSet<ulong>();
 		var includedChannelIds = new HashSet<ulong>();
 		var includedServerIds = new HashSet<ulong>();
 
-		var includedMessages = await db.Messages.Get(filter).ToListAsync();
+		var includedMessages = await db.Messages.Get(filter, cancellationToken).ToListAsync(cancellationToken);
 		var includedChannels = new List<Channel>();
 
 		foreach (var message in includedMessages) {
@@ -28,15 +29,15 @@ static class ViewerJsonExport {
 			includedChannelIds.Add(message.Channel);
 		}
 
-		await foreach (var channel in db.Channels.Get()) {
+		await foreach (var channel in db.Channels.Get(cancellationToken)) {
 			if (includedChannelIds.Contains(channel.Id)) {
 				includedChannels.Add(channel);
 				includedServerIds.Add(channel.Server);
 			}
 		}
 
-		var (users, userIndex, userIndices) = await GenerateUserList(db, includedUserIds);
-		var (servers, serverIndices) = await GenerateServerList(db, includedServerIds);
+		var (users, userIndex, userIndices) = await GenerateUserList(db, includedUserIds, cancellationToken);
+		var (servers, serverIndices) = await GenerateServerList(db, includedServerIds, cancellationToken);
 		var channels = GenerateChannelList(includedChannels, serverIndices);
 
 		perf.Step("Collect database data");
@@ -53,18 +54,18 @@ static class ViewerJsonExport {
 
 		perf.Step("Generate value object");
 
-		await JsonSerializer.SerializeAsync(stream, value, ViewerJsonContext.Default.ViewerJson);
+		await JsonSerializer.SerializeAsync(stream, value, ViewerJsonContext.Default.ViewerJson, cancellationToken);
 
 		perf.Step("Serialize to JSON");
 		perf.End();
 	}
 
-	private static async Task<(Dictionary<Snowflake, ViewerJson.JsonUser> Users, List<Snowflake> UserIndex, Dictionary<ulong, int> UserIndices)> GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds) {
+	private static async Task<(Dictionary<Snowflake, ViewerJson.JsonUser> Users, List<Snowflake> UserIndex, Dictionary<ulong, int> UserIndices)> GenerateUserList(IDatabaseFile db, HashSet<ulong> userIds, CancellationToken cancellationToken) {
 		var users = new Dictionary<Snowflake, ViewerJson.JsonUser>();
 		var userIndex = new List<Snowflake>();
 		var userIndices = new Dictionary<ulong, int>();
 
-		await foreach (var user in db.Users.Get()) {
+		await foreach (var user in db.Users.Get(cancellationToken)) {
 			var id = user.Id;
 			if (!userIds.Contains(id)) {
 				continue;
@@ -84,11 +85,11 @@ static class ViewerJsonExport {
 		return (users, userIndex, userIndices);
 	}
 
-	private static async Task<(List<ViewerJson.JsonServer> Servers, Dictionary<ulong, int> ServerIndices)> GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds) {
+	private static async Task<(List<ViewerJson.JsonServer> Servers, Dictionary<ulong, int> ServerIndices)> GenerateServerList(IDatabaseFile db, HashSet<ulong> serverIds, CancellationToken cancellationToken) {
 		var servers = new List<ViewerJson.JsonServer>();
 		var serverIndices = new Dictionary<ulong, int>();
 
-		await foreach (var server in db.Servers.Get()) {
+		await foreach (var server in db.Servers.Get(cancellationToken)) {
 			var id = server.Id;
 			if (!serverIds.Contains(id)) {
 				continue;
