@@ -246,10 +246,10 @@ export default (function() {
 							return templateEmbedUnsupported.apply(embed);
 						}
 						else if ("image" in embed && embed.image.url) {
-							return getImageEmbed(fileUrlProcessor(embed.url), embed.image);
+							return getImageEmbed(embed.url, embed.image);
 						}
 						else if ("thumbnail" in embed && embed.thumbnail.url) {
-							return getImageEmbed(fileUrlProcessor(embed.url), embed.thumbnail);
+							return getImageEmbed(embed.url, embed.thumbnail);
 						}
 						else if ("title" in embed && "description" in embed) {
 							return templateEmbedRich.apply(embed);
