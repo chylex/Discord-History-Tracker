@@ -10,10 +10,15 @@
 		return;
 	}
 	
+	/*[IMPORTS]*/
+	
+	if (!DISCORD.isCompatible()) {
+		alert("Discord History Tracker is not compatible with this version of Discord.");
+		return;
+	}
+	
 	window.DHT_LOADED = true;
 	window.DHT_ON_UNLOAD = [];
-	
-	/*[IMPORTS]*/
 	
 	const port = 0; /*[PORT]*/
 	const token = "/*[TOKEN]*/";
@@ -46,7 +51,7 @@
 		return action === null || action === CONSTANTS.AUTOSCROLL_ACTION_NOTHING;
 	};
 	
-	const onTrackingContinued = function(anyNewMessages) {
+	const onTrackingContinued = function(anyNewMessages, hasMoreBefore) {
 		if (!STATE.isTracking()) {
 			return;
 		}
@@ -63,7 +68,7 @@
 		if (SETTINGS.autoscroll) {
 			let action = null;
 			
-			if (!DISCORD.hasMoreMessages()) {
+			if (!hasMoreBefore) {
 				console.debug("[DHT] Reached first message.");
 				action = SETTINGS.afterFirstMsg;
 			}
@@ -84,7 +89,7 @@
 	
 	let waitUntilSendingFinishedTimer = null;
 	
-	const onMessagesUpdated = async messages => {
+	const onMessagesUpdated = async (server, channel, messages, hasMoreBefore) => {
 		if (!STATE.isTracking() || delayedStopRequests > 0) {
 			return;
 		}
@@ -94,24 +99,16 @@
 			
 			waitUntilSendingFinishedTimer = window.setTimeout(() => {
 				waitUntilSendingFinishedTimer = null;
-				onMessagesUpdated(messages);
+				onMessagesUpdated(server, channel, messages, hasMoreBefore);
 			}, 100);
 			
-			return;
-		}
-		
-		const info = DISCORD.getSelectedChannel();
-		
-		if (!info) {
-			GUI.setStatus("Error (Unknown Channel)");
-			stopTrackingDelayed();
 			return;
 		}
 		
 		isSending = true;
 		
 		try {
-			await STATE.addDiscordChannel(info.server, info.channel);
+			await STATE.addDiscordChannel(server, channel);
 		} catch (e) {
 			onError(e);
 			return;
@@ -120,32 +117,28 @@
 		try {
 			if (!messages.length) {
 				isSending = false;
-				onTrackingContinued(false);
+				onTrackingContinued(false, hasMoreBefore);
 			}
 			else {
 				const anyNewMessages = await STATE.addDiscordMessages(messages);
-				onTrackingContinued(anyNewMessages);
+				onTrackingContinued(anyNewMessages, hasMoreBefore);
 			}
 		} catch (e) {
 			onError(e);
 		}
 	};
 	
-	DISCORD.setupMessageCallback(onMessagesUpdated);
+	const starter = DISCORD.setupMessageCallback(onMessagesUpdated);
 	
 	STATE.onTrackingStateChanged(enabled => {
 		if (enabled) {
-			const messages = DISCORD.getMessages();
-			
-			if (messages.length === 0) {
-				stopTrackingDelayed(() => alert("Cannot see any messages."));
-				return;
-			}
-			
 			GUI.setStatus("Starting");
 			hasJustStarted = true;
-			// noinspection JSIgnoredPromiseFromCall
-			onMessagesUpdated(messages);
+			
+			if (!starter()) {
+				stopTrackingDelayed(() => alert("Cannot see any messages."));
+				hasJustStarted = false;
+			}
 		}
 		else {
 			isSending = false;

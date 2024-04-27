@@ -58,64 +58,38 @@ const STATE = (function() {
 		}
 	};
 	
+	/**
+	 * @param {DiscordChannel} channel
+	 */
+	const getPrivateChannelName = function(channel) {
+		if (channel.name === "") {
+			return channel.rawRecipients.map(user => user.username).join(", ");
+		}
+		else {
+			return channel.name;
+		}
+	};
+	
+	/**
+	 * @param {Number} type
+	 */
+	const getChannelTypeName = function(type) {
+		if (type === DISCORD.CHANNEL_TYPE.DM) {
+			return "DM";
+		}
+		else if (type === DISCORD.CHANNEL_TYPE.GROUP_DM) {
+			return "GROUP";
+		}
+		else {
+			return "SERVER";
+		}
+	};
+	
 	const trackingStateChangedListeners = [];
 	let isTracking = false;
 	
 	const addedChannels = new Set();
 	const addedUsers = new Set();
-	
-	/**
-	 * @name DiscordUser
-	 * @property {String} id
-	 * @property {String} username
-	 * @property {String} discriminator
-	 * @property {String} [globalName]
-	 * @property {String} [avatar]
-	 * @property {Boolean} [bot]
-	 */
-	
-	/**
-	 * @name DiscordMessage
-	 * @property {String} id
-	 * @property {String} channel_id
-	 * @property {DiscordUser} author
-	 * @property {String} content
-	 * @property {Date} timestamp
-	 * @property {Date|null} editedTimestamp
-	 * @property {DiscordAttachment[]} attachments
-	 * @property {Object[]} embeds
-	 * @property {DiscordMessageReaction[]} [reactions]
-	 * @property {DiscordMessageReference} [messageReference]
-	 * @property {Number} type
-	 * @property {String} state
-	 */
-	
-	/**
-	 * @name DiscordAttachment
-	 * @property {String} id
-	 * @property {String} filename
-	 * @property {String} [content_type]
-	 * @property {String} size
-	 * @property {String} url
-	 */
-	
-	/**
-	 * @name DiscordMessageReaction
-	 * @property {DiscordEmoji} emoji
-	 * @property {Number} count
-	 */
-	
-	/**
-	 * @name DiscordMessageReference
-	 * @property {String} [message_id]
-	 */
-	
-	/**
-	 * @name DiscordEmoji
-	 * @property {String|null} id
-	 * @property {String|null} name
-	 * @property {Boolean} animated
-	 */
 	
 	return {
 		setup(port, token) {
@@ -147,32 +121,51 @@ const STATE = (function() {
 			}
 		},
 		
+		/**
+		 * @param {?DiscordGuild} serverInfo
+		 * @param {DiscordChannel} channelInfo
+		 */
 		async addDiscordChannel(serverInfo, channelInfo) {
 			if (addedChannels.has(channelInfo.id)) {
 				return;
 			}
 			
 			const server = {
-				id: serverInfo.id,
-				name: serverInfo.name,
-				type: serverInfo.type
+				type: getChannelTypeName(channelInfo.type)
 			};
 			
 			const channel = {
 				id: channelInfo.id,
-				name: channelInfo.name
+				extra: {}
 			};
 			
-			if ("extra" in channelInfo) {
-				const extra = channelInfo.extra;
-				
-				if ("parent" in extra) {
-					channel.parent = extra.parent;
-				}
-				
-				channel.position = extra.position;
-				channel.topic = extra.topic;
-				channel.nsfw = extra.nsfw;
+			if (DISCORD.CHANNEL_TYPE.isPrivate(channelInfo.type)) {
+				server.id = channelInfo.id;
+				server.name = channel.name = getPrivateChannelName(channelInfo);
+			}
+			else if (serverInfo) {
+				server.id = serverInfo.id;
+				server.name = serverInfo.name;
+				channel.name = channelInfo.name;
+			}
+			else {
+				return;
+			}
+			
+			if ("nsfw" in channelInfo) {
+				channel.extra.nsfw = channelInfo.nsfw;
+			}
+			
+			if ("topic" in channelInfo) {
+				channel.extra.topic = channelInfo.topic;
+			}
+			
+			if ("position" in channelInfo) {
+				channel.extra.position = channelInfo.position;
+			}
+			
+			if (channelInfo.type === DISCORD.CHANNEL_TYPE.ANNOUNCEMENT_THREAD || channelInfo.type === DISCORD.CHANNEL_TYPE.PUBLIC_THREAD || channelInfo.type === DISCORD.CHANNEL_TYPE.PRIVATE_THREAD) {
+				channel.extra.parent = channelInfo.parent_id;
 			}
 			
 			await post("/track-channel", { server, channel });
