@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,13 +45,25 @@ public sealed class ResourceLoader(Assembly assembly) {
 		return TryGetEmbeddedStream(filename) is {} stream ? await ReadBytesAsync(stream) : null;
 	}
 
-	public async Task<string> ReadJoinedAsync(string path, char separator) {
-		StringBuilder joined = new ();
+	public async Task<string> ReadJoinedAsync(string path, char separator, string[] order) {
+		List<(string, Stream)> resourceNames = [];
 
 		foreach (var embeddedName in assembly.GetManifestResourceNames()) {
-			if (embeddedName.Replace('\\', '/').StartsWith(path)) {
-				joined.Append(await ReadTextAsync(assembly.GetManifestResourceStream(embeddedName)!)).Append(separator);
+			var embeddedNameNormalized = embeddedName.Replace('\\', '/');
+			if (embeddedNameNormalized.StartsWith(path)) {
+				resourceNames.Add((embeddedNameNormalized, assembly.GetManifestResourceStream(embeddedName)!));
 			}
+		}
+		
+		StringBuilder joined = new ();
+		
+		int GetOrderKey(string name) {
+			int key = Array.FindIndex(order, name.EndsWith);
+			return key == -1 ? order.Length : key;
+		}
+		
+		foreach(var (_, stream) in resourceNames.OrderBy(item => GetOrderKey(item.Item1))) {
+			joined.Append(await ReadTextAsync(stream)).Append(separator);
 		}
 
 		return joined.ToString(0, Math.Max(0, joined.Length - 1));
