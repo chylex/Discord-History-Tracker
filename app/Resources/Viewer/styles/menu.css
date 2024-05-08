@@ -1,15 +1,16 @@
 #menu {
-  width: 100%;
-  height: 48px;
   display: flex;
   flex-direction: row;
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px;
   background-color: #17181c;
   border-bottom: 1px dotted #5d626b;
 }
 
 #menu .splitter {
-  width: 1px;
-  margin: 9px 4px;
+  flex: 0 0 1px;
+  margin: 9px 1px;
   background-color: #5d626b;
 }
 
@@ -23,7 +24,8 @@
 }
 
 #menu button, #menu select, #menu input[type="text"] {
-  margin: 8px;
+  height: 31px;
+  padding: 0 10px;
   background-color: #7289da;
   color: #fff;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.75);
@@ -31,28 +33,25 @@
 
 #menu button {
   font-size: 17px;
-  padding: 0 12px;
   border: 0;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 #menu select {
   font-size: 14px;
-  padding: 6px;
   border: 0;
   cursor: pointer;
 }
 
 #menu input[type="text"] {
   font-size: 14px;
-  padding: 7px 12px;
   border: 0;
 }
 
 #menu .nav {
   display: flex;
   flex-direction: row;
-  margin: 0 8px;
 }
 
 #menu .nav > button {
@@ -66,7 +65,7 @@
 }
 
 #menu .nav > button, #menu .nav > p {
-  margin: 8px 1px;
+  margin: 0 1px;
 }
 
 #opt-filter-list > select, #opt-filter-list > input {
@@ -75,4 +74,8 @@
 
 #opt-filter-list > .active {
   display: block;
+}
+
+#btn-about {
+  margin-left: auto;
 }
