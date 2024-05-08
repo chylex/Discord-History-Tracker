@@ -1,6 +1,7 @@
 import discord from "./discord.mjs";
 import gui from "./gui.mjs";
 import state from "./state.mjs";
+import "./polyfills.mjs";
 
 window.DISCORD = discord;
 
