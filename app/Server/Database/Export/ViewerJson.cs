@@ -18,9 +18,6 @@ static class ViewerJson {
 		
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 		public string? Avatar { get; init; }
-		
-		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-		public string? Tag { get; init; }
 	}
 
 	public sealed class JsonServer {

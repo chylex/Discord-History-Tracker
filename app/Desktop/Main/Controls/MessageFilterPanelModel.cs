@@ -249,10 +249,8 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 			var checkBoxItems = new List<CheckBoxItem<ulong>>();
 
 			await foreach (var user in state.Db.Users.Get()) {
-				var username = user.Discriminator == null ? user.Name : user.Name + " #" + user.Discriminator;
-
 				checkBoxItems.Add(new CheckBoxItem<ulong>(user.Id) {
-					Title = user.DisplayName == null ? username : $"{user.DisplayName} ({username})",
+					Title = user.DisplayName == null ? user.Name : $"{user.DisplayName} ({user.Name})",
 					IsChecked = IncludedUsers == null || IncludedUsers.Contains(user.Id)
 				});
 			}

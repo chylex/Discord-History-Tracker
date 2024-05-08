@@ -70,7 +70,6 @@ static class ViewerJsonExport {
 				Name = user.Name,
 				DisplayName = user.DisplayName,
 				Avatar = user.AvatarUrl,
-				Tag = user.Discriminator
 			};
 		}
 

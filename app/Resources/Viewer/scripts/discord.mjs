@@ -80,7 +80,7 @@ export default (function() {
 		processed = processed
 			.replace(regex.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
 			.replace(regex.mentionChannel, (full, match) => "<span class='link mention-chat'>#" + state.getChannelName(match) + "</span>")
-			.replace(regex.mentionUser, (full, match) => "<span class='link mention-user' title='#" + (state.getUserTag(match) || "????") + "'>@" + state.getUserName(match) + "</span>")
+			.replace(regex.mentionUser, (full, match) => "<span class='link mention-user' title='" + state.getUserName(match) + "'>@" + state.getUserDisplayName(match) + "</span>")
 			.replace(regex.customEmojiStatic, (full, m1, m2) => getEmoji(m1, m2, "webp"))
 			.replace(regex.customEmojiAnimated, (full, m1, m2) => getEmoji(m1, m2, animatedEmojiExtension));
 		
@@ -129,7 +129,7 @@ export default (function() {
 			templateMessageNoAvatar = new template([
 				"<div>",
 				"<div class='reply-message'>{reply}</div>",
-				"<h2><strong class='username' title='{user.name} #{user.tag}'>{user.displayName}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
+				"<h2><strong class='username' title='{user.name}'>{user.displayName}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
 				"<div class='message'>{contents}{embeds}{attachments}</div>",
 				"{reactions}",
 				"</div>"
@@ -141,7 +141,7 @@ export default (function() {
 				"<div class='avatar-wrapper'>",
 				"<div class='avatar'>{avatar}</div>",
 				"<div>",
-				"<h2><strong class='username' title='{user.name} #{user.tag}'>{user.displayName}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
+				"<h2><strong class='username' title='{user.name}'>{user.displayName}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
 				"<div class='message'>{contents}{embeds}{attachments}</div>",
 				"{reactions}",
 				"</div>",
@@ -230,9 +230,6 @@ export default (function() {
 				else if (property === "user.displayName") {
 					return value ? value : message.user.name;
 				}
-				else if (property === "user.tag") {
-					return value ? value : "????";
-				}
 				else if (property === "timestamp") {
 					return dom.getHumanReadableTime(value);
 				}
@@ -295,7 +292,7 @@ export default (function() {
 						return value === null ? "<span class='reply-contents reply-missing'>(replies to an unknown message)</span>" : "";
 					}
 					
-					const user = "<span class='reply-username' title='#" + (value.user.tag ? value.user.tag : "????") + "'>" + value.user.name + "</span>";
+					const user = "<span class='reply-username' title='" + value.user.name + "'>" + (value.user.displayName ?? value.user.name) + "</span>";
 					const avatar = settings.enableUserAvatars && value.avatar ? "<span class='reply-avatar'>" + templateUserAvatar.apply(getAvatarUrlObject(value.avatar)) + "</span>" : "";
 					const contents = value.contents ? "<span class='reply-contents'>" + processMessageContents(value.contents) + "</span>" : "";
 					

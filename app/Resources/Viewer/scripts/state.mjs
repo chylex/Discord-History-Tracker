@@ -316,14 +316,14 @@ export default (function() {
 			return (channelObj && channelObj.name) || channel;
 		},
 		
-		getUserTag(user) {
-			const userObj = loadedFileMeta.users[user];
-			return (userObj && userObj.tag) || "????";
-		},
-		
 		getUserName(user) {
 			const userObj = loadedFileMeta.users[user];
 			return (userObj && userObj.name) || user;
+		},
+		
+		getUserDisplayName(user) {
+			const userObj = loadedFileMeta.users[user];
+			return (userObj && (userObj.displayName || userObj.name)) || user;
 		},
 		
 		selectChannel(channel) {
