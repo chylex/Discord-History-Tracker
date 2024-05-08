@@ -243,10 +243,11 @@ export default (function() {
 			
 			const options = [];
 			
-			for (const key of Object.keys(users)) {
+			for (const id of Object.keys(users)) {
+				const user = users[id];
 				const option = document.createElement("option");
-				option.value = key;
-				option.text = users[key].name;
+				option.value = id;
+				option.text = user.displayName ? `${user.displayName} (${user.name})` : user.name;
 				options.push(option);
 			}
 			

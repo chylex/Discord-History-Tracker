@@ -69,6 +69,7 @@ const STATE = (function() {
 	 * @property {String} id
 	 * @property {String} username
 	 * @property {String} discriminator
+	 * @property {String} [globalName]
 	 * @property {String} [avatar]
 	 * @property {Boolean} [bot]
 	 */
@@ -199,6 +200,10 @@ const STATE = (function() {
 						id: user.id,
 						name: user.username
 					};
+					
+					if (user.globalName) {
+						obj.displayName = user.globalName;
+					}
 					
 					if (user.avatar) {
 						obj.avatar = user.avatar;

@@ -30,6 +30,7 @@ sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
 	private static User ReadUser(JsonElement json, string path) => new () {
 		Id = json.RequireSnowflake("id", path),
 		Name = json.RequireString("name", path),
+		DisplayName = json.HasKey("displayName") ? json.RequireString("displayName", path) : null,
 		AvatarUrl = json.HasKey("avatar") ? json.RequireString("avatar", path) : null,
 		Discriminator = json.HasKey("discriminator") ? json.RequireString("discriminator", path) : null
 	};

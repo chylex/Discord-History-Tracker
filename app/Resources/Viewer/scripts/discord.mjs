@@ -129,7 +129,7 @@ export default (function() {
 			templateMessageNoAvatar = new template([
 				"<div>",
 				"<div class='reply-message'>{reply}</div>",
-				"<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
+				"<h2><strong class='username' title='{user.name} #{user.tag}'>{user.displayName}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
 				"<div class='message'>{contents}{embeds}{attachments}</div>",
 				"{reactions}",
 				"</div>"
@@ -141,7 +141,7 @@ export default (function() {
 				"<div class='avatar-wrapper'>",
 				"<div class='avatar'>{avatar}</div>",
 				"<div>",
-				"<h2><strong class='username' title='#{user.tag}'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
+				"<h2><strong class='username' title='{user.name} #{user.tag}'>{user.displayName}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
 				"<div class='message'>{contents}{embeds}{attachments}</div>",
 				"{reactions}",
 				"</div>",
@@ -226,6 +226,9 @@ export default (function() {
 			return (settings.enableUserAvatars ? templateMessageWithAvatar : templateMessageNoAvatar).apply(message, (property, value) => {
 				if (property === "avatar") {
 					return value ? templateUserAvatar.apply(getAvatarUrlObject(value)) : "";
+				}
+				else if (property === "user.displayName") {
+					return value ? value : message.user.name;
 				}
 				else if (property === "user.tag") {
 					return value ? value : "????";

@@ -73,6 +73,7 @@ sealed class DebugPageModel {
 		var users = Enumerable.Range(0, userCount).Select(_ => new User {
 			Id = RandomId(rand),
 			Name = RandomName("u"),
+			DisplayName = RandomName("u"),
 			AvatarUrl = null,
 			Discriminator = rand.Next(0, 9999).ToString(),
 		}).ToArray();

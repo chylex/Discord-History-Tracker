@@ -68,6 +68,7 @@ static class ViewerJsonExport {
 		await foreach (var user in db.Users.Get(cancellationToken)) {
 			users[user.Id] = new ViewerJson.JsonUser {
 				Name = user.Name,
+				DisplayName = user.DisplayName,
 				Avatar = user.AvatarUrl,
 				Tag = user.Discriminator
 			};

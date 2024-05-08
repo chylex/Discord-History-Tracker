@@ -29,6 +29,7 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 			await using var cmd = conn.Upsert("users", [
 				("id", SqliteType.Integer),
 				("name", SqliteType.Text),
+				("display_name", SqliteType.Text),
 				("avatar_url", SqliteType.Text),
 				("discriminator", SqliteType.Text)
 			]);
@@ -38,6 +39,7 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 			foreach (var user in users) {
 				cmd.Set(":id", user.Id);
 				cmd.Set(":name", user.Name);
+				cmd.Set(":display_name", user.DisplayName);
 				cmd.Set(":avatar_url", user.AvatarUrl);
 				cmd.Set(":discriminator", user.Discriminator);
 				await cmd.ExecuteNonQueryAsync();
@@ -62,15 +64,16 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 	public async IAsyncEnumerable<User> Get([EnumeratorCancellation] CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
 
-		await using var cmd = conn.Command("SELECT id, name, avatar_url, discriminator FROM users");
+		await using var cmd = conn.Command("SELECT id, name, display_name, avatar_url, discriminator FROM users");
 		await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
 		while (await reader.ReadAsync(cancellationToken)) {
 			yield return new User {
 				Id = reader.GetUint64(0),
 				Name = reader.GetString(1),
-				AvatarUrl = reader.IsDBNull(2) ? null : reader.GetString(2),
-				Discriminator = reader.IsDBNull(3) ? null : reader.GetString(3),
+				DisplayName = reader.IsDBNull(2) ? null : reader.GetString(2),
+				AvatarUrl = reader.IsDBNull(3) ? null : reader.GetString(3),
+				Discriminator = reader.IsDBNull(4) ? null : reader.GetString(4),
 			};
 		}
 	}

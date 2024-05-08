@@ -8,7 +8,7 @@ using DHT.Utils.Logging;
 namespace DHT.Server.Database.Sqlite;
 
 sealed class SqliteSchema {
-	internal const int Version = 7;
+	internal const int Version = 8;
 
 	private static readonly Log Log = Log.ForType<SqliteSchema>();
 
@@ -48,6 +48,7 @@ sealed class SqliteSchema {
 		                        CREATE TABLE users (
 		                        	id            INTEGER PRIMARY KEY NOT NULL,
 		                        	name          TEXT NOT NULL,
+		                        	display_name  TEXT,
 		                        	avatar_url    TEXT,
 		                        	discriminator TEXT
 		                        )
@@ -171,6 +172,7 @@ sealed class SqliteSchema {
 			{ 4, new SqliteSchemaUpgradeTo5() },
 			{ 5, new SqliteSchemaUpgradeTo6() },
 			{ 6, new SqliteSchemaUpgradeTo7() },
+			{ 7, new SqliteSchemaUpgradeTo8() },
 		};
 
 		var perf = Log.Start("from version " + dbVersion);

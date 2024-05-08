@@ -9,6 +9,8 @@ items:
           pattern: "^[0-9]+$"
         name:
           type: string
+        displayName:
+          type: string
         avatar:
           type: string
         discriminator:

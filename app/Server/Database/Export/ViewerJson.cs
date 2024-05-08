@@ -14,6 +14,9 @@ static class ViewerJson {
 		public required string Name { get; init; }
 		
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+		public string? DisplayName { get; init; }
+		
+		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 		public string? Avatar { get; init; }
 		
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
