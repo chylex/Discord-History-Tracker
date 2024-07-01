@@ -20,7 +20,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 
 	internal sealed class NewDownloadCollector : IAsyncDisposable {
 		private readonly SqliteDownloadRepository repository;
-		private bool hasAdded = false;
+		private bool hasChanged = false;
 
 		private readonly SqliteCommand metadataCmd;
 
@@ -31,7 +31,16 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 				"""
 				INSERT INTO download_metadata (normalized_url, download_url, status, type, size)
 				VALUES (:normalized_url, :download_url, :status, :type, :size)
-				ON CONFLICT DO NOTHING
+				ON CONFLICT (normalized_url)
+				DO UPDATE SET
+					download_url = excluded.download_url,
+					type = IFNULL(excluded.type, type),
+					size = IFNULL(excluded.size, size)
+				WHERE status != :success
+				  AND (download_url != excluded.download_url
+				    OR (excluded.type IS NOT NULL AND type IS NOT excluded.type)
+				    OR (excluded.size IS NOT NULL AND size IS NOT excluded.size)
+				  )
 				"""
 			);
 			metadataCmd.Add(":normalized_url", SqliteType.Text);
@@ -39,6 +48,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			metadataCmd.Add(":status", SqliteType.Integer);
 			metadataCmd.Add(":type", SqliteType.Text);
 			metadataCmd.Add(":size", SqliteType.Integer);
+			metadataCmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
 		}
 
 		public async Task Add(Data.Download download) {
@@ -47,11 +57,11 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			metadataCmd.Set(":status", (int) download.Status);
 			metadataCmd.Set(":type", download.Type);
 			metadataCmd.Set(":size", download.Size);
-			hasAdded |= await metadataCmd.ExecuteNonQueryAsync() > 0;
+			hasChanged |= await metadataCmd.ExecuteNonQueryAsync() > 0;
 		}
 
 		public void OnCommitted() {
-			if (hasAdded) {
+			if (hasChanged) {
 				repository.UpdateTotalCount();
 			}
 		}
@@ -90,7 +100,8 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 					"""
 					INSERT INTO download_blobs (normalized_url, blob)
 					VALUES (:normalized_url, ZEROBLOB(:blob_length))
-					ON CONFLICT (normalized_url) DO UPDATE SET blob = excluded.blob
+					ON CONFLICT (normalized_url)
+					DO UPDATE SET blob = excluded.blob
 					RETURNING rowid
 					"""
 				);
