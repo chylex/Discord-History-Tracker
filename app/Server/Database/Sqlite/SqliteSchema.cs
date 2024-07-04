@@ -8,7 +8,7 @@ using DHT.Utils.Logging;
 namespace DHT.Server.Database.Sqlite;
 
 sealed class SqliteSchema {
-	internal const int Version = 8;
+	internal const int Version = 9;
 
 	private static readonly Log Log = Log.ForType<SqliteSchema>();
 
@@ -86,7 +86,6 @@ sealed class SqliteSchema {
 
 		await conn.ExecuteAsync("""
 		                        CREATE TABLE attachments (
-		                        	message_id     INTEGER NOT NULL,
 		                        	attachment_id  INTEGER NOT NULL PRIMARY KEY NOT NULL,
 		                        	name           TEXT NOT NULL,
 		                        	type           TEXT,
@@ -118,8 +117,8 @@ sealed class SqliteSchema {
 		await CreateMessageEditTimestampTable(conn);
 		await CreateMessageRepliedToTable(conn);
 		await CreateDownloadTables(conn);
+		await CreateMessageAttachmentsTable(conn);
 
-		await conn.ExecuteAsync("CREATE INDEX attachments_message_ix ON attachments(message_id)");
 		await conn.ExecuteAsync("CREATE INDEX embeds_message_ix ON embeds(message_id)");
 		await conn.ExecuteAsync("CREATE INDEX reactions_message_ix ON reactions(message_id)");
 
@@ -163,6 +162,18 @@ sealed class SqliteSchema {
 		                        )
 		                        """);
 	}
+	
+	internal static async Task CreateMessageAttachmentsTable(ISqliteConnection conn) {
+		await conn.ExecuteAsync("""
+		                        CREATE TABLE message_attachments (
+		                        	message_id    INTEGER NOT NULL,
+		                        	attachment_id INTEGER NOT NULL,
+		                        	PRIMARY KEY (message_id, attachment_id),
+		                            FOREIGN KEY (message_id) REFERENCES messages (message_id) ON UPDATE CASCADE ON DELETE CASCADE,
+		                            FOREIGN KEY (attachment_id) REFERENCES attachments (attachment_id) ON UPDATE CASCADE ON DELETE CASCADE
+		                        )
+		                        """);
+	}
 
 	private async Task UpgradeSchemas(int dbVersion, ISchemaUpgradeCallbacks.IProgressReporter reporter) {
 		var upgrades = new Dictionary<int, ISchemaUpgrade> {
@@ -173,13 +184,14 @@ sealed class SqliteSchema {
 			{ 5, new SqliteSchemaUpgradeTo6() },
 			{ 6, new SqliteSchemaUpgradeTo7() },
 			{ 7, new SqliteSchemaUpgradeTo8() },
+			{ 8, new SqliteSchemaUpgradeTo9() },
 		};
 
 		var perf = Log.Start("from version " + dbVersion);
 
 		for (int fromVersion = dbVersion; fromVersion < Version; fromVersion++) {
 			var toVersion = fromVersion + 1;
-			
+
 			if (upgrades.TryGetValue(fromVersion, out var upgrade)) {
 				await upgrade.Run(conn, reporter);
 			}

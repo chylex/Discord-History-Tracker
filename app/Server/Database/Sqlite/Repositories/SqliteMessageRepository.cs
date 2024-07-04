@@ -16,7 +16,7 @@ namespace DHT.Server.Database.Sqlite.Repositories;
 
 sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository {
 	private static readonly Log Log = Log.ForType<SqliteMessageRepository>();
-	
+
 	private readonly SqliteConnectionPool pool;
 	private readonly SqliteDownloadRepository downloads;
 
@@ -50,10 +50,21 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 				("timestamp", SqliteType.Integer)
 			]);
 
+			await using var attachmentCmd = conn.Upsert("attachments", [
+				("attachment_id", SqliteType.Integer),
+				("name", SqliteType.Text),
+				("type", SqliteType.Text),
+				("normalized_url", SqliteType.Text),
+				("download_url", SqliteType.Text),
+				("size", SqliteType.Integer),
+				("width", SqliteType.Integer),
+				("height", SqliteType.Integer)
+			]);
+
 			await using var deleteEditTimestampCmd = DeleteByMessageId(conn, "edit_timestamps");
 			await using var deleteRepliedToCmd = DeleteByMessageId(conn, "replied_to");
 
-			await using var deleteAttachmentsCmd = DeleteByMessageId(conn, "attachments");
+			await using var deleteMessageAttachmentsCmd = DeleteByMessageId(conn, "message_attachments");
 			await using var deleteEmbedsCmd = DeleteByMessageId(conn, "embeds");
 			await using var deleteReactionsCmd = DeleteByMessageId(conn, "reactions");
 
@@ -67,16 +78,9 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 				("replied_to_id", SqliteType.Integer)
 			]);
 
-			await using var attachmentCmd = conn.Insert("attachments", [
+			await using var messageAttachmentsCmd = conn.Insert("message_attachments", [
 				("message_id", SqliteType.Integer),
-				("attachment_id", SqliteType.Integer),
-				("name", SqliteType.Text),
-				("type", SqliteType.Text),
-				("normalized_url", SqliteType.Text),
-				("download_url", SqliteType.Text),
-				("size", SqliteType.Integer),
-				("width", SqliteType.Integer),
-				("height", SqliteType.Integer)
+				("attachment_id", SqliteType.Integer)
 			]);
 
 			await using var embedCmd = conn.Insert("embeds", [
@@ -91,7 +95,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 				("emoji_flags", SqliteType.Integer),
 				("count", SqliteType.Integer)
 			]);
-			
+
 			await using var downloadCollector = new SqliteDownloadRepository.NewDownloadCollector(downloads, conn);
 
 			foreach (var message in messages) {
@@ -107,7 +111,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 				await ExecuteDeleteByMessageId(deleteEditTimestampCmd, messageId);
 				await ExecuteDeleteByMessageId(deleteRepliedToCmd, messageId);
 
-				await ExecuteDeleteByMessageId(deleteAttachmentsCmd, messageId);
+				await ExecuteDeleteByMessageId(deleteMessageAttachmentsCmd, messageId);
 				await ExecuteDeleteByMessageId(deleteEmbedsCmd, messageId);
 				await ExecuteDeleteByMessageId(deleteReactionsCmd, messageId);
 
@@ -125,8 +129,9 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 
 				if (!message.Attachments.IsEmpty) {
 					foreach (var attachment in message.Attachments) {
-						attachmentCmd.Set(":message_id", messageId);
-						attachmentCmd.Set(":attachment_id", attachment.Id);
+						object attachmentId = attachment.Id;
+
+						attachmentCmd.Set(":attachment_id", attachmentId);
 						attachmentCmd.Set(":name", attachment.Name);
 						attachmentCmd.Set(":type", attachment.Type);
 						attachmentCmd.Set(":normalized_url", attachment.NormalizedUrl);
@@ -135,7 +140,11 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 						attachmentCmd.Set(":width", attachment.Width);
 						attachmentCmd.Set(":height", attachment.Height);
 						await attachmentCmd.ExecuteNonQueryAsync();
-						
+
+						messageAttachmentsCmd.Set(":message_id", messageId);
+						messageAttachmentsCmd.Set(":attachment_id", attachmentId);
+						await messageAttachmentsCmd.ExecuteNonQueryAsync();
+
 						await downloadCollector.Add(DownloadLinkExtractor.FromAttachment(attachment));
 					}
 				}
@@ -178,7 +187,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 	public override Task<long> Count(CancellationToken cancellationToken) {
 		return Count(filter: null, cancellationToken);
 	}
-	
+
 	public async Task<long> Count(MessageFilter? filter, CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
 		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM messages" + filter.GenerateConditions().BuildWhereClause(), static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
@@ -221,7 +230,8 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 			"""
 			SELECT attachment_id, name, type, normalized_url, download_url, size, width, height
 			FROM attachments
-			WHERE message_id = :message_id
+			JOIN message_attachments USING (attachment_id)
+			WHERE message_attachments.message_id = :message_id
 			""";
 
 		await using var attachmentCmd = new MessageToManyCommand<Attachment>(conn, AttachmentSql, static reader => new Attachment {
@@ -292,7 +302,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 
 	public async IAsyncEnumerable<ulong> GetIds(MessageFilter? filter) {
 		await using var conn = await pool.Take();
-		
+
 		await using var cmd = conn.Command("SELECT message_id FROM messages" + filter.GenerateConditions().BuildWhereClause());
 		await using var reader = await cmd.ExecuteReaderAsync();
 
