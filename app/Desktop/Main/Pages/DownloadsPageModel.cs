@@ -9,13 +9,14 @@ using DHT.Desktop.Main.Controls;
 using DHT.Server;
 using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
+using DHT.Server.Data.Settings;
 using DHT.Server.Download;
 using DHT.Utils.Logging;
 using DHT.Utils.Tasks;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed partial class DownloadsPageModel : ObservableObject, IDisposable {
+sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	private static readonly Log Log = Log.ForType<DownloadsPageModel>();
 
 	[ObservableProperty(Setter = Access.Private)]
@@ -73,14 +74,22 @@ sealed partial class DownloadsPageModel : ObservableObject, IDisposable {
 
 		RecomputeDownloadStatistics();
 	}
+	
+	public async Task Initialize() {
+		await FilterModel.Initialize();
+		
+		if (await state.Db.Settings.Get(SettingsKey.DownloadsAutoStart, false)) {
+			await StartDownload();
+		}
+	}
 
-	public void Dispose() {
+	public async ValueTask DisposeAsync() {
 		finishedItemsSubscription?.Dispose();
 		
 		downloadItemCountSubscription.Dispose();
 		downloadStatisticsTask.Dispose();
 
-		FilterModel.Dispose();
+		await FilterModel.DisposeAsync();
 	}
 
 	private void OnDownloadCountChanged(long newDownloadCount) {
@@ -91,26 +100,41 @@ sealed partial class DownloadsPageModel : ObservableObject, IDisposable {
 		IsToggleDownloadButtonEnabled = false;
 
 		if (IsDownloading) {
-			await state.Downloader.Stop();
-			await state.Db.Downloads.MoveDownloadingItemsBackToQueue();
-
-			finishedItemsSubscription?.Dispose();
-			finishedItemsSubscription = null;
-			
-			currentDownloadFilter = null;
+			await StopDownload();
 		}
 		else {
-			await state.Db.Downloads.MoveDownloadingItemsBackToQueue();
-			
-			var finishedItems = await state.Downloader.Start(currentDownloadFilter = FilterModel.CreateFilter());
-			finishedItemsSubscription = finishedItems.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnItemFinished);
+			await StartDownload();
 		}
 
+		await state.Db.Settings.Set(SettingsKey.DownloadsAutoStart, IsDownloading);
+		IsToggleDownloadButtonEnabled = true;
+	}
+
+	private async Task StartDownload() {
+		await state.Db.Downloads.MoveDownloadingItemsBackToQueue();
+		
+		var finishedItems = await state.Downloader.Start(currentDownloadFilter = FilterModel.CreateFilter());
+		finishedItemsSubscription = finishedItems.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnItemFinished);
+		
+		OnDownloadStateChanged();
+	}
+
+	private async Task StopDownload() {
+		await state.Downloader.Stop();
+		await state.Db.Downloads.MoveDownloadingItemsBackToQueue();
+
+		finishedItemsSubscription?.Dispose();
+		finishedItemsSubscription = null;
+			
+		currentDownloadFilter = null;
+		OnDownloadStateChanged();
+	}
+
+	private void OnDownloadStateChanged() {
 		RecomputeDownloadStatistics();
 
 		OnPropertyChanged(nameof(ToggleDownloadButtonText));
 		OnPropertyChanged(nameof(IsDownloading));
-		IsToggleDownloadButtonEnabled = true;
 	}
 
 	private void OnItemFinished(DownloadItem item) {

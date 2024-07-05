@@ -39,6 +39,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 
 	public string Path { get; }
 	
+	public ISettingsRepository Settings => settings;
 	public IUserRepository Users => users;
 	public IServerRepository Servers => servers;
 	public IChannelRepository Channels => channels;
@@ -47,6 +48,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 	
 	private readonly SqliteConnectionPool pool;
 	
+	private readonly SqliteSettingsRepository settings;
 	private readonly SqliteUserRepository users;
 	private readonly SqliteServerRepository servers;
 	private readonly SqliteChannelRepository channels;
@@ -58,6 +60,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		this.pool = pool;
 
 		downloads = new SqliteDownloadRepository(pool);
+		settings = new SqliteSettingsRepository(pool);
 		users = new SqliteUserRepository(pool, downloads);
 		servers = new SqliteServerRepository(pool);
 		channels = new SqliteChannelRepository(pool);

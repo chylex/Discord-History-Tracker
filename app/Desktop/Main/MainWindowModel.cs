@@ -95,6 +95,8 @@ sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
 		mainContentScreenModel = new MainContentScreenModel(window, state);
 		mainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
 		
+		await mainContentScreenModel.Initialize();
+		
 		Title = Path.GetFileName(state.Db.Path) + " - " + DefaultTitle;
 		CurrentScreen = new MainContentScreen { DataContext = mainContentScreenModel };
 
@@ -104,7 +106,7 @@ sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
 	private async void MainContentScreenModelOnDatabaseClosed(object? sender, EventArgs e) {
 		if (mainContentScreenModel != null) {
 			mainContentScreenModel.DatabaseClosed -= MainContentScreenModelOnDatabaseClosed;
-			mainContentScreenModel.Dispose();
+			await mainContentScreenModel.DisposeAsync();
 			mainContentScreenModel = null;
 		}
 
@@ -124,7 +126,10 @@ sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
 	}
 
 	public async ValueTask DisposeAsync() {
-		mainContentScreenModel?.Dispose();
+		if (mainContentScreenModel != null) {
+			await mainContentScreenModel.DisposeAsync();
+		}
+		
 		await DisposeState();
 	}
 }

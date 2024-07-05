@@ -31,8 +31,14 @@
     </UserControl.Styles>
 
     <StackPanel Orientation="Vertical" Spacing="20">
-        <Button Command="{Binding OnClickToggleDownload}" Content="{Binding ToggleDownloadButtonText}" IsEnabled="{Binding IsToggleDownloadButtonEnabled}" />
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Command="{Binding OnClickToggleDownload}" Content="{Binding ToggleDownloadButtonText}" IsEnabled="{Binding IsToggleDownloadButtonEnabled}" />
+            <Button Command="{Binding OnClickRetryFailedDownloads}" IsEnabled="{Binding IsRetryFailedOnDownloadsButtonEnabled}">Retry Failed Downloads</Button>
+        </StackPanel>
         <controls:DownloadItemFilterPanel DataContext="{Binding FilterModel}" IsEnabled="{Binding !$parent[UserControl].((pages:DownloadsPageModel)DataContext).IsDownloading}" />
+        <TextBlock TextWrapping="Wrap">
+            Downloading state and filter settings are remembered per-database.
+        </TextBlock>
         <StackPanel Orientation="Vertical" Spacing="12">
             <Expander Header="Download Status" IsExpanded="True">
                 <DataGrid ItemsSource="{Binding StatisticsRows}" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" IsReadOnly="True">
@@ -43,9 +49,6 @@
                     </DataGrid.Columns>
                 </DataGrid>
             </Expander>
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Command="{Binding OnClickRetryFailedDownloads}" IsEnabled="{Binding IsRetryFailedOnDownloadsButtonEnabled}">Retry Failed Downloads</Button>
-            </StackPanel>
         </StackPanel>
     </StackPanel>
 </UserControl>

@@ -7,6 +7,7 @@ namespace DHT.Server.Database;
 public interface IDatabaseFile : IAsyncDisposable {
 	string Path { get; }
 
+	ISettingsRepository Settings { get; }
 	IUserRepository Users { get; }
 	IServerRepository Servers { get; }
 	IChannelRepository Channels { get; }

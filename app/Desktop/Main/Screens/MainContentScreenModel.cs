@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Main.Controls;
 using DHT.Desktop.Main.Pages;
@@ -6,7 +7,7 @@ using DHT.Server;
 
 namespace DHT.Desktop.Main.Screens;
 
-sealed class MainContentScreenModel : IDisposable {
+sealed class MainContentScreenModel : IAsyncDisposable {
 	public DatabasePage DatabasePage { get; }
 	private DatabasePageModel DatabasePageModel { get; }
 
@@ -70,9 +71,13 @@ sealed class MainContentScreenModel : IDisposable {
 
 		StatusBarModel = new StatusBarModel(state);
 	}
+	
+	public async Task Initialize() {
+		await DownloadsPageModel.Initialize();
+	}
 
-	public void Dispose() {
-		DownloadsPageModel.Dispose();
+	public async ValueTask DisposeAsync() {
+		await DownloadsPageModel.DisposeAsync();
 		ViewerPageModel.Dispose();
 		AdvancedPageModel.Dispose();
 		StatusBarModel.Dispose();

@@ -10,6 +10,7 @@ sealed class DummyDatabaseFile : IDatabaseFile {
 
 	public string Path => "";
 	
+	public ISettingsRepository Settings { get; } = new ISettingsRepository.Dummy();
 	public IUserRepository Users { get; } = new IUserRepository.Dummy();
 	public IServerRepository Servers { get; } = new IServerRepository.Dummy();
 	public IChannelRepository Channels { get; } = new IChannelRepository.Dummy();
