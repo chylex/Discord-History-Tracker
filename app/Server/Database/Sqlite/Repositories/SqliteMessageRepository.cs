@@ -14,16 +14,8 @@ using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
-sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository {
+sealed class SqliteMessageRepository(SqliteConnectionPool pool, SqliteDownloadRepository downloads) : BaseSqliteRepository(Log), IMessageRepository {
 	private static readonly Log Log = Log.ForType<SqliteMessageRepository>();
-
-	private readonly SqliteConnectionPool pool;
-	private readonly SqliteDownloadRepository downloads;
-
-	public SqliteMessageRepository(SqliteConnectionPool pool, SqliteDownloadRepository downloads) : base(Log) {
-		this.pool = pool;
-		this.downloads = downloads;
-	}
 
 	public async Task Add(IReadOnlyList<Message> messages) {
 		if (messages.Count == 0) {
@@ -61,34 +53,34 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 				("height", SqliteType.Integer)
 			]);
 
-			await using var deleteEditTimestampCmd = DeleteByMessageId(conn, "edit_timestamps");
-			await using var deleteRepliedToCmd = DeleteByMessageId(conn, "replied_to");
+			await using var deleteMessageEditTimestampCmd = DeleteByMessageId(conn, "message_edit_timestamps");
+			await using var deleteMessageRepliedToCmd = DeleteByMessageId(conn, "message_replied_to");
 
 			await using var deleteMessageAttachmentsCmd = DeleteByMessageId(conn, "message_attachments");
-			await using var deleteEmbedsCmd = DeleteByMessageId(conn, "embeds");
-			await using var deleteReactionsCmd = DeleteByMessageId(conn, "reactions");
+			await using var deleteMessageEmbedsCmd = DeleteByMessageId(conn, "message_embeds");
+			await using var deleteMessageReactionsCmd = DeleteByMessageId(conn, "message_reactions");
 
-			await using var editTimestampCmd = conn.Insert("edit_timestamps", [
+			await using var messageEditTimestampCmd = conn.Insert("message_edit_timestamps", [
 				("message_id", SqliteType.Integer),
 				("edit_timestamp", SqliteType.Integer)
 			]);
 
-			await using var repliedToCmd = conn.Insert("replied_to", [
+			await using var messageRepliedToCmd = conn.Insert("message_replied_to", [
 				("message_id", SqliteType.Integer),
 				("replied_to_id", SqliteType.Integer)
 			]);
 
-			await using var messageAttachmentsCmd = conn.Insert("message_attachments", [
+			await using var messageAttachmentCmd = conn.Insert("message_attachments", [
 				("message_id", SqliteType.Integer),
 				("attachment_id", SqliteType.Integer)
 			]);
 
-			await using var embedCmd = conn.Insert("embeds", [
+			await using var messageEmbedCmd = conn.Insert("message_embeds", [
 				("message_id", SqliteType.Integer),
 				("json", SqliteType.Text)
 			]);
 
-			await using var reactionCmd = conn.Insert("reactions", [
+			await using var messageReactionCmd = conn.Insert("message_reactions", [
 				("message_id", SqliteType.Integer),
 				("emoji_id", SqliteType.Integer),
 				("emoji_name", SqliteType.Text),
@@ -108,23 +100,23 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 				messageCmd.Set(":timestamp", message.Timestamp);
 				await messageCmd.ExecuteNonQueryAsync();
 
-				await ExecuteDeleteByMessageId(deleteEditTimestampCmd, messageId);
-				await ExecuteDeleteByMessageId(deleteRepliedToCmd, messageId);
+				await ExecuteDeleteByMessageId(deleteMessageEditTimestampCmd, messageId);
+				await ExecuteDeleteByMessageId(deleteMessageRepliedToCmd, messageId);
 
 				await ExecuteDeleteByMessageId(deleteMessageAttachmentsCmd, messageId);
-				await ExecuteDeleteByMessageId(deleteEmbedsCmd, messageId);
-				await ExecuteDeleteByMessageId(deleteReactionsCmd, messageId);
+				await ExecuteDeleteByMessageId(deleteMessageEmbedsCmd, messageId);
+				await ExecuteDeleteByMessageId(deleteMessageReactionsCmd, messageId);
 
 				if (message.EditTimestamp is {} timestamp) {
-					editTimestampCmd.Set(":message_id", messageId);
-					editTimestampCmd.Set(":edit_timestamp", timestamp);
-					await editTimestampCmd.ExecuteNonQueryAsync();
+					messageEditTimestampCmd.Set(":message_id", messageId);
+					messageEditTimestampCmd.Set(":edit_timestamp", timestamp);
+					await messageEditTimestampCmd.ExecuteNonQueryAsync();
 				}
 
 				if (message.RepliedToId is {} repliedToId) {
-					repliedToCmd.Set(":message_id", messageId);
-					repliedToCmd.Set(":replied_to_id", repliedToId);
-					await repliedToCmd.ExecuteNonQueryAsync();
+					messageRepliedToCmd.Set(":message_id", messageId);
+					messageRepliedToCmd.Set(":replied_to_id", repliedToId);
+					await messageRepliedToCmd.ExecuteNonQueryAsync();
 				}
 
 				if (!message.Attachments.IsEmpty) {
@@ -141,9 +133,9 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 						attachmentCmd.Set(":height", attachment.Height);
 						await attachmentCmd.ExecuteNonQueryAsync();
 
-						messageAttachmentsCmd.Set(":message_id", messageId);
-						messageAttachmentsCmd.Set(":attachment_id", attachmentId);
-						await messageAttachmentsCmd.ExecuteNonQueryAsync();
+						messageAttachmentCmd.Set(":message_id", messageId);
+						messageAttachmentCmd.Set(":attachment_id", attachmentId);
+						await messageAttachmentCmd.ExecuteNonQueryAsync();
 
 						await downloadCollector.Add(DownloadLinkExtractor.FromAttachment(attachment));
 					}
@@ -151,9 +143,9 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 
 				if (!message.Embeds.IsEmpty) {
 					foreach (var embed in message.Embeds) {
-						embedCmd.Set(":message_id", messageId);
-						embedCmd.Set(":json", embed.Json);
-						await embedCmd.ExecuteNonQueryAsync();
+						messageEmbedCmd.Set(":message_id", messageId);
+						messageEmbedCmd.Set(":json", embed.Json);
+						await messageEmbedCmd.ExecuteNonQueryAsync();
 
 						if (DownloadLinkExtractor.TryFromEmbedJson(embed.Json) is {} download) {
 							await downloadCollector.Add(download);
@@ -163,12 +155,12 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 
 				if (!message.Reactions.IsEmpty) {
 					foreach (var reaction in message.Reactions) {
-						reactionCmd.Set(":message_id", messageId);
-						reactionCmd.Set(":emoji_id", reaction.EmojiId);
-						reactionCmd.Set(":emoji_name", reaction.EmojiName);
-						reactionCmd.Set(":emoji_flags", (int) reaction.EmojiFlags);
-						reactionCmd.Set(":count", reaction.Count);
-						await reactionCmd.ExecuteNonQueryAsync();
+						messageReactionCmd.Set(":message_id", messageId);
+						messageReactionCmd.Set(":emoji_id", reaction.EmojiId);
+						messageReactionCmd.Set(":emoji_name", reaction.EmojiName);
+						messageReactionCmd.Set(":emoji_flags", (int) reaction.EmojiFlags);
+						messageReactionCmd.Set(":count", reaction.Count);
+						await messageReactionCmd.ExecuteNonQueryAsync();
 
 						if (reaction.EmojiId is {} emojiId) {
 							await downloadCollector.Add(DownloadLinkExtractor.FromEmoji(emojiId, reaction.EmojiFlags));
@@ -248,7 +240,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 		const string EmbedSql =
 			"""
 			SELECT json
-			FROM embeds
+			FROM message_embeds
 			WHERE message_id = :message_id
 			""";
 
@@ -259,7 +251,7 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 		const string ReactionSql =
 			"""
 			SELECT emoji_id, emoji_name, emoji_flags, count
-			FROM reactions
+			FROM message_reactions
 			WHERE message_id = :message_id
 			""";
 
@@ -272,10 +264,10 @@ sealed class SqliteMessageRepository : BaseSqliteRepository, IMessageRepository 
 
 		await using var messageCmd = conn.Command(
 			$"""
-			 SELECT m.message_id, m.sender_id, m.channel_id, m.text, m.timestamp, et.edit_timestamp, rt.replied_to_id
+			 SELECT m.message_id, m.sender_id, m.channel_id, m.text, m.timestamp, met.edit_timestamp, mrt.replied_to_id
 			 FROM messages m
-			 LEFT JOIN edit_timestamps et ON m.message_id = et.message_id
-			 LEFT JOIN replied_to rt ON m.message_id = rt.message_id
+			 LEFT JOIN message_edit_timestamps met ON m.message_id = met.message_id
+			 LEFT JOIN message_replied_to mrt ON m.message_id = mrt.message_id
 			 {filter.GenerateConditions("m").BuildWhereClause()}
 			 """
 		);

@@ -8,7 +8,10 @@ sealed class SqliteSchemaUpgradeTo3 : ISchemaUpgrade {
 		await reporter.MainWork("Applying schema changes...", 0, 1);
 
 		await SqliteSchema.CreateMessageEditTimestampTable(conn);
+		await conn.ExecuteAsync("ALTER TABLE message_edit_timestamps RENAME TO edit_timestamps");
+		
 		await SqliteSchema.CreateMessageRepliedToTable(conn);
+		await conn.ExecuteAsync("ALTER TABLE message_replied_to RENAME TO replied_to");
 
 		await conn.ExecuteAsync("""
 		                        INSERT INTO edit_timestamps (message_id, edit_timestamp)

@@ -98,14 +98,14 @@ sealed class SqliteSchema {
 		                        """);
 
 		await conn.ExecuteAsync("""
-		                        CREATE TABLE embeds (
+		                        CREATE TABLE message_embeds (
 		                        	message_id INTEGER NOT NULL,
 		                        	json       TEXT NOT NULL
 		                        )
 		                        """);
 
 		await conn.ExecuteAsync("""
-		                        CREATE TABLE reactions (
+		                        CREATE TABLE message_reactions (
 		                        	message_id  INTEGER NOT NULL,
 		                        	emoji_id    INTEGER,
 		                        	emoji_name  TEXT,
@@ -119,15 +119,15 @@ sealed class SqliteSchema {
 		await CreateDownloadTables(conn);
 		await CreateMessageAttachmentsTable(conn);
 
-		await conn.ExecuteAsync("CREATE INDEX embeds_message_ix ON embeds(message_id)");
-		await conn.ExecuteAsync("CREATE INDEX reactions_message_ix ON reactions(message_id)");
+		await conn.ExecuteAsync("CREATE INDEX embeds_message_ix ON message_embeds(message_id)");
+		await conn.ExecuteAsync("CREATE INDEX reactions_message_ix ON message_reactions(message_id)");
 
 		await conn.ExecuteAsync("INSERT INTO metadata (key, value) VALUES ('version', " + Version + ")");
 	}
 
 	internal static async Task CreateMessageEditTimestampTable(ISqliteConnection conn) {
 		await conn.ExecuteAsync("""
-		                        CREATE TABLE edit_timestamps (
+		                        CREATE TABLE message_edit_timestamps (
 		                        	message_id     INTEGER PRIMARY KEY NOT NULL,
 		                        	edit_timestamp INTEGER NOT NULL
 		                        )
@@ -136,7 +136,7 @@ sealed class SqliteSchema {
 
 	internal static async Task CreateMessageRepliedToTable(ISqliteConnection conn) {
 		await conn.ExecuteAsync("""
-		                        CREATE TABLE replied_to (
+		                        CREATE TABLE message_replied_to (
 		                        	message_id    INTEGER PRIMARY KEY NOT NULL,
 		                        	replied_to_id INTEGER NOT NULL
 		                        )

@@ -14,5 +14,10 @@ sealed class SqliteSchemaUpgradeTo9 : ISchemaUpgrade {
 		await reporter.MainWork("Applying schema changes...", 2, 3);
 		await conn.ExecuteAsync("DROP INDEX attachments_message_ix");
 		await conn.ExecuteAsync("ALTER TABLE attachments DROP COLUMN message_id");
+		
+		await conn.ExecuteAsync("ALTER TABLE embeds RENAME TO message_embeds");
+		await conn.ExecuteAsync("ALTER TABLE edit_timestamps RENAME TO message_edit_timestamps");
+		await conn.ExecuteAsync("ALTER TABLE replied_to RENAME TO message_replied_to");
+		await conn.ExecuteAsync("ALTER TABLE reactions RENAME TO message_reactions");
 	}
 }
