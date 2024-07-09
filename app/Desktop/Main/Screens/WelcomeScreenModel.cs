@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
+using DHT.Server.Data.Settings;
 using DHT.Server.Database;
 using DHT.Server.Database.Sqlite.Schema;
 
@@ -46,10 +47,18 @@ sealed partial class WelcomeScreenModel : ObservableObject {
 	public async Task OpenOrCreateDatabaseFromPath(string path) {
 		dbFilePath = path;
 		
+		bool isNew = !File.Exists(path);
+		
 		var db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, window, new SchemaUpgradeCallbacks(window));
-		if (db != null) {
-			DatabaseSelected?.Invoke(this, db);
+		if (db == null) {
+			return;
 		}
+		
+		if (isNew && await Dialog.ShowYesNo(window, "Automatic Downloads", "Do you want to automatically download files hosted on Discord? You can change this later in the Downloads tab.") == DialogResult.YesNo.Yes) {
+			await db.Settings.Set(SettingsKey.DownloadsAutoStart, true);
+		}
+		
+		DatabaseSelected?.Invoke(this, db);
 	}
 
 	private sealed class SchemaUpgradeCallbacks : ISchemaUpgradeCallbacks {
