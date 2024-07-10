@@ -3,12 +3,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:main="clr-namespace:DHT.Desktop.Main"
-        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="295"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="360"
         x:Class="DHT.Desktop.Main.AboutWindow"
         x:DataType="main:AboutWindowModel"
         Title="About Discord History Tracker"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
-        Width="480" Height="295" CanResize="False"
+        Width="480" Height="360" CanResize="False"
         WindowStartupLocation="CenterOwner">
 
     <Design.DataContext>
@@ -39,10 +39,11 @@
 
         <StackPanel>
             <Button Command="{Binding ShowOfficialWebsite}">Official Website</Button>
+            <Button Command="{Binding ShowIssueTracker}">Issue Tracker</Button>
             <Button Command="{Binding ShowSourceCode}">Source Code</Button>
         </StackPanel>
 
-        <Grid RowDefinitions="Auto,5,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="175,125,*" Margin="0 10 0 0">
+        <Grid RowDefinitions="Auto,5,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="175,125,*" Margin="0 10 0 0">
             <TextBlock Grid.Row="0" Grid.Column="0" FontWeight="Bold">Third-Party Software</TextBlock>
             <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold">License</TextBlock>
             <TextBlock Grid.Row="0" Grid.Column="2" FontWeight="Bold">Link</TextBlock>
@@ -55,13 +56,21 @@
             <TextBlock Grid.Row="3" Grid.Column="1">MIT</TextBlock>
             <Button Grid.Row="3" Grid.Column="2" Command="{Binding ShowLibraryAvalonia}">NuGet</Button>
 
-            <TextBlock Grid.Row="4" Grid.Column="0">SQLite</TextBlock>
-            <TextBlock Grid.Row="4" Grid.Column="1">Public Domain</TextBlock>
-            <Button Grid.Row="4" Grid.Column="2" Command="{Binding ShowLibrarySqlite}">Official Website</Button>
+            <TextBlock Grid.Row="4" Grid.Column="0">MVVM Toolkit</TextBlock>
+            <TextBlock Grid.Row="4" Grid.Column="1">MIT</TextBlock>
+            <Button Grid.Row="4" Grid.Column="2" Command="{Binding ShowLibraryCommunityToolkit}">GitHub</Button>
+            
+            <TextBlock Grid.Row="5" Grid.Column="0">SQLite</TextBlock>
+            <TextBlock Grid.Row="5" Grid.Column="1">Public Domain</TextBlock>
+            <Button Grid.Row="5" Grid.Column="2" Command="{Binding ShowLibrarySqlite}">Official Website</Button>
 
-            <TextBlock Grid.Row="5" Grid.Column="0">Microsoft.Data.Sqlite</TextBlock>
-            <TextBlock Grid.Row="5" Grid.Column="1">Apache-2.0</TextBlock>
-            <Button Grid.Row="5" Grid.Column="2" Command="{Binding ShowLibrarySqliteAdoNet}">NuGet</Button>
+            <TextBlock Grid.Row="6" Grid.Column="0">Microsoft.Data.Sqlite</TextBlock>
+            <TextBlock Grid.Row="6" Grid.Column="1">Apache-2.0</TextBlock>
+            <Button Grid.Row="6" Grid.Column="2" Command="{Binding ShowLibrarySqliteAdoNet}">NuGet</Button>
+            
+            <TextBlock Grid.Row="7" Grid.Column="0">Rx.NET</TextBlock>
+            <TextBlock Grid.Row="7" Grid.Column="1">MIT</TextBlock>
+            <Button Grid.Row="7" Grid.Column="2" Command="{Binding ShowLibraryRxNet}">GitHub</Button>
         </Grid>
 
     </StackPanel>
