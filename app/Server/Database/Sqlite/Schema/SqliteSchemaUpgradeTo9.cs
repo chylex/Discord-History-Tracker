@@ -9,7 +9,7 @@ sealed class SqliteSchemaUpgradeTo9 : ISchemaUpgrade {
 		await SqliteSchema.CreateMessageAttachmentsTable(conn);
 		
 		await reporter.MainWork("Migrating message attachments...", 1, 3);
-		await conn.ExecuteAsync("INSERT INTO message_attachments (message_id, attachment_id) SELECT message_id, attachment_id FROM attachments");
+		await conn.ExecuteAsync("INSERT INTO message_attachments (message_id, attachment_id) SELECT message_id, attachment_id FROM attachments a JOIN messages m USING (message_id)");
 		
 		await reporter.MainWork("Applying schema changes...", 2, 3);
 		await conn.ExecuteAsync("DROP INDEX attachments_message_ix");
