@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Subjects;
@@ -70,9 +71,14 @@ sealed class DownloaderTask : IAsyncDisposable {
 		var client = new HttpClient(new SocketsHttpHandler {
 			ConnectTimeout = TimeSpan.FromSeconds(30)
 		});
-		
+
 		client.Timeout = Timeout.InfiniteTimeSpan;
 		client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
+
+		string tempFileName = Path.GetTempFileName();
+		log.Debug("Using temporary file: " + tempFileName);
+
+		await using var tempFileStream = new FileStream(tempFileName, FileMode.Create, FileAccess.ReadWrite, FileShare.Read, 4096, FileOptions.DeleteOnClose);
 
 		while (!cancellationToken.IsCancellationRequested) {
 			var item = await downloadQueue.Reader.ReadAsync(cancellationToken);
@@ -81,15 +87,7 @@ sealed class DownloaderTask : IAsyncDisposable {
 			try {
 				var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, item.DownloadUrl), HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 				response.EnsureSuccessStatusCode();
-
-				if (response.Content.Headers.ContentLength is {} contentLength) {
-					await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-					await db.Downloads.AddDownload(item.ToSuccess(contentLength), stream);
-				}
-				else {
-					await db.Downloads.AddDownload(item.ToFailure(), stream: null);
-					log.Error("Download response has no content length: " + item.DownloadUrl);
-				}
+				await HandleResponse(response, tempFileStream, item);
 			} catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken) {
 				// Ignore.
 			} catch (TaskCanceledException e) when (e.InnerException is TimeoutException) {
@@ -108,6 +106,27 @@ sealed class DownloaderTask : IAsyncDisposable {
 					log.Error("Caught exception in event handler: " + e);
 				}
 			}
+		}
+	}
+
+	private async Task HandleResponse(HttpResponseMessage response, FileStream tempFileStream, DownloadItem item) {
+		if (response.Content.Headers.ContentLength is not {} contentLength) {
+			throw new InvalidOperationException("Download response has no content length: " + item.DownloadUrl);
+		}
+
+		try {
+			if (tempFileStream.Length != 0) {
+				throw new InvalidOperationException("Temporary file is not empty: " + tempFileStream.Name);
+			}
+
+			await using (var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken)) {
+				await responseStream.CopyToAsync(tempFileStream, cancellationToken);
+			}
+
+			tempFileStream.Seek(0, SeekOrigin.Begin);
+			await db.Downloads.AddDownload(item.ToSuccess(contentLength), tempFileStream);
+		} finally {
+			tempFileStream.SetLength(0);
 		}
 	}
 
