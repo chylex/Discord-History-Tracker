@@ -2,14 +2,17 @@
 const GUI = (function() {
 	let controller = null;
 	let settings = null;
+	let trackingStyles = null;
 	
 	const stateChangedEvent = () => {
 		if (settings) {
 			settings.ui.cbAutoscroll.checked = SETTINGS.autoscroll;
+			settings.ui.cbHidePreviewsWhileAutoscrolling.checked = SETTINGS.hidePreviewsWhileAutoscrolling;
 			settings.ui.optsAfterFirstMsg[SETTINGS.afterFirstMsg].checked = true;
 			settings.ui.optsAfterSavedMsg[SETTINGS.afterSavedMsg].checked = true;
 			
 			const autoscrollDisabled = !SETTINGS.autoscroll;
+			settings.ui.cbHidePreviewsWhileAutoscrolling.disabled = autoscrollDisabled;
 			Object.values(settings.ui.optsAfterFirstMsg).forEach(ele => ele.disabled = autoscrollDisabled);
 			Object.values(settings.ui.optsAfterSavedMsg).forEach(ele => ele.disabled = autoscrollDisabled);
 		}
@@ -54,6 +57,7 @@ const GUI = (function() {
 			
 			controller.ui.btnClose.addEventListener("click", () => {
 				this.hideController();
+				this.deleteTrackingStyles();
 				window.DHT_ON_UNLOAD.forEach(f => f());
 				delete window.DHT_ON_UNLOAD;
 				delete window.DHT_LOADED;
@@ -84,6 +88,7 @@ const GUI = (function() {
 			const radio = (type, id, label) => "<label><input id='dht-cfg-" + type + "-" + id + "' name='dht-" + type + "' type='radio'> " + label + "</label><br>";
 			const html = `
 <label><input id='dht-cfg-autoscroll' type='checkbox'> Autoscroll</label><br>
+<label><input id='dht-cfg-hide-previews-while-autoscrolling' type='checkbox'> Hide previews to improve browser performance</label><br>
 <br>
 <label>After reaching the first message in channel...</label><br>
 ${radio("afm", "nothing", "Continue Tracking")}
@@ -93,8 +98,7 @@ ${radio("afm", "switch", "Switch to Next Channel")}
 <label>After reaching a previously saved message...</label><br>
 ${radio("asm", "nothing", "Continue Tracking")}
 ${radio("asm", "pause", "Pause Tracking")}
-${radio("asm", "switch", "Switch to Next Channel")}
-<p id='dht-cfg-note'>It is recommended to disable link and image previews to avoid putting unnecessary strain on your browser.</p>`;
+${radio("asm", "switch", "Switch to Next Channel")}`;
 			
 			settings = {
 				styles: DOM.createStyle(`/*[CSS-SETTINGS]*/`),
@@ -107,9 +111,10 @@ ${radio("asm", "switch", "Switch to Next Channel")}
 			});
 			
 			settings.ui = {
-				cbAutoscroll: DOM.id("dht-cfg-autoscroll"),
-				optsAfterFirstMsg: {},
-				optsAfterSavedMsg: {}
+				/** @type {HTMLInputElement} */ cbAutoscroll: DOM.id("dht-cfg-autoscroll"),
+				/** @type {HTMLInputElement} */ cbHidePreviewsWhileAutoscrolling: DOM.id("dht-cfg-hide-previews-while-autoscrolling"),
+				/** @type {Object.<number, HTMLInputElement>} */ optsAfterFirstMsg: {},
+				/** @type {Object.<number, HTMLInputElement>} */ optsAfterSavedMsg: {}
 			};
 			
 			settings.ui.optsAfterFirstMsg[CONSTANTS.AUTOSCROLL_ACTION_NOTHING] = DOM.id("dht-cfg-afm-nothing");
@@ -122,6 +127,10 @@ ${radio("asm", "switch", "Switch to Next Channel")}
 			
 			settings.ui.cbAutoscroll.addEventListener("change", () => {
 				SETTINGS.autoscroll = settings.ui.cbAutoscroll.checked;
+			});
+			
+			settings.ui.cbHidePreviewsWhileAutoscrolling.addEventListener("change", () => {
+				SETTINGS.hidePreviewsWhileAutoscrolling = settings.ui.cbHidePreviewsWhileAutoscrolling.checked;
 			});
 			
 			Object.keys(settings.ui.optsAfterFirstMsg).forEach(key => {
@@ -151,6 +160,29 @@ ${radio("asm", "switch", "Switch to Next Channel")}
 		setStatus(state) {
 			if (controller) {
 				controller.ui.textStatus.innerText = state;
+			}
+		},
+		
+		createTrackingStyles() {
+			if (trackingStyles) {
+				return;
+			}
+			
+			let style = "";
+			
+			if (SETTINGS.autoscroll && SETTINGS.hidePreviewsWhileAutoscrolling) {
+				style += `div[id^="message-accessories-"] { display: none; }`;
+			}
+			
+			if (style.length > 0) {
+				trackingStyles = DOM.createStyle(style);
+			}
+		},
+		
+		deleteTrackingStyles() {
+			if (trackingStyles) {
+				DOM.removeElement(trackingStyles);
+				trackingStyles = null;
 			}
 		}
 	};

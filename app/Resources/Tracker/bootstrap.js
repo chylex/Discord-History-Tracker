@@ -133,6 +133,7 @@
 	STATE.onTrackingStateChanged(enabled => {
 		if (enabled) {
 			GUI.setStatus("Starting");
+			GUI.createTrackingStyles();
 			hasJustStarted = true;
 			
 			if (!starter()) {
@@ -142,6 +143,7 @@
 		}
 		else {
 			isSending = false;
+			GUI.deleteTrackingStyles();
 		}
 	});
 	

@@ -1,6 +1,8 @@
 class DOM {
 	/**
 	 * Returns a child element by its ID. Parent defaults to the entire document.
+	 * @param {string} id
+	 * @param {HTMLElement?} [parent]
 	 * @returns {HTMLElement}
 	 */
 	static id(id, parent) {
@@ -9,6 +11,9 @@ class DOM {
 	
 	/**
 	 * Returns the first child element containing the specified obfuscated class. Parent defaults to the entire document.
+	 * @param {string} cls
+	 * @param {HTMLElement?} [parent]
+	 * @returns {HTMLElement}
 	 */
 	static queryReactClass(cls, parent) {
 		return (parent || document).querySelector(`[class*="${cls}_"]`);
