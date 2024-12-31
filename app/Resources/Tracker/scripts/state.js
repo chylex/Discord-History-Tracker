@@ -286,7 +286,7 @@ const STATE = (function() {
 				}
 				
 				if (msg.reactions.length > 0) {
-					obj.reactions = msg.reactions.map(reaction => {
+					obj.reactions = msg.reactions.filter(reaction => reaction.count > 0).map(reaction => {
 						const emoji = reaction.emoji;
 						
 						const mapped = {
