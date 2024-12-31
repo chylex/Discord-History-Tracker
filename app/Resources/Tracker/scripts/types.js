@@ -73,6 +73,7 @@
 /**
  * @name MessageData
  * @type {Object}
+ * @property {String} channelId
  * @property {Boolean} ready
  * @property {Boolean} loadingMore
  * @property {Boolean} hasMoreAfter

@@ -117,24 +117,25 @@ class DISCORD {
 		}
 	}
 	
+	static getMessagesFromSelectedChannel() {
+		const channelId = this.#getCurrentlySelectedChannelId();
+		return channelId ? this.#getMessages(channelId) : null;
+	}
+	
 	/**
 	 * Calls the provided function with a list of messages whenever the currently loaded messages change.
+	 * @param callback {function(server: ?DiscordGuild, channel: DiscordChannel, messages: Array<DiscordMessage>, hasMoreBefore: boolean)}
 	 */
 	static setupMessageCallback(callback) {
 		const previousMessages = new Set();
 		
 		const onMessageElementsChanged = force => {
-			const channelId = this.#getCurrentlySelectedChannelId();
-			if (!channelId) {
-				return false;
-			}
-			
-			const messages = this.#getMessages(channelId);
+			const messages = this.getMessagesFromSelectedChannel();
 			if (!messages || !messages.ready || messages.loadingMore) {
 				return false;
 			}
 			
-			const channel = this.#channelStore.getChannel(channelId);
+			const channel = this.#channelStore.getChannel(messages.channelId);
 			if (!channel) {
 				return false;
 			}
