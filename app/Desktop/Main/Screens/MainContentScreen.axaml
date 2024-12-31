@@ -40,13 +40,13 @@
         <Style Selector="TabItem:pointerover /template/ Border">
             <Setter Property="Background" Value="#455785" />
         </Style>
-        <Style Selector="TabItem:pointerover > TextBlock">
+        <Style Selector="TabItem:pointerover /template/ ContentPresenter">
             <Setter Property="Foreground" Value="#E9E9E9" />
         </Style>
         <Style Selector="TabItem:selected:pointerover /template/ Border">
             <Setter Property="Background" Value="#FFFFFF" />
         </Style>
-        <Style Selector="TabItem:selected:pointerover > TextBlock">
+        <Style Selector="TabItem:selected:pointerover /template/ ContentPresenter">
             <Setter Property="Foreground" Value="#1A2234" />
         </Style>
         <Style Selector="TabItem:selected">
@@ -56,9 +56,11 @@
         <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
             <Setter Property="IsVisible" Value="False" />
         </Style>
-        <Style Selector="TabItem:disabled > TextBlock">
+        <Style Selector="TabItem:disabled /template/ ContentPresenter">
             <Setter Property="Foreground" Value="#B2B2B2" />
-            <Setter Property="TextDecorations" Value="Strikethrough" />
+        </Style>
+        <Style Selector="TabItem:disabled /template/ ContentPresenter">
+            <Setter Property="AccessText.TextDecorations" Value="Strikethrough" />
         </Style>
         <Style Selector="TabItem.first">
             <Setter Property="Margin" Value="0 13 0 0" />

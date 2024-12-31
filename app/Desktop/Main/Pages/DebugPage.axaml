@@ -16,6 +16,10 @@
             <Setter Property="FontFamily" Value="Consolas,Courier" />
             <Setter Property="FontSize" Value="15" />
         </Style>
+        <Style Selector="Label">
+            <Setter Property="Margin" Value="0 5" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
         <Style Selector="WrapPanel > StackPanel">
             <Setter Property="Orientation" Value="Vertical" />
             <Setter Property="Margin" Value="0 0 10 10" />
