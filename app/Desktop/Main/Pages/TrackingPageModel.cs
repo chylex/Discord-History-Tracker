@@ -22,6 +22,8 @@ sealed partial class TrackingPageModel : ObservableObject {
 	[ObservableProperty(Setter = Access.Private)]
 	[NotifyPropertyChangedFor(nameof(ToggleAppDevToolsButtonText))]
 	private bool isToggleAppDevToolsButtonEnabled = false;
+	
+	public string OpenDevToolsShortcutText { get; } = OperatingSystem.IsMacOS() ? "Cmd+Shift+I" : "Ctrl+Shift+I";
 
 	public string ToggleAppDevToolsButtonText {
 		get {
@@ -33,7 +35,7 @@ sealed partial class TrackingPageModel : ObservableObject {
 				return "Unavailable";
 			}
 
-			return AreDevToolsEnabled.Value ? "Disable Ctrl+Shift+I" : "Enable Ctrl+Shift+I";
+			return (AreDevToolsEnabled.Value ? "Disable" : "Enable") + " " + OpenDevToolsShortcutText;
 		}
 	}
 
@@ -102,11 +104,11 @@ sealed partial class TrackingPageModel : ObservableObject {
 		switch (await DiscordAppSettings.ConfigureDevTools(newState)) {
 			case SettingsJsonResult.Success:
 				AreDevToolsEnabled = newState;
-				await Dialog.ShowOk(window, DialogTitle, "Ctrl+Shift+I was " + (newState ? "enabled." : "disabled.") + " Restart the Discord app for the change to take effect.");
+				await Dialog.ShowOk(window, DialogTitle, OpenDevToolsShortcutText + " was " + (newState ? "enabled." : "disabled.") + " Restart the Discord app for the change to take effect.");
 				break;
 
 			case SettingsJsonResult.AlreadySet:
-				await Dialog.ShowOk(window, DialogTitle, "Ctrl+Shift+I is already " + (newState ? "enabled." : "disabled."));
+				await Dialog.ShowOk(window, DialogTitle, OpenDevToolsShortcutText + " is already " + (newState ? "enabled." : "disabled."));
 				AreDevToolsEnabled = newState;
 				break;
 
