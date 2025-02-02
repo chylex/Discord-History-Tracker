@@ -73,4 +73,14 @@ sealed class SqliteChannelRepository : BaseSqliteRepository, IChannelRepository 
 			};
 		}
 	}
+	
+	public async Task<int> RemoveUnreachable() {
+		int removed;
+		await using (var conn = await pool.Take()) {
+			removed = await conn.ExecuteAsync("DELETE FROM channels WHERE id NOT IN (SELECT DISTINCT channel_id FROM messages)");
+		}
+		
+		UpdateTotalCount();
+		return removed;
+	}
 }

@@ -16,6 +16,8 @@ public interface IServerRepository {
 	
 	IAsyncEnumerable<Data.Server> Get(CancellationToken cancellationToken = default);
 	
+	Task<int> RemoveUnreachable();
+	
 	internal sealed class Dummy : IServerRepository {
 		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
 		
@@ -29,6 +31,10 @@ public interface IServerRepository {
 		
 		public IAsyncEnumerable<Data.Server> Get(CancellationToken cancellationToken) {
 			return AsyncEnumerable.Empty<Data.Server>();
+		}
+		
+		public Task<int> RemoveUnreachable() {
+			return Task.FromResult(0);
 		}
 	}
 }

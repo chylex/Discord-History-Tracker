@@ -20,7 +20,9 @@ public interface IMessageRepository {
 	
 	IAsyncEnumerable<ulong> GetIds(MessageFilter? filter = null);
 	
-	Task Remove(MessageFilter filter, FilterRemovalMode mode);
+	Task<int> Remove(MessageFilter filter, FilterRemovalMode mode);
+	
+	Task<int> RemoveUnreachableAttachments();
 	
 	internal sealed class Dummy : IMessageRepository {
 		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
@@ -41,8 +43,12 @@ public interface IMessageRepository {
 			return AsyncEnumerable.Empty<ulong>();
 		}
 		
-		public Task Remove(MessageFilter filter, FilterRemovalMode mode) {
-			return Task.CompletedTask;
+		public Task<int> Remove(MessageFilter filter, FilterRemovalMode mode) {
+			return Task.FromResult(0);
+		}
+		
+		public Task<int> RemoveUnreachableAttachments() {
+			return Task.FromResult(0);
 		}
 	}
 }

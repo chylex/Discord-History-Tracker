@@ -12,10 +12,13 @@ using DHT.Desktop.Server;
 using DHT.Server;
 using DHT.Server.Data.Filters;
 using DHT.Server.Service.Viewer;
+using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Main.Pages;
 
 sealed partial class ViewerPageModel : ObservableObject, IDisposable {
+	private static readonly Log Log = Log.ForType<ViewerPageModel>();
+	
 	public bool DatabaseToolFilterModeKeep { get; set; } = true;
 	public bool DatabaseToolFilterModeRemove { get; set; } = false;
 	
@@ -74,6 +77,21 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 	}
 	
 	private async Task ApplyFilterToDatabase(MessageFilter filter, FilterRemovalMode removalMode) {
-		await ProgressDialog.ShowIndeterminate(window, "Apply Filters", "Removing messages...", _ => state.Db.Messages.Remove(filter, removalMode));
+		await ProgressDialog.Show(window, "Apply Filters", async (_, callback) => {
+			await callback.UpdateIndeterminate("Removing messages...");
+			Log.Info("Removed messages: " + await state.Db.Messages.Remove(filter, removalMode));
+			
+			await callback.UpdateIndeterminate("Cleaning up attachments...");
+			Log.Info("Removed orphaned attachments: " + await state.Db.Messages.RemoveUnreachableAttachments());
+			
+			await callback.UpdateIndeterminate("Cleaning up users...");
+			Log.Info("Removed orphaned users: " + await state.Db.Users.RemoveUnreachable());
+			
+			await callback.UpdateIndeterminate("Cleaning up channels...");
+			Log.Info("Removed orphaned channels: " + await state.Db.Channels.RemoveUnreachable());
+			
+			await callback.UpdateIndeterminate("Cleaning up servers...");
+			Log.Info("Removed orphaned servers: " + await state.Db.Servers.RemoveUnreachable());
+		});
 	}
 }

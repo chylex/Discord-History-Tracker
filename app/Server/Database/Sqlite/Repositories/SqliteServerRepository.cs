@@ -61,4 +61,14 @@ sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
 			};
 		}
 	}
+	
+	public async Task<int> RemoveUnreachable() {
+		int removed;
+		await using (var conn = await pool.Take()) {
+			removed = await conn.ExecuteAsync("DELETE FROM servers WHERE id NOT IN (SELECT DISTINCT server FROM channels)");
+		}
+		
+		UpdateTotalCount();
+		return removed;
+	}
 }

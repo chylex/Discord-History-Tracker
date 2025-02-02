@@ -17,6 +17,8 @@ public interface IChannelRepository {
 	
 	IAsyncEnumerable<Channel> Get(CancellationToken cancellationToken = default);
 	
+	Task<int> RemoveUnreachable();
+	
 	internal sealed class Dummy : IChannelRepository {
 		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
 		
@@ -30,6 +32,10 @@ public interface IChannelRepository {
 		
 		public IAsyncEnumerable<Channel> Get(CancellationToken cancellationToken) {
 			return AsyncEnumerable.Empty<Channel>();
+		}
+		
+		public Task<int> RemoveUnreachable() {
+			return Task.FromResult(0);
 		}
 	}
 }

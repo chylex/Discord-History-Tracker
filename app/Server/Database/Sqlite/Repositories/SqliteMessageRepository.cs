@@ -303,17 +303,24 @@ sealed class SqliteMessageRepository(SqliteConnectionPool pool, SqliteDownloadRe
 		}
 	}
 	
-	public async Task Remove(MessageFilter filter, FilterRemovalMode mode) {
+	public async Task<int> Remove(MessageFilter filter, FilterRemovalMode mode) {
+		int removed;
 		await using (var conn = await pool.Take()) {
-			await conn.ExecuteAsync(
-				$"""
-				 -- noinspection SqlWithoutWhere
-				 DELETE FROM messages
-				 {filter.GenerateConditions(invert: mode == FilterRemovalMode.KeepMatching).BuildWhereClause()}
-				 """
-			);
+			removed = await conn.ExecuteAsync(
+				          $"""
+				           -- noinspection SqlWithoutWhere
+				           DELETE FROM messages
+				           {filter.GenerateConditions(invert: mode == FilterRemovalMode.KeepMatching).BuildWhereClause()}
+				           """
+			          );
 		}
 		
 		UpdateTotalCount();
+		return removed;
+	}
+	
+	public async Task<int> RemoveUnreachableAttachments() {
+		await using var conn = await pool.Take();
+		return await conn.ExecuteAsync("DELETE FROM attachments WHERE attachment_id NOT IN (SELECT DISTINCT attachment_id FROM message_attachments)");
 	}
 }

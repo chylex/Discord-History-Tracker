@@ -77,4 +77,14 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 			};
 		}
 	}
+	
+	public async Task<int> RemoveUnreachable() {
+		int removed;
+		await using (var conn = await pool.Take()) {
+			removed = await conn.ExecuteAsync("DELETE FROM users WHERE id NOT IN (SELECT DISTINCT sender_id FROM messages)");
+		}
+		
+		UpdateTotalCount();
+		return removed;
+	}
 }
