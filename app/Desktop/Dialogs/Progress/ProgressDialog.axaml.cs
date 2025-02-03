@@ -2,11 +2,15 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using DHT.Desktop.Dialogs.Message;
+using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Dialogs.Progress;
 
 [SuppressMessage("ReSharper", "MemberCanBeInternal")]
 public sealed partial class ProgressDialog : Window {
+	private static readonly Log Log = Log.ForType<ProgressDialog>();
+	
 	internal static async Task Show(Window owner, string title, Func<ProgressDialog, IProgressCallback, Task> action) {
 		var taskCompletionSource = new TaskCompletionSource();
 		var dialog = new ProgressDialog();
@@ -84,6 +88,11 @@ public sealed partial class ProgressDialog : Window {
 	
 	public async Task ShowProgressDialog(Window owner) {
 		await ShowDialog(owner);
-		await progressTask;
+		try {
+			await progressTask;
+		} catch (Exception e) {
+			Log.Error(e);
+			await Dialog.ShowOk(owner, "Unexpected Error", e.Message);
+		}
 	}
 }
