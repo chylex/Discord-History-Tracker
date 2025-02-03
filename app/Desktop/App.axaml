@@ -53,7 +53,7 @@
             <Setter Property="MinHeight" Value="40" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>
-        
+
     </Application.Styles>
 
     <Application.Resources>
@@ -107,7 +107,7 @@
         <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#AAAAAA" />
         <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#AAAAAA" />
         <SolidColorBrush x:Key="TextControlPlaceholderForegroundDisabled" Color="#AAAAAA" />
-        
+
         <Thickness x:Key="ExpanderHeaderPadding">15,0</Thickness>
         <Thickness x:Key="ExpanderContentPadding">12</Thickness>
         <SolidColorBrush x:Key="ExpanderHeaderBorderBrush" Color="#697DAB" />

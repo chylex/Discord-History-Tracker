@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace DHT.Utils.Http; 
+namespace DHT.Utils.Http;
 
 public static class HttpExtensions {
 	public static Task WriteTextAsync(this HttpResponse response, string text, CancellationToken cancellationToken) {

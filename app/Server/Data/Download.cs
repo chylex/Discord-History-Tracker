@@ -6,7 +6,7 @@ public sealed class Download {
 	public DownloadStatus Status { get; }
 	public string? Type { get; }
 	public ulong? Size { get; }
-
+	
 	internal Download(string normalizedUrl, string downloadUrl, DownloadStatus status, string? type, ulong? size) {
 		NormalizedUrl = normalizedUrl;
 		DownloadUrl = downloadUrl;

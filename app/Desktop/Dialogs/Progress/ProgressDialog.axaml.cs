@@ -45,7 +45,7 @@ public sealed partial class ProgressDialog : Window {
 	internal static async Task<T> ShowIndeterminate<T>(Window owner, string title, string message, Func<ProgressDialog, Task<T>> action) {
 		var taskCompletionSource = new TaskCompletionSource<T>();
 		var dialog = new ProgressDialog();
-
+		
 		dialog.DataContext = new ProgressDialogModel(title, async callbacks => {
 			await callbacks[0].UpdateIndeterminate(message);
 			try {
@@ -58,30 +58,30 @@ public sealed partial class ProgressDialog : Window {
 		await dialog.ShowProgressDialog(owner);
 		return await taskCompletionSource.Task;
 	}
-
+	
 	private bool isFinished = false;
 	private Task progressTask = Task.CompletedTask;
-
+	
 	public ProgressDialog() {
 		InitializeComponent();
 	}
-
+	
 	public void OnOpened(object? sender, EventArgs e) {
 		if (DataContext is ProgressDialogModel model) {
 			progressTask = Task.Run(model.StartTask);
 			progressTask.ContinueWith(OnFinished, TaskScheduler.FromCurrentSynchronizationContext());
 		}
 	}
-
+	
 	public void OnClosing(object? sender, WindowClosingEventArgs e) {
 		e.Cancel = !isFinished;
 	}
-
+	
 	private void OnFinished(Task task) {
 		isFinished = true;
 		Close();
 	}
-
+	
 	public async Task ShowProgressDialog(Window owner) {
 		await ShowDialog(owner);
 		await progressTask;

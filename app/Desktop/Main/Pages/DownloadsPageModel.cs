@@ -18,132 +18,132 @@ namespace DHT.Desktop.Main.Pages;
 
 sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	private static readonly Log Log = Log.ForType<DownloadsPageModel>();
-
+	
 	[ObservableProperty(Setter = Access.Private)]
 	private bool isToggleDownloadButtonEnabled = true;
-
+	
 	public string ToggleDownloadButtonText => IsDownloading ? "Stop Downloading" : "Start Downloading";
-
+	
 	[ObservableProperty(Setter = Access.Private)]
 	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
 	private bool isRetryingFailedDownloads = false;
-
+	
 	[ObservableProperty(Setter = Access.Private)]
 	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
 	private bool hasFailedDownloads;
-
+	
 	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && HasFailedDownloads;
-
+	
 	[ObservableProperty(Setter = Access.Private)]
 	private string downloadMessage = "";
-
+	
 	public DownloadItemFilterPanelModel FilterModel { get; }
-
+	
 	private readonly StatisticsRow statisticsPending = new ("Pending");
 	private readonly StatisticsRow statisticsDownloaded = new ("Downloaded");
 	private readonly StatisticsRow statisticsFailed = new ("Failed");
 	private readonly StatisticsRow statisticsSkipped = new ("Skipped");
-
+	
 	public ObservableCollection<StatisticsRow> StatisticsRows { get; }
-
+	
 	public bool IsDownloading => state.Downloader.IsDownloading;
-
+	
 	private readonly State state;
 	private readonly ThrottledTask<DownloadStatusStatistics> downloadStatisticsTask;
 	private readonly IDisposable downloadItemCountSubscription;
 	
 	private IDisposable? finishedItemsSubscription;
 	private DownloadItemFilter? currentDownloadFilter;
-
+	
 	public DownloadsPageModel() : this(State.Dummy) {}
-
+	
 	public DownloadsPageModel(State state) {
 		this.state = state;
-
+		
 		FilterModel = new DownloadItemFilterPanelModel(state);
 		
 		StatisticsRows = [
 			statisticsPending,
 			statisticsDownloaded,
 			statisticsFailed,
-			statisticsSkipped
+			statisticsSkipped,
 		];
-
+		
 		downloadStatisticsTask = new ThrottledTask<DownloadStatusStatistics>(Log, UpdateStatistics, TaskScheduler.FromCurrentSynchronizationContext());
 		downloadItemCountSubscription = state.Db.Downloads.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnDownloadCountChanged);
-
+		
 		RecomputeDownloadStatistics();
 	}
 	
 	public async Task Initialize() {
 		await FilterModel.Initialize();
 		
-		if (await state.Db.Settings.Get(SettingsKey.DownloadsAutoStart, false)) {
+		if (await state.Db.Settings.Get(SettingsKey.DownloadsAutoStart, defaultValue: false)) {
 			await StartDownload();
 		}
 	}
-
+	
 	public async ValueTask DisposeAsync() {
 		finishedItemsSubscription?.Dispose();
 		
 		downloadItemCountSubscription.Dispose();
 		downloadStatisticsTask.Dispose();
-
+		
 		await FilterModel.DisposeAsync();
 	}
-
+	
 	private void OnDownloadCountChanged(long newDownloadCount) {
 		RecomputeDownloadStatistics();
 	}
-
+	
 	public async Task OnClickToggleDownload() {
 		IsToggleDownloadButtonEnabled = false;
-
+		
 		if (IsDownloading) {
 			await StopDownload();
 		}
 		else {
 			await StartDownload();
 		}
-
+		
 		await state.Db.Settings.Set(SettingsKey.DownloadsAutoStart, IsDownloading);
 		IsToggleDownloadButtonEnabled = true;
 	}
-
+	
 	private async Task StartDownload() {
 		await state.Db.Downloads.MoveDownloadingItemsBackToQueue();
 		
-		var finishedItems = await state.Downloader.Start(currentDownloadFilter = FilterModel.CreateFilter());
+		IObservable<DownloadItem> finishedItems = await state.Downloader.Start(currentDownloadFilter = FilterModel.CreateFilter());
 		finishedItemsSubscription = finishedItems.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnItemFinished);
 		
 		OnDownloadStateChanged();
 	}
-
+	
 	private async Task StopDownload() {
 		await state.Downloader.Stop();
 		await state.Db.Downloads.MoveDownloadingItemsBackToQueue();
-
+		
 		finishedItemsSubscription?.Dispose();
 		finishedItemsSubscription = null;
-			
+		
 		currentDownloadFilter = null;
 		OnDownloadStateChanged();
 	}
-
+	
 	private void OnDownloadStateChanged() {
 		RecomputeDownloadStatistics();
-
+		
 		OnPropertyChanged(nameof(ToggleDownloadButtonText));
 		OnPropertyChanged(nameof(IsDownloading));
 	}
-
+	
 	private void OnItemFinished(DownloadItem item) {
 		RecomputeDownloadStatistics();
 	}
-
+	
 	public async Task OnClickRetryFailedDownloads() {
 		IsRetryingFailedDownloads = true;
-
+		
 		try {
 			await state.Db.Downloads.RetryFailed();
 			RecomputeDownloadStatistics();
@@ -153,20 +153,20 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 			IsRetryingFailedDownloads = false;
 		}
 	}
-
+	
 	private void RecomputeDownloadStatistics() {
 		downloadStatisticsTask.Post(cancellationToken => state.Db.Downloads.GetStatistics(currentDownloadFilter ?? new DownloadItemFilter(), cancellationToken));
 	}
-
+	
 	private void UpdateStatistics(DownloadStatusStatistics statusStatistics) {
 		statisticsPending.Items = statusStatistics.PendingCount;
 		statisticsPending.Size = statusStatistics.PendingTotalSize;
 		statisticsPending.HasFilesWithUnknownSize = statusStatistics.PendingWithUnknownSizeCount > 0;
-
+		
 		statisticsDownloaded.Items = statusStatistics.SuccessfulCount;
 		statisticsDownloaded.Size = statusStatistics.SuccessfulTotalSize;
 		statisticsDownloaded.HasFilesWithUnknownSize = statusStatistics.SuccessfulWithUnknownSizeCount > 0;
-
+		
 		statisticsFailed.Items = statusStatistics.FailedCount;
 		statisticsFailed.Size = statusStatistics.FailedTotalSize;
 		statisticsFailed.HasFilesWithUnknownSize = statusStatistics.FailedWithUnknownSizeCount > 0;
@@ -174,17 +174,17 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		statisticsSkipped.Items = statusStatistics.SkippedCount;
 		statisticsSkipped.Size = statusStatistics.SkippedTotalSize;
 		statisticsSkipped.HasFilesWithUnknownSize = statusStatistics.SkippedWithUnknownSizeCount > 0;
-
+		
 		HasFailedDownloads = statusStatistics.FailedCount > 0;
 	}
-
+	
 	[ObservableObject]
 	public sealed partial class StatisticsRow(string state) {
 		public string State { get; } = state;
-
+		
 		[ObservableProperty]
 		private int items;
-
+		
 		[ObservableProperty]
 		[NotifyPropertyChangedFor(nameof(SizeText))]
 		private ulong? size;
@@ -192,7 +192,7 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		[ObservableProperty]
 		[NotifyPropertyChangedFor(nameof(SizeText))]
 		private bool hasFilesWithUnknownSize;
-
+		
 		public string SizeText {
 			get {
 				if (size == null) {

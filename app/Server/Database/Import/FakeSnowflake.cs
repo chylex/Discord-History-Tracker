@@ -7,14 +7,14 @@ namespace DHT.Server.Database.Import;
 /// </summary>
 public sealed class FakeSnowflake {
 	private const ulong DiscordEpoch = 1420070400000UL;
-
+	
 	private ulong id;
-
+	
 	public FakeSnowflake() {
-		var unixMillis = (ulong) (DateTime.UtcNow.Subtract(DateTime.UnixEpoch).Ticks / TimeSpan.TicksPerMillisecond);
+		ulong unixMillis = (ulong) (DateTime.UtcNow.Subtract(DateTime.UnixEpoch).Ticks / TimeSpan.TicksPerMillisecond);
 		this.id = (unixMillis - DiscordEpoch) << 22;
 	}
-
+	
 	internal ulong Next() {
 		return id++;
 	}

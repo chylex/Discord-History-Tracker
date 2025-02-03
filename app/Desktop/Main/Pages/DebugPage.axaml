@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DHT.Desktop.Main.Pages.DebugPage"
              x:DataType="pages:DebugPageModel">
-    
+
     <Design.DataContext>
         <pages:DebugPageModel />
     </Design.DataContext>

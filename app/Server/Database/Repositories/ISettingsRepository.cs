@@ -19,11 +19,11 @@ public interface ISettingsRepository {
 		public Task Set<T>(SettingsKey<T> key, T value) {
 			return Task.CompletedTask;
 		}
-
+		
 		public Task Set(Func<ISetter, Task> setter) {
 			return Task.CompletedTask;
 		}
-
+		
 		public Task<T?> Get<T>(SettingsKey<T> key, T? defaultValue) {
 			return Task.FromResult(defaultValue);
 		}

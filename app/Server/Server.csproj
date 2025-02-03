@@ -5,7 +5,7 @@
     <AssemblyName>DiscordHistoryTracker.Server</AssemblyName>
     <PackageId>DiscordHistoryTrackerServer</PackageId>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
@@ -50,5 +50,5 @@
       <Visible>false</Visible>
     </EmbeddedResource>
   </ItemGroup>
-  
+
 </Project>

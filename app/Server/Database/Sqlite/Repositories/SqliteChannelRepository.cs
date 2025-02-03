@@ -14,11 +14,11 @@ sealed class SqliteChannelRepository : BaseSqliteRepository, IChannelRepository 
 	private static readonly Log Log = Log.ForType<SqliteChannelRepository>();
 	
 	private readonly SqliteConnectionPool pool;
-
+	
 	public SqliteChannelRepository(SqliteConnectionPool pool) : base(Log) {
 		this.pool = pool;
 	}
-
+	
 	public async Task Add(IReadOnlyList<Channel> channels) {
 		await using (var conn = await pool.Take()) {
 			await conn.BeginTransactionAsync();
@@ -30,10 +30,10 @@ sealed class SqliteChannelRepository : BaseSqliteRepository, IChannelRepository 
 				("parent_id", SqliteType.Integer),
 				("position", SqliteType.Integer),
 				("topic", SqliteType.Text),
-				("nsfw", SqliteType.Integer)
+				("nsfw", SqliteType.Integer),
 			]);
-
-			foreach (var channel in channels) {
+			
+			foreach (Channel channel in channels) {
 				cmd.Set(":id", channel.Id);
 				cmd.Set(":server", channel.Server);
 				cmd.Set(":name", channel.Name);
@@ -43,24 +43,24 @@ sealed class SqliteChannelRepository : BaseSqliteRepository, IChannelRepository 
 				cmd.Set(":nsfw", channel.Nsfw);
 				await cmd.ExecuteNonQueryAsync();
 			}
-
+			
 			await conn.CommitTransactionAsync();
 		}
-
+		
 		UpdateTotalCount();
 	}
-
+	
 	public override async Task<long> Count(CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
 		return await conn.ExecuteReaderAsync("SELECT COUNT(*) FROM channels", static reader => reader?.GetInt64(0) ?? 0L, cancellationToken);
 	}
-
+	
 	public async IAsyncEnumerable<Channel> Get([EnumeratorCancellation] CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
-
+		
 		await using var cmd = conn.Command("SELECT id, server, name, parent_id, position, topic, nsfw FROM channels");
 		await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
+		
 		while (await reader.ReadAsync(cancellationToken)) {
 			yield return new Channel {
 				Id = reader.GetUint64(0),

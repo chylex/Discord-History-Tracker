@@ -7,6 +7,6 @@ public sealed class DownloadItemFilter {
 	public HashSet<DownloadStatus>? ExcludeStatuses { get; set; } = null;
 	
 	public ulong? MaxBytes { get; set; } = null;
-
+	
 	public bool IsEmpty => IncludeStatuses == null && ExcludeStatuses == null && MaxBytes == null;
 }

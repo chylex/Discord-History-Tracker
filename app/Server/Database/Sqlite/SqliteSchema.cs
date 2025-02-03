@@ -21,7 +21,7 @@ sealed class SqliteSchema {
 	public async Task<bool> Setup(ISchemaUpgradeCallbacks callbacks) {
 		await conn.ExecuteAsync("CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT)");
 		
-		var dbVersionStr = await conn.ExecuteReaderAsync("SELECT value FROM metadata WHERE key = 'version'", static reader => reader?.GetString(0));
+		string? dbVersionStr = await conn.ExecuteReaderAsync("SELECT value FROM metadata WHERE key = 'version'", static reader => reader?.GetString(0));
 		if (dbVersionStr == null) {
 			await InitializeSchemas();
 		}
@@ -32,7 +32,7 @@ sealed class SqliteSchema {
 			throw new DatabaseTooNewException(dbVersion);
 		}
 		else if (dbVersion < Version) {
-			var proceed = await callbacks.CanUpgrade();
+			bool proceed = await callbacks.CanUpgrade();
 			if (!proceed) {
 				return false;
 			}
@@ -186,12 +186,12 @@ sealed class SqliteSchema {
 			{ 9, new SqliteSchemaUpgradeTo10() },
 		};
 		
-		var perf = Log.Start("from version " + dbVersion);
+		Perf perf = Log.Start("from version " + dbVersion);
 		
 		for (int fromVersion = dbVersion; fromVersion < Version; fromVersion++) {
-			var toVersion = fromVersion + 1;
+			int toVersion = fromVersion + 1;
 			
-			if (upgrades.TryGetValue(fromVersion, out var upgrade)) {
+			if (upgrades.TryGetValue(fromVersion, out ISchemaUpgrade? upgrade)) {
 				await upgrade.Run(conn, reporter);
 			}
 			

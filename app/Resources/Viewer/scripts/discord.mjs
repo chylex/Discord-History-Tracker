@@ -298,13 +298,13 @@ export default (function() {
 					
 					return "<span class='jump' data-jump='" + value.id + "'>Jump to reply</span><span class='user'>" + avatar + user + "</span>" + contents;
 				}
-				else if (property === "reactions"){
-					if (!value){
+				else if (property === "reactions") {
+					if (!value) {
 						return "";
 					}
 					
 					return "<div class='reactions'>" + value.map(reaction => {
-						if ("id" in reaction){
+						if ("id" in reaction) {
 							const ext = reaction.a && settings.enableAnimatedEmoji ? "gif" : "webp";
 							const url = fileUrlProcessor("https://cdn.discordapp.com/emojis/" + reaction.id + "." + ext);
 							// noinspection JSUnusedGlobalSymbols

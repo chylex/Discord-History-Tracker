@@ -5,7 +5,7 @@ namespace DHT.Server.Database.Sqlite.Schema;
 
 sealed class SqliteSchemaUpgradeTo3 : ISchemaUpgrade {
 	async Task ISchemaUpgrade.Run(ISqliteConnection conn, ISchemaUpgradeCallbacks.IProgressReporter reporter) {
-		await reporter.MainWork("Applying schema changes...", 0, 1);
+		await reporter.MainWork("Applying schema changes...", finishedItems: 0, totalItems: 1);
 		
 		await conn.ExecuteAsync("""
 		                        CREATE TABLE edit_timestamps (
@@ -38,7 +38,7 @@ sealed class SqliteSchemaUpgradeTo3 : ISchemaUpgrade {
 		await conn.ExecuteAsync("ALTER TABLE messages DROP COLUMN replied_to_id");
 		await conn.ExecuteAsync("ALTER TABLE messages DROP COLUMN edit_timestamp");
 		
-		await reporter.MainWork("Vacuuming the database...", 1, 1);
+		await reporter.MainWork("Vacuuming the database...", finishedItems: 1, totalItems: 1);
 		await conn.ExecuteAsync("VACUUM");
 	}
 }

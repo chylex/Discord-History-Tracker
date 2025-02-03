@@ -7,17 +7,18 @@ using DHT.Server.Database;
 using DHT.Utils.Http;
 using DHT.Utils.Logging;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 
 namespace DHT.Server.Endpoints;
 
 abstract class BaseEndpoint(IDatabaseFile db) {
 	private static readonly Log Log = Log.ForType<BaseEndpoint>();
-
+	
 	protected IDatabaseFile Db { get; } = db;
-
+	
 	public async Task Handle(HttpContext ctx) {
-		var response = ctx.Response;
-
+		HttpResponse response = ctx.Response;
+		
 		try {
 			response.StatusCode = (int) HttpStatusCode.OK;
 			await Respond(ctx.Request, response, ctx.RequestAborted);
@@ -37,9 +38,9 @@ abstract class BaseEndpoint(IDatabaseFile db) {
 			response.StatusCode = (int) HttpStatusCode.InternalServerError;
 		}
 	}
-
+	
 	protected abstract Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken);
-
+	
 	protected static async Task<JsonElement> ReadJson(HttpRequest request) {
 		try {
 			return await request.ReadFromJsonAsync(JsonElementContext.Default.JsonElement);
@@ -49,7 +50,7 @@ abstract class BaseEndpoint(IDatabaseFile db) {
 	}
 	
 	protected static Guid GetSessionId(HttpRequest request) {
-		if (request.Query.TryGetValue("session", out var sessionIdValue) && sessionIdValue.Count == 1 && Guid.TryParse(sessionIdValue[0], out Guid sessionId)) {
+		if (request.Query.TryGetValue("session", out StringValues sessionIdValue) && sessionIdValue.Count == 1 && Guid.TryParse(sessionIdValue[0], out Guid sessionId)) {
 			return sessionId;
 		}
 		else {

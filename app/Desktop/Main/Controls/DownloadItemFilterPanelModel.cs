@@ -21,19 +21,19 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 	public sealed record Unit(string Name, uint Scale);
 	
 	private static readonly Unit[] AllUnits = [
-		new Unit("B", 1),
-		new Unit("kB", 1024),
-		new Unit("MB", 1024 * 1024)
+		new Unit("B", Scale: 1),
+		new Unit("kB", Scale: 1024),
+		new Unit("MB", Scale: 1024 * 1024)
 	];
-
+	
 	private static readonly HashSet<string> FilterProperties = [
 		nameof(LimitSize),
 		nameof(MaximumSize),
-		nameof(MaximumSizeUnit)
+		nameof(MaximumSizeUnit),
 	];
-
+	
 	public string FilterStatisticsText { get; private set; } = "";
-
+	
 	[ObservableProperty]
 	private bool limitSize = false;
 	
@@ -42,51 +42,51 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 	
 	[ObservableProperty]
 	private Unit maximumSizeUnit = AllUnits[0];
-
+	
 	public IEnumerable<Unit> Units => AllUnits;
-
+	
 	private readonly State state;
 	private readonly string verb;
-
+	
 	private readonly DelayedThrottledTask<FilterSettings> saveFilterSettingsTask;
 	private bool isLoadingFilterSettings;
-
+	
 	private readonly RestartableTask<long> downloadItemCountTask;
 	private long? matchingItemCount;
 	
 	private readonly IDisposable downloadItemCountSubscription;
 	private long? totalItemCount;
-
+	
 	[Obsolete("Designer")]
 	public DownloadItemFilterPanelModel() : this(State.Dummy) {}
-
+	
 	public DownloadItemFilterPanelModel(State state, string verb = "Matches") {
 		this.state = state;
 		this.verb = verb;
-
+		
 		this.saveFilterSettingsTask = new DelayedThrottledTask<FilterSettings>(Log, TimeSpan.FromSeconds(5), SaveFilterSettings);
-
+		
 		this.downloadItemCountTask = new RestartableTask<long>(SetMatchingCount, TaskScheduler.FromCurrentSynchronizationContext());
 		this.downloadItemCountSubscription = state.Db.Downloads.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnDownloadItemCountChanged);
-
+		
 		UpdateFilterStatistics();
-
+		
 		PropertyChanged += OnPropertyChanged;
 	}
-
+	
 	public async Task Initialize() {
 		isLoadingFilterSettings = true;
 		
 		LimitSize = await state.Db.Settings.Get(SettingsKey.DownloadsLimitSize, LimitSize);
 		MaximumSize = await state.Db.Settings.Get(SettingsKey.DownloadsMaximumSize, MaximumSize);
-
-		if (await state.Db.Settings.Get(SettingsKey.DownloadsMaximumSizeUnit, null) is {} unitName && AllUnits.FirstOrDefault(unit => unit.Name == unitName) is {} unitValue) {
+		
+		if (await state.Db.Settings.Get(SettingsKey.DownloadsMaximumSizeUnit, defaultValue: null) is {} unitName && AllUnits.FirstOrDefault(unit => unit.Name == unitName) is {} unitValue) {
 			MaximumSizeUnit = unitValue;
 		}
 		
 		isLoadingFilterSettings = false;
 	}
-
+	
 	public async ValueTask DisposeAsync() {
 		saveFilterSettingsTask.Dispose();
 		
@@ -112,7 +112,7 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 			Log.Error(e);
 		}
 	}
-
+	
 	private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
 		if (e.PropertyName != null && FilterProperties.Contains(e.PropertyName)) {
 			if (!isLoadingFilterSettings) {
@@ -128,9 +128,9 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 		UpdateFilterStatistics();
 	}
 	
-
+	
 	private void UpdateFilterStatistics() {
-		var filter = CreateFilter();
+		DownloadItemFilter filter = CreateFilter();
 		if (filter.IsEmpty) {
 			downloadItemCountTask.Cancel();
 			matchingItemCount = totalItemCount;
@@ -142,23 +142,23 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 			downloadItemCountTask.Restart(cancellationToken => state.Db.Downloads.Count(filter, cancellationToken));
 		}
 	}
-
+	
 	private void SetMatchingCount(long matchingAttachmentCount) {
 		this.matchingItemCount = matchingAttachmentCount;
 		UpdateFilterStatisticsText();
 	}
-
+	
 	private void UpdateFilterStatisticsText() {
-		var matchingItemCountStr = matchingItemCount?.Format() ?? "(...)";
-		var totalItemCountStr = totalItemCount?.Format() ?? "(...)";
-
+		string matchingItemCountStr = matchingItemCount?.Format() ?? "(...)";
+		string totalItemCountStr = totalItemCount?.Format() ?? "(...)";
+		
 		FilterStatisticsText = verb + " " + matchingItemCountStr + " out of " + totalItemCountStr + " file" + (totalItemCount is null or 1 ? "." : "s.");
 		OnPropertyChanged(nameof(FilterStatisticsText));
 	}
-
+	
 	public DownloadItemFilter CreateFilter() {
 		DownloadItemFilter filter = new ();
-
+		
 		if (LimitSize) {
 			try {
 				filter.MaxBytes = maximumSize * maximumSizeUnit.Scale;
@@ -166,7 +166,7 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 				// set no size limit, because the overflown size is larger than any file could possibly be
 			}
 		}
-
+		
 		return filter;
 	}
 }

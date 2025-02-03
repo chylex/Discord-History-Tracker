@@ -10,16 +10,16 @@ namespace DHT.Server.Database.Sqlite;
 
 public sealed class SqliteDatabaseFile : IDatabaseFile {
 	private const int DefaultPoolSize = 5;
-
+	
 	public static async Task<SqliteDatabaseFile?> OpenOrCreate(string path, ISchemaUpgradeCallbacks schemaUpgradeCallbacks) {
 		var connectionString = new SqliteConnectionStringBuilder {
 			DataSource = path,
 			Mode = SqliteOpenMode.ReadWriteCreate,
 		};
-
+		
 		var pool = await SqliteConnectionPool.Create(connectionString, DefaultPoolSize);
 		bool wasOpened;
-
+		
 		try {
 			await using var conn = await pool.Take();
 			wasOpened = await new SqliteSchema(conn).Setup(schemaUpgradeCallbacks);
@@ -27,7 +27,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 			await pool.DisposeAsync();
 			throw;
 		}
-
+		
 		if (wasOpened) {
 			return new SqliteDatabaseFile(path, pool);
 		}
@@ -36,7 +36,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 			return null;
 		}
 	}
-
+	
 	public string Path { get; }
 	
 	public ISettingsRepository Settings => settings;
@@ -58,7 +58,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 	private SqliteDatabaseFile(string path, SqliteConnectionPool pool) {
 		this.Path = path;
 		this.pool = pool;
-
+		
 		downloads = new SqliteDownloadRepository(pool);
 		settings = new SqliteSettingsRepository(pool);
 		users = new SqliteUserRepository(pool, downloads);
@@ -66,7 +66,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		channels = new SqliteChannelRepository(pool);
 		messages = new SqliteMessageRepository(pool, downloads);
 	}
-
+	
 	public async ValueTask DisposeAsync() {
 		users.Dispose();
 		servers.Dispose();
@@ -75,7 +75,7 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		downloads.Dispose();
 		await pool.DisposeAsync();
 	}
-
+	
 	public async Task Vacuum() {
 		await using var conn = await pool.Take();
 		await conn.ExecuteAsync("VACUUM");

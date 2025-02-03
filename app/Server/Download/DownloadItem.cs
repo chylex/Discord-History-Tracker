@@ -11,11 +11,11 @@ public readonly struct DownloadItem {
 	public ulong? Size { get; init; }
 	
 	internal Data.Download ToSuccess(long size) {
-		return new Data.Download(NormalizedUrl, DownloadUrl, DownloadStatus.Success, Type, (ulong) Math.Max(size, 0));
+		return new Data.Download(NormalizedUrl, DownloadUrl, DownloadStatus.Success, Type, (ulong) Math.Max(size, val2: 0));
 	}
 	
 	internal Data.Download ToFailure(HttpStatusCode? statusCode = null) {
-		var status = statusCode.HasValue ? (DownloadStatus) (int) statusCode : DownloadStatus.GenericError;
+		DownloadStatus status = statusCode.HasValue ? (DownloadStatus) (int) statusCode : DownloadStatus.GenericError;
 		return new Data.Download(NormalizedUrl, DownloadUrl, status, Type, Size);
 	}
 }

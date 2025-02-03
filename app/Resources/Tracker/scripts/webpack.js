@@ -1,6 +1,6 @@
 /**
  * Parts copied from Better Discord, licensed under Apache License 2.0.
- * 
+ *
  * https://github.com/BetterDiscord/BetterDiscord/blob/78edeb77c60542a57884686c4ba98f997c886fad/renderer/src/modules/webpackmodules.js
  * https://github.com/BetterDiscord/BetterDiscord/blob/78edeb77c60542a57884686c4ba98f997c886fad/LICENSE
  */
@@ -91,8 +91,8 @@ class WEBPACK {
 	}
 	
 	static findFunction(name, additionalRequiredProps) {
-		const searchedProps = additionalRequiredProps ? [name, ...additionalRequiredProps] : [name];
-		const matchingModule = this.findModule("containing function " + name, this.filterByPropsWithPredicate(prop => typeof(prop) === "function", ...searchedProps));
+		const searchedProps = additionalRequiredProps ? [ name, ...additionalRequiredProps ] : [ name ];
+		const matchingModule = this.findModule("containing function " + name, this.filterByPropsWithPredicate(prop => typeof (prop) === "function", ...searchedProps));
 		return matchingModule == null ? null : matchingModule[name].bind(matchingModule);
 	}
 }

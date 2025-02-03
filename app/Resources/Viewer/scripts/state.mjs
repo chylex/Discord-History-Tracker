@@ -171,7 +171,7 @@ export default (function() {
 	};
 	
 	const getMessageChannel = function(id) {
-		for (const [ channel, messages ] of Object.entries(loadedFileData)) { 
+		for (const [ channel, messages ] of Object.entries(loadedFileData)) {
 			if (id in messages) {
 				return channel;
 			}

@@ -22,5 +22,5 @@
   <ItemGroup>
     <Compile Include="..\Version.cs" Link="Version.cs" />
   </ItemGroup>
-  
+
 </Project>

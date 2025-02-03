@@ -1,7 +1,7 @@
 #messages {
   flex: 1 1 0;
   overflow-y: auto;
-  background-color: #36393E;
+  background-color: #36393e;
 }
 
 #messages > div {
@@ -38,7 +38,7 @@
 }
 
 #messages .username {
-  color: #FFF;
+  color: #fff;
   font-size: 15px;
   font-weight: 600;
   margin-right: 3px;
@@ -75,12 +75,12 @@
 }
 
 .message .link, .reply-message .link {
-  color: #7289DA;
+  color: #7289da;
   background-color: rgba(115, 139, 215, 0.1);
 }
 
 .message a, .reply-message a {
-  color: #0096CF;
+  color: #0096cf;
   text-decoration: none;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .message code {
-  background-color: #2E3136;
+  background-color: #2e3136;
   border-radius: 5px;
   font-family: Menlo, Consolas, Monaco, monospace;
   font-size: 14px;
@@ -144,7 +144,7 @@
 
 .message code.block {
   display: block;
-  border: 2px solid #282B30;
+  border: 2px solid #282b30;
   margin-top: 6px;
   padding: 7px;
 }
@@ -198,7 +198,7 @@
 }
 
 .reply-username {
-  color: #FFF;
+  color: #fff;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0;
@@ -218,7 +218,7 @@
 }
 
 .reply-contents code {
-  background-color: #2E3136;
+  background-color: #2e3136;
   font-family: Menlo, Consolas, Monaco, monospace;
   padding: 1px 2px;
 }

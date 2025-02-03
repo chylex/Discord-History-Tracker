@@ -7,7 +7,7 @@ namespace DHT.Utils.Logging;
 public static partial class WindowsConsole {
 	[LibraryImport("kernel32.dll", SetLastError = true)]
 	public static partial void AllocConsole();
-
+	
 	[LibraryImport("kernel32.dll", SetLastError = true)]
 	public static partial void FreeConsole();
 }

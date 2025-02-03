@@ -12,13 +12,13 @@ public sealed class Downloader {
 	
 	private readonly IDatabaseFile db;
 	private readonly int? concurrentDownloads;
-	private readonly SemaphoreSlim semaphore = new (1, 1);
+	private readonly SemaphoreSlim semaphore = new (initialCount: 1, maxCount: 1);
 	
 	internal Downloader(IDatabaseFile db, int? concurrentDownloads) {
 		this.db = db;
 		this.concurrentDownloads = concurrentDownloads;
 	}
-
+	
 	public async Task<IObservable<DownloadItem>> Start(DownloadItemFilter filter) {
 		await semaphore.WaitAsync();
 		try {
@@ -28,7 +28,7 @@ public sealed class Downloader {
 			semaphore.Release();
 		}
 	}
-
+	
 	public async Task Stop() {
 		await semaphore.WaitAsync();
 		try {

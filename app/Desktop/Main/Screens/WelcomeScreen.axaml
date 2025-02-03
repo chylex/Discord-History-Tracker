@@ -30,7 +30,7 @@
     <Panel Name="RootPanel">
         <StackPanel Margin="42 30">
             <TextBlock Text="{Binding Version, StringFormat=Discord History Tracker v{0}}" FontSize="25" Margin="0 0 0 25" HorizontalAlignment="Center" />
-            
+
             <Grid Name="ButtonPanel" RowDefinitions="Auto,12,Auto,12,Auto" ColumnDefinitions="*,12,*" Margin="12 0" HorizontalAlignment="Stretch">
                 <Button Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Command="{Binding OpenOrCreateDatabase}" IsEnabled="{Binding IsOpenOrCreateDatabaseButtonEnabled}">Open or Create Database</Button>
                 <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Command="{Binding CheckUpdates}">Check For Updates</Button>

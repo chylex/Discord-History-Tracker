@@ -17,14 +17,14 @@ sealed class Startup {
 		"https://discord.com",
 		"https://ptb.discord.com",
 		"https://canary.discord.com",
-		"https://discordapp.com"
+		"https://discordapp.com",
 	];
-
+	
 	public void ConfigureServices(IServiceCollection services) {
 		services.Configure<JsonOptions>(static options => {
 			options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
 		});
-
+		
 		services.AddCors(static cors => {
 			cors.AddDefaultPolicy(static builder => {
 				builder.WithOrigins(AllowedOrigins).AllowCredentials().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("X-DHT");
@@ -33,7 +33,7 @@ sealed class Startup {
 		
 		services.AddRoutingCore();
 	}
-
+	
 	[SuppressMessage("ReSharper", "UnusedMember.Global")]
 	public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, IDatabaseFile db, ServerParameters parameters, ResourceLoader resources, ViewerSessions viewerSessions) {
 		app.UseMiddleware<ServerLoggingMiddleware>();

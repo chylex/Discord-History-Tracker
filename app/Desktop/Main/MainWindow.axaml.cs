@@ -16,23 +16,23 @@ public sealed partial class MainWindow : Window {
 		InitializeComponent();
 		DataContext = new MainWindowModel(this, Arguments.Empty);
 	}
-
+	
 	internal MainWindow(Arguments args) {
 		InitializeComponent();
 		DataContext = new MainWindowModel(this, args);
 	}
-
+	
 	public async void OnClosing(object? sender, WindowClosingEventArgs e) {
 		e.Cancel = true;
 		Closing -= OnClosing;
-
+		
 		try {
 			await Dispose();
 		} finally {
 			Close();
 		}
 	}
-
+	
 	private async Task Dispose() {
 		if (DataContext is MainWindowModel model) {
 			try {

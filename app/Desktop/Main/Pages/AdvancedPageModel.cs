@@ -13,21 +13,21 @@ sealed class AdvancedPageModel : IDisposable {
 	
 	private readonly Window window;
 	private readonly State state;
-
+	
 	[Obsolete("Designer")]
 	public AdvancedPageModel() : this(null!, State.Dummy) {}
-
+	
 	public AdvancedPageModel(Window window, State state) {
 		this.window = window;
 		this.state = state;
-
+		
 		ServerConfigurationModel = new ServerConfigurationPanelModel(window, state);
 	}
-
+	
 	public void Dispose() {
 		ServerConfigurationModel.Dispose();
 	}
-
+	
 	public async Task VacuumDatabase() {
 		const string Title = "Vacuum Database";
 		await ProgressDialog.ShowIndeterminate(window, Title, "Vacuuming database...", _ => state.Db.Vacuum());

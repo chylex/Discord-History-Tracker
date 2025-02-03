@@ -12,20 +12,20 @@ public sealed class ResourceLoader(Assembly assembly) {
 	private Stream? TryGetEmbeddedStream(string filename) {
 		Stream? stream = null;
 		
-		foreach (var embeddedName in assembly.GetManifestResourceNames()) {
-			if (embeddedName.Replace('\\', '/') == filename) {
+		foreach (string embeddedName in assembly.GetManifestResourceNames()) {
+			if (embeddedName.Replace(oldChar: '\\', newChar: '/') == filename) {
 				stream = assembly.GetManifestResourceStream(embeddedName);
 				break;
 			}
 		}
-
+		
 		return stream;
 	}
 	
 	private Stream GetEmbeddedStream(string filename) {
 		return TryGetEmbeddedStream(filename) ?? throw new ArgumentException("Missing embedded resource: " + filename);
 	}
-
+	
 	private async Task<string> ReadTextAsync(Stream stream) {
 		using var reader = new StreamReader(stream, Encoding.UTF8);
 		return await reader.ReadToEndAsync();
@@ -36,7 +36,7 @@ public sealed class ResourceLoader(Assembly assembly) {
 		await stream.CopyToAsync(memoryStream);
 		return memoryStream.ToArray();
 	}
-
+	
 	public async Task<string> ReadTextAsync(string filename) {
 		return await ReadTextAsync(GetEmbeddedStream(filename));
 	}
@@ -44,12 +44,12 @@ public sealed class ResourceLoader(Assembly assembly) {
 	public async Task<byte[]?> ReadBytesAsyncIfExists(string filename) {
 		return TryGetEmbeddedStream(filename) is {} stream ? await ReadBytesAsync(stream) : null;
 	}
-
+	
 	public async Task<string> ReadJoinedAsync(string path, char separator, string[] order) {
 		List<(string, Stream)> resourceNames = [];
-
-		foreach (var embeddedName in assembly.GetManifestResourceNames()) {
-			var embeddedNameNormalized = embeddedName.Replace('\\', '/');
+		
+		foreach (string embeddedName in assembly.GetManifestResourceNames()) {
+			string embeddedNameNormalized = embeddedName.Replace(oldChar: '\\', newChar: '/');
 			if (embeddedNameNormalized.StartsWith(path)) {
 				resourceNames.Add((embeddedNameNormalized, assembly.GetManifestResourceStream(embeddedName)!));
 			}
@@ -62,10 +62,10 @@ public sealed class ResourceLoader(Assembly assembly) {
 			return key == -1 ? order.Length : key;
 		}
 		
-		foreach(var (_, stream) in resourceNames.OrderBy(item => GetOrderKey(item.Item1))) {
+		foreach ((_, Stream stream) in resourceNames.OrderBy(item => GetOrderKey(item.Item1))) {
 			joined.Append(await ReadTextAsync(stream)).Append(separator);
 		}
-
-		return joined.ToString(0, Math.Max(0, joined.Length - 1));
+		
+		return joined.ToString(startIndex: 0, Math.Max(val1: 0, joined.Length - 1));
 	}
 }

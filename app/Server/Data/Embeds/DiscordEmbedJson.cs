@@ -7,7 +7,7 @@ sealed class DiscordEmbedJson {
 	public JsonImage? Image { get; set; }
 	public JsonImage? Thumbnail { get; set; }
 	public JsonImage? Video { get; set; }
-
+	
 	public sealed class JsonImage {
 		public string? Url { get; set; }
 		public string? ProxyUrl { get; set; }

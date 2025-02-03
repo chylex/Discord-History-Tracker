@@ -10,5 +10,5 @@ public enum DownloadStatus {
 	GenericError = 1,
 	Downloading = 2,
 	LastCustomCode = 99,
-	Success = HttpStatusCode.OK
+	Success = HttpStatusCode.OK,
 }

@@ -6,5 +6,5 @@ enum SettingsJsonResult {
 	FileNotFound,
 	ReadError,
 	InvalidJson,
-	WriteError
+	WriteError,
 }

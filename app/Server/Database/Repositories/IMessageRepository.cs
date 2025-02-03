@@ -21,26 +21,26 @@ public interface IMessageRepository {
 	IAsyncEnumerable<ulong> GetIds(MessageFilter? filter = null);
 	
 	Task Remove(MessageFilter filter, FilterRemovalMode mode);
-
+	
 	internal sealed class Dummy : IMessageRepository {
 		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
-
+		
 		public Task Add(IReadOnlyList<Message> messages) {
 			return Task.CompletedTask;
 		}
-
+		
 		public Task<long> Count(MessageFilter? filter, CancellationToken cancellationToken) {
 			return Task.FromResult(0L);
 		}
-
+		
 		public IAsyncEnumerable<Message> Get(MessageFilter? filter, CancellationToken cancellationToken) {
 			return AsyncEnumerable.Empty<Message>();
 		}
-
+		
 		public IAsyncEnumerable<ulong> GetIds(MessageFilter? filter) {
 			return AsyncEnumerable.Empty<ulong>();
 		}
-
+		
 		public Task Remove(MessageFilter filter, FilterRemovalMode mode) {
 			return Task.CompletedTask;
 		}

@@ -59,7 +59,7 @@
             <TextBlock Grid.Row="4" Grid.Column="0">MVVM Toolkit</TextBlock>
             <TextBlock Grid.Row="4" Grid.Column="1">MIT</TextBlock>
             <Button Grid.Row="4" Grid.Column="2" Command="{Binding ShowLibraryCommunityToolkit}">GitHub</Button>
-            
+
             <TextBlock Grid.Row="5" Grid.Column="0">SQLite</TextBlock>
             <TextBlock Grid.Row="5" Grid.Column="1">Public Domain</TextBlock>
             <Button Grid.Row="5" Grid.Column="2" Command="{Binding ShowLibrarySqlite}">Official Website</Button>
@@ -67,7 +67,7 @@
             <TextBlock Grid.Row="6" Grid.Column="0">Microsoft.Data.Sqlite</TextBlock>
             <TextBlock Grid.Row="6" Grid.Column="1">Apache-2.0</TextBlock>
             <Button Grid.Row="6" Grid.Column="2" Command="{Binding ShowLibrarySqliteAdoNet}">NuGet</Button>
-            
+
             <TextBlock Grid.Row="7" Grid.Column="0">Rx.NET</TextBlock>
             <TextBlock Grid.Row="7" Grid.Column="1">MIT</TextBlock>
             <Button Grid.Row="7" Grid.Column="2" Command="{Binding ShowLibraryRxNet}">GitHub</Button>

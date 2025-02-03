@@ -15,7 +15,7 @@ sealed class GetTrackingScriptEndpoint(IDatabaseFile db, ServerParameters parame
 		string bootstrap = await resources.ReadTextAsync("Tracker/bootstrap.js");
 		string script = bootstrap.Replace("= 0; /*[PORT]*/", "= " + parameters.Port + ";")
 		                         .Replace("/*[TOKEN]*/", HttpUtility.JavaScriptStringEncode(parameters.Token))
-		                         .Replace("/*[IMPORTS]*/", await resources.ReadJoinedAsync("Tracker/scripts/", '\n', [ "/webpack.js" ]))
+		                         .Replace("/*[IMPORTS]*/", await resources.ReadJoinedAsync("Tracker/scripts/", separator: '\n', [ "/webpack.js" ]))
 		                         .Replace("/*[CSS-CONTROLLER]*/", await resources.ReadTextAsync("Tracker/styles/controller.css"))
 		                         .Replace("/*[CSS-SETTINGS]*/", await resources.ReadTextAsync("Tracker/styles/settings.css"))
 		                         .Replace("/*[DEBUGGER]*/", request.Query.ContainsKey("debug") ? "debugger;" : "");

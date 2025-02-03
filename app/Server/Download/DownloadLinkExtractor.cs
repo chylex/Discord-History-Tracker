@@ -11,14 +11,14 @@ namespace DHT.Server.Download;
 
 static class DownloadLinkExtractor {
 	private static readonly Log Log = Log.ForType(typeof(DownloadLinkExtractor));
-
+	
 	public static Data.Download FromUserAvatar(ulong userId, string avatarPath) {
 		string url = $"https://cdn.discordapp.com/avatars/{userId}/{avatarPath}.webp";
 		return new Data.Download(url, url, DownloadStatus.Pending, MediaTypeNames.Image.Webp, size: null);
 	}
-
+	
 	public static Data.Download FromEmoji(ulong emojiId, EmojiFlags flags) {
-		var isAnimated = flags.HasFlag(EmojiFlags.Animated);
+		bool isAnimated = flags.HasFlag(EmojiFlags.Animated);
 		
 		string ext = isAnimated ? "gif" : "webp";
 		string type = isAnimated ? MediaTypeNames.Image.Gif : MediaTypeNames.Image.Webp;
@@ -26,11 +26,11 @@ static class DownloadLinkExtractor {
 		string url = $"https://cdn.discordapp.com/emojis/{emojiId}.{ext}";
 		return new Data.Download(url, url, DownloadStatus.Pending, type, size: null);
 	}
-
+	
 	public static Data.Download FromAttachment(Attachment attachment) {
 		return new Data.Download(attachment.NormalizedUrl, attachment.DownloadUrl, DownloadStatus.Pending, attachment.Type, attachment.Size);
 	}
-
+	
 	public static async Task<Data.Download?> TryFromEmbedJson(Stream jsonStream) {
 		try {
 			return FromEmbed(await JsonSerializer.DeserializeAsync(jsonStream, DiscordEmbedJsonContext.Default.DiscordEmbedJson));
@@ -39,7 +39,7 @@ static class DownloadLinkExtractor {
 			return null;
 		}
 	}
-
+	
 	public static Data.Download? TryFromEmbedJson(string json) {
 		try {
 			return FromEmbed(JsonSerializer.Deserialize(json, DiscordEmbedJsonContext.Default.DiscordEmbedJson));
@@ -60,9 +60,9 @@ static class DownloadLinkExtractor {
 			return null;
 		}
 	}
-
+	
 	private static Data.Download? FromEmbedImage(string url) {
-		if (DiscordCdn.NormalizeUrlAndReturnIfCdn(url, out var normalizedUrl)) {
+		if (DiscordCdn.NormalizeUrlAndReturnIfCdn(url, out string normalizedUrl)) {
 			return new Data.Download(normalizedUrl, url, DownloadStatus.Pending, GuessImageType(normalizedUrl), size: null);
 		}
 		else {
@@ -70,9 +70,9 @@ static class DownloadLinkExtractor {
 			return null;
 		}
 	}
-
+	
 	private static Data.Download? FromEmbedVideo(string url) {
-		if (DiscordCdn.NormalizeUrlAndReturnIfCdn(url, out var normalizedUrl)) {
+		if (DiscordCdn.NormalizeUrlAndReturnIfCdn(url, out string normalizedUrl)) {
 			return new Data.Download(normalizedUrl, url, DownloadStatus.Pending, GuessVideoType(normalizedUrl), size: null);
 		}
 		else {
@@ -80,12 +80,12 @@ static class DownloadLinkExtractor {
 			return null;
 		}
 	}
-
+	
 	private static string? GuessImageType(string url) {
-		if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
+		if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uri)) {
 			return null;
 		}
-
+		
 		ReadOnlySpan<char> extension = Path.GetExtension(uri.AbsolutePath).ToLowerInvariant();
 		
 		// Remove Twitter quality suffix.
@@ -93,7 +93,7 @@ static class DownloadLinkExtractor {
 		if (colonIndex != -1) {
 			extension = extension[..colonIndex];
 		}
-
+		
 		return extension switch {
 			".jpg"  => MediaTypeNames.Image.Jpeg,
 			".jpeg" => MediaTypeNames.Image.Jpeg,
@@ -101,22 +101,22 @@ static class DownloadLinkExtractor {
 			".gif"  => MediaTypeNames.Image.Gif,
 			".webp" => MediaTypeNames.Image.Webp,
 			".bmp"  => MediaTypeNames.Image.Bmp,
-			_       => null
+			_       => null,
 		};
 	}
-
+	
 	private static string? GuessVideoType(string url) {
-		if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
+		if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uri)) {
 			return null;
 		}
-
+		
 		string extension = Path.GetExtension(uri.AbsolutePath).ToLowerInvariant();
 		return extension switch {
 			".mp4"  => "video/mp4",
 			".mpeg" => "video/mpeg",
 			".webm" => "video/webm",
 			".mov"  => "video/quicktime",
-			_       => null
+			_       => null,
 		};
 	}
 }
