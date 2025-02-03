@@ -13,8 +13,8 @@
     </Design.DataContext>
 
     <UserControl.Styles>
-        <Style Selector="Expander">
-            <Setter Property="Margin" Value="0 5 0 0" />
+        <Style Selector="WrapPanel > Button">
+            <Setter Property="Margin" Value="0 0 10 10" />
         </Style>
         <Style Selector="DataGridColumnHeader">
             <Setter Property="FontWeight" Value="Medium" />
@@ -30,16 +30,17 @@
         </Style>
     </UserControl.Styles>
 
-    <StackPanel Orientation="Vertical" Spacing="20">
-        <StackPanel Orientation="Horizontal" Spacing="10">
+    <StackPanel Orientation="Vertical">
+        <WrapPanel Orientation="Horizontal">
             <Button Command="{Binding OnClickToggleDownload}" Content="{Binding ToggleDownloadButtonText}" IsEnabled="{Binding IsToggleDownloadButtonEnabled}" />
             <Button Command="{Binding OnClickRetryFailedDownloads}" IsEnabled="{Binding IsRetryFailedOnDownloadsButtonEnabled}">Retry Failed Downloads</Button>
-        </StackPanel>
-        <controls:DownloadItemFilterPanel DataContext="{Binding FilterModel}" IsEnabled="{Binding !$parent[UserControl].((pages:DownloadsPageModel)DataContext).IsDownloading}" />
-        <TextBlock TextWrapping="Wrap">
-            Downloading state and filter settings are remembered per-database.
-        </TextBlock>
-        <StackPanel Orientation="Vertical" Spacing="12">
+            <Button Command="{Binding OnClickDeleteOrphanedDownloads}">Delete Orphaned Downloads</Button>
+        </WrapPanel>
+        <StackPanel Orientation="Vertical" Spacing="20" Margin="0 10 0 0">
+            <controls:DownloadItemFilterPanel DataContext="{Binding FilterModel}" IsEnabled="{Binding !$parent[UserControl].((pages:DownloadsPageModel)DataContext).IsDownloading}" />
+            <TextBlock TextWrapping="Wrap">
+                Downloading state and filter settings are remembered per-database.
+            </TextBlock>
             <Expander Header="Download Status" IsExpanded="True">
                 <DataGrid ItemsSource="{Binding StatisticsRows}" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserSortColumns="False" IsReadOnly="True">
                     <DataGrid.Columns>

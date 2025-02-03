@@ -32,6 +32,10 @@ public interface IDownloadRepository {
 	
 	Task<int> RetryFailed(CancellationToken cancellationToken = default);
 	
+	Task Remove(ICollection<string> normalizedUrls);
+	
+	IAsyncEnumerable<Data.Download> FindAllDownloadableUrls(CancellationToken cancellationToken = default);
+	
 	internal sealed class Dummy : IDownloadRepository {
 		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
 		
@@ -69,6 +73,14 @@ public interface IDownloadRepository {
 		
 		public Task<int> RetryFailed(CancellationToken cancellationToken) {
 			return Task.FromResult(0);
+		}
+		
+		public Task Remove(ICollection<string> normalizedUrls) {
+			return Task.CompletedTask;
+		}
+		
+		public IAsyncEnumerable<Data.Download> FindAllDownloadableUrls(CancellationToken cancellationToken) {
+			return AsyncEnumerable.Empty<Data.Download>();
 		}
 	}
 }

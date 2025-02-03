@@ -1,12 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.ReactiveUI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
+using DHT.Desktop.Dialogs.Message;
+using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Main.Controls;
 using DHT.Server;
+using DHT.Server.Data;
 using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
 using DHT.Server.Data.Settings;
@@ -48,6 +53,7 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	
 	public bool IsDownloading => state.Downloader.IsDownloading;
 	
+	private readonly Window window;
 	private readonly State state;
 	private readonly ThrottledTask<DownloadStatusStatistics> downloadStatisticsTask;
 	private readonly IDisposable downloadItemCountSubscription;
@@ -55,9 +61,10 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	private IDisposable? finishedItemsSubscription;
 	private DownloadItemFilter? currentDownloadFilter;
 	
-	public DownloadsPageModel() : this(State.Dummy) {}
+	public DownloadsPageModel() : this(null!, State.Dummy) {}
 	
-	public DownloadsPageModel(State state) {
+	public DownloadsPageModel(Window window, State state) {
+		this.window = window;
 		this.state = state;
 		
 		FilterModel = new DownloadItemFilterPanelModel(state);
@@ -156,6 +163,50 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	
 	private void RecomputeDownloadStatistics() {
 		downloadStatisticsTask.Post(cancellationToken => state.Db.Downloads.GetStatistics(currentDownloadFilter ?? new DownloadItemFilter(), cancellationToken));
+	}
+	
+	private const string DeleteOrphanedDownloadsTitle = "Delete Orphaned Downloads";
+	
+	public async Task OnClickDeleteOrphanedDownloads() {
+		await ProgressDialog.Show(window, DeleteOrphanedDownloadsTitle, DeleteOrphanedDownloads);
+	}
+	
+	private async Task DeleteOrphanedDownloads(ProgressDialog dialog, IProgressCallback callback) {
+		await callback.UpdateIndeterminate("Searching for orphaned downloads...");
+		
+		HashSet<string> reachableNormalizedUrls = [];
+		HashSet<string> orphanedNormalizedUrls = [];
+		
+		await foreach (Download download in state.Db.Downloads.FindAllDownloadableUrls()) {
+			reachableNormalizedUrls.Add(download.NormalizedUrl);
+		}
+		
+		await foreach (Download download in state.Db.Downloads.Get()) {
+			string normalizedUrl = download.NormalizedUrl;
+			if (!reachableNormalizedUrls.Contains(normalizedUrl)) {
+				orphanedNormalizedUrls.Add(normalizedUrl);
+			}
+		}
+		
+		if (orphanedNormalizedUrls.Count == 0) {
+			await Dialog.ShowOk(window, DeleteOrphanedDownloadsTitle, "No orphaned downloads found.");
+			return;
+		}
+		
+		if (await Dialog.ShowYesNo(window, DeleteOrphanedDownloadsTitle, orphanedNormalizedUrls.Count + " orphaned download(s) will be removed from this database. This action cannot be undone. Proceed?") != DialogResult.YesNo.Yes) {
+			return;
+		}
+		
+		await callback.UpdateIndeterminate("Deleting orphaned downloads...");
+		await state.Db.Downloads.Remove(orphanedNormalizedUrls);
+		RecomputeDownloadStatistics();
+		
+		if (await Dialog.ShowYesNo(window, DeleteOrphanedDownloadsTitle, "Orphaned downloads deleted. Vacuum database now to reclaim space?") != DialogResult.YesNo.Yes) {
+			return;
+		}
+		
+		await callback.UpdateIndeterminate("Vacuuming database...");
+		await state.Db.Vacuum();
 	}
 	
 	private void UpdateStatistics(DownloadStatusStatistics statusStatistics) {

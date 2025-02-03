@@ -321,4 +321,62 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 		cmd.AddAndSet(":success", SqliteType.Integer, (int) DownloadStatus.Success);
 		return await cmd.ExecuteNonQueryAsync(cancellationToken);
 	}
+	
+	public async Task Remove(ICollection<string> normalizedUrls) {
+		await using (var conn = await pool.Take()) {
+			await conn.BeginTransactionAsync();
+			
+			await using (var cmd = conn.Command("DELETE FROM download_metadata WHERE normalized_url = :normalized_url")) {
+				cmd.Add(":normalized_url", SqliteType.Text);
+				
+				foreach (string normalizedUrl in normalizedUrls) {
+					cmd.Set(":normalized_url", normalizedUrl);
+					await cmd.ExecuteNonQueryAsync();
+				}
+			}
+			
+			await conn.CommitTransactionAsync();
+		}
+		
+		UpdateTotalCount();
+	}
+	
+	public async IAsyncEnumerable<Data.Download> FindAllDownloadableUrls([EnumeratorCancellation] CancellationToken cancellationToken = default) {
+		await using var conn = await pool.Take();
+		
+		await using (var cmd = conn.Command("SELECT normalized_url, download_url, type, size FROM attachments")) {
+			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+			
+			while (await reader.ReadAsync(cancellationToken)) {
+				yield return DownloadLinkExtractor.FromAttachment(reader.GetString(0), reader.GetString(1), reader.IsDBNull(2) ? null : reader.GetString(2), reader.GetUint64(3));
+			}
+		}
+		
+		await using (var cmd = conn.Command("SELECT json FROM message_embeds")) {
+			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+			
+			while (await reader.ReadAsync(cancellationToken)) {
+				var result = await DownloadLinkExtractor.TryFromEmbedJson(reader.GetStream(0));
+				if (result is not null) {
+					yield return result;
+				}
+			}
+		}
+		
+		await using (var cmd = conn.Command("SELECT id, avatar_url FROM users WHERE avatar_url IS NOT NULL")) {
+			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+			
+			while (await reader.ReadAsync(cancellationToken)) {
+				yield return DownloadLinkExtractor.FromUserAvatar(reader.GetUint64(0), reader.GetString(1));
+			}
+		}
+		
+		await using (var cmd = conn.Command("SELECT DISTINCT emoji_id, emoji_flags FROM message_reactions WHERE emoji_id IS NOT NULL")) {
+			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+			
+			while (await reader.ReadAsync(cancellationToken)) {
+				yield return DownloadLinkExtractor.FromEmoji(reader.GetUint64(0), (EmojiFlags) reader.GetInt16(1));
+			}
+		}
+	}
 }

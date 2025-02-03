@@ -28,7 +28,11 @@ static class DownloadLinkExtractor {
 	}
 	
 	public static Data.Download FromAttachment(Attachment attachment) {
-		return new Data.Download(attachment.NormalizedUrl, attachment.DownloadUrl, DownloadStatus.Pending, attachment.Type, attachment.Size);
+		return FromAttachment(attachment.NormalizedUrl, attachment.DownloadUrl, attachment.Type, attachment.Size);
+	}
+	
+	public static Data.Download FromAttachment(string normalizedUrl, string downloadUrl, string? type, ulong size) {
+		return new Data.Download(normalizedUrl, downloadUrl, DownloadStatus.Pending, type, size);
 	}
 	
 	public static async Task<Data.Download?> TryFromEmbedJson(Stream jsonStream) {

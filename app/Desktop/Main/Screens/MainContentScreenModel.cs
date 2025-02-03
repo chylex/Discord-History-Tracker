@@ -49,7 +49,7 @@ sealed class MainContentScreenModel : IAsyncDisposable {
 		TrackingPageModel = new TrackingPageModel(window);
 		TrackingPage = new TrackingPage { DataContext = TrackingPageModel };
 		
-		DownloadsPageModel = new DownloadsPageModel(state);
+		DownloadsPageModel = new DownloadsPageModel(window, state);
 		DownloadsPage = new DownloadsPage { DataContext = DownloadsPageModel };
 		
 		ViewerPageModel = new ViewerPageModel(window, state);
