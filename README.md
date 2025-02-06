@@ -18,7 +18,7 @@ Folder organization:
 * `app/` contains a Visual Studio solution for the desktop app
 * `web/` contains source code of the [official website](https://dht.chylex.com), which can be used as a template when making your own website
 
-To start editing source code for the desktop app, install the [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0), and then open `app/DiscordHistoryTracker.sln` in [Visual Studio](https://visualstudio.microsoft.com/downloads/) or [Rider](https://www.jetbrains.com/rider/).
+To start editing source code for the desktop app, install the [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0), and then open `app/DiscordHistoryTracker.sln` in [Visual Studio](https://visualstudio.microsoft.com/downloads/) or [Rider](https://www.jetbrains.com/rider/).
 
 ### Building
 
@@ -40,6 +40,6 @@ Run the `app/build.sh` script, and read the [Distribution](#distribution) sectio
 
 #### Distribution
 
-The mentioned build scripts will prepare `Release` builds ready for distribution. Once the script finishes, the `app/bin` folder will contain self-contained executables for each major operating system, and a portable version that works on all other systems but requires .NET 8 to be installed.
+The mentioned build scripts will prepare `Release` builds ready for distribution. Once the script finishes, the `app/bin` folder will contain self-contained executables for each major operating system, and a portable version that works on all other systems but requires the ASP.NET Core Runtime to be installed.
 
 Note that when building on Windows, the generated `.zip` files for Linux and Mac will not have correct file permissions, so it will not be possible to run them by double-clicking the executable. Since .NET 8 fixed several issues with publishing Windows executables on Linux, I recommend using Linux to build the app for all operating systems.
