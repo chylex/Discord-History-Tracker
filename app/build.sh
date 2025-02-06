@@ -26,13 +26,19 @@ makezip() {
 
 rm -rf "./bin"
 
-configurations=(win-x64 linux-x64 osx-x64)
+dedicated_runtimes=(win-x64 linux-x64)
 
-for cfg in "${configurations[@]}"; do
+# Dedicated Runtimes
+
+for cfg in "${dedicated_runtimes[@]}"; do
   dotnet publish Desktop -c Release -r "$cfg" -o "./bin/$cfg" --self-contained true
   makezip "$cfg"
 done
 
+# Portable
+
 dotnet publish Desktop -c Release -o "./bin/portable" -p:PublishSingleFile=false -p:PublishTrimmed=false --self-contained false
+
 rm "./bin/portable/DiscordHistoryTracker"
+
 makezip "portable"
