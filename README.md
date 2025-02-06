@@ -28,18 +28,18 @@ To build a `Release` version of the desktop app, follow the instructions for you
 
 #### Release – Windows (64-bit)
 
-1. Install [Powershell 5](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows) or newer (on Windows 10, the included version of Powershell should be enough)
+1. Install Debian in WSL and open a terminal in the project folder.
+2. Run the `app/build.wsl.sh` script.
+3. Read the [Distribution](#distribution) section below.
 
-Run the `app/build.bat` script, and read the [Distribution](#distribution) section below.
+Note: The build script expects `dotnet.exe` to be installed in `C:\Program Files\dotnet`.
 
 #### Release – Other Operating Systems
 
-1. Install the `zip` package from your repository
-
-Run the `app/build.sh` script, and read the [Distribution](#distribution) section below.
+1. Install the `zip` package from your repository.
+2. Run the `app/build.sh` script.
+3. Read the [Distribution](#distribution) section below.
 
 #### Distribution
 
 The mentioned build scripts will prepare `Release` builds ready for distribution. Once the script finishes, the `app/bin` folder will contain self-contained executables for each major operating system, and a portable version that works on all other systems but requires the ASP.NET Core Runtime to be installed.
-
-Note that when building on Windows, the generated `.zip` files for Linux and Mac will not have correct file permissions, so it will not be possible to run them by double-clicking the executable. Since .NET 8 fixed several issues with publishing Windows executables on Linux, I recommend using Linux to build the app for all operating systems.

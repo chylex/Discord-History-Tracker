@@ -9,9 +9,12 @@ if [ ! -f "DiscordHistoryTracker.sln" ]; then
 fi
 
 makezip() {
+  TMP_PATH="/tmp/dht-build"
   BIN_PATH="$(pwd)/bin"
 
-  pushd "$BIN_PATH/$1"
+  rm -rf "$TMP_PATH"
+  cp -r "$BIN_PATH/$1/" "$TMP_PATH"
+  pushd "$TMP_PATH"
 
   find . -type d -exec chmod 755 {} \;
   find . -type f -exec chmod 644 {} \;
@@ -22,6 +25,7 @@ makezip() {
   find . -type f | sort | zip -9 -X "$BIN_PATH/$1.zip" -@
 
   popd
+  rm -rf "$TMP_PATH"
 }
 
 rm -rf "./bin"
@@ -29,10 +33,10 @@ rm -rf "./bin"
 configurations=(win-x64 linux-x64 osx-x64)
 
 for cfg in "${configurations[@]}"; do
-  dotnet publish Desktop -c Release -r "$cfg" -o "./bin/$cfg" --self-contained true
+  "/mnt/c/Program Files/dotnet/dotnet.exe" publish Desktop -c Release -r "$cfg" -o "./bin/$cfg" --self-contained true
   makezip "$cfg"
 done
 
-dotnet publish Desktop -c Release -o "./bin/portable" -p:PublishSingleFile=false -p:PublishTrimmed=false --self-contained false
-rm "./bin/portable/DiscordHistoryTracker"
+"/mnt/c/Program Files/dotnet/dotnet.exe" publish Desktop -c Release -o "./bin/portable" -p:PublishSingleFile=false -p:PublishTrimmed=false --self-contained false
+rm "./bin/portable/DiscordHistoryTracker.exe"
 makezip "portable"
