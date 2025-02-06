@@ -31,6 +31,7 @@ makezip() {
 rm -rf "./bin"
 
 dedicated_runtimes=(win-x64 linux-x64)
+skipped_portable_runtimes=(browser-wasm linux-mips64 linux-s390x linux-ppc64le)
 
 # Dedicated Runtimes
 
@@ -44,5 +45,9 @@ done
 "/mnt/c/Program Files/dotnet/dotnet.exe" publish Desktop -c Release -o "./bin/portable" -p:PublishSingleFile=false -p:PublishTrimmed=false --self-contained false
 
 rm "./bin/portable/DiscordHistoryTracker.exe"
+
+for runtime in "${skipped_portable_runtimes[@]}"; do
+  rm -rf "./bin/portable/runtimes/$runtime"
+done
 
 makezip "portable"
