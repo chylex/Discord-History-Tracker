@@ -13,16 +13,16 @@ using static DHT.Desktop.Program;
 namespace DHT.Desktop.Main.Pages;
 
 sealed partial class TrackingPageModel : ObservableObject {
-	[ObservableProperty(Setter = Access.Private)]
-	private bool isCopyTrackingScriptButtonEnabled = true;
+	[ObservableProperty]
+	public partial bool IsCopyTrackingScriptButtonEnabled { get; private set; } = true;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(ToggleAppDevToolsButtonText))]
-	private bool? areDevToolsEnabled = null;
+	public partial bool? AreDevToolsEnabled { get; private set; } = null;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(ToggleAppDevToolsButtonText))]
-	private bool isToggleAppDevToolsButtonEnabled = false;
+	public partial bool IsToggleAppDevToolsButtonEnabled { get; private set; } = false;
 	
 	public string OpenDevToolsShortcutText { get; } = OperatingSystem.IsMacOS() ? "Cmd+Shift+I" : "Ctrl+Shift+I";
 	

@@ -16,16 +16,16 @@ sealed partial class ServerConfigurationPanelModel : ObservableObject, IDisposab
 	
 	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(HasMadeChanges))]
-	private string inputPort;
+	public partial string InputPort { get; private set; }
 	
 	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(HasMadeChanges))]
-	private string inputToken;
+	public partial string InputToken { get; private set; }
 	
 	public bool HasMadeChanges => ServerConfiguration.Port.ToString() != InputPort || ServerConfiguration.Token != InputToken;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	private bool isToggleServerButtonEnabled = true;
+	[ObservableProperty]
+	public partial bool IsToggleServerButtonEnabled { get; private set; } = true;
 	
 	public string ToggleServerButtonText => server.IsRunning ? "Stop Server" : "Start Server";
 	
@@ -38,8 +38,8 @@ sealed partial class ServerConfigurationPanelModel : ObservableObject, IDisposab
 	public ServerConfigurationPanelModel(Window window, State state) {
 		this.window = window;
 		this.server = state.Server;
-		this.inputPort = ServerConfiguration.Port.ToString();
-		this.inputToken = ServerConfiguration.Token;
+		this.InputPort = ServerConfiguration.Port.ToString();
+		this.InputToken = ServerConfiguration.Token;
 		
 		server.StatusChanged += OnServerStatusChanged;
 	}
@@ -104,7 +104,7 @@ sealed partial class ServerConfigurationPanelModel : ObservableObject, IDisposab
 		}
 		
 		ServerConfiguration.Port = port;
-		ServerConfiguration.Token = inputToken;
+		ServerConfiguration.Token = InputToken;
 		
 		OnPropertyChanged(nameof(HasMadeChanges));
 		

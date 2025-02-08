@@ -21,8 +21,8 @@ sealed partial class WelcomeScreenModel : ObservableObject {
 	
 	public string Version => Program.Version;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	private bool isOpenOrCreateDatabaseButtonEnabled = true;
+	[ObservableProperty]
+	public partial bool IsOpenOrCreateDatabaseButtonEnabled { get; private set; } = true;
 	
 	public event EventHandler<IDatabaseFile>? DatabaseSelected;
 	

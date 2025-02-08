@@ -9,20 +9,20 @@ using DHT.Server.Service;
 namespace DHT.Desktop.Main.Controls;
 
 sealed partial class StatusBarModel : ObservableObject, IDisposable {
-	[ObservableProperty(Setter = Access.Private)]
-	private long? serverCount;
+	[ObservableProperty]
+	public partial long? ServerCount { get; private set; }
 	
-	[ObservableProperty(Setter = Access.Private)]
-	private long? channelCount;
+	[ObservableProperty]
+	public partial long? ChannelCount { get; private set; }
 	
-	[ObservableProperty(Setter = Access.Private)]
-	private long? messageCount;
+	[ObservableProperty]
+	public partial long? MessageCount { get; private set; }
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(ServerStatusText))]
-	private ServerManager.Status serverStatus;
+	public partial ServerManager.Status ServerStatus { get; private set; }
 	
-	public string ServerStatusText => serverStatus switch {
+	public string ServerStatusText => ServerStatus switch {
 		ServerManager.Status.Starting => "STARTING",
 		ServerManager.Status.Started  => "READY",
 		ServerManager.Status.Stopping => "STOPPING",
@@ -46,7 +46,7 @@ sealed partial class StatusBarModel : ObservableObject, IDisposable {
 		messageCountSubscription = state.Db.Messages.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(newMessageCount => MessageCount = newMessageCount);
 		
 		state.Server.StatusChanged += OnServerStatusChanged;
-		serverStatus = state.Server.IsRunning ? ServerManager.Status.Started : ServerManager.Status.Stopped;
+		ServerStatus = state.Server.IsRunning ? ServerManager.Status.Started : ServerManager.Status.Stopped;
 	}
 	
 	public void Dispose() {

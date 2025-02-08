@@ -35,13 +35,13 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 	public string FilterStatisticsText { get; private set; } = "";
 	
 	[ObservableProperty]
-	private bool limitSize = false;
+	public partial bool LimitSize { get; set; } = false;
 	
 	[ObservableProperty]
-	private ulong maximumSize = 0UL;
+	public partial ulong MaximumSize { get; set; } = 0UL;
 	
 	[ObservableProperty]
-	private Unit maximumSizeUnit = AllUnits[0];
+	public partial Unit MaximumSizeUnit { get; set; } = AllUnits[0];
 	
 	public IEnumerable<Unit> Units => AllUnits;
 	
@@ -161,7 +161,7 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 		
 		if (LimitSize) {
 			try {
-				filter.MaxBytes = maximumSize * maximumSizeUnit.Scale;
+				filter.MaxBytes = MaximumSize * MaximumSizeUnit.Scale;
 			} catch (ArithmeticException) {
 				// set no size limit, because the overflown size is larger than any file could possibly be
 			}

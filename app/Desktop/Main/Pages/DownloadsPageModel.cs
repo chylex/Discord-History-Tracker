@@ -24,23 +24,23 @@ namespace DHT.Desktop.Main.Pages;
 sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	private static readonly Log Log = Log.ForType<DownloadsPageModel>();
 	
-	[ObservableProperty(Setter = Access.Private)]
-	private bool isToggleDownloadButtonEnabled = true;
+	[ObservableProperty]
+	public partial bool IsToggleDownloadButtonEnabled { get; private set; } = true;
 	
 	public string ToggleDownloadButtonText => IsDownloading ? "Stop Downloading" : "Start Downloading";
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
-	private bool isRetryingFailedDownloads = false;
+	public partial bool IsRetryingFailedDownloads { get; private set; } = false;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
-	private bool hasFailedDownloads;
+	public partial bool HasFailedDownloads { get; private set; }
 	
 	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && HasFailedDownloads;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	private string downloadMessage = "";
+	[ObservableProperty]
+	public partial string DownloadMessage { get; private set; } = "";
 	
 	public DownloadItemFilterPanelModel FilterModel { get; }
 	
@@ -52,7 +52,6 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	public ObservableCollection<StatisticsRow> StatisticsRows { get; }
 	
 	public bool IsDownloading => state.Downloader.IsDownloading;
-	
 	private readonly Window window;
 	private readonly State state;
 	private readonly ThrottledTask<DownloadStatusStatistics> downloadStatisticsTask;
@@ -229,31 +228,30 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		HasFailedDownloads = statusStatistics.FailedCount > 0;
 	}
 	
-	[ObservableObject]
-	public sealed partial class StatisticsRow(string state) {
+	public sealed partial class StatisticsRow(string state) : ObservableObject {
 		public string State { get; } = state;
 		
 		[ObservableProperty]
-		private int items;
+		public partial int Items { get; set; }
 		
 		[ObservableProperty]
 		[NotifyPropertyChangedFor(nameof(SizeText))]
-		private ulong? size;
+		public partial ulong? Size { get; set; }
 		
 		[ObservableProperty]
 		[NotifyPropertyChangedFor(nameof(SizeText))]
-		private bool hasFilesWithUnknownSize;
+		public partial bool HasFilesWithUnknownSize { get; set; }
 		
 		public string SizeText {
 			get {
-				if (size == null) {
+				if (Size == null) {
 					return "-";
 				}
-				else if (hasFilesWithUnknownSize) {
-					return "\u2265 " + BytesValueConverter.Convert(size.Value);
+				else if (HasFilesWithUnknownSize) {
+					return "\u2265 " + BytesValueConverter.Convert(Size.Value);
 				}
 				else {
-					return BytesValueConverter.Convert(size.Value);
+					return BytesValueConverter.Convert(Size.Value);
 				}
 			}
 		}

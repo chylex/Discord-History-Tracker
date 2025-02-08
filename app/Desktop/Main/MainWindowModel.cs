@@ -18,11 +18,11 @@ sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
 	
 	private static readonly Log Log = Log.ForType<MainWindowModel>();
 	
-	[ObservableProperty(Setter = Access.Private)]
-	private string title = DefaultTitle;
+	[ObservableProperty]
+	public partial string Title { get; private set; } = DefaultTitle;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	private UserControl currentScreen;
+	[ObservableProperty]
+	public partial UserControl CurrentScreen { get; private set; }
 	
 	private readonly WelcomeScreen welcomeScreen;
 	private readonly WelcomeScreenModel welcomeScreenModel;
@@ -44,7 +44,7 @@ sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
 		welcomeScreenModel.DatabaseSelected += OnDatabaseSelected;
 		
 		welcomeScreen = new WelcomeScreen { DataContext = welcomeScreenModel };
-		currentScreen = welcomeScreen;
+		CurrentScreen = welcomeScreen;
 		
 		string? dbFile = args.DatabaseFile;
 		if (!string.IsNullOrWhiteSpace(dbFile)) {

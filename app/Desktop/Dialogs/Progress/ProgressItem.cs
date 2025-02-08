@@ -3,9 +3,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace DHT.Desktop.Dialogs.Progress;
 
 sealed partial class ProgressItem : ObservableObject {
-	[ObservableProperty(Setter = Access.Private)]
+	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(Opacity))]
-	private bool isVisible = false;
+	private partial bool IsVisible { get; set; } = false;
 	
 	public double Opacity => IsVisible ? 1.0 : 0.0;
 	
@@ -20,11 +20,11 @@ sealed partial class ProgressItem : ObservableObject {
 	}
 	
 	[ObservableProperty]
-	private string items = "";
+	public partial string Items { get; set; } = "";
 	
 	[ObservableProperty]
-	private int progress = 0;
+	public partial int Progress { get; set; } = 0;
 	
 	[ObservableProperty]
-	private bool isIndeterminate;
+	public partial bool IsIndeterminate { get; set; }
 }
