@@ -16,11 +16,5 @@
         <Expander Header="Internal Server Configuration" IsExpanded="True">
             <controls:ServerConfigurationPanel DataContext="{Binding ServerConfigurationModel}" />
         </Expander>
-        <Expander Header="Database Tools" IsExpanded="True">
-            <StackPanel Orientation="Vertical" Spacing="10">
-                <TextBlock TextWrapping="Wrap">Recreates the database to remove any traces of deleted data, which frees up space and prevents forensic recovery.</TextBlock>
-                <Button Command="{Binding VacuumDatabase}">Vacuum Database</Button>
-            </StackPanel>
-        </Expander>
     </StackPanel>
 </UserControl>

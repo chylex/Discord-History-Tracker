@@ -54,11 +54,11 @@ sealed class DatabasePageModel {
 				break;
 			
 			case PlatformID.Unix:
-				Process.Start("xdg-open", new string[] { folder });
+				Process.Start("xdg-open", [ folder ]);
 				break;
 			
 			case PlatformID.MacOSX:
-				Process.Start("open", new string[] { folder });
+				Process.Start("open", [ folder ]);
 				break;
 			
 			default:
@@ -97,15 +97,8 @@ sealed class DatabasePageModel {
 		});
 	}
 	
-	private sealed class SchemaUpgradeCallbacks : ISchemaUpgradeCallbacks {
-		private readonly ProgressDialog dialog;
-		private readonly int total;
+	private sealed class SchemaUpgradeCallbacks(ProgressDialog dialog, int total) : ISchemaUpgradeCallbacks {
 		private bool? decision;
-		
-		public SchemaUpgradeCallbacks(ProgressDialog dialog, int total) {
-			this.total = total;
-			this.dialog = dialog;
-		}
 		
 		public async Task<bool> CanUpgrade() {
 			return decision ??= (total > 1
@@ -262,5 +255,11 @@ sealed class DatabasePageModel {
 		message.Append(newMessages.Pluralize("message"));
 		
 		return message.ToString();
+	}
+	
+	public async Task VacuumDatabase() {
+		const string Title = "Vacuum Database";
+		await ProgressDialog.ShowIndeterminate(window, Title, "Vacuuming database...", _ => Db.Vacuum());
+		await Dialog.ShowOk(window, Title, "Done.");
 	}
 }
