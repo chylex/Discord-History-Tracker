@@ -28,9 +28,15 @@
             <Button Command="{Binding ImportLegacyArchive}">Import Legacy Archive(s)...</Button>
         </WrapPanel>
         <Expander Header="Advanced Tools" IsExpanded="True" Margin="0 15 0 0">
-            <StackPanel Orientation="Vertical" Spacing="10">
-                <TextBlock TextWrapping="Wrap">Recreate the database to free up space after deleting data.</TextBlock>
-                <Button Command="{Binding VacuumDatabase}">Vacuum Database</Button>
+            <StackPanel Orientation="Vertical" Spacing="25">
+                <StackPanel Orientation="Vertical" Spacing="10">
+                    <TextBlock TextWrapping="Wrap">Recreate the database to free up space after deleting data.</TextBlock>
+                    <Button Command="{Binding SplitDownloadsIntoSeparateFile}">Use Separate File for Downloads</Button>
+                </StackPanel>
+                <StackPanel Orientation="Vertical" Spacing="10">
+                    <TextBlock TextWrapping="Wrap">Recreate the database to free up space after deleting data.</TextBlock>
+                    <Button Command="{Binding VacuumDatabase}">Vacuum Database</Button>
+                </StackPanel>
             </StackPanel>
         </Expander>
     </StackPanel>

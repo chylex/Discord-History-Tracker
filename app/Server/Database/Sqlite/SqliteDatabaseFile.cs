@@ -1,10 +1,10 @@
-using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using DHT.Server.Data.Settings;
 using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Repositories;
 using DHT.Server.Database.Sqlite.Schema;
 using DHT.Server.Database.Sqlite.Utils;
-using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite;
 
@@ -12,28 +12,29 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 	private const int DefaultPoolSize = 5;
 	
 	public static async Task<SqliteDatabaseFile?> OpenOrCreate(string path, ISchemaUpgradeCallbacks schemaUpgradeCallbacks) {
-		var connectionString = new SqliteConnectionStringBuilder {
-			DataSource = path,
-			Mode = SqliteOpenMode.ReadWriteCreate,
-		};
+		var connectionString = new SqliteConnectionStringFactory(path);
+		var attachedDatabaseCollector = new AttachedDatabaseCollector(path);
 		
-		var pool = await SqliteConnectionPool.Create(connectionString, DefaultPoolSize);
 		bool wasOpened;
-		
-		try {
-			await using var conn = await pool.Take();
-			wasOpened = await new SqliteSchema(conn).Setup(schemaUpgradeCallbacks);
-		} catch (Exception) {
-			await pool.DisposeAsync();
-			throw;
+		await using (var conn = await CustomSqliteConnection.OpenUnpooled(connectionString)) {
+			wasOpened = await new SqliteSchema(conn).Setup(attachedDatabaseCollector, schemaUpgradeCallbacks);
 		}
 		
 		if (wasOpened) {
+			var pool = await SqliteConnectionPool.Create(connectionString, DefaultPoolSize, attachedDatabaseCollector);
 			return new SqliteDatabaseFile(path, pool);
 		}
 		else {
-			await pool.DisposeAsync();
 			return null;
+		}
+	}
+	
+	private sealed class AttachedDatabaseCollector(string path) : ISqliteAttachedDatabaseCollector {
+		public async IAsyncEnumerable<AttachedDatabase> GetAttachedDatabases(ISqliteConnection conn) {
+			bool useSeparateFileForDownloads = await SqliteSettingsRepository.Get(conn, SettingsKey.SeparateFileForDownloads, defaultValue: false);
+			if (useSeparateFileForDownloads) {
+				yield return new AttachedDatabase(path + "_dl", SqliteDownloadRepository.Schema);
+			}
 		}
 	}
 	
@@ -78,6 +79,11 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 	
 	public async Task Vacuum() {
 		await using var conn = await pool.Take();
+		
 		await conn.ExecuteAsync("VACUUM");
+		
+		if (await conn.HasAttachedDatabase(SqliteDownloadRepository.Schema)) {
+			await conn.ExecuteAsync("VACUUM " + SqliteDownloadRepository.Schema);
+		}
 	}
 }

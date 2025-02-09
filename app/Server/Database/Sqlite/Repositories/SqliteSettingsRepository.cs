@@ -43,10 +43,14 @@ sealed class SqliteSettingsRepository(SqliteConnectionPool pool) : ISettingsRepo
 	}
 	
 	public async Task<T?> Get<T>(SettingsKey<T> key, T? defaultValue) {
+		await using var conn = await pool.Take();
+		return await Get(conn, key, defaultValue);
+	}
+	
+	public static async Task<T?> Get<T>(ISqliteConnection conn, SettingsKey<T> key, T? defaultValue) {
 		string? value;
 		
-		await using (var conn = await pool.Take()) {
-			await using var cmd = conn.Command("SELECT value FROM metadata WHERE key = :key");
+		await using (var cmd = conn.Command("SELECT value FROM metadata WHERE key = :key")) {
 			cmd.AddAndSet(":key", SqliteType.Text, key.Key);
 			
 			await using var reader = await cmd.ExecuteReaderAsync();

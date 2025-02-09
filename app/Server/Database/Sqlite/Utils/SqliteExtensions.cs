@@ -82,4 +82,17 @@ static class SqliteExtensions {
 	public static ulong GetUint64(this SqliteDataReader reader, int ordinal) {
 		return (ulong) reader.GetInt64(ordinal);
 	}
+	
+	public static async Task<bool> HasAttachedDatabase(this ISqliteConnection conn, string schema) {
+		await using var cmd = conn.Command("PRAGMA database_list");
+		await using var reader = await cmd.ExecuteReaderAsync();
+		
+		while (await reader.ReadAsync()) {
+			if (reader.GetString(1) == schema) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 }

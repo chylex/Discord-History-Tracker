@@ -18,6 +18,8 @@ namespace DHT.Server.Database.Sqlite.Repositories;
 sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRepository(Log), IDownloadRepository {
 	private static readonly Log Log = Log.ForType<SqliteDownloadRepository>();
 	
+	public const string Schema = "downloads";
+	
 	internal sealed class NewDownloadCollector : IAsyncDisposable {
 		private readonly SqliteDownloadRepository repository;
 		private bool hasChanged = false;
@@ -73,6 +75,8 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 	
 	public async Task AddDownload(Data.Download item, Stream? stream) {
 		await using (var conn = await pool.Take()) {
+			string schema = await conn.HasAttachedDatabase(Schema) ? Schema : "main";
+			
 			await conn.BeginTransactionAsync();
 			
 			await using var metadataCmd = conn.Upsert("download_metadata", [
@@ -110,7 +114,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 				upsertBlobCmd.AddAndSet(":blob_length", SqliteType.Integer, item.Size);
 				long rowid = await upsertBlobCmd.ExecuteLongScalarAsync();
 				
-				await using var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid);
+				await using var blob = new SqliteBlob(conn.InnerConnection, databaseName: schema, tableName: "download_blobs", columnName: "blob", rowid);
 				await stream.CopyToAsync(blob);
 			}
 			

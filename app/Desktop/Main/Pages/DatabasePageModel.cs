@@ -16,9 +16,11 @@ using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Dialogs.TextBox;
 using DHT.Server;
 using DHT.Server.Data;
+using DHT.Server.Data.Settings;
 using DHT.Server.Database;
 using DHT.Server.Database.Import;
 using DHT.Server.Database.Sqlite.Schema;
+using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Main.Pages;
@@ -99,6 +101,10 @@ sealed class DatabasePageModel {
 	
 	private sealed class SchemaUpgradeCallbacks(ProgressDialog dialog, int total) : ISchemaUpgradeCallbacks {
 		private bool? decision;
+		
+		public Task<InitialDatabaseSettings?> GetInitialDatabaseSettings() {
+			return Task.FromResult<InitialDatabaseSettings?>(null);
+		}
 		
 		public async Task<bool> CanUpgrade() {
 			return decision ??= (total > 1
@@ -255,6 +261,12 @@ sealed class DatabasePageModel {
 		message.Append(newMessages.Pluralize("message"));
 		
 		return message.ToString();
+	}
+	
+	public async Task SplitDownloadsIntoSeparateFile() {
+		const string Title = "Split Downloads";
+		await ProgressDialog.ShowIndeterminate(window, Title, "Configuring...", async _ => await Db.Settings.Set(SettingsKey.SeparateFileForDownloads, value: true));
+		CloseDatabase();
 	}
 	
 	public async Task VacuumDatabase() {
