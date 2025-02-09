@@ -165,48 +165,46 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		downloadStatisticsTask.Post(cancellationToken => state.Db.Downloads.GetStatistics(currentDownloadFilter ?? new DownloadItemFilter(), cancellationToken));
 	}
 	
-	private const string DeleteOrphanedDownloadsTitle = "Delete Orphaned Downloads";
-	
 	public async Task OnClickDeleteOrphanedDownloads() {
-		await ProgressDialog.Show(window, DeleteOrphanedDownloadsTitle, DeleteOrphanedDownloads);
-	}
-	
-	private async Task DeleteOrphanedDownloads(ProgressDialog dialog, IProgressCallback callback) {
-		await callback.UpdateIndeterminate("Searching for orphaned downloads...");
+		const string Title = "Delete Orphaned Downloads";
 		
-		HashSet<string> reachableNormalizedUrls = [];
-		HashSet<string> orphanedNormalizedUrls = [];
-		
-		await foreach (Download download in state.Db.Downloads.FindAllDownloadableUrls()) {
-			reachableNormalizedUrls.Add(download.NormalizedUrl);
-		}
-		
-		await foreach (Download download in state.Db.Downloads.Get()) {
-			string normalizedUrl = download.NormalizedUrl;
-			if (!reachableNormalizedUrls.Contains(normalizedUrl)) {
-				orphanedNormalizedUrls.Add(normalizedUrl);
+		await ProgressDialog.Show(window, Title, async (_, callback) => {
+			await callback.UpdateIndeterminate("Searching for orphaned downloads...");
+			
+			HashSet<string> reachableNormalizedUrls = [];
+			HashSet<string> orphanedNormalizedUrls = [];
+			
+			await foreach (Download download in state.Db.Downloads.FindAllDownloadableUrls()) {
+				reachableNormalizedUrls.Add(download.NormalizedUrl);
 			}
-		}
-		
-		if (orphanedNormalizedUrls.Count == 0) {
-			await Dialog.ShowOk(window, DeleteOrphanedDownloadsTitle, "No orphaned downloads found.");
-			return;
-		}
-		
-		if (await Dialog.ShowYesNo(window, DeleteOrphanedDownloadsTitle, orphanedNormalizedUrls.Count + " orphaned download(s) will be removed from this database. This action cannot be undone. Proceed?") != DialogResult.YesNo.Yes) {
-			return;
-		}
-		
-		await callback.UpdateIndeterminate("Deleting orphaned downloads...");
-		await state.Db.Downloads.Remove(orphanedNormalizedUrls);
-		RecomputeDownloadStatistics();
-		
-		if (await Dialog.ShowYesNo(window, DeleteOrphanedDownloadsTitle, "Orphaned downloads deleted. Vacuum database now to reclaim space?") != DialogResult.YesNo.Yes) {
-			return;
-		}
-		
-		await callback.UpdateIndeterminate("Vacuuming database...");
-		await state.Db.Vacuum();
+			
+			await foreach (Download download in state.Db.Downloads.Get()) {
+				string normalizedUrl = download.NormalizedUrl;
+				if (!reachableNormalizedUrls.Contains(normalizedUrl)) {
+					orphanedNormalizedUrls.Add(normalizedUrl);
+				}
+			}
+			
+			if (orphanedNormalizedUrls.Count == 0) {
+				await Dialog.ShowOk(window, Title, "No orphaned downloads found.");
+				return;
+			}
+			
+			if (await Dialog.ShowYesNo(window, Title, orphanedNormalizedUrls.Count + " orphaned download(s) will be removed from this database. This action cannot be undone. Proceed?") != DialogResult.YesNo.Yes) {
+				return;
+			}
+			
+			await callback.UpdateIndeterminate("Deleting orphaned downloads...");
+			await state.Db.Downloads.Remove(orphanedNormalizedUrls);
+			RecomputeDownloadStatistics();
+			
+			if (await Dialog.ShowYesNo(window, Title, "Orphaned downloads deleted. Vacuum database now to reclaim space?") != DialogResult.YesNo.Yes) {
+				return;
+			}
+			
+			await callback.UpdateIndeterminate("Vacuuming database...");
+			await state.Db.Vacuum();
+		});
 	}
 	
 	private void UpdateStatistics(DownloadStatusStatistics statusStatistics) {
