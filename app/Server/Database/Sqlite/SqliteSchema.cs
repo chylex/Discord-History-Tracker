@@ -1,28 +1,32 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading.Tasks;
+using DHT.Server.Data.Settings;
 using DHT.Server.Database.Exceptions;
+using DHT.Server.Database.Sqlite.Repositories;
 using DHT.Server.Database.Sqlite.Schema;
 using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
+using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite;
 
-sealed class SqliteSchema {
+sealed class SqliteSchema(CustomSqliteConnection conn) {
 	internal const int Version = 10;
 	
 	private static readonly Log Log = Log.ForType<SqliteSchema>();
 	
-	private readonly ISqliteConnection conn;
-	
-	public SqliteSchema(ISqliteConnection conn) {
-		this.conn = conn;
-	}
-	
-	public async Task<bool> Setup(ISchemaUpgradeCallbacks callbacks) {
+	public async Task<bool> Setup(ISqliteAttachedDatabaseCollector attachedDatabaseCollector, ISchemaUpgradeCallbacks callbacks) {
 		await conn.ExecuteAsync("CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT)");
 		
 		string? dbVersionStr = await conn.ExecuteReaderAsync("SELECT value FROM metadata WHERE key = 'version'", static reader => reader?.GetString(0));
 		if (dbVersionStr == null) {
+			if (await callbacks.GetInitialDatabaseSettings() is {} initialSettings) {
+				await ApplyInitialSettings(initialSettings);
+				await AttachAdditionalDatabasesIfNecessary(attachedDatabaseCollector);
+			}
+			
 			await InitializeSchemas();
 		}
 		else if (!int.TryParse(dbVersionStr, out int dbVersion) || dbVersion < 1) {
@@ -37,10 +41,42 @@ sealed class SqliteSchema {
 				return false;
 			}
 			
+			await AttachAdditionalDatabasesIfNecessary(attachedDatabaseCollector);
 			await callbacks.Start(Version - dbVersion, async reporter => await UpgradeSchemas(dbVersion, reporter));
 		}
 		
 		return true;
+	}
+	
+	private async Task ApplyInitialSettings(InitialDatabaseSettings initialSettings) {
+		await using var cmd = conn.Command("INSERT INTO metadata (key, value) VALUES (:key, :value)");
+		cmd.Add("key", SqliteType.Text);
+		cmd.Add("value", SqliteType.Text);
+		
+		static async Task ApplySetting<T>(SqliteCommand cmd, SettingsKey<T> key, T value) {
+			cmd.Set("key", key.Key);
+			cmd.Set("value", key.ToString(value));
+			await cmd.ExecuteNonQueryAsync();
+		}
+		
+		if (initialSettings.SeparateFileForDownloads) {
+			await ApplySetting(cmd, SettingsKey.SeparateFileForDownloads, value: true);
+		}
+		
+		if (initialSettings.DownloadsAutoStart) {
+			await ApplySetting(cmd, SettingsKey.DownloadsAutoStart, value: true);
+		}
+	}
+	
+	[SuppressMessage("ReSharper", "WithExpressionModifiesAllMembers")]
+	private async Task AttachAdditionalDatabasesIfNecessary(ISqliteAttachedDatabaseCollector attachedDatabaseCollector) {
+		await foreach (var attachedDatabase in attachedDatabaseCollector.GetAttachedDatabases(conn)) {
+			if (!File.Exists(attachedDatabase.Path)) {
+				await using CustomSqliteConnection _ = await CustomSqliteConnection.OpenUnpooled(conn.ConnectionStringFactory with { Path = attachedDatabase.Path });
+			}
+			
+			await conn.AttachDatabase(attachedDatabase);
+		}
 	}
 	
 	private async Task InitializeSchemas() {
@@ -142,23 +178,25 @@ sealed class SqliteSchema {
 	}
 	
 	internal static async Task CreateDownloadTables(ISqliteConnection conn) {
-		await conn.ExecuteAsync("""
-		                        CREATE TABLE download_metadata (
-		                        	normalized_url TEXT NOT NULL PRIMARY KEY,
-		                        	download_url   TEXT NOT NULL,
-		                        	status         INTEGER NOT NULL,
-		                        	type           TEXT,
-		                        	size           INTEGER
-		                        )
-		                        """);
+		string schema = conn.HasAttachedDatabase(SqliteDownloadRepository.Schema) ? SqliteDownloadRepository.Schema : "main";
 		
-		await conn.ExecuteAsync("""
-		                        CREATE TABLE download_blobs (
-		                        	normalized_url TEXT NOT NULL PRIMARY KEY,
-		                        	blob           BLOB NOT NULL,
-		                        	FOREIGN KEY (normalized_url) REFERENCES download_metadata (normalized_url) ON UPDATE CASCADE ON DELETE CASCADE
-		                        )
-		                        """);
+		await conn.ExecuteAsync($"""
+		                         CREATE TABLE {schema}.download_metadata (
+		                         	normalized_url TEXT NOT NULL PRIMARY KEY,
+		                         	download_url   TEXT NOT NULL,
+		                         	status         INTEGER NOT NULL,
+		                         	type           TEXT,
+		                         	size           INTEGER
+		                         )
+		                         """);
+		
+		await conn.ExecuteAsync($"""
+		                         CREATE TABLE {schema}.download_blobs (
+		                         	normalized_url TEXT NOT NULL PRIMARY KEY,
+		                         	blob           BLOB NOT NULL,
+		                         	FOREIGN KEY (normalized_url) REFERENCES download_metadata (normalized_url) ON UPDATE CASCADE ON DELETE CASCADE
+		                         )
+		                         """);
 	}
 	
 	internal static async Task CreateMessageAttachmentsTable(ISqliteConnection conn) {

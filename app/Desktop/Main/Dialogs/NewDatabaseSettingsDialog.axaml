@@ -1,0 +1,57 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:namespace="clr-namespace:DHT.Desktop.Main.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="450"
+        x:Class="DHT.Desktop.Main.Dialogs.NewDatabaseSettingsDialog"
+        x:DataType="namespace:NewDatabaseSettingsDialogModel"
+        Title="New Database Settings"
+        Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
+        Closing="OnClosing"
+        Width="450" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.DataContext>
+        <namespace:NewDatabaseSettingsDialogModel />
+    </Window.DataContext>
+
+    <Window.Styles>
+        <Style Selector="Label > StackPanel">
+            <Setter Property="Margin" Value="0 4 0 0" />
+            <Setter Property="Orientation" Value="Vertical" />
+            <Setter Property="Spacing" Value="5" />
+        </Style>
+        <Style Selector="TextBlock.dim">
+            <Setter Property="Foreground" Value="DimGray" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+    </Window.Styles>
+
+    <StackPanel Orientation="Vertical" Margin="20">
+        <StackPanel Orientation="Vertical" Spacing="15">
+            <CheckBox IsChecked="{Binding SeparateFileForDownloads}">
+                <Label>
+                    <StackPanel>
+                        <TextBlock>Use a Separate Database File for Downloads</TextBlock>
+                        <TextBlock Classes="dim">Downloaded files will be stored separately from messages. This cannot be changed later.</TextBlock>
+                    </StackPanel>
+                </Label>
+            </CheckBox>
+            <CheckBox IsChecked="{Binding DownloadsAutoStart}">
+                <Label>
+                    <StackPanel>
+                        <TextBlock>Download Files Automatically</TextBlock>
+                        <TextBlock Classes="dim">Enables automatic downloads of files hosted on Discord. This can be changed later in the Downloads tab.</TextBlock>
+                    </StackPanel>
+                </Label>
+            </CheckBox>
+        </StackPanel>
+        <Panel Classes="buttons">
+            <WrapPanel Classes="right">
+                <Button Click="ClickOk">OK</Button>
+            </WrapPanel>
+        </Panel>
+    </StackPanel>
+
+</Window>

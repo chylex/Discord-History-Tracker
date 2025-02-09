@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace DHT.Server.Data.Settings;
 
 public static class SettingsKey {
+	public static Bool SeparateFileForDownloads { get; } = new ("separate_file_for_downloads");
 	public static Bool DownloadsAutoStart { get; } = new ("downloads_auto_start");
 	public static Bool DownloadsLimitSize { get; } = new ("downloads_limit_size");
 	public static UnsignedLong DownloadsMaximumSize { get; } = new ("downloads_maximum_size");

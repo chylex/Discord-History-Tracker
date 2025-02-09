@@ -1,39 +1,43 @@
-using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using DHT.Server.Data.Settings;
 using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Repositories;
 using DHT.Server.Database.Sqlite.Schema;
 using DHT.Server.Database.Sqlite.Utils;
-using Microsoft.Data.Sqlite;
+using DHT.Utils.Logging;
 
 namespace DHT.Server.Database.Sqlite;
 
 public sealed class SqliteDatabaseFile : IDatabaseFile {
+	private static readonly Log Log = Log.ForType<SqliteDatabaseFile>();
+	
 	private const int DefaultPoolSize = 5;
 	
 	public static async Task<SqliteDatabaseFile?> OpenOrCreate(string path, ISchemaUpgradeCallbacks schemaUpgradeCallbacks) {
-		var connectionString = new SqliteConnectionStringBuilder {
-			DataSource = path,
-			Mode = SqliteOpenMode.ReadWriteCreate,
-		};
+		var connectionString = new SqliteConnectionStringFactory(path);
+		var attachedDatabaseCollector = new AttachedDatabaseCollector(path);
 		
-		var pool = await SqliteConnectionPool.Create(connectionString, DefaultPoolSize);
 		bool wasOpened;
-		
-		try {
-			await using var conn = await pool.Take();
-			wasOpened = await new SqliteSchema(conn).Setup(schemaUpgradeCallbacks);
-		} catch (Exception) {
-			await pool.DisposeAsync();
-			throw;
+		await using (var conn = await CustomSqliteConnection.OpenUnpooled(connectionString)) {
+			wasOpened = await new SqliteSchema(conn).Setup(attachedDatabaseCollector, schemaUpgradeCallbacks);
 		}
 		
 		if (wasOpened) {
+			var pool = await SqliteConnectionPool.Create(connectionString, DefaultPoolSize, attachedDatabaseCollector);
 			return new SqliteDatabaseFile(path, pool);
 		}
 		else {
-			await pool.DisposeAsync();
 			return null;
+		}
+	}
+	
+	private sealed class AttachedDatabaseCollector(string path) : ISqliteAttachedDatabaseCollector {
+		public async IAsyncEnumerable<AttachedDatabase> GetAttachedDatabases(ISqliteConnection conn) {
+			bool useSeparateFileForDownloads = await SqliteSettingsRepository.Get(conn, SettingsKey.SeparateFileForDownloads, defaultValue: false);
+			if (useSeparateFileForDownloads) {
+				yield return new AttachedDatabase(path + "_downloads", SqliteDownloadRepository.Schema);
+			}
 		}
 	}
 	
@@ -78,6 +82,21 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 	
 	public async Task Vacuum() {
 		await using var conn = await pool.Take();
+		
+		Perf perf = Log.Start();
 		await conn.ExecuteAsync("VACUUM");
+		perf.Step("Vacuum main schema");
+		
+		await VacuumAttachedDatabase(conn, perf, SqliteDownloadRepository.Schema);
+		
+		perf.End();
+		return;
+		
+		static async Task VacuumAttachedDatabase(ISqliteConnection conn, Perf perf, string schema) {
+			if (conn.HasAttachedDatabase(schema)) {
+				await conn.ExecuteAsync("VACUUM " + schema);
+				perf.Step("Vacuum " + schema + " schema");
+			}
+		}
 	}
 }

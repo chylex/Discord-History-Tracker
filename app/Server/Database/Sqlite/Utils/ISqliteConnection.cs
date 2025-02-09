@@ -7,6 +7,8 @@ namespace DHT.Server.Database.Sqlite.Utils;
 interface ISqliteConnection : IAsyncDisposable {
 	SqliteConnection InnerConnection { get; }
 	
+	bool HasAttachedDatabase(string schema);
+	
 	Task BeginTransactionAsync();
 	Task CommitTransactionAsync();
 	Task RollbackTransactionAsync();

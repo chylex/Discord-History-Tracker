@@ -13,6 +13,7 @@
         <entry key="Desktop/Main/Controls/MessageFilterPanel.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Controls/ServerConfigurationPanel.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Controls/StatusBar.axaml" value="Desktop/Desktop.csproj" />
+        <entry key="Desktop/Main/Dialogs/NewDatabaseSettingsDialog.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/MainWindow.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Pages/AdvancedPage.axaml" value="Desktop/Desktop.csproj" />
         <entry key="Desktop/Main/Pages/DatabasePage.axaml" value="Desktop/Desktop.csproj" />

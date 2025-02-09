@@ -19,6 +19,7 @@ using DHT.Server.Data;
 using DHT.Server.Database;
 using DHT.Server.Database.Import;
 using DHT.Server.Database.Sqlite.Schema;
+using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Main.Pages;
@@ -99,6 +100,10 @@ sealed class DatabasePageModel {
 	
 	private sealed class SchemaUpgradeCallbacks(ProgressDialog dialog, int total) : ISchemaUpgradeCallbacks {
 		private bool? decision;
+		
+		public Task<InitialDatabaseSettings?> GetInitialDatabaseSettings() {
+			return Task.FromResult<InitialDatabaseSettings?>(null);
+		}
 		
 		public async Task<bool> CanUpgrade() {
 			return decision ??= (total > 1

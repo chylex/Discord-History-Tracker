@@ -9,9 +9,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
-using DHT.Server.Data.Settings;
+using DHT.Desktop.Main.Dialogs;
 using DHT.Server.Database;
 using DHT.Server.Database.Sqlite.Schema;
+using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Main.Screens;
@@ -52,21 +53,22 @@ sealed partial class WelcomeScreenModel : ObservableObject {
 	public async Task OpenOrCreateDatabaseFromPath(string path) {
 		dbFilePath = path;
 		
-		bool isNew = !File.Exists(path);
-		
 		IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, window, new SchemaUpgradeCallbacks(window));
-		if (db == null) {
-			return;
+		if (db != null) {
+			DatabaseSelected?.Invoke(this, db);
 		}
-		
-		if (isNew && await Dialog.ShowYesNo(window, "Automatic Downloads", "Do you want to automatically download files hosted on Discord? You can change this later in the Downloads tab.") == DialogResult.YesNo.Yes) {
-			await db.Settings.Set(SettingsKey.DownloadsAutoStart, value: true);
-		}
-		
-		DatabaseSelected?.Invoke(this, db);
 	}
 	
 	private sealed class SchemaUpgradeCallbacks(Window window) : ISchemaUpgradeCallbacks {
+		public async Task<InitialDatabaseSettings?> GetInitialDatabaseSettings() {
+			var model = new NewDatabaseSettingsDialogModel();
+			
+			var dialog = new NewDatabaseSettingsDialog { DataContext = model };
+			await dialog.ShowDialog(window);
+			
+			return new InitialDatabaseSettings(model.SeparateFileForDownloads, model.DownloadsAutoStart);
+		}
+		
 		public async Task<bool> CanUpgrade() {
 			return DialogResult.YesNo.Yes == await DatabaseGui.ShowCanUpgradeDatabaseDialog(window);
 		}

@@ -18,6 +18,8 @@ namespace DHT.Server.Database.Sqlite.Repositories;
 sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRepository(Log), IDownloadRepository {
 	private static readonly Log Log = Log.ForType<SqliteDownloadRepository>();
 	
+	public const string Schema = "downloads";
+	
 	internal sealed class NewDownloadCollector : IAsyncDisposable {
 		private readonly SqliteDownloadRepository repository;
 		private bool hasChanged = false;
@@ -71,6 +73,11 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 		}
 	}
 	
+	private static SqliteBlob BlobReference(ISqliteConnection conn, long rowid, bool readOnly) {
+		string schema = conn.HasAttachedDatabase(Schema) ? Schema : "main";
+		return new SqliteBlob(conn.InnerConnection, databaseName: schema, tableName: "download_blobs", columnName: "blob", rowid, readOnly);
+	}
+	
 	public async Task AddDownload(Data.Download item, Stream? stream) {
 		await using (var conn = await pool.Take()) {
 			await conn.BeginTransactionAsync();
@@ -110,7 +117,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 				upsertBlobCmd.AddAndSet(":blob_length", SqliteType.Integer, item.Size);
 				long rowid = await upsertBlobCmd.ExecuteLongScalarAsync();
 				
-				await using var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid);
+				await using var blob = BlobReference(conn, rowid, readOnly: false);
 				await stream.CopyToAsync(blob);
 			}
 			
@@ -214,7 +221,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			rowid = reader.GetInt64(0);
 		}
 		
-		await using (var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid, readOnly: true)) {
+		await using (var blob = BlobReference(conn, rowid, readOnly: true)) {
 			await dataProcessor(blob);
 		}
 		
@@ -249,7 +256,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			rowid = reader.GetInt64(2);
 		}
 		
-		await using (var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid, readOnly: true)) {
+		await using (var blob = BlobReference(conn, rowid, readOnly: true)) {
 			await dataProcessor(new Data.Download(normalizedUrl, downloadUrl, DownloadStatus.Success, type, (ulong) blob.Length), blob, cancellationToken);
 		}
 		
