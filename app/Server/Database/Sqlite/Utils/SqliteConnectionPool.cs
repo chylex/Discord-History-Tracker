@@ -9,8 +9,8 @@ using Microsoft.Data.Sqlite;
 namespace DHT.Server.Database.Sqlite.Utils;
 
 sealed class SqliteConnectionPool : IAsyncDisposable {
-	public static async Task<SqliteConnectionPool> Create(SqliteConnectionStringBuilder connectionStringBuilder, int poolSize) {
-		var pool = new SqliteConnectionPool(poolSize);
+	public static async Task<SqliteConnectionPool> Create(SqliteConnectionStringBuilder connectionStringBuilder, int poolSize, ISqliteAttachedDatabaseCollector attachedDatabaseCollector) {
+		var pool = new SqliteConnectionPool(poolSize, attachedDatabaseCollector);
 		await pool.InitializePooledConnections(connectionStringBuilder);
 		return pool;
 	}
@@ -20,6 +20,8 @@ sealed class SqliteConnectionPool : IAsyncDisposable {
 		return connectionStringBuilder.ToString();
 	}
 	
+	private readonly ISqliteAttachedDatabaseCollector attachedDatabaseCollector;
+	
 	private readonly int poolSize;
 	private readonly List<PooledConnection> all;
 	private readonly ConcurrentPool<PooledConnection> free;
@@ -27,28 +29,49 @@ sealed class SqliteConnectionPool : IAsyncDisposable {
 	private readonly CancellationTokenSource disposalTokenSource = new ();
 	private readonly CancellationToken disposalToken;
 	
-	private SqliteConnectionPool(int poolSize) {
+	private SqliteConnectionPool(int poolSize, ISqliteAttachedDatabaseCollector attachedDatabaseCollector) {
+		this.attachedDatabaseCollector = attachedDatabaseCollector;
+		
 		this.poolSize = poolSize;
 		this.all = new List<PooledConnection>(poolSize);
 		this.free = new ConcurrentPool<PooledConnection>(poolSize);
+		
 		this.disposalToken = disposalTokenSource.Token;
 	}
 	
 	private async Task InitializePooledConnections(SqliteConnectionStringBuilder connectionStringBuilder) {
 		string connectionString = GetConnectionString(connectionStringBuilder);
 		
+		List<string> additionalSql = [];
+		HashSet<string> attachedSchemas = [];
+		
 		for (int i = 0; i < poolSize; i++) {
-			var conn = new SqliteConnection(connectionString);
+			SqliteConnection conn = new SqliteConnection(connectionString);
 			conn.Open();
 			
-			var pooledConnection = new PooledConnection(this, conn);
+			PooledConnection pooledConnection = new PooledConnection(this, conn, attachedSchemas);
+			
+			if (i == 0) {
+				await foreach ((string path, string schema) in attachedDatabaseCollector.GetAttachedDatabases(pooledConnection).WithCancellation(disposalToken)) {
+					additionalSql.Add("ATTACH DATABASE '" + EscapeQuotes(path) + "' AS '" + EscapeQuotes(schema) + "'");
+					attachedSchemas.Add(schema);
+				}
+			}
 			
 			await pooledConnection.ExecuteAsync("PRAGMA journal_mode=WAL", disposalToken);
 			await pooledConnection.ExecuteAsync("PRAGMA foreign_keys=ON", disposalToken);
 			
+			foreach (string sql in additionalSql) {
+				await pooledConnection.ExecuteAsync(sql, disposalToken);
+			}
+			
 			all.Add(pooledConnection);
 			await free.Push(pooledConnection, disposalToken);
 		}
+	}
+	
+	private static string EscapeQuotes(string str) {
+		return str.Replace("'", "''");
 	}
 	
 	public async Task<ISqliteConnection> Take() {
@@ -74,8 +97,9 @@ sealed class SqliteConnectionPool : IAsyncDisposable {
 		disposalTokenSource.Dispose();
 	}
 	
-	private sealed class PooledConnection(SqliteConnectionPool pool, SqliteConnection conn) : ISqliteConnection {
+	private sealed class PooledConnection(SqliteConnectionPool pool, SqliteConnection conn, HashSet<string> attachedSchemas) : ISqliteConnection {
 		public SqliteConnection InnerConnection { get; } = conn;
+		private HashSet<string> AttachedSchemas { get; } = attachedSchemas;
 		
 		private DbTransaction? activeTransaction;
 		
@@ -109,6 +133,10 @@ sealed class SqliteConnectionPool : IAsyncDisposable {
 		
 		public void AssignActiveTransaction(SqliteCommand command) {
 			command.Transaction = (SqliteTransaction?) activeTransaction;
+		}
+		
+		public bool HasAttachedDatabase(string schema) {
+			return AttachedSchemas.Contains(schema);
 		}
 		
 		public async ValueTask DisposeAsync() {

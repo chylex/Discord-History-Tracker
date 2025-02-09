@@ -1,22 +1,17 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DHT.Server.Database.Exceptions;
+using DHT.Server.Database.Sqlite.Repositories;
 using DHT.Server.Database.Sqlite.Schema;
 using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
 
 namespace DHT.Server.Database.Sqlite;
 
-sealed class SqliteSchema {
+sealed class SqliteSchema(ISqliteConnection conn, string path) {
 	internal const int Version = 10;
 	
 	private static readonly Log Log = Log.ForType<SqliteSchema>();
-	
-	private readonly ISqliteConnection conn;
-	
-	public SqliteSchema(ISqliteConnection conn) {
-		this.conn = conn;
-	}
 	
 	public async Task<bool> Setup(ISchemaUpgradeCallbacks callbacks) {
 		await conn.ExecuteAsync("CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT)");
@@ -142,8 +137,10 @@ sealed class SqliteSchema {
 	}
 	
 	internal static async Task CreateDownloadTables(ISqliteConnection conn) {
-		await conn.ExecuteAsync("""
-		                        CREATE TABLE download_metadata (
+		string schema = conn.HasAttachedDatabase(SqliteDownloadRepository.Schema) ? SqliteDownloadRepository.Schema : "main";
+		
+		await conn.ExecuteAsync($"""
+		                        CREATE TABLE ${schema}.download_metadata (
 		                        	normalized_url TEXT NOT NULL PRIMARY KEY,
 		                        	download_url   TEXT NOT NULL,
 		                        	status         INTEGER NOT NULL,
@@ -152,8 +149,8 @@ sealed class SqliteSchema {
 		                        )
 		                        """);
 		
-		await conn.ExecuteAsync("""
-		                        CREATE TABLE download_blobs (
+		await conn.ExecuteAsync($"""
+		                        CREATE TABLE ${schema}.download_blobs (
 		                        	normalized_url TEXT NOT NULL PRIMARY KEY,
 		                        	blob           BLOB NOT NULL,
 		                        	FOREIGN KEY (normalized_url) REFERENCES download_metadata (normalized_url) ON UPDATE CASCADE ON DELETE CASCADE

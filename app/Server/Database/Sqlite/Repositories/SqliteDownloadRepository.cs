@@ -18,6 +18,8 @@ namespace DHT.Server.Database.Sqlite.Repositories;
 sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRepository(Log), IDownloadRepository {
 	private static readonly Log Log = Log.ForType<SqliteDownloadRepository>();
 	
+	public const string Schema = "downloads";
+	
 	internal sealed class NewDownloadCollector : IAsyncDisposable {
 		private readonly SqliteDownloadRepository repository;
 		private bool hasChanged = false;

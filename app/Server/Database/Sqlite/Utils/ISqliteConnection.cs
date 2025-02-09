@@ -12,4 +12,5 @@ interface ISqliteConnection : IAsyncDisposable {
 	Task RollbackTransactionAsync();
 	
 	void AssignActiveTransaction(SqliteCommand command);
+	bool HasAttachedDatabase(string schema);
 }

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using DHT.Server.Data.Settings;
 using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Repositories;
 using DHT.Server.Database.Sqlite.Schema;
@@ -17,12 +19,12 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 			Mode = SqliteOpenMode.ReadWriteCreate,
 		};
 		
-		var pool = await SqliteConnectionPool.Create(connectionString, DefaultPoolSize);
+		var pool = await SqliteConnectionPool.Create(connectionString, DefaultPoolSize, new AttachedDatabaseCollector(path));
 		bool wasOpened;
 		
 		try {
 			await using var conn = await pool.Take();
-			wasOpened = await new SqliteSchema(conn).Setup(schemaUpgradeCallbacks);
+			wasOpened = await new SqliteSchema(conn, path).Setup(schemaUpgradeCallbacks);
 		} catch (Exception) {
 			await pool.DisposeAsync();
 			throw;
@@ -34,6 +36,19 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		else {
 			await pool.DisposeAsync();
 			return null;
+		}
+	}
+	
+	private sealed class AttachedDatabaseCollector(string path) : ISqliteAttachedDatabaseCollector {
+		public async IAsyncEnumerable<AttachedDatabase> GetAttachedDatabases(ISqliteConnection conn) {
+			if (!await conn.ExecuteReaderAsync("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'master'", static reader => reader?.GetBoolean(0) ?? false)) {
+				yield break;
+			}
+			
+			bool useSeparateFileForDownloads = await SqliteSettingsRepository.Get(conn, SettingsKey.UseSeparateFileForDownloads, defaultValue: false);
+			if (useSeparateFileForDownloads) {
+				yield return new AttachedDatabase(path + "-dl", SqliteDownloadRepository.Schema);
+			}
 		}
 	}
 	
