@@ -20,24 +20,18 @@
             <Setter Property="FontSize" Value="15" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
-        <Style Selector="WrapPanel">
-            <Setter Property="HorizontalAlignment" Value="Right" />
-            <Setter Property="Margin" Value="0 8 0 0" />
-        </Style>
-        <Style Selector="Button">
-            <Setter Property="Margin" Value="8 0 0 0" />
-            <Setter Property="MinWidth" Value="80" />
-        </Style>
     </Window.Styles>
 
     <StackPanel Margin="20">
         <TextBlock Text="{Binding Message}" />
-        <WrapPanel>
-            <Button Click="ClickOk" IsVisible="{Binding IsOkVisible}">OK</Button>
-            <Button Click="ClickYes" IsVisible="{Binding IsYesVisible}">Yes</Button>
-            <Button Click="ClickNo" IsVisible="{Binding IsNoVisible}">No</Button>
-            <Button Click="ClickCancel" IsVisible="{Binding IsCancelVisible}">Cancel</Button>
-        </WrapPanel>
+        <Panel Classes="buttons">
+            <WrapPanel Classes="right">
+                <Button Click="ClickOk" IsVisible="{Binding IsOkVisible}">OK</Button>
+                <Button Click="ClickYes" IsVisible="{Binding IsYesVisible}">Yes</Button>
+                <Button Click="ClickNo" IsVisible="{Binding IsNoVisible}">No</Button>
+                <Button Click="ClickCancel" IsVisible="{Binding IsCancelVisible}">Cancel</Button>
+            </WrapPanel>
+        </Panel>
     </StackPanel>
 
 </Window>
