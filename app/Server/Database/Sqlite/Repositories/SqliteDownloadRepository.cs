@@ -79,6 +79,19 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 	}
 	
 	public async Task AddDownload(Data.Download item, Stream? stream) {
+		ulong? actualSize;
+		
+		if (stream is not null) {
+			actualSize = (ulong) stream.Length;
+			
+			if (actualSize != item.Size) {
+				Log.Warn("Download size differs from its metadata - metadata size: " + item.Size + " B, actual size: " + actualSize + " B, url: " + item.NormalizedUrl);
+			}
+		}
+		else {
+			actualSize = item.Size;
+		}
+		
 		await using (var conn = await pool.Take()) {
 			await conn.BeginTransactionAsync();
 			
@@ -94,7 +107,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			metadataCmd.Set(":download_url", item.DownloadUrl);
 			metadataCmd.Set(":status", (int) item.Status);
 			metadataCmd.Set(":type", item.Type);
-			metadataCmd.Set(":size", item.Size);
+			metadataCmd.Set(":size", actualSize);
 			await metadataCmd.ExecuteNonQueryAsync();
 			
 			if (stream == null) {
@@ -114,7 +127,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 				);
 				
 				upsertBlobCmd.AddAndSet(":normalized_url", SqliteType.Text, item.NormalizedUrl);
-				upsertBlobCmd.AddAndSet(":blob_length", SqliteType.Integer, item.Size);
+				upsertBlobCmd.AddAndSet(":blob_length", SqliteType.Integer, actualSize);
 				long rowid = await upsertBlobCmd.ExecuteLongScalarAsync();
 				
 				await using var blob = BlobReference(conn, rowid, readOnly: false);
