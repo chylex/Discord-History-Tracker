@@ -55,7 +55,10 @@ public sealed class DelayedThrottledTask<T> : IDisposable {
 	}
 	
 	public void Dispose() {
+		try {
+			cancellationTokenSource.Cancel();
+		} catch (ObjectDisposedException) {}
+		
 		taskChannel.Writer.Complete();
-		cancellationTokenSource.Cancel();
 	}
 }
