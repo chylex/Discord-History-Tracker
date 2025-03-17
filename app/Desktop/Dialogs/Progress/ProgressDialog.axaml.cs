@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using DHT.Desktop.Dialogs.Message;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Dialogs.Progress;
@@ -12,55 +11,35 @@ public sealed partial class ProgressDialog : Window {
 	private static readonly Log Log = Log.ForType<ProgressDialog>();
 	
 	internal static async Task Show(Window owner, string title, Func<ProgressDialog, IProgressCallback, Task> action) {
-		var taskCompletionSource = new TaskCompletionSource();
 		var dialog = new ProgressDialog();
-		
-		dialog.DataContext = new ProgressDialogModel(title, async callbacks => {
-			try {
-				await action(dialog, callbacks[0]);
-				taskCompletionSource.SetResult();
-			} catch (Exception e) {
-				taskCompletionSource.SetException(e);
-			}
-		});
-		
+		dialog.DataContext = new ProgressDialogModel(title, async callbacks => await action(dialog, callbacks[0]));
 		await dialog.ShowProgressDialog(owner);
-		await taskCompletionSource.Task;
 	}
 	
-	internal static async Task ShowIndeterminate(Window owner, string title, string message, Func<ProgressDialog, Task> action) {
-		var taskCompletionSource = new TaskCompletionSource();
-		var dialog = new ProgressDialog();
-		
-		dialog.DataContext = new ProgressDialogModel(title, async callbacks => {
-			await callbacks[0].UpdateIndeterminate(message);
-			try {
-				await action(dialog);
-				taskCompletionSource.SetResult();
-			} catch (Exception e) {
-				taskCompletionSource.SetException(e);
-			}
-		});
-		
-		await dialog.ShowProgressDialog(owner);
-		await taskCompletionSource.Task;
-	}
-	
-	internal static async Task<T> ShowIndeterminate<T>(Window owner, string title, string message, Func<ProgressDialog, Task<T>> action) {
+	internal static async Task<T> Show<T>(Window owner, string title, Func<ProgressDialog, IProgressCallback, Task<T>> action) {
 		var taskCompletionSource = new TaskCompletionSource<T>();
 		var dialog = new ProgressDialog();
 		
 		dialog.DataContext = new ProgressDialogModel(title, async callbacks => {
-			await callbacks[0].UpdateIndeterminate(message);
-			try {
-				taskCompletionSource.SetResult(await action(dialog));
-			} catch (Exception e) {
-				taskCompletionSource.SetException(e);
-			}
+			taskCompletionSource.SetResult(await action(dialog, callbacks[0]));
 		});
 		
 		await dialog.ShowProgressDialog(owner);
 		return await taskCompletionSource.Task;
+	}
+	
+	internal static Task ShowIndeterminate(Window owner, string title, string message, Func<ProgressDialog, Task> action) {
+		return Show(owner, title, async (dialog, callback) => {
+			await callback.UpdateIndeterminate(message);
+			await action(dialog);
+		});
+	}
+	
+	internal static Task<T> ShowIndeterminate<T>(Window owner, string title, string message, Func<ProgressDialog, Task<T>> action) {
+		return Show<T>(owner, title, async (dialog, callback) => {
+			await callback.UpdateIndeterminate(message);
+			return await action(dialog);
+		});
 	}
 	
 	private bool isFinished = false;
@@ -88,11 +67,6 @@ public sealed partial class ProgressDialog : Window {
 	
 	public async Task ShowProgressDialog(Window owner) {
 		await ShowDialog(owner);
-		try {
-			await progressTask;
-		} catch (Exception e) {
-			Log.Error(e);
-			await Dialog.ShowOk(owner, "Unexpected Error", e.Message);
-		}
+		await progressTask;
 	}
 }

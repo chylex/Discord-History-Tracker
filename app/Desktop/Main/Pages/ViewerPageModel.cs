@@ -61,18 +61,23 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 	}
 	
 	public async Task OnClickApplyFiltersToDatabase() {
-		MessageFilter filter = FilterModel.CreateFilter();
-		long messageCount = await ProgressDialog.ShowIndeterminate(window, "Apply Filters", "Counting matching messages...", _ => state.Db.Messages.Count(filter));
-		
-		if (DatabaseToolFilterModeKeep) {
-			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Keep Matching Messages in This Database", messageCount.Pluralize("message") + " will be kept, and the rest will be removed from this database. This action cannot be undone. Proceed?")) {
-				await ApplyFilterToDatabase(filter, FilterRemovalMode.KeepMatching);
+		try {
+			MessageFilter filter = FilterModel.CreateFilter();
+			long messageCount = await ProgressDialog.ShowIndeterminate(window, "Apply Filters", "Counting matching messages...", _ => state.Db.Messages.Count(filter));
+			
+			if (DatabaseToolFilterModeKeep) {
+				if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Keep Matching Messages in This Database", messageCount.Pluralize("message") + " will be kept, and the rest will be removed from this database. This action cannot be undone. Proceed?")) {
+					await ApplyFilterToDatabase(filter, FilterRemovalMode.KeepMatching);
+				}
 			}
-		}
-		else if (DatabaseToolFilterModeRemove) {
-			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Remove Matching Messages in This Database", messageCount.Pluralize("message") + " will be removed from this database. This action cannot be undone. Proceed?")) {
-				await ApplyFilterToDatabase(filter, FilterRemovalMode.RemoveMatching);
+			else if (DatabaseToolFilterModeRemove) {
+				if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Remove Matching Messages in This Database", messageCount.Pluralize("message") + " will be removed from this database. This action cannot be undone. Proceed?")) {
+					await ApplyFilterToDatabase(filter, FilterRemovalMode.RemoveMatching);
+				}
 			}
+		} catch (Exception e) {
+			Log.Error(e);
+			await Dialog.ShowOk(window, "Apply Filters", "Could not apply filters: " + e.Message);
 		}
 	}
 	

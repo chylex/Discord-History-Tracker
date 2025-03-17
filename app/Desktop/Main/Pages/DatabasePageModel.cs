@@ -74,15 +74,28 @@ sealed class DatabasePageModel {
 	
 	public async Task MergeWithDatabase() {
 		string[] paths = await DatabaseGui.NewOpenDatabaseFilesDialog(window, Path.GetDirectoryName(Db.Path));
-		if (paths.Length > 0) {
-			await ProgressDialog.Show(window, "Database Merge", async (dialog, callback) => await MergeWithDatabaseFromPaths(Db, paths, dialog, callback));
+		if (paths.Length == 0) {
+			return;
 		}
+		
+		const string Title = "Database Merge";
+		
+		ImportResult? result;
+		try {
+			result = await ProgressDialog.Show(window, Title, async (dialog, callback) => await MergeWithDatabaseFromPaths(Db, paths, dialog, callback));
+		} catch (Exception e) {
+			Log.Error(e);
+			await Dialog.ShowOk(window, Title, "Could not merge databases: " + e.Message);
+			return;
+		}
+		
+		await Dialog.ShowOk(window, Title, GetImportDialogMessage(result, "database file"));
 	}
 	
-	private static async Task MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
+	private static async Task<ImportResult?> MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
 		var schemaUpgradeCallbacks = new SchemaUpgradeCallbacks(dialog, paths.Length);
 		
-		await PerformImport(target, paths, dialog, callback, "Database Merge", "Database Error", "database file", async path => {
+		return await PerformImport(target, paths, dialog, callback, "Database Merge", async path => {
 			IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, dialog, schemaUpgradeCallbacks);
 			
 			if (db == null) {
@@ -137,15 +150,28 @@ sealed class DatabasePageModel {
 			AllowMultiple = true,
 		});
 		
-		if (paths.Length > 0) {
-			await ProgressDialog.Show(window, "Legacy Archive Import", async (dialog, callback) => await ImportLegacyArchiveFromPaths(Db, paths, dialog, callback));
+		if (paths.Length == 0) {
+			return;
 		}
+		
+		const string Title = "Legacy Archive Import";
+		
+		ImportResult? result;
+		try {
+			result = await ProgressDialog.Show(window, Title, async (dialog, callback) => await ImportLegacyArchiveFromPaths(Db, paths, dialog, callback));
+		} catch (Exception e) {
+			Log.Error(e);
+			await Dialog.ShowOk(window, Title, "Could not import legacy archives: " + e.Message);
+			return;
+		}
+		
+		await Dialog.ShowOk(window, Title, GetImportDialogMessage(result, "archive file"));
 	}
 	
-	private static async Task ImportLegacyArchiveFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
+	private static async Task<ImportResult?> ImportLegacyArchiveFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
 		var fakeSnowflake = new FakeSnowflake();
 		
-		await PerformImport(target, paths, dialog, callback, "Legacy Archive Import", "Legacy Archive Error", "archive file", async path => {
+		return await PerformImport(target, paths, dialog, callback, "Legacy Archive Import", async path => {
 			await using var jsonStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 			
 			return await LegacyArchiveImport.Read(jsonStream, target, fakeSnowflake, async servers => {
@@ -189,7 +215,7 @@ sealed class DatabasePageModel {
 		            .ToDictionary(static item => item.Item, static item => ulong.Parse(item.Value));
 	}
 	
-	private static async Task PerformImport(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback, string neutralDialogTitle, string errorDialogTitle, string itemName, Func<string, Task<bool>> performImport) {
+	private static async Task<ImportResult?> PerformImport(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback, string dialogTitle, Func<string, Task<bool>> performImport) {
 		int total = paths.Length;
 		DatabaseStatistics oldStatistics = await DatabaseStatistics.Take(target);
 		
@@ -201,7 +227,7 @@ sealed class DatabasePageModel {
 			++finished;
 			
 			if (!File.Exists(path)) {
-				await Dialog.ShowOk(dialog, errorDialogTitle, "File '" + Path.GetFileName(path) + "' no longer exists.");
+				await Dialog.ShowOk(dialog, dialogTitle, "File '" + Path.GetFileName(path) + "' no longer exists.");
 				continue;
 			}
 			
@@ -211,19 +237,18 @@ sealed class DatabasePageModel {
 				}
 			} catch (Exception ex) {
 				Log.Error(ex);
-				await Dialog.ShowOk(dialog, errorDialogTitle, "File '" + Path.GetFileName(path) + "' could not be imported: " + ex.Message);
+				await Dialog.ShowOk(dialog, dialogTitle, "File '" + Path.GetFileName(path) + "' could not be imported: " + ex.Message);
 			}
 		}
 		
 		await callback.Update("Done", finished, total);
 		
 		if (successful == 0) {
-			await Dialog.ShowOk(dialog, neutralDialogTitle, "Nothing was imported.");
-			return;
+			return null;
 		}
 		
 		DatabaseStatistics newStatistics = await DatabaseStatistics.Take(target);
-		await Dialog.ShowOk(dialog, neutralDialogTitle, GetImportDialogMessage(oldStatistics, newStatistics, successful, total, itemName));
+		return new ImportResult(oldStatistics, newStatistics, successful, total);
 	}
 	
 	private sealed record DatabaseStatistics(long ServerCount, long ChannelCount, long UserCount, long MessageCount) {
@@ -237,7 +262,16 @@ sealed class DatabasePageModel {
 		}
 	}
 	
-	private static string GetImportDialogMessage(DatabaseStatistics oldStatistics, DatabaseStatistics newStatistics, int successfulItems, int totalItems, string itemName) {
+	private sealed record ImportResult(DatabaseStatistics OldStatistics, DatabaseStatistics NewStatistics, int SuccessfulItems, int TotalItems);
+	
+	private static string GetImportDialogMessage(ImportResult? result, string itemName) {
+		if (result == null) {
+			return "Nothing was imported.";
+		}
+		
+		var oldStatistics = result.OldStatistics;
+		var newStatistics = result.NewStatistics;
+		
 		long newServers = newStatistics.ServerCount - oldStatistics.ServerCount;
 		long newChannels = newStatistics.ChannelCount - oldStatistics.ChannelCount;
 		long newUsers = newStatistics.UserCount - oldStatistics.UserCount;
@@ -246,11 +280,11 @@ sealed class DatabasePageModel {
 		var message = new StringBuilder();
 		message.Append("Processed ");
 		
-		if (successfulItems == totalItems) {
-			message.Append(successfulItems.Pluralize(itemName));
+		if (result.SuccessfulItems == result.TotalItems) {
+			message.Append(result.SuccessfulItems.Pluralize(itemName));
 		}
 		else {
-			message.Append(successfulItems.Format()).Append(" out of ").Append(totalItems.Pluralize(itemName));
+			message.Append(result.SuccessfulItems.Format()).Append(" out of ").Append(result.TotalItems.Pluralize(itemName));
 		}
 		
 		message.Append(" and added:\n\n  \u2022 ");
@@ -264,7 +298,15 @@ sealed class DatabasePageModel {
 	
 	public async Task VacuumDatabase() {
 		const string Title = "Vacuum Database";
-		await ProgressDialog.ShowIndeterminate(window, Title, "Vacuuming database...", _ => Db.Vacuum());
+		
+		try {
+			await ProgressDialog.ShowIndeterminate(window, Title, "Vacuuming database...", _ => Db.Vacuum());
+		} catch (Exception e) {
+			Log.Error(e);
+			await Dialog.ShowOk(window, Title, "Could not vacuum database: " + e.Message);
+			return;
+		}
+		
 		await Dialog.ShowOk(window, Title, "Done.");
 	}
 }

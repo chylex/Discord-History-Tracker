@@ -168,43 +168,48 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	public async Task OnClickDeleteOrphanedDownloads() {
 		const string Title = "Delete Orphaned Downloads";
 		
-		await ProgressDialog.Show(window, Title, async (_, callback) => {
-			await callback.UpdateIndeterminate("Searching for orphaned downloads...");
-			
-			HashSet<string> reachableNormalizedUrls = [];
-			HashSet<string> orphanedNormalizedUrls = [];
-			
-			await foreach (Download download in state.Db.Downloads.FindAllDownloadableUrls()) {
-				reachableNormalizedUrls.Add(download.NormalizedUrl);
-			}
-			
-			await foreach (Download download in state.Db.Downloads.Get()) {
-				string normalizedUrl = download.NormalizedUrl;
-				if (!reachableNormalizedUrls.Contains(normalizedUrl)) {
-					orphanedNormalizedUrls.Add(normalizedUrl);
+		try {
+			await ProgressDialog.Show(window, Title, async (_, callback) => {
+				await callback.UpdateIndeterminate("Searching for orphaned downloads...");
+				
+				HashSet<string> reachableNormalizedUrls = [];
+				HashSet<string> orphanedNormalizedUrls = [];
+				
+				await foreach (Download download in state.Db.Downloads.FindAllDownloadableUrls()) {
+					reachableNormalizedUrls.Add(download.NormalizedUrl);
 				}
-			}
-			
-			if (orphanedNormalizedUrls.Count == 0) {
-				await Dialog.ShowOk(window, Title, "No orphaned downloads found.");
-				return;
-			}
-			
-			if (await Dialog.ShowYesNo(window, Title, orphanedNormalizedUrls.Count + " orphaned download(s) will be removed from this database. This action cannot be undone. Proceed?") != DialogResult.YesNo.Yes) {
-				return;
-			}
-			
-			await callback.UpdateIndeterminate("Deleting orphaned downloads...");
-			await state.Db.Downloads.Remove(orphanedNormalizedUrls);
-			RecomputeDownloadStatistics();
-			
-			if (await Dialog.ShowYesNo(window, Title, "Orphaned downloads deleted. Vacuum database now to reclaim space?") != DialogResult.YesNo.Yes) {
-				return;
-			}
-			
-			await callback.UpdateIndeterminate("Vacuuming database...");
-			await state.Db.Vacuum();
-		});
+				
+				await foreach (Download download in state.Db.Downloads.Get()) {
+					string normalizedUrl = download.NormalizedUrl;
+					if (!reachableNormalizedUrls.Contains(normalizedUrl)) {
+						orphanedNormalizedUrls.Add(normalizedUrl);
+					}
+				}
+				
+				if (orphanedNormalizedUrls.Count == 0) {
+					await Dialog.ShowOk(window, Title, "No orphaned downloads found.");
+					return;
+				}
+				
+				if (await Dialog.ShowYesNo(window, Title, orphanedNormalizedUrls.Count + " orphaned download(s) will be removed from this database. This action cannot be undone. Proceed?") != DialogResult.YesNo.Yes) {
+					return;
+				}
+				
+				await callback.UpdateIndeterminate("Deleting orphaned downloads...");
+				await state.Db.Downloads.Remove(orphanedNormalizedUrls);
+				RecomputeDownloadStatistics();
+				
+				if (await Dialog.ShowYesNo(window, Title, "Orphaned downloads deleted. Vacuum database now to reclaim space?") != DialogResult.YesNo.Yes) {
+					return;
+				}
+				
+				await callback.UpdateIndeterminate("Vacuuming database...");
+				await state.Db.Vacuum();
+			});
+		} catch (Exception e) {
+			Log.Error(e);
+			await Dialog.ShowOk(window, Title, "Could not delete orphaned downloads: " + e.Message);
+		}
 	}
 	
 	private void UpdateStatistics(DownloadStatusStatistics statusStatistics) {

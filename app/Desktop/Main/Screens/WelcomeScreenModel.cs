@@ -112,38 +112,32 @@ sealed partial class WelcomeScreenModel : ObservableObject {
 	}
 	
 	public async Task CheckUpdates() {
-		var latestVersion = await ProgressDialog.ShowIndeterminate<Version?>(window, "Check Updates", "Checking for updates...", async _ => {
-			var client = new HttpClient(new SocketsHttpHandler {
-				AutomaticDecompression = DecompressionMethods.None,
-				AllowAutoRedirect = false,
-				UseCookies = false,
+		string response;
+		try {
+			response = await ProgressDialog.ShowIndeterminate<string>(window, "Check Updates", "Checking for updates...", static async _ => {
+				var client = new HttpClient(new SocketsHttpHandler {
+					AutomaticDecompression = DecompressionMethods.None,
+					AllowAutoRedirect = false,
+					UseCookies = false,
+				});
+				
+				client.Timeout = TimeSpan.FromSeconds(30);
+				client.MaxResponseContentBufferSize = 1024;
+				client.DefaultRequestHeaders.UserAgent.ParseAdd("DiscordHistoryTracker/" + Program.Version);
+				
+				return await client.GetStringAsync(Program.Website + "/version");
 			});
-			
-			client.Timeout = TimeSpan.FromSeconds(30);
-			client.MaxResponseContentBufferSize = 1024;
-			client.DefaultRequestHeaders.UserAgent.ParseAdd("DiscordHistoryTracker/" + Program.Version);
-			
-			string response;
-			try {
-				response = await client.GetStringAsync(Program.Website + "/version");
-			} catch (TaskCanceledException e) when (e.InnerException is TimeoutException) {
-				await Dialog.ShowOk(window, "Check Updates", "Request timed out.");
-				return null;
-			} catch (Exception e) {
-				Log.Error(e);
-				await Dialog.ShowOk(window, "Check Updates", "Error checking for updates: " + e.Message);
-				return null;
-			}
-			
-			if (!System.Version.TryParse(response, out Version? latestVersion)) {
-				await Dialog.ShowOk(window, "Check Updates", "Server returned an invalid response.");
-				return null;
-			}
-			
-			return latestVersion;
-		});
+		} catch (TaskCanceledException e) when (e.InnerException is TimeoutException) {
+			await Dialog.ShowOk(window, "Check Updates", "Request timed out.");
+			return;
+		} catch (Exception e) {
+			Log.Error(e);
+			await Dialog.ShowOk(window, "Check Updates", "Error checking for updates: " + e.Message);
+			return;
+		}
 		
-		if (latestVersion == null) {
+		if (!System.Version.TryParse(response, out Version? latestVersion)) {
+			await Dialog.ShowOk(window, "Check Updates", "Server returned an invalid response.");
 			return;
 		}
 		
