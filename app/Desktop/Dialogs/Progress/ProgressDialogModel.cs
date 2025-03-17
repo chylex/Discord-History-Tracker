@@ -38,7 +38,7 @@ sealed class ProgressDialogModel {
 			this.item = item;
 		}
 		
-		public async Task Update(string message, int finishedItems, int totalItems) {
+		public async Task Update(string message, long finishedItems, long totalItems) {
 			await Dispatcher.UIThread.InvokeAsync(() => {
 				item.Message = message;
 				item.Items = totalItems == 0 ? string.Empty : finishedItems.Format() + " / " + totalItems.Format();

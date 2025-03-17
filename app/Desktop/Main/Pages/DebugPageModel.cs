@@ -51,7 +51,7 @@ sealed class DebugPageModel {
 	
 	private async Task GenerateRandomData(int channelCount, int userCount, int messageCount, IProgressCallback callback) {
 		int batchCount = (messageCount + BatchSize - 1) / BatchSize;
-		await callback.Update("Adding messages in batches of " + BatchSize, finishedItems: 0, batchCount);
+		await callback.Update("Adding messages in batches of " + BatchSize, finishedItems: 0, totalItems: batchCount);
 		
 		var rand = new Random();
 		var server = new DHT.Server.Data.Server {

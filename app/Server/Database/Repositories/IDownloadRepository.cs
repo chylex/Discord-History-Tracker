@@ -20,7 +20,7 @@ public interface IDownloadRepository {
 	
 	Task<DownloadStatusStatistics> GetStatistics(DownloadItemFilter nonSkippedFilter, CancellationToken cancellationToken = default);
 	
-	IAsyncEnumerable<Data.Download> Get();
+	IAsyncEnumerable<Data.Download> Get(DownloadItemFilter? filter = null);
 	
 	Task<bool> GetDownloadData(string normalizedUrl, Func<Stream, Task> dataProcessor);
 	
@@ -51,7 +51,7 @@ public interface IDownloadRepository {
 			return Task.FromResult(new DownloadStatusStatistics());
 		}
 		
-		public IAsyncEnumerable<Data.Download> Get() {
+		public IAsyncEnumerable<Data.Download> Get(DownloadItemFilter? filter) {
 			return AsyncEnumerable.Empty<Data.Download>();
 		}
 		

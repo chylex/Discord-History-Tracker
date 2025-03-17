@@ -201,10 +201,10 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 		};
 	}
 	
-	public async IAsyncEnumerable<Data.Download> Get() {
+	public async IAsyncEnumerable<Data.Download> Get(DownloadItemFilter? filter) {
 		await using var conn = await pool.Take();
 		
-		await using var cmd = conn.Command("SELECT normalized_url, download_url, status, type, size FROM download_metadata");
+		await using var cmd = conn.Command("SELECT normalized_url, download_url, status, type, size FROM download_metadata" + filter.GenerateConditions().BuildWhereClause());
 		await using var reader = await cmd.ExecuteReaderAsync();
 		
 		while (await reader.ReadAsync()) {

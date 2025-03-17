@@ -23,7 +23,7 @@ sealed partial class ProgressItem : ObservableObject {
 	private string items = "";
 	
 	[ObservableProperty]
-	private int progress = 0;
+	private long progress = 0L;
 	
 	[ObservableProperty]
 	private bool isIndeterminate;

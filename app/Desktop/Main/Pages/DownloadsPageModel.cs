@@ -4,9 +4,11 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
+using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Main.Controls;
@@ -32,6 +34,9 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	[ObservableProperty(Setter = Access.Private)]
 	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
 	private bool isRetryingFailedDownloads = false;
+	
+	[ObservableProperty(Setter = Access.Private)]
+	private bool hasSuccessfulDownloads;
 	
 	[ObservableProperty(Setter = Access.Private)]
 	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
@@ -148,7 +153,7 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		RecomputeDownloadStatistics();
 	}
 	
-	public async Task OnClickRetryFailedDownloads() {
+	public async Task OnClickRetryFailed() {
 		IsRetryingFailedDownloads = true;
 		
 		try {
@@ -165,7 +170,7 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		downloadStatisticsTask.Post(cancellationToken => state.Db.Downloads.GetStatistics(currentDownloadFilter ?? new DownloadItemFilter(), cancellationToken));
 	}
 	
-	public async Task OnClickDeleteOrphanedDownloads() {
+	public async Task OnClickDeleteOrphaned() {
 		const string Title = "Delete Orphaned Downloads";
 		
 		try {
@@ -212,6 +217,49 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		}
 	}
 	
+	public async Task OnClickExportAll() {
+		const string Title = "Export Downloaded Files";
+		
+		string[] folders = await window.StorageProvider.OpenFolders(new FolderPickerOpenOptions {
+			Title = Title,
+			AllowMultiple = false,
+		});
+		
+		if (folders.Length != 1) {
+			return;
+		}
+		
+		string folderPath = folders[0];
+		
+		DownloadExporter exporter = new DownloadExporter(state.Db, folderPath);
+		DownloadExporter.Result result;
+		try {
+			result = await ProgressDialog.Show(window, Title, async (_, callback) => {
+				await callback.UpdateIndeterminate("Exporting downloaded files...");
+				return await exporter.Export(new ExportProgressReporter(callback));
+			});
+		} catch (Exception e) {
+			Log.Error(e);
+			await Dialog.ShowOk(window, Title, "Could not export downloaded files: " + e.Message);
+			return;
+		}
+		
+		string messageStart = "Exported " + result.SuccessfulCount.Pluralize("file");
+		
+		if (result.FailedCount > 0L) {
+			await Dialog.ShowOk(window, Title, messageStart + " (" + result.FailedCount.Format() + " failed).");
+		}
+		else {
+			await Dialog.ShowOk(window, Title, messageStart + ".");
+		}
+	}
+	
+	private sealed class ExportProgressReporter(IProgressCallback callback) : DownloadExporter.IProgressReporter {
+		public Task ReportProgress(long processedCount, long totalCount) {
+			return callback.Update("Exporting downloaded files...", processedCount, totalCount);
+		}
+	}
+	
 	private void UpdateStatistics(DownloadStatusStatistics statusStatistics) {
 		statisticsPending.Items = statusStatistics.PendingCount;
 		statisticsPending.Size = statusStatistics.PendingTotalSize;
@@ -229,6 +277,7 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		statisticsSkipped.Size = statusStatistics.SkippedTotalSize;
 		statisticsSkipped.HasFilesWithUnknownSize = statusStatistics.SkippedWithUnknownSizeCount > 0;
 		
+		HasSuccessfulDownloads = statusStatistics.SuccessfulCount > 0;
 		HasFailedDownloads = statusStatistics.FailedCount > 0;
 	}
 	
