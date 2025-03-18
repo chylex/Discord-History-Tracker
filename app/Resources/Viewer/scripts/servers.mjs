@@ -51,7 +51,8 @@ const servers = (() => {
             dmElement.id = "DM";
             dmElement.dataset.serverId = dmServer.id;
             dmElement.innerHTML = `
-                <svg class="ServerImg"width="48"height="48"viewBox="0 0 24 24"fill="none"xmlns="http://www.w3.org/2000/svg"><path d="M6 5H18C19.6569 5 21 6.34315 21 8V14C21 15.6569 19.6569 17 18 17H9L5 20V8C5 6.34315 6.34315 5 8 5Z"fill="#fff"/></svg>
+                <div class="icon">DM</div>
+                <div class="name" title="Direct Messages">Direct Messages</div>
             `;
             dmElement.addEventListener("click", () => selectServer(dmServer.id));
             serversDiv.appendChild(dmElement);
