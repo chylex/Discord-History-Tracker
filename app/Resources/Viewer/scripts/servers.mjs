@@ -1,7 +1,7 @@
 import state from "./state.mjs";
 
 const servers = (() => {
-    let currentServerId = localStorage.getItem("selectedServerId") || "0";
+    let currentServerId = "0";
 
     function getIcon(name) {
         return name.split(" ").map(word => {
@@ -73,7 +73,6 @@ const servers = (() => {
 
         if (!serversMap.has(currentServerId)) {
             currentServerId = "0";
-            localStorage.setItem("selectedServerId", currentServerId);
         }
 
         updateChannelVisibility();
@@ -92,7 +91,6 @@ const servers = (() => {
         }
 
         currentServerId = serverId;
-        localStorage.setItem("selectedServerId", serverId);
         updateChannelVisibility();
         state.selectChannel(null);
     }
