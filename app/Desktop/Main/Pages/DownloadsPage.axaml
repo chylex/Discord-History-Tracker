@@ -35,7 +35,7 @@
             <Button Command="{Binding OnClickToggleDownload}" Content="{Binding ToggleDownloadButtonText}" IsEnabled="{Binding IsToggleDownloadButtonEnabled}" />
             <Button Command="{Binding OnClickRetryFailed}" IsEnabled="{Binding IsRetryFailedOnDownloadsButtonEnabled}">Retry Failed</Button>
             <Button Command="{Binding OnClickDeleteOrphaned}">Delete Orphaned</Button>
-            <Button Command="{Binding OnClickExportAll}" IsEnabled="{Binding HasSuccessfulDownloads}">Export All</Button>
+            <Button Command="{Binding OnClickExportAll}" IsEnabled="{Binding HasSuccessfulDownloads}">Export All...</Button>
         </WrapPanel>
         <StackPanel Orientation="Vertical" Spacing="20" Margin="0 10 0 0">
             <controls:DownloadItemFilterPanel DataContext="{Binding FilterModel}" IsEnabled="{Binding !$parent[UserControl].((pages:DownloadsPageModel)DataContext).IsDownloading}" />
