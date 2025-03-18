@@ -3,7 +3,7 @@
     font-family: 'gg sans';
     font-style: normal;
     font-weight: 400;
-    src: local('gg sans Normal'), url('fonts/gg sans\Regular.woff') format('woff');
+    src: local('gg sans Normal'), url('fonts/gg sans Regular.woff') format('woff');
 }
 @font-face {
     font-family: 'gg sans Bold';
