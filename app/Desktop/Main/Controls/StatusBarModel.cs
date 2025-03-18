@@ -2,27 +2,27 @@ using System;
 using System.Reactive.Linq;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Server;
 using DHT.Server.Service;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed partial class StatusBarModel : ObservableObject, IDisposable {
-	[ObservableProperty(Setter = Access.Private)]
+sealed partial class StatusBarModel : IDisposable {
+	[Notify(Setter.Private)]
 	private long? serverCount;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private long? channelCount;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private long? messageCount;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(ServerStatusText))]
+	[Notify(Setter.Private)]
 	private ServerManager.Status serverStatus;
 	
-	public string ServerStatusText => serverStatus switch {
+	[DependsOn(nameof(ServerStatus))]
+	public string ServerStatusText => ServerStatus switch {
 		ServerManager.Status.Starting => "STARTING",
 		ServerManager.Status.Started  => "READY",
 		ServerManager.Status.Stopping => "STOPPING",
@@ -45,7 +45,7 @@ sealed partial class StatusBarModel : ObservableObject, IDisposable {
 		channelCountSubscription = state.Db.Channels.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(newChannelCount => ChannelCount = newChannelCount);
 		messageCountSubscription = state.Db.Messages.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(newMessageCount => MessageCount = newMessageCount);
 		
-		state.Server.StatusChanged += OnServerStatusChanged;
+		state.Server.StatusChanged += OnStateServerStatusChanged;
 		serverStatus = state.Server.IsRunning ? ServerManager.Status.Started : ServerManager.Status.Stopped;
 	}
 	
@@ -54,10 +54,10 @@ sealed partial class StatusBarModel : ObservableObject, IDisposable {
 		channelCountSubscription.Dispose();
 		messageCountSubscription.Dispose();
 		
-		state.Server.StatusChanged -= OnServerStatusChanged;
+		state.Server.StatusChanged -= OnStateServerStatusChanged;
 	}
 	
-	private void OnServerStatusChanged(object? sender, ServerManager.Status e) {
+	private void OnStateServerStatusChanged(object? sender, ServerManager.Status e) {
 		Dispatcher.UIThread.InvokeAsync(() => ServerStatus = e);
 	}
 }

@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.ReactiveUI;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.CheckBox;
 using DHT.Desktop.Dialogs.Message;
@@ -16,10 +15,11 @@ using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Utils.Tasks;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
+sealed partial class MessageFilterPanelModel : IDisposable {
 	private static readonly HashSet<string> FilterProperties = [
 		nameof(FilterByDate),
 		nameof(StartDate),
@@ -30,37 +30,38 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 		nameof(IncludedUsers),
 	];
 	
-	public string FilterStatisticsText { get; private set; } = "";
-	
 	public event PropertyChangedEventHandler? FilterPropertyChanged;
 	
 	public bool HasAnyFilters => FilterByDate || FilterByChannel || FilterByUser;
 	
-	[ObservableProperty]
+	[Notify]
+	private string filterStatisticsText = "";
+	
+	[Notify]
 	private bool filterByDate = false;
 	
-	[ObservableProperty]
+	[Notify]
 	private DateTime? startDate = null;
 	
-	[ObservableProperty]
+	[Notify]
 	private DateTime? endDate = null;
 	
-	[ObservableProperty]
+	[Notify]
 	private bool filterByChannel = false;
 	
-	[ObservableProperty]
+	[Notify]
 	private HashSet<ulong>? includedChannels = null;
 	
-	[ObservableProperty]
+	[Notify]
 	private bool filterByUser = false;
 	
-	[ObservableProperty]
+	[Notify]
 	private HashSet<ulong>? includedUsers = null;
 	
-	[ObservableProperty]
+	[Notify]
 	private string channelFilterLabel = "";
 	
-	[ObservableProperty]
+	[Notify]
 	private string userFilterLabel = "";
 	
 	private readonly Window window;
@@ -181,9 +182,7 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 	private void UpdateFilterStatisticsText() {
 		string exportedMessageCountStr = exportedMessageCount?.Format() ?? "(...)";
 		string totalMessageCountStr = totalMessageCount?.Format() ?? "(...)";
-		
 		FilterStatisticsText = verb + " " + exportedMessageCountStr + " out of " + totalMessageCountStr + " message" + (totalMessageCount is null or 1 ? "." : "s.");
-		OnPropertyChanged(nameof(FilterStatisticsText));
 	}
 	
 	public async Task OpenChannelFilterDialog() {

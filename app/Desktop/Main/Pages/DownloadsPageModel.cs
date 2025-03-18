@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
@@ -20,31 +20,32 @@ using DHT.Server.Data.Settings;
 using DHT.Server.Download;
 using DHT.Utils.Logging;
 using DHT.Utils.Tasks;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
+sealed partial class DownloadsPageModel : IAsyncDisposable {
 	private static readonly Log Log = Log.ForType<DownloadsPageModel>();
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private bool isToggleDownloadButtonEnabled = true;
 	
+	[DependsOn(nameof(IsDownloading))]
 	public string ToggleDownloadButtonText => IsDownloading ? "Stop Downloading" : "Start Downloading";
 	
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
+	[Notify(Setter.Private)]
 	private bool isRetryingFailedDownloads = false;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private bool hasSuccessfulDownloads;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
+	[Notify(Setter.Private)]
 	private bool hasFailedDownloads;
 	
+	[DependsOn(nameof(IsRetryingFailedDownloads), nameof(HasFailedDownloads))]
 	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && HasFailedDownloads;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private string downloadMessage = "";
 	
 	public DownloadItemFilterPanelModel FilterModel { get; }
@@ -145,8 +146,7 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	private void OnDownloadStateChanged() {
 		RecomputeDownloadStatistics();
 		
-		OnPropertyChanged(nameof(ToggleDownloadButtonText));
-		OnPropertyChanged(nameof(IsDownloading));
+		OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsDownloading)));
 	}
 	
 	private void OnItemFinished(DownloadItem item) {
@@ -281,21 +281,19 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		HasFailedDownloads = statusStatistics.FailedCount > 0;
 	}
 	
-	[ObservableObject]
 	public sealed partial class StatisticsRow(string state) {
 		public string State { get; } = state;
 		
-		[ObservableProperty]
+		[Notify]
 		private int items;
 		
-		[ObservableProperty]
-		[NotifyPropertyChangedFor(nameof(SizeText))]
+		[Notify]
 		private ulong? size;
 		
-		[ObservableProperty]
-		[NotifyPropertyChangedFor(nameof(SizeText))]
+		[Notify]
 		private bool hasFilesWithUnknownSize;
 		
+		[DependsOn(nameof(Size), nameof(HasFilesWithUnknownSize))]
 		public string SizeText {
 			get {
 				if (size == null) {

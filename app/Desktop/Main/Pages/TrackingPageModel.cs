@@ -4,28 +4,27 @@ using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Discord;
 using DHT.Desktop.Server;
+using PropertyChanged.SourceGenerator;
 using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed partial class TrackingPageModel : ObservableObject {
-	[ObservableProperty(Setter = Access.Private)]
+sealed partial class TrackingPageModel {
+	[Notify(Setter.Private)]
 	private bool isCopyTrackingScriptButtonEnabled = true;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(ToggleAppDevToolsButtonText))]
+	[Notify(Setter.Private)]
 	private bool? areDevToolsEnabled = null;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(ToggleAppDevToolsButtonText))]
+	[Notify(Setter.Private)]
 	private bool isToggleAppDevToolsButtonEnabled = false;
 	
 	public string OpenDevToolsShortcutText { get; } = OperatingSystem.IsMacOS() ? "Cmd+Shift+I" : "Ctrl+Shift+I";
 	
+	[DependsOn(nameof(AreDevToolsEnabled), nameof(IsToggleAppDevToolsButtonEnabled))]
 	public string ToggleAppDevToolsButtonText {
 		get {
 			if (!AreDevToolsEnabled.HasValue) {

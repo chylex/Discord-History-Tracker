@@ -1,25 +1,22 @@
 using System;
 using System.Collections;
 using System.ComponentModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Dialogs.TextBox;
 
-class TextBoxItem : ObservableObject, INotifyDataErrorInfo {
+partial class TextBoxItem : INotifyDataErrorInfo {
 	public string Title { get; init; } = "";
 	public object? Item { get; init; } = null;
 	
 	public Func<string, bool> ValidityCheck { get; init; } = static _ => true;
 	public bool IsValid => ValidityCheck(Value);
 	
+	[Notify]
 	private string value = string.Empty;
 	
-	public string Value {
-		get => value;
-		set {
-			SetProperty(ref this.value, value);
-			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(Value)));
-		}
+	private void OnValueChanged() {
+		ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(Value)));
 	}
 	
 	public IEnumerable GetErrors(string? propertyName) {

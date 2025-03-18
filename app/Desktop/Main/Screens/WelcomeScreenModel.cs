@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
@@ -14,15 +13,16 @@ using DHT.Server.Database;
 using DHT.Server.Database.Sqlite.Schema;
 using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Screens;
 
-sealed partial class WelcomeScreenModel : ObservableObject {
+sealed partial class WelcomeScreenModel {
 	private static readonly Log Log = Log.ForType<WelcomeScreenModel>();
 	
 	public string Version => Program.Version;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private bool isOpenOrCreateDatabaseButtonEnabled = true;
 	
 	public event EventHandler<IDatabaseFile>? DatabaseSelected;

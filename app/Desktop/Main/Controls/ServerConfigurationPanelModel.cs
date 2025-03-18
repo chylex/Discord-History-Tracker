@@ -1,30 +1,30 @@
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Server;
 using DHT.Server;
 using DHT.Server.Service;
 using DHT.Utils.Logging;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed partial class ServerConfigurationPanelModel : ObservableObject, IDisposable {
+sealed partial class ServerConfigurationPanelModel : IDisposable {
 	private static readonly Log Log = Log.ForType<ServerConfigurationPanelModel>();
 	
-	[ObservableProperty]
-	[NotifyPropertyChangedFor(nameof(HasMadeChanges))]
+	[Notify]
 	private string inputPort;
 	
-	[ObservableProperty]
-	[NotifyPropertyChangedFor(nameof(HasMadeChanges))]
+	[Notify]
 	private string inputToken;
 	
+	[DependsOn(nameof(InputPort), nameof(InputToken))]
 	public bool HasMadeChanges => ServerConfiguration.Port.ToString() != InputPort || ServerConfiguration.Token != InputToken;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private bool isToggleServerButtonEnabled = true;
 	
 	public string ToggleServerButtonText => server.IsRunning ? "Stop Server" : "Start Server";
@@ -53,7 +53,7 @@ sealed partial class ServerConfigurationPanelModel : ObservableObject, IDisposab
 	}
 	
 	private void UpdateServerStatus() {
-		OnPropertyChanged(nameof(ToggleServerButtonText));
+		OnPropertyChanged(new PropertyChangedEventArgs(nameof(ToggleServerButtonText)));
 	}
 	
 	private async Task StartServer() {
@@ -106,7 +106,7 @@ sealed partial class ServerConfigurationPanelModel : ObservableObject, IDisposab
 		ServerConfiguration.Port = port;
 		ServerConfiguration.Token = inputToken;
 		
-		OnPropertyChanged(nameof(HasMadeChanges));
+		OnPropertyChanged(new PropertyChangedEventArgs(nameof(HasMadeChanges)));
 		
 		await StartServer();
 	}

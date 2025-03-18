@@ -1,30 +1,23 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Dialogs.Progress;
 
-sealed partial class ProgressItem : ObservableObject {
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(Opacity))]
-	private bool isVisible = false;
-	
-	public double Opacity => IsVisible ? 1.0 : 0.0;
-	
+sealed partial class ProgressItem {
+	[Notify]
 	private string message = "";
 	
-	public string Message {
-		get => message;
-		set {
-			SetProperty(ref message, value);
-			IsVisible = !string.IsNullOrEmpty(value);
-		}
-	}
-	
-	[ObservableProperty]
+	[Notify]
 	private string items = "";
 	
-	[ObservableProperty]
+	[Notify]
 	private long progress = 0L;
 	
-	[ObservableProperty]
+	[Notify]
 	private bool isIndeterminate;
+	
+	[DependsOn(nameof(Message))]
+	public bool IsVisible => !string.IsNullOrEmpty(Message);
+	
+	[DependsOn(nameof(IsVisible))]
+	public double Opacity => IsVisible ? 1.0 : 0.0;
 }

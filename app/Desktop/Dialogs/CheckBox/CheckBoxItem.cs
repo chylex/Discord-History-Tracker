@@ -1,12 +1,12 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Dialogs.CheckBox;
 
-partial class CheckBoxItem : ObservableObject {
+partial class CheckBoxItem {
 	public string Title { get; init; } = "";
 	public object? Item { get; init; } = null;
 	
-	[ObservableProperty]
+	[Notify]
 	private bool isChecked = false;
 }
 

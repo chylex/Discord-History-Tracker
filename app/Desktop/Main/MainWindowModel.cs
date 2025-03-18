@@ -3,25 +3,25 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Main.Screens;
 using DHT.Desktop.Server;
 using DHT.Server;
 using DHT.Server.Database;
 using DHT.Utils.Logging;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main;
 
-sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
+sealed partial class MainWindowModel : IAsyncDisposable {
 	private const string DefaultTitle = "Discord History Tracker";
 	
 	private static readonly Log Log = Log.ForType<MainWindowModel>();
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private string title = DefaultTitle;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private UserControl currentScreen;
 	
 	private readonly WelcomeScreen welcomeScreen;

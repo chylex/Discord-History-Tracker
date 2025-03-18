@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using CommunityToolkit.Mvvm.ComponentModel;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Dialogs.TextBox;
 
-class TextBoxDialogModel : ObservableObject {
+partial class TextBoxDialogModel {
 	public string Title { get; init; } = "";
 	public string Description { get; init; } = "";
 	
@@ -27,10 +27,11 @@ class TextBoxDialogModel : ObservableObject {
 		}
 	}
 	
+	[DependsOn(nameof(Items))]
 	public bool HasErrors => Items.Any(static item => !item.IsValid);
 	
 	private void OnItemErrorsChanged(object? sender, DataErrorsChangedEventArgs e) {
-		OnPropertyChanged(nameof(HasErrors));
+		OnPropertyChanged(new PropertyChangedEventArgs(nameof(Items)));
 	}
 }
 

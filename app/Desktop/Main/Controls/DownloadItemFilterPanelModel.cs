@@ -5,17 +5,17 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.ReactiveUI;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Server;
 using DHT.Server.Data.Filters;
 using DHT.Server.Data.Settings;
 using DHT.Utils.Logging;
 using DHT.Utils.Tasks;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisposable {
+sealed partial class DownloadItemFilterPanelModel : IAsyncDisposable {
 	private static readonly Log Log = Log.ForType<DownloadItemFilterPanelModel>();
 	
 	public sealed record Unit(string Name, uint Scale);
@@ -32,15 +32,16 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 		nameof(MaximumSizeUnit),
 	];
 	
-	public string FilterStatisticsText { get; private set; } = "";
+	[Notify(Setter.Private)]
+	private string filterStatisticsText = "";
 	
-	[ObservableProperty]
+	[Notify]
 	private bool limitSize = false;
 	
-	[ObservableProperty]
+	[Notify]
 	private ulong maximumSize = 0UL;
 	
-	[ObservableProperty]
+	[Notify]
 	private Unit maximumSizeUnit = AllUnits[0];
 	
 	public IEnumerable<Unit> Units => AllUnits;
@@ -151,9 +152,7 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 	private void UpdateFilterStatisticsText() {
 		string matchingItemCountStr = matchingItemCount?.Format() ?? "(...)";
 		string totalItemCountStr = totalItemCount?.Format() ?? "(...)";
-		
 		FilterStatisticsText = verb + " " + matchingItemCountStr + " out of " + totalItemCountStr + " file" + (totalItemCount is null or 1 ? "." : "s.");
-		OnPropertyChanged(nameof(FilterStatisticsText));
 	}
 	
 	public DownloadItemFilter CreateFilter() {

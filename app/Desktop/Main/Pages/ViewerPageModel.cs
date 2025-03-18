@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
@@ -13,16 +12,17 @@ using DHT.Server;
 using DHT.Server.Data.Filters;
 using DHT.Server.Service.Viewer;
 using DHT.Utils.Logging;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed partial class ViewerPageModel : ObservableObject, IDisposable {
+sealed partial class ViewerPageModel : IDisposable {
 	private static readonly Log Log = Log.ForType<ViewerPageModel>();
 	
 	public bool DatabaseToolFilterModeKeep { get; set; } = true;
 	public bool DatabaseToolFilterModeRemove { get; set; } = false;
 	
-	[ObservableProperty]
+	[Notify]
 	private bool hasFilters = false;
 	
 	public MessageFilterPanelModel FilterModel { get; }

@@ -1,11 +1,11 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Dialogs;
 
-sealed partial class NewDatabaseSettingsDialogModel : ObservableObject {
-	[ObservableProperty]
+sealed partial class NewDatabaseSettingsDialogModel {
+	[Notify]
 	private bool separateFileForDownloads = true;
 	
-	[ObservableProperty]
+	[Notify]
 	private bool downloadsAutoStart = true;
 }

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using CommunityToolkit.Mvvm.ComponentModel;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Dialogs.CheckBox;
 
-class CheckBoxDialogModel : ObservableObject {
+partial class CheckBoxDialogModel {
 	public string Title { get; init; } = "";
 	
 	private IReadOnlyList<CheckBoxItem> items = [];
@@ -28,7 +28,10 @@ class CheckBoxDialogModel : ObservableObject {
 	
 	private bool pauseCheckEvents = false;
 	
+	[DependsOn(nameof(Items))]
 	public bool AreAllSelected => Items.All(static item => item.IsChecked);
+	
+	[DependsOn(nameof(Items))]
 	public bool AreNoneSelected => Items.All(static item => !item.IsChecked);
 	
 	public void SelectAll() => SetAllChecked(true);
@@ -46,8 +49,7 @@ class CheckBoxDialogModel : ObservableObject {
 	}
 	
 	private void UpdateBulkButtons() {
-		OnPropertyChanged(nameof(AreAllSelected));
-		OnPropertyChanged(nameof(AreNoneSelected));
+		OnPropertyChanged(new PropertyChangedEventArgs(nameof(Items)));
 	}
 	
 	private void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e) {
