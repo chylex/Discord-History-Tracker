@@ -14,10 +14,6 @@ export default class {
 	
 		return this.contents.replace(TEMPLATE_REGEX, (full, match) => {
 			const value = match.split(".").reduce((o, property) => o[property], obj);
-
-			
-			console.log(match)
-			console.log(value)
 	
 			if (processor) {
 				const updated = processor(match, value);

@@ -3,12 +3,12 @@
     font-family: 'gg sans';
     font-style: normal;
     font-weight: 400;
-    src: local('gg sans Normal'), url('/fonts/gg\ sans\ Regular.woff.woff') format('woff');
+    src: local('gg sans Normal'), url('fonts/gg sans\Regular.woff') format('woff');
 }
 @font-face {
     font-family: 'gg sans Bold';
     font-style: normal;
     font-weight: 900;
-    src: local('gg sans Bold'), url('/fonts/gg\ sans\ Semibold.woff') format('woff');
+    src: local('gg sans Bold'), url('fonts/gg sans Semibold.woff') format('woff');
 }
 
