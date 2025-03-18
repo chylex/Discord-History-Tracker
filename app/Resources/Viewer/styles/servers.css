@@ -1,0 +1,77 @@
+#servers {
+    width: 76px;
+    background-color: #1e1f22;
+    padding: 0px;
+}
+
+.Server {
+    width: 54px;
+    height: 54px;
+    margin-left: 11px;
+    margin-top: 8px;
+    border-radius: 100%;
+    transition: .15s ease-out;
+    cursor: pointer;
+    background-color: #313338;
+    display: flex;
+    align-items: center;
+}
+
+.Server:hover {
+    border-radius: 20px;
+    background-color: #5865f2;
+}
+
+.Server.active {
+    border-radius: 20px;
+    background-color: #5865f2;
+}
+
+.ServerImg {
+    width: 100%;
+    height: 100%;
+}
+
+svg.ServerImg {
+    width: 100%;
+    height: 70%;
+    /* margin-top: 15%; */
+    color: white;
+}
+
+#servers .Server .icon {
+    font-weight: bold;
+    font-size: 1.5em;
+    text-align: center;
+    word-wrap: break-word;
+    white-space: normal;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: white;
+}
+
+#servers .Server .name {
+    display: none;
+    font-weight: bold;
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: center;
+}
+#servers .Server .name {
+    display: none;
+}
+
+#servers .Server:hover .name {
+    display: block;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px;
+    border-radius: 4px;
+    margin-left: 60px;
+    white-space: nowrap;
+}

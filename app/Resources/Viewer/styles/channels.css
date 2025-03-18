@@ -4,37 +4,104 @@
   max-width: 300px;
   overflow-y: auto;
   color: #eee;
-  background-color: #1c1e22;
+  background-color: #2B2D31;
   font-size: 15px;
+  padding: 2px;
 }
 
-#channels > div.loading {
+#channels>div.loading {
   margin: 0 auto;
   width: 150px;
   height: 150px;
 }
 
-#channels > div.channel {
-  cursor: pointer;
-  padding: 10px 12px;
-  border-bottom: 1px solid #333333;
+#channels>div.loading {
+  background-color: rgba(0, 0, 0, 0) !important;
 }
 
-#channels > div.channel:hover, #channels > div.channel.active {
-  background-color: #282b30;
+
+#channels>div.channel.visible {
+  display: flex !important;
 }
+
+#channels>div.channel {
+  display: none !important;
+
+  cursor: pointer;
+  padding: 5px 8px;
+
+  color: #eee;
+  font-size: 15px;
+
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+
+  border-radius: 5px;
+}
+
+
+.ServerChannel {
+  padding: 8px 8px !important;
+}
+
+#channels>div.channel:hover,
+#channels>div.channel.active {
+  background-color: rgba(78, 80, 88, 0.6);
+}
+
+#channels>div.channel.active>.info>.name {
+  color: oklab(0.999994 0.0000455678 0.0000200868);
+}
+
 
 #channels .info {
   display: flex;
-  height: 16px;
-  margin-bottom: 4px;
+  width: 100%;
+}
+
+.ServerChannel>.info {
+  padding: 0px !important;
+}
+
+.UserChannel>.info {
+  align-self: center;
+  padding-left: 6px !important;
+  align-items: center;
+
+  width: 150px !important;
+}
+
+
+[server-type="group"]>.info {
+  padding: 6px;
+
+  width: 172px !important;
+}
+
+.UserChannel>.info>.name {
+  min-height: 18px;
 }
 
 #channels .name {
   flex-grow: 1;
+  overflow-x: hidden;
+  overflow-y: clip;
   text-overflow: ellipsis;
   white-space: nowrap;
-  overflow: hidden;
+  color: oklab(0.686636 -0.00407365 -0.0149199);
+  font-weight: 500;
+  font-size: 16px;
+  /* max-width: 200px; */
+}
+
+.ServerChannel .name {
+  height: 18px;
 }
 
 #channels .tag {
@@ -45,4 +112,26 @@
   margin-top: 1px;
   padding: 2px 5px;
   font-size: 11px;
+}
+
+
+#channels>div:hover,
+#channels>div.active {
+  background-color: #404249
+}
+
+#channels>div>.avatar {
+  padding: 0;
+  margin: 0;
+}
+
+#channels>div>.avatar>* {
+  width: 30px;
+
+  min-width: 30px;
+  min-height: 30px;
+  /*Make not loaded images be 30px*/
+
+  border-radius: 100%;
+  font-size: 1em;
 }

@@ -4,8 +4,8 @@
   align-items: stretch;
   gap: 8px;
   padding: 8px;
-  background-color: #17181c;
-  border-bottom: 1px dotted #5d626b;
+  background-color: #313338;
+  border-bottom: 2px solid #27292D
 }
 
 #menu .splitter {
@@ -23,7 +23,9 @@
   cursor: default;
 }
 
-#menu button, #menu select, #menu input[type="text"] {
+#menu button,
+#menu select,
+#menu input[type="text"] {
   height: 31px;
   padding: 0 10px;
   background-color: #7289da;
@@ -54,25 +56,27 @@
   flex-direction: row;
 }
 
-#menu .nav > button {
+#menu .nav>button {
   font-size: 14px;
 }
 
-#menu .nav > button.icon {
+#menu .nav>button.icon {
   font-family: Lucida Console, monospace;
   font-size: 17px;
   padding: 0 8px;
 }
 
-#menu .nav > button, #menu .nav > p {
+#menu .nav>button,
+#menu .nav>p {
   margin: 0 1px;
 }
 
-#opt-filter-list > select, #opt-filter-list > input {
+#opt-filter-list>select,
+#opt-filter-list>input {
   display: none;
 }
 
-#opt-filter-list > .active {
+#opt-filter-list>.active {
   display: block;
 }
 
