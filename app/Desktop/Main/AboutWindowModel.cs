@@ -20,11 +20,11 @@ sealed class AboutWindowModel {
 	}
 	
 	public void ShowLibraryAvalonia() {
-		SystemUtils.OpenUrl("https://www.nuget.org/packages/Avalonia");
+		SystemUtils.OpenUrl("https://github.com/AvaloniaUI/Avalonia");
 	}
 	
-	public void ShowLibraryCommunityToolkit() {
-		SystemUtils.OpenUrl("https://github.com/CommunityToolkit/dotnet");
+	public void ShowLibraryPropertyChangedSourceGenerator() {
+		SystemUtils.OpenUrl("https://github.com/canton7/PropertyChanged.SourceGenerator");
 	}
 	
 	public void ShowLibrarySqlite() {
