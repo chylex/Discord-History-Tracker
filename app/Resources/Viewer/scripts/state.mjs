@@ -187,7 +187,7 @@ export default (function () {
 			"nsfw": channels[key].nsfw || false,
 			"icon": getServer(channels[key].server).type === "group"
 				? `<!--<span>${channels[key].name.split(" ").map(word => word[0]).join("")}</span>-->` //Discord default naming without a icon
-				: `<img src='${fileUrlProcessor("https://cdn.discordapp.com/avatars/" + getUserIDByName(channels[key].name) + "/" + getUserByName(channels[key].name).avatar)}'>`
+				: `<img src='${fileUrlProcessor("https://cdn.discordapp.com/avatars/" + getUserIDByName(channels[key].name) + "/" + getUserByName(channels[key].name).avatar+".webp")}'>`
 		})).sort((ac, bc) => {
 			return channelOrder[ac.id] - channelOrder[bc.id];
 		});

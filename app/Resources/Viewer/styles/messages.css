@@ -4,14 +4,14 @@
   background-color: #36393e;
 }
 
-#messages>div {
+#messages > div {
   padding: 0 4px 0 24px;
 
   margin-bottom: 17px;
 }
 
 
-#messages>div:hover {
+#messages > div:hover {
   background-color: oklab(0.0846607 0.00000385568 0.00000169128 / 0.06);
 }
 
@@ -30,7 +30,7 @@
 
 
 
-#messages .avatar-wrapper>div {
+#messages .avatar-wrapper > div {
   flex: 1 1 auto;
 }
 

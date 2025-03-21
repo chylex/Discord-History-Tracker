@@ -15,6 +15,7 @@
     background-color: #313338;
     display: flex;
     align-items: center;
+    overflow: hidden;
 }
 
 .Server:hover {
@@ -44,6 +45,7 @@ svg.ServerImg {
     font-size: 1.5em;
     text-align: center;
     word-wrap: break-word;
+    word-break: break-all;
     white-space: normal;
     overflow: hidden;
     display: flex;

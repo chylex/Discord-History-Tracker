@@ -1,96 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="referrer" content="no-referrer">
-
-  <title>Discord Offline History</title>
-
-  <link rel="icon" href="favicon.ico">
-
-  <link rel="stylesheet" href="styles/main.css">
-  <link rel="stylesheet" href="styles/menu.css">
-  <link rel="stylesheet" href="styles/channels.css">
-  <link rel="stylesheet" href="styles/servers.css">
-  <link rel="stylesheet" href="styles/messages.css">
-  <link rel="stylesheet" href="styles/modal.css">
-
-  <script type="text/javascript">
-    const query = new URLSearchParams(location.search);
-    window.DHT_SERVER_TOKEN = query.get("token");
-    window.DHT_SERVER_SESSION = query.get("session");
-  </script>
-  <script type="module" src="scripts/bootstrap.mjs"></script>
-</head>
-
-<body>
-  <div id="menu">
-    <button id="btn-settings">Settings</button>
-
-    <div class="splitter"></div>
-
-    <div> <!-- needed to stop the select from messing up -->
-      <select id="opt-messages-per-page">
-        <option value="50">50 messages per page&nbsp;</option>
-        <option value="100">100 messages per page&nbsp;</option>
-        <option value="250">250 messages per page&nbsp;</option>
-        <option value="500">500 messages per page&nbsp;</option>
-        <option value="1000">1000 messages per page&nbsp;</option>
-        <option value="0">All messages&nbsp;</option>
-      </select>
+  <head>
+    <meta charset="utf-8">
+    <meta name="referrer" content="no-referrer">
+    
+    <title>Discord Offline History</title>
+    
+    <link rel="icon" href="favicon.ico">
+    
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/menu.css">
+    <link rel="stylesheet" href="styles/servers.css">
+    <link rel="stylesheet" href="styles/channels.css">
+    <link rel="stylesheet" href="styles/messages.css">
+    <link rel="stylesheet" href="styles/modal.css">
+    
+    <script type="text/javascript">
+		const query = new URLSearchParams(location.search);
+		window.DHT_SERVER_TOKEN = query.get("token");
+		window.DHT_SERVER_SESSION = query.get("session");
+    </script>
+    <script type="module" src="scripts/bootstrap.mjs"></script>
+  </head>
+  <body>
+    <div id="menu">
+      <button id="btn-settings">Settings</button>
+      
+      <div class="splitter"></div>
+      
+      <div> <!-- needed to stop the select from messing up -->
+        <select id="opt-messages-per-page">
+          <option value="50">50 messages per page&nbsp;</option>
+          <option value="100">100 messages per page&nbsp;</option>
+          <option value="250">250 messages per page&nbsp;</option>
+          <option value="500">500 messages per page&nbsp;</option>
+          <option value="1000">1000 messages per page&nbsp;</option>
+          <option value="0">All messages&nbsp;</option>
+        </select>
+      </div>
+      
+      <div class="nav">
+        <button id="nav-first" data-nav="first" class="icon">&laquo;</button>
+        <button id="nav-prev" data-nav="prev" class="icon">&lsaquo;</button>
+        <button id="nav-pick" data-nav="pick">Page <span id="nav-page-current">1</span>/<span id="nav-page-total">?</span></button>
+        <button id="nav-next" data-nav="next" class="icon">&rsaquo;</button>
+        <button id="nav-last" data-nav="last" class="icon">&raquo;</button>
+      </div>
+      
+      <div class="splitter"></div>
+      
+      <div> <!-- needed to stop the select from messing up -->
+        <select id="opt-messages-filter">
+          <option value="">No filter&nbsp;</option>
+          <option value="user">Filter messages by user&nbsp;</option>
+          <option value="contents">Filter messages by contents&nbsp;</option>
+          <option value="withimages">Only messages with images&nbsp;</option>
+          <option value="withdownloads">Only messages with downloads&nbsp;</option>
+          <option value="edited">Only edited messages&nbsp;</option>
+        </select>
+      </div>
+      
+      <div id="opt-filter-list">
+        <select id="opt-filter-user" data-filter-type="user">
+          <option value="">Select user...</option>
+        </select>
+        <input id="opt-filter-contents" type="text" data-filter-type="contents" placeholder="Messages containing...">
+        <input type="hidden" data-filter-type="withimages" value="1">
+        <input type="hidden" data-filter-type="withdownloads" value="1">
+        <input type="hidden" data-filter-type="edited" value="1">
+      </div>
+      
+      <div class="separator"></div>
+      
+      <button id="btn-about">About</button>
     </div>
-
-    <div class="nav">
-      <button id="nav-first" data-nav="first" class="icon">&laquo;</button>
-      <button id="nav-prev" data-nav="prev" class="icon">&lsaquo;</button>
-      <button id="nav-pick" data-nav="pick">Page <span id="nav-page-current">1</span>/<span
-          id="nav-page-total">?</span></button>
-      <button id="nav-next" data-nav="next" class="icon">&rsaquo;</button>
-      <button id="nav-last" data-nav="last" class="icon">&raquo;</button>
+    
+    <div id="app">
+      <div id="servers"></div>
+      <div id="channels">
+        <div class="loading"></div>
+      </div>
+      <div id="messages"></div>
     </div>
-
-    <div class="splitter"></div>
-
-    <div> <!-- needed to stop the select from messing up -->
-      <select id="opt-messages-filter">
-        <option value="">No filter&nbsp;</option>
-        <option value="user">Filter messages by user&nbsp;</option>
-        <option value="contents">Filter messages by contents&nbsp;</option>
-        <option value="withimages">Only messages with images&nbsp;</option>
-        <option value="withdownloads">Only messages with downloads&nbsp;</option>
-        <option value="edited">Only edited messages&nbsp;</option>
-      </select>
+    
+    <div id="modal">
+      <div id="overlay"></div>
+      <div id="dialog"></div>
     </div>
-
-    <div id="opt-filter-list">
-      <select id="opt-filter-user" data-filter-type="user">
-        <option value="">Select user...</option>
-      </select>
-      <input id="opt-filter-contents" type="text" data-filter-type="contents" placeholder="Messages containing...">
-      <input type="hidden" data-filter-type="withimages" value="1">
-      <input type="hidden" data-filter-type="withdownloads" value="1">
-      <input type="hidden" data-filter-type="edited" value="1">
-    </div>
-
-    <div class="separator"></div>
-
-    <button id="btn-about">About</button>
-  </div>
-
-  <div id="app">
-    <div id="servers">
-    </div>
-    <div id="channels">
-      <div class="loading"></div>
-    </div>
-    <div id="messages"></div>
-  </div>
-
-  <div id="modal">
-    <div id="overlay"></div>
-    <div id="dialog"></div>
-  </div>
-</body>
-
+  </body>
 </html>

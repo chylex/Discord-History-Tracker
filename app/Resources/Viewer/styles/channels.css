@@ -9,22 +9,22 @@
   padding: 2px;
 }
 
-#channels>div.loading {
+#channels > div.loading {
   margin: 0 auto;
   width: 150px;
   height: 150px;
 }
 
-#channels>div.loading {
+#channels > div.loading {
   background-color: rgba(0, 0, 0, 0) !important;
 }
 
 
-#channels>div.channel.visible {
+#channels > div.channel.visible {
   display: flex !important;
 }
 
-#channels>div.channel {
+#channels > div.channel {
   display: none !important;
 
   cursor: pointer;
@@ -50,12 +50,12 @@
   padding: 8px 8px !important;
 }
 
-#channels>div.channel:hover,
-#channels>div.channel.active {
+#channels > div.channel:hover,
+#channels > div.channel.active {
   background-color: rgba(78, 80, 88, 0.6);
 }
 
-#channels>div.channel.active>.info>.name {
+#channels > div.channel.active > .info > .name {
   color: oklab(0.999994 0.0000455678 0.0000200868);
 }
 
@@ -65,11 +65,11 @@
   width: 100%;
 }
 
-.ServerChannel>.info {
+.ServerChannel > .info {
   padding: 0px !important;
 }
 
-.UserChannel>.info {
+.UserChannel > .info {
   align-self: center;
   padding-left: 6px !important;
   align-items: center;
@@ -78,13 +78,13 @@
 }
 
 
-[server-type="group"]>.info {
+[server-type="group"] > .info {
   padding: 6px;
 
   width: 172px !important;
 }
 
-.UserChannel>.info>.name {
+.UserChannel > .info > .name {
   min-height: 18px;
 }
 
@@ -115,17 +115,17 @@
 }
 
 
-#channels>div:hover,
-#channels>div.active {
+#channels > div:hover,
+#channels > div.active {
   background-color: #404249
 }
 
-#channels>div>.avatar {
+#channels > div > .avatar {
   padding: 0;
   margin: 0;
 }
 
-#channels>div>.avatar>* {
+#channels > div > .avatar > * {
   width: 30px;
 
   min-width: 30px;
