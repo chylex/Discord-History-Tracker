@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
-sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
+sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint {
 	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
 		JsonElement root = await ReadJson(request);
 		
@@ -24,7 +24,7 @@ sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
 			users[i++] = ReadUser(user, "user");
 		}
 		
-		await Db.Users.Add(users);
+		await db.Users.Add(users);
 	}
 	
 	private static User ReadUser(JsonElement json, string path) {
