@@ -51,6 +51,7 @@
 
         <Style Selector="Expander">
             <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Padding" Value="12" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>
 

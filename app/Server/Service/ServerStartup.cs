@@ -43,6 +43,7 @@ sealed class Startup {
 		app.UseEndpoints(endpoints => {
 			endpoints.MapGet("/get-downloaded-file/{url}", new GetDownloadedFileEndpoint(db).Handle);
 			endpoints.MapGet("/get-tracking-script", new GetTrackingScriptEndpoint(parameters, resources).Handle);
+			endpoints.MapGet("/get-userscript/{**ignored}", new GetUserscriptEndpoint(resources).Handle);
 			endpoints.MapGet("/get-viewer-messages", new GetViewerMessagesEndpoint(db, viewerSessions).Handle);
 			endpoints.MapGet("/get-viewer-metadata", new GetViewerMetadataEndpoint(db, viewerSessions).Handle);
 			endpoints.MapGet("/viewer/{**path}", new ViewerEndpoint(resources).Handle);

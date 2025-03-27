@@ -11,25 +11,47 @@
         <pages:TrackingPageModel />
     </Design.DataContext>
 
-    <StackPanel Spacing="10">
-        <TextBlock TextWrapping="Wrap">
-            <TextBlock.Text>
-                <MultiBinding StringFormat="To start tracking messages, copy the tracking script and paste it into the console of either the Discord app, or your browser. The console is usually opened by pressing {0}.">
-                    <Binding Path="OpenDevToolsShortcutText" />
-                </MultiBinding>
-            </TextBlock.Text>
-        </TextBlock>
-        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="10">
-            <Button x:Name="CopyTrackingScript" Click="CopyTrackingScriptButton_OnClick" IsEnabled="{Binding IsCopyTrackingScriptButtonEnabled}">Copy Tracking Script</Button>
-        </StackPanel>
-        <TextBlock TextWrapping="Wrap" Margin="0 5 0 0">
-            <TextBlock.Text>
-                <MultiBinding StringFormat="By default, the Discord app does not allow opening the console. The button below will change a hidden setting in the Discord app that controls whether the {0} shortcut is enabled.">
-                    <Binding Path="OpenDevToolsShortcutText" />
-                </MultiBinding>
-            </TextBlock.Text>
-        </TextBlock>
-        <Button DockPanel.Dock="Right" Command="{Binding OnClickToggleAppDevTools}" Content="{Binding ToggleAppDevToolsButtonText}" IsEnabled="{Binding IsToggleAppDevToolsButtonEnabled}" />
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="WrapPanel > Button">
+            <Setter Property="Margin" Value="0 0 10 10" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Spacing="20">
+        <Expander Header="Method 1: Manual" IsExpanded="True">
+            <StackPanel Orientation="Vertical" Spacing="10">
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="Use {0} to open Dev Tools in your browser or the Discord app, copy the tracking script, and paste it into the console.">
+                            <Binding Path="OpenDevToolsShortcutText" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <Button x:Name="CopyTrackingScript" Click="CopyTrackingScriptButton_OnClick">Copy Tracking Script</Button>
+                <TextBlock Margin="0 5 0 0">
+                    By default, the Discord app blocks the Dev Tools shortcut. The button below changes a hidden setting to unblock the shortcut.
+                </TextBlock>
+                <Button Command="{Binding OnClickToggleAppDevTools}" Content="{Binding ToggleAppDevToolsButtonText}" IsEnabled="{Binding IsToggleAppDevToolsButtonEnabled}" />
+            </StackPanel>
+        </Expander>
+        <Expander Header="Method 2: Userscript" IsExpanded="True" Padding="12 12 12 2.5">
+            <StackPanel Orientation="Vertical" Spacing="10">
+                <TextBlock>
+                    Requires a userscript manager in your browser. The userscript adds a DHT icon next to the Help icon on Discord.
+                    If the icon does not appear, update this app and reinstall the userscript.
+                </TextBlock>
+                <TextBlock>
+                    Copy the Connection Code, click the DHT icon, and paste the code into the prompt.
+                </TextBlock>
+                <WrapPanel>
+                    <Button Command="{Binding OnClickInstallOrUpdateUserscript}">Install or Update Userscript</Button>
+                    <Button x:Name="CopyConnectionCode" Click="CopyConnectionScriptButton_OnClick">Copy Connection Code</Button>
+                </WrapPanel>
+            </StackPanel>
+        </Expander>
     </StackPanel>
 
 </UserControl>
