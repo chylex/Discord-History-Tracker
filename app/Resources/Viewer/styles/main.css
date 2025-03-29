@@ -17,6 +17,10 @@ body {
   --loading-backdrop: rgba(0, 0, 0, 0);
 }
 
+.loading:hover {
+  background-color: rgba(0, 0, 0, 0) !important;
+}
+
 .loading::after {
   content: "";
   background: var(--loading-backdrop)
