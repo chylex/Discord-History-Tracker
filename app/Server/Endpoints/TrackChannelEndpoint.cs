@@ -24,6 +24,7 @@ sealed class TrackChannelEndpoint(IDatabaseFile db) : BaseEndpoint {
 			Id = json.RequireSnowflake("id", path),
 			Name = json.RequireString("name", path),
 			Type = ServerTypes.FromString(json.RequireString("type", path)) ?? throw new HttpException(HttpStatusCode.BadRequest, "Server type must be either 'SERVER', 'GROUP', or 'DM'."),
+			IconHash = json.HasKey("icon") ? json.RequireString("icon", path) : null,
 		};
 	}
 	

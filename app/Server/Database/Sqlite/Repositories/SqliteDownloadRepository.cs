@@ -394,16 +394,6 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			}
 		}
 		
-		await using (var cmd = conn.Command("SELECT id, avatar_url FROM users WHERE avatar_url IS NOT NULL")) {
-			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-			
-			while (await reader.ReadAsync(cancellationToken)) {
-				ulong id = reader.GetUint64(0);
-				string avatarHash = reader.GetString(1);
-				yield return DownloadLinkExtractor.UserAvatar(id, avatarHash);
-			}
-		}
-		
 		await using (var cmd = conn.Command("SELECT DISTINCT emoji_id, emoji_flags FROM message_reactions WHERE emoji_id IS NOT NULL")) {
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 			
@@ -411,6 +401,30 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 				ulong emojiId = reader.GetUint64(0);
 				EmojiFlags emojiFlags = (EmojiFlags) reader.GetInt16(1);
 				yield return DownloadLinkExtractor.Emoji(emojiId, emojiFlags);
+			}
+		}
+		
+		await using (var cmd = conn.Command("SELECT id, type, icon_hash FROM servers WHERE icon_hash IS NOT NULL")) {
+			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+			
+			while (await reader.ReadAsync(cancellationToken)) {
+				ulong id = reader.GetUint64(0);
+				ServerType? type = ServerTypes.FromString(reader.GetString(1));
+				string iconHash = reader.GetString(2);
+				
+				if (DownloadLinkExtractor.ServerIcon(type, id, iconHash) is {} result) {
+					yield return result;
+				}
+			}
+		}
+		
+		await using (var cmd = conn.Command("SELECT id, avatar_url FROM users WHERE avatar_url IS NOT NULL")) {
+			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+			
+			while (await reader.ReadAsync(cancellationToken)) {
+				ulong id = reader.GetUint64(0);
+				string avatarHash = reader.GetString(1);
+				yield return DownloadLinkExtractor.UserAvatar(id, avatarHash);
 			}
 		}
 	}

@@ -13,7 +13,7 @@ using Microsoft.Data.Sqlite;
 namespace DHT.Server.Database.Sqlite;
 
 sealed class SqliteSchema(CustomSqliteConnection conn) {
-	internal const int Version = 10;
+	internal const int Version = 11;
 	
 	private static readonly Log Log = Log.ForType<SqliteSchema>();
 	
@@ -92,9 +92,10 @@ sealed class SqliteSchema(CustomSqliteConnection conn) {
 		
 		await conn.ExecuteAsync("""
 		                        CREATE TABLE servers (
-		                        	id   INTEGER PRIMARY KEY NOT NULL,
-		                        	name TEXT NOT NULL,
-		                        	type TEXT NOT NULL
+		                        	id        INTEGER PRIMARY KEY NOT NULL,
+		                        	name      TEXT NOT NULL,
+		                        	type      TEXT NOT NULL,
+		                        	icon_hash TEXT
 		                        )
 		                        """);
 		
@@ -222,6 +223,7 @@ sealed class SqliteSchema(CustomSqliteConnection conn) {
 			{ 7, new SqliteSchemaUpgradeTo8() },
 			{ 8, new SqliteSchemaUpgradeTo9() },
 			{ 9, new SqliteSchemaUpgradeTo10() },
+			{ 10, new SqliteSchemaUpgradeTo11() },
 		};
 		
 		Perf perf = Log.Start("from version " + dbVersion);

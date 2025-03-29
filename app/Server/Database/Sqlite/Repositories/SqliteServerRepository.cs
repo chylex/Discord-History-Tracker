@@ -10,14 +10,8 @@ using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
-sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
+sealed class SqliteServerRepository(SqliteConnectionPool pool, SqliteDownloadRepository downloads) : BaseSqliteRepository(Log), IServerRepository {
 	private static readonly Log Log = Log.ForType<SqliteServerRepository>();
-	
-	private readonly SqliteConnectionPool pool;
-	
-	public SqliteServerRepository(SqliteConnectionPool pool) : base(Log) {
-		this.pool = pool;
-	}
 	
 	public async Task Add(IReadOnlyList<Data.Server> servers) {
 		await using (var conn = await pool.Take()) {
@@ -27,13 +21,18 @@ sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
 				("id", SqliteType.Integer),
 				("name", SqliteType.Text),
 				("type", SqliteType.Text),
+				("icon_hash", SqliteType.Text),
 			]);
+			
+			await using var downloadCollector = new SqliteDownloadRepository.NewDownloadCollector(downloads, conn);
 			
 			foreach (Data.Server server in servers) {
 				cmd.Set(":id", server.Id);
 				cmd.Set(":name", server.Name);
 				cmd.Set(":type", ServerTypes.ToString(server.Type));
+				cmd.Set(":icon_hash", server.IconHash);
 				await cmd.ExecuteNonQueryAsync();
+				await downloadCollector.AddIfNotNull(server.IconUrl?.ToPendingDownload());
 			}
 			
 			await conn.CommitTransactionAsync();
@@ -50,7 +49,7 @@ sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
 	public async IAsyncEnumerable<Data.Server> Get([EnumeratorCancellation] CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
 		
-		await using var cmd = conn.Command("SELECT id, name, type FROM servers");
+		await using var cmd = conn.Command("SELECT id, name, type, icon_hash FROM servers");
 		await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 		
 		while (await reader.ReadAsync(cancellationToken)) {
@@ -58,6 +57,7 @@ sealed class SqliteServerRepository : BaseSqliteRepository, IServerRepository {
 				Id = reader.GetUint64(0),
 				Name = reader.GetString(1),
 				Type = ServerTypes.FromString(reader.GetString(2)),
+				IconHash = reader.IsDBNull(3) ? null : reader.GetString(3),
 			};
 		}
 	}

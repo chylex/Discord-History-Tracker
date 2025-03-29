@@ -23,6 +23,9 @@ static class ViewerJson {
 	public sealed class JsonServer {
 		public required string Name { get; init; }
 		public required string Type { get; init; }
+		
+		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+		public string? IconUrl { get; init; }
 	}
 	
 	public sealed class JsonChannel {

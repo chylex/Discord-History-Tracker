@@ -108,6 +108,7 @@ static class ViewerJsonExport {
 			servers[server.Id] = new ViewerJson.JsonServer {
 				Name = server.Name,
 				Type = ServerTypes.ToJsonViewerString(server.Type),
+				IconUrl = server.IconUrl?.DownloadUrl,
 			};
 		}
 		

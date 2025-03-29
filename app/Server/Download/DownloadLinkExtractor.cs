@@ -12,6 +12,14 @@ namespace DHT.Server.Download;
 static class DownloadLinkExtractor {
 	private static readonly Log Log = Log.ForType(typeof(DownloadLinkExtractor));
 	
+	public static FileUrl? ServerIcon(ServerType? type, ulong id, string iconHash) {
+		return type switch {
+			ServerType.Server => new FileUrl($"https://cdn.discordapp.com/icons/{id}/{iconHash}.webp", MediaTypeNames.Image.Webp),
+			ServerType.Group  => new FileUrl($"https://cdn.discordapp.com/channel-icons/{id}/{iconHash}.webp", MediaTypeNames.Image.Webp),
+			_                 => null,
+		};
+	}
+	
 	public static FileUrl UserAvatar(ulong id, string avatarHash) {
 		return new FileUrl($"https://cdn.discordapp.com/avatars/{id}/{avatarHash}.webp", MediaTypeNames.Image.Webp);
 	}
