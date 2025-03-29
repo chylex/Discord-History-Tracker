@@ -62,6 +62,15 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			hasChanged |= await metadataCmd.ExecuteNonQueryAsync() > 0;
 		}
 		
+		public Task AddIfNotNull(Data.Download? download) {
+			if (download != null) {
+				return Add(download);
+			}
+			else {
+				return Task.CompletedTask;
+			}
+		}
+		
 		public void OnCommitted() {
 			if (hasChanged) {
 				repository.UpdateTotalCount();
@@ -361,14 +370,17 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 		UpdateTotalCount();
 	}
 	
-	public async IAsyncEnumerable<Data.Download> FindAllDownloadableUrls([EnumeratorCancellation] CancellationToken cancellationToken = default) {
+	public async IAsyncEnumerable<FileUrl> FindReachableFiles([EnumeratorCancellation] CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
 		
-		await using (var cmd = conn.Command("SELECT normalized_url, download_url, type, size FROM attachments")) {
+		await using (var cmd = conn.Command("SELECT type, normalized_url, download_url FROM attachments")) {
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 			
 			while (await reader.ReadAsync(cancellationToken)) {
-				yield return DownloadLinkExtractor.FromAttachment(reader.GetString(0), reader.GetString(1), reader.IsDBNull(2) ? null : reader.GetString(2), reader.GetUint64(3));
+				string? type = reader.IsDBNull(0) ? null : reader.GetString(0);
+				string normalizedUrl = reader.GetString(1);
+				string downloadUrl = reader.GetString(2);
+				yield return new FileUrl(normalizedUrl, downloadUrl, type);
 			}
 		}
 		
@@ -376,8 +388,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 			
 			while (await reader.ReadAsync(cancellationToken)) {
-				var result = await DownloadLinkExtractor.TryFromEmbedJson(reader.GetStream(0));
-				if (result is not null) {
+				if (await DownloadLinkExtractor.TryFromEmbedJson(reader.GetStream(0)) is {} result) {
 					yield return result;
 				}
 			}
@@ -387,7 +398,9 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 			
 			while (await reader.ReadAsync(cancellationToken)) {
-				yield return DownloadLinkExtractor.FromUserAvatar(reader.GetUint64(0), reader.GetString(1));
+				ulong id = reader.GetUint64(0);
+				string avatarHash = reader.GetString(1);
+				yield return DownloadLinkExtractor.UserAvatar(id, avatarHash);
 			}
 		}
 		
@@ -395,7 +408,9 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 			
 			while (await reader.ReadAsync(cancellationToken)) {
-				yield return DownloadLinkExtractor.FromEmoji(reader.GetUint64(0), (EmojiFlags) reader.GetInt16(1));
+				ulong emojiId = reader.GetUint64(0);
+				EmojiFlags emojiFlags = (EmojiFlags) reader.GetInt16(1);
+				yield return DownloadLinkExtractor.Emoji(emojiId, emojiFlags);
 			}
 		}
 	}

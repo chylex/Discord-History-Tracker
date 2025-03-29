@@ -32,7 +32,7 @@ sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint {
 			Id = json.RequireSnowflake("id", path),
 			Name = json.RequireString("name", path),
 			DisplayName = json.HasKey("displayName") ? json.RequireString("displayName", path) : null,
-			AvatarUrl = json.HasKey("avatar") ? json.RequireString("avatar", path) : null,
+			AvatarHash = json.HasKey("avatar") ? json.RequireString("avatar", path) : null,
 			Discriminator = json.HasKey("discriminator") ? json.RequireString("discriminator", path) : null,
 		};
 	}

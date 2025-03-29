@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DHT.Server.Data;
 using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
 using DHT.Server.Download;
@@ -34,7 +35,7 @@ public interface IDownloadRepository {
 	
 	Task Remove(ICollection<string> normalizedUrls);
 	
-	IAsyncEnumerable<Data.Download> FindAllDownloadableUrls(CancellationToken cancellationToken = default);
+	IAsyncEnumerable<FileUrl> FindReachableFiles(CancellationToken cancellationToken = default);
 	
 	internal sealed class Dummy : IDownloadRepository {
 		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
@@ -79,8 +80,8 @@ public interface IDownloadRepository {
 			return Task.CompletedTask;
 		}
 		
-		public IAsyncEnumerable<Data.Download> FindAllDownloadableUrls(CancellationToken cancellationToken) {
-			return AsyncEnumerable.Empty<Data.Download>();
+		public IAsyncEnumerable<FileUrl> FindReachableFiles(CancellationToken cancellationToken) {
+			return AsyncEnumerable.Empty<FileUrl>();
 		}
 	}
 }

@@ -30,7 +30,7 @@ static class SqliteExtensions {
 		return (long) (await command.ExecuteScalarAsync())!;
 	}
 	
-	public static SqliteCommand Insert(this ISqliteConnection conn, string tableName, (string Name, SqliteType Type)[] columns) {
+	public static SqliteCommand Insert(this ISqliteConnection conn, [LanguageInjection("sql", Prefix = "SELECT * FROM ")] string tableName, (string Name, SqliteType Type)[] columns) {
 		string columnNames = string.Join(separator: ',', columns.Select(static c => c.Name));
 		string columnParams = string.Join(separator: ',', columns.Select(static c => ':' + c.Name));
 		
@@ -41,7 +41,7 @@ static class SqliteExtensions {
 		return cmd;
 	}
 	
-	public static SqliteCommand Upsert(this ISqliteConnection conn, string tableName, (string Name, SqliteType Type)[] columns) {
+	public static SqliteCommand Upsert(this ISqliteConnection conn, [LanguageInjection("sql", Prefix = "SELECT * FROM ")] string tableName, (string Name, SqliteType Type)[] columns) {
 		string columnNames = string.Join(separator: ',', columns.Select(static c => c.Name));
 		string columnParams = string.Join(separator: ',', columns.Select(static c => ':' + c.Name));
 		string columnUpdates = string.Join(separator: ',', columns.Skip(1).Select(static c => c.Name + " = excluded." + c.Name));
@@ -55,7 +55,7 @@ static class SqliteExtensions {
 		return cmd;
 	}
 	
-	public static SqliteCommand Delete(this ISqliteConnection conn, string tableName, (string Name, SqliteType Type) column) {
+	public static SqliteCommand Delete(this ISqliteConnection conn, [LanguageInjection("sql", Prefix = "SELECT * FROM ")] string tableName, (string Name, SqliteType Type) column) {
 		var cmd = conn.Command("DELETE FROM " + tableName + " WHERE " + column.Name + " = :" + column.Name);
 		CreateParameters(cmd, [column]);
 		return cmd;

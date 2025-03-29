@@ -106,7 +106,7 @@ public static class LegacyArchiveImport {
 			users[userindex[userId]] = new User {
 				Id = userId,
 				Name = userObj.RequireString("name", path),
-				AvatarUrl = userObj.HasKey("avatar") ? userObj.RequireString("avatar", path) : null,
+				AvatarHash = userObj.HasKey("avatar") ? userObj.RequireString("avatar", path) : null,
 				Discriminator = userObj.HasKey("tag") ? userObj.RequireString("tag", path) : null,
 			};
 		}

@@ -74,7 +74,7 @@ sealed class DebugPageModel {
 			Id = RandomId(rand),
 			Name = RandomName("u"),
 			DisplayName = RandomName("u"),
-			AvatarUrl = null,
+			AvatarHash = null,
 			Discriminator = rand.Next(minValue: 0, maxValue: 9999).ToString(),
 		}).ToArray();
 		
