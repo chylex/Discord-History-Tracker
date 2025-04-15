@@ -2,6 +2,8 @@
     width: 76px;
     background-color: #1e1f22;
     padding: 0px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .Server {
