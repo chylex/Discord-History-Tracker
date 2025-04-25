@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using DHT.Desktop.Dialogs.Message;
+using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Main.Screens;
 using DHT.Desktop.Server;
 using DHT.Server;
@@ -104,32 +105,33 @@ sealed partial class MainWindowModel : IAsyncDisposable {
 	}
 	
 	private async void MainContentScreenModelOnDatabaseClosed(object? sender, EventArgs e) {
+		await DisposeContent();
+		
+		Title = DefaultTitle;
+		CurrentScreen = welcomeScreen;
+		
+		await DisposeState();
+		
+		welcomeScreenModel.DatabaseSelected += OnDatabaseSelected;
+	}
+	
+	private async Task DisposeContent() {
 		if (mainContentScreenModel != null) {
 			mainContentScreenModel.DatabaseClosed -= MainContentScreenModelOnDatabaseClosed;
 			await mainContentScreenModel.DisposeAsync();
 			mainContentScreenModel = null;
 		}
-		
-		await DisposeState();
-		
-		Title = DefaultTitle;
-		CurrentScreen = welcomeScreen;
-		
-		welcomeScreenModel.DatabaseSelected += OnDatabaseSelected;
 	}
 	
 	private async Task DisposeState() {
 		if (state != null) {
-			await state.DisposeAsync();
+			await DelayedProgressDialog.Await(() => state.DisposeAsync().AsTask(), TimeSpan.FromMilliseconds(200), window, "Close Database", "Please wait for the database to close...");
 			state = null;
 		}
 	}
 	
 	public async ValueTask DisposeAsync() {
-		if (mainContentScreenModel != null) {
-			await mainContentScreenModel.DisposeAsync();
-		}
-		
+		await DisposeContent();
 		await DisposeState();
 	}
 }
