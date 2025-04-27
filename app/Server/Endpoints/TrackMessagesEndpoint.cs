@@ -12,7 +12,7 @@ using DHT.Server.Database;
 using DHT.Server.Download;
 using DHT.Utils.Collections;
 using DHT.Utils.Http;
-using Microsoft.AspNetCore.Http;
+using Sisk.Core.Http;
 
 namespace DHT.Server.Endpoints;
 
@@ -20,7 +20,7 @@ sealed class TrackMessagesEndpoint(IDatabaseFile db) : BaseEndpoint {
 	private const string HasNewMessages = "1";
 	private const string NoNewMessages = "0";
 	
-	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
+	protected override async Task<HttpResponse> Respond(HttpRequest request) {
 		JsonElement root = await ReadJson(request);
 		
 		if (root.ValueKind != JsonValueKind.Array) {
@@ -42,7 +42,7 @@ sealed class TrackMessagesEndpoint(IDatabaseFile db) : BaseEndpoint {
 		
 		await db.Messages.Add(messages);
 		
-		await response.WriteTextAsync(anyNewMessages ? HasNewMessages : NoNewMessages, cancellationToken);
+		return new HttpResponse().WithContent(anyNewMessages ? HasNewMessages : NoNewMessages);
 	}
 	
 	private static Message ReadMessage(JsonElement json, string path) {

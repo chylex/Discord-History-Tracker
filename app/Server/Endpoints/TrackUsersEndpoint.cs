@@ -1,16 +1,15 @@
 using System.Net;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database;
 using DHT.Utils.Http;
-using Microsoft.AspNetCore.Http;
+using Sisk.Core.Http;
 
 namespace DHT.Server.Endpoints;
 
 sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint {
-	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
+	protected override async Task<HttpResponse> Respond(HttpRequest request) {
 		JsonElement root = await ReadJson(request);
 		
 		if (root.ValueKind != JsonValueKind.Array) {
@@ -25,6 +24,8 @@ sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint {
 		}
 		
 		await db.Users.Add(users);
+		
+		return new HttpResponse();
 	}
 	
 	private static User ReadUser(JsonElement json, string path) {

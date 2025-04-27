@@ -1,16 +1,15 @@
 using System.Net.Mime;
-using System.Threading;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using DHT.Server.Service;
-using DHT.Utils.Http;
 using DHT.Utils.Resources;
-using Microsoft.AspNetCore.Http;
+using Sisk.Core.Http;
 
 namespace DHT.Server.Endpoints;
 
 sealed class GetTrackingScriptEndpoint(ServerParameters parameters, ResourceLoader resources) : BaseEndpoint {
-	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
+	protected override async Task<HttpResponse> Respond(HttpRequest request) {
 		string bootstrap = await resources.ReadTextAsync("Tracker/bootstrap.js");
 		string script = bootstrap.Replace("= 0; /*[PORT]*/", "= " + parameters.Port + ";")
 		                         .Replace("/*[TOKEN]*/", HttpUtility.JavaScriptStringEncode(parameters.Token))
@@ -19,7 +18,8 @@ sealed class GetTrackingScriptEndpoint(ServerParameters parameters, ResourceLoad
 		                         .Replace("/*[CSS-SETTINGS]*/", await resources.ReadTextAsync("Tracker/styles/settings.css"))
 		                         .Replace("/*[DEBUGGER]*/", request.Query.ContainsKey("debug") ? "debugger;" : "");
 		
-		response.Headers.Append("X-DHT", "1");
-		await response.WriteTextAsync(MediaTypeNames.Text.JavaScript, script, cancellationToken);
+		return new HttpResponse()
+		       .WithHeader("X-DHT", "1")
+		       .WithContent(script, Encoding.UTF8, MediaTypeNames.Text.JavaScript);
 	}
 }

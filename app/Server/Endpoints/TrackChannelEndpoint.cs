@@ -1,22 +1,23 @@
 using System.Net;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database;
 using DHT.Utils.Http;
-using Microsoft.AspNetCore.Http;
+using Sisk.Core.Http;
 
 namespace DHT.Server.Endpoints;
 
 sealed class TrackChannelEndpoint(IDatabaseFile db) : BaseEndpoint {
-	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
+	protected override async Task<HttpResponse> Respond(HttpRequest request) {
 		JsonElement root = await ReadJson(request);
 		Data.Server server = ReadServer(root.RequireObject("server"), "server");
 		Channel channel = ReadChannel(root.RequireObject("channel"), "channel", server.Id);
 		
 		await db.Servers.Add([server]);
 		await db.Channels.Add([channel]);
+		
+		return new HttpResponse();
 	}
 	
 	private static Data.Server ReadServer(JsonElement json, string path) {

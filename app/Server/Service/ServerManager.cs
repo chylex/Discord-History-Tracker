@@ -1,21 +1,24 @@
 using System;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Database;
+using DHT.Server.Endpoints;
 using DHT.Server.Service.Viewer;
 using DHT.Utils.Logging;
 using DHT.Utils.Resources;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.DependencyInjection;
+using Sisk.Core.Entity;
+using Sisk.Core.Http;
+using Sisk.Core.Http.Hosting;
+using Router = Sisk.Core.Routing.Router;
 
 namespace DHT.Server.Service;
 
 public sealed class ServerManager {
 	private static readonly Log Log = Log.ForType(typeof(ServerManager));
 	
-	private IWebHost? server;
+	private HttpServerHostContext? server;
 	public bool IsRunning => server != null;
 	
 	public event EventHandler<Status>? StatusChanged;
@@ -48,35 +51,59 @@ public sealed class ServerManager {
 	public async Task Stop() {
 		await semaphore.WaitAsync();
 		try {
-			await StopInternal();
+			StopInternal();
 		} finally {
 			semaphore.Release();
 		}
 	}
 	
 	private async Task StartInternal(ushort port, string token) {
-		await StopInternal();
+		StopInternal();
 		
 		StatusChanged?.Invoke(this, Status.Starting);
 		
-		void AddServices(IServiceCollection services) {
-			services.AddSingleton(typeof(IDatabaseFile), db);
-			services.AddSingleton(typeof(ServerParameters), new ServerParameters(port, token));
-			services.AddSingleton(typeof(ResourceLoader), new ResourceLoader(Assembly.GetExecutingAssembly()));
-			services.AddSingleton(typeof(ViewerSessions), viewerSessions);
+		ServerParameters parameters = new ServerParameters(port, token);
+		ResourceLoader resources = new ResourceLoader(Assembly.GetExecutingAssembly());
+		
+		static void ConfigureServer(HttpServerConfiguration config) {
+			config.AsyncRequestProcessing = true;
+			config.IncludeRequestIdHeader = false;
+			config.MaximumContentLength = 0;
+			config.SendSiskHeader = false;
+			config.ThrowExceptions = false;
 		}
 		
-		void SetKestrelOptions(KestrelServerOptions options) {
-			options.Limits.MaxRequestBodySize = null;
-			options.Limits.MinResponseDataRate = null;
-			options.ListenLocalhost(port, static listenOptions => listenOptions.Protocols = HttpProtocols.Http1);
+		void ConfigureRoutes(Router router) {
+			router.CallbackErrorHandler = static (exception, _) => {
+				Log.Error(exception);
+				return new HttpResponse(HttpStatusCode.InternalServerError).WithContent("An error occurred.");
+			};
+			
+			router.MapGet("/get-downloaded-file/<url>", new GetDownloadedFileEndpoint(db).Handle);
+			router.MapGet("/get-tracking-script", new GetTrackingScriptEndpoint(parameters, resources).Handle);
+			router.MapGet("/get-userscript/<ignored>", new GetUserscriptEndpoint(resources).Handle);
+			router.MapGet("/get-viewer-messages", new GetViewerMessagesEndpoint(db, viewerSessions).Handle);
+			router.MapGet("/get-viewer-metadata", new GetViewerMetadataEndpoint(db, viewerSessions).Handle);
+			router.MapGet("/viewer/<<path>>", new ViewerEndpoint(resources).Handle);
+			
+			router.MapPost("/track-channel", new TrackChannelEndpoint(db).Handle);
+			router.MapPost("/track-messages", new TrackMessagesEndpoint(db).Handle);
+			router.MapPost("/track-users", new TrackUsersEndpoint(db).Handle);
 		}
 		
-		IWebHost newServer = new WebHostBuilder()
-		                     .ConfigureServices(AddServices)
-		                     .UseKestrel(SetKestrelOptions)
-		                     .UseStartup<Startup>()
-		                     .Build();
+		string[] allowedOrigins = [
+			"https://discord.com",
+			"https://ptb.discord.com",
+			"https://canary.discord.com",
+			"https://discordapp.com",
+		];
+		
+		HttpServerHostContext newServer = HttpServer.CreateBuilder()
+		                                            .UseListeningPort(new ListeningPort(secure: false, "127.0.0.1", port))
+		                                            .UseCors(new CrossOriginResourceSharingHeaders(allowOrigins: allowedOrigins, exposeHeaders: [ "X-DHT" ]))
+		                                            .UseConfiguration(ConfigureServer)
+		                                            .UseRouter(ConfigureRoutes)
+		                                            .Build();
 		
 		Log.Info("Starting server on port " + port + "...");
 		
@@ -95,7 +122,7 @@ public sealed class ServerManager {
 		StatusChanged?.Invoke(this, Status.Started);
 	}
 	
-	private async Task StopInternal() {
+	private void StopInternal() {
 		if (server == null) {
 			return;
 		}
@@ -103,7 +130,7 @@ public sealed class ServerManager {
 		StatusChanged?.Invoke(this, Status.Stopping);
 		
 		Log.Info("Stopping server...");
-		await server.StopAsync();
+		server.Dispose();
 		Log.Info("Server stopped");
 		
 		server.Dispose();

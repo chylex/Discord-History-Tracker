@@ -10,14 +10,11 @@ using DHT.Server.Data;
 using DHT.Utils.Collections;
 using DHT.Utils.Http;
 using DHT.Utils.Logging;
-using Microsoft.AspNetCore.StaticFiles;
 
 namespace DHT.Server.Database.Import;
 
 public static class LegacyArchiveImport {
 	private static readonly Log Log = Log.ForType(typeof(LegacyArchiveImport));
-	
-	private static readonly FileExtensionContentTypeProvider ContentTypeProvider = new ();
 	
 	public static async Task<bool> Read(Stream stream, IDatabaseFile db, FakeSnowflake fakeSnowflake, Func<Data.Server[], Task<Dictionary<Data.Server, ulong>?>> askForServerIds) {
 		Perf perf = Log.Start();
@@ -189,7 +186,7 @@ public static class LegacyArchiveImport {
 		return attachmentsArray.Select(attachmentObj => {
 			string url = attachmentObj.RequireString("url", path);
 			string name = url[(url.LastIndexOf('/') + 1)..];
-			string? type = ContentTypeProvider.TryGetContentType(name, out string? contentType) ? contentType : null;
+			string? type = MimeTypes.TryGetByFileExtension(name, out var mimeType) ? mimeType : null;
 			
 			return new Attachment {
 				Id = fakeSnowflake.Next(),
