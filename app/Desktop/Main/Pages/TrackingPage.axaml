@@ -15,9 +15,6 @@
         <Style Selector="TextBlock">
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
-        <Style Selector="WrapPanel > Button">
-            <Setter Property="Margin" Value="0 0 10 10" />
-        </Style>
     </UserControl.Styles>
 
     <StackPanel Spacing="20">
@@ -37,7 +34,7 @@
                 <Button Command="{Binding OnClickToggleAppDevTools}" Content="{Binding ToggleAppDevToolsButtonText}" IsEnabled="{Binding IsToggleAppDevToolsButtonEnabled}" />
             </StackPanel>
         </Expander>
-        <Expander Header="Method 2: Userscript" IsExpanded="True" Padding="12 12 12 2.5">
+        <Expander Header="Method 2: Userscript" IsExpanded="True">
             <StackPanel Orientation="Vertical" Spacing="10">
                 <TextBlock>
                     Requires a userscript manager in your browser. The userscript adds a DHT icon next to the Help icon on Discord.
@@ -46,7 +43,7 @@
                 <TextBlock>
                     Copy the Connection Code, click the DHT icon, and paste the code into the prompt.
                 </TextBlock>
-                <WrapPanel>
+                <WrapPanel ItemSpacing="10" LineSpacing="10">
                     <Button Command="{Binding OnClickInstallOrUpdateUserscript}">Install or Update Userscript</Button>
                     <Button x:Name="CopyConnectionCode" Click="CopyConnectionScriptButton_OnClick">Copy Connection Code</Button>
                 </WrapPanel>

@@ -13,11 +13,7 @@
 
     <UserControl.Styles>
         <Style Selector="WrapPanel > StackPanel">
-            <Setter Property="Margin" Value="0 20 40 0" />
             <Setter Property="Spacing" Value="4" />
-        </Style>
-        <Style Selector="WrapPanel > StackPanel:nth-last-child(1)">
-            <Setter Property="Margin" Value="0 20 0 0" />
         </Style>
         <Style Selector="Grid > Label">
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -36,9 +32,9 @@
         </Style>
     </UserControl.Styles>
 
-    <StackPanel>
+    <StackPanel Spacing="20">
         <TextBlock Text="{Binding FilterStatisticsText}" />
-        <WrapPanel>
+        <WrapPanel ItemSpacing="40" LineSpacing="20">
             <StackPanel>
                 <CheckBox IsChecked="{Binding FilterByDate}">Filter by Date</CheckBox>
                 <Grid ColumnDefinitions="Auto, 4, 125" RowDefinitions="Auto, 4, Auto" Margin="4 0">

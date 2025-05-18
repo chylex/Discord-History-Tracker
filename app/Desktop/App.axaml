@@ -58,17 +58,11 @@
         <Style Selector="Panel.buttons">
             <Setter Property="Margin" Value="0 20 0 0" />
         </Style>
-        <Style Selector="Panel.buttons > WrapPanel.right">
-            <Setter Property="HorizontalAlignment" Value="Right" />
+        <Style Selector="Panel.buttons > WrapPanel">
+            <Setter Property="ItemSpacing" Value="8" />
         </Style>
         <Style Selector="Panel.buttons Button">
             <Setter Property="MinWidth" Value="80" />
-        </Style>
-        <Style Selector="Panel.buttons > WrapPanel.left Button">
-            <Setter Property="Margin" Value="0 0 8 0" />
-        </Style>
-        <Style Selector="Panel.buttons > WrapPanel.right Button">
-            <Setter Property="Margin" Value="8 0 0 0" />
         </Style>
 
     </Application.Styles>

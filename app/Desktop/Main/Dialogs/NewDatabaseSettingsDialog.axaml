@@ -48,7 +48,7 @@
             </CheckBox>
         </StackPanel>
         <Panel Classes="buttons">
-            <WrapPanel Classes="right">
+            <WrapPanel HorizontalAlignment="Right">
                 <Button Click="ClickOk">OK</Button>
             </WrapPanel>
         </Panel>
