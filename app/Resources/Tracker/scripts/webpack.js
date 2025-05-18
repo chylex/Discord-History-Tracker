@@ -26,8 +26,6 @@ class WEBPACK {
 			}]);
 		}
 		
-		delete hookedRequire.m[id];
-		delete hookedRequire.c[id];
 		return this._require = hookedRequire;
 	}
 	
