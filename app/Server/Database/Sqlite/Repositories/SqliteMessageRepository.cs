@@ -10,6 +10,7 @@ using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Utils;
 using DHT.Server.Download;
 using DHT.Utils.Logging;
+using JetBrains.Annotations;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
@@ -17,13 +18,14 @@ namespace DHT.Server.Database.Sqlite.Repositories;
 sealed class SqliteMessageRepository(SqliteConnectionPool pool, SqliteDownloadRepository downloads) : BaseSqliteRepository(Log), IMessageRepository {
 	private static readonly Log Log = Log.ForType<SqliteMessageRepository>();
 	
+	// Moved outside the Add method due to language injections not working in local methods.
+	private static SqliteCommand DeleteByMessageId(ISqliteConnection conn, [LanguageInjection("sql", Prefix = "SELECT * FROM ")] string tableName) {
+		return conn.Delete(tableName, ("message_id", SqliteType.Integer));
+	}
+	
 	public async Task Add(IReadOnlyList<Message> messages) {
 		if (messages.Count == 0) {
 			return;
-		}
-		
-		static SqliteCommand DeleteByMessageId(ISqliteConnection conn, string tableName) {
-			return conn.Delete(tableName, ("message_id", SqliteType.Integer));
 		}
 		
 		static async Task ExecuteDeleteByMessageId(SqliteCommand cmd, object id) {
@@ -137,7 +139,7 @@ sealed class SqliteMessageRepository(SqliteConnectionPool pool, SqliteDownloadRe
 						messageAttachmentCmd.Set(":attachment_id", attachmentId);
 						await messageAttachmentCmd.ExecuteNonQueryAsync();
 						
-						await downloadCollector.Add(DownloadLinkExtractor.FromAttachment(attachment));
+						await downloadCollector.Add(new Data.Download(attachment.NormalizedUrl, attachment.DownloadUrl, DownloadStatus.Pending, attachment.Type, attachment.Size));
 					}
 				}
 				
@@ -148,7 +150,7 @@ sealed class SqliteMessageRepository(SqliteConnectionPool pool, SqliteDownloadRe
 						await messageEmbedCmd.ExecuteNonQueryAsync();
 						
 						if (DownloadLinkExtractor.TryFromEmbedJson(embed.Json) is {} download) {
-							await downloadCollector.Add(download);
+							await downloadCollector.Add(download.ToPendingDownload());
 						}
 					}
 				}
@@ -163,7 +165,7 @@ sealed class SqliteMessageRepository(SqliteConnectionPool pool, SqliteDownloadRe
 						await messageReactionCmd.ExecuteNonQueryAsync();
 						
 						if (reaction.EmojiId is {} emojiId) {
-							await downloadCollector.Add(DownloadLinkExtractor.FromEmoji(emojiId, reaction.EmojiFlags));
+							await downloadCollector.Add(DownloadLinkExtractor.Emoji(emojiId, reaction.EmojiFlags).ToPendingDownload());
 						}
 					}
 				}

@@ -38,25 +38,19 @@ sealed class Startup {
 	public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, IDatabaseFile db, ServerParameters parameters, ResourceLoader resources, ViewerSessions viewerSessions) {
 		app.UseMiddleware<ServerLoggingMiddleware>();
 		app.UseCors();
-		
-		app.Map("/viewer", node => {
-			node.UseRouting();
-			node.UseEndpoints(endpoints => {
-				endpoints.MapGet("/{**path}", new ViewerEndpoint(db, resources).Handle);
-			});
-		});
-		
-		app.UseMiddleware<ServerAuthorizationMiddleware>();
-		
 		app.UseRouting();
+		app.UseMiddleware<ServerAuthorizationMiddleware>();
 		app.UseEndpoints(endpoints => {
-			endpoints.MapGet("/get-tracking-script", new GetTrackingScriptEndpoint(db, parameters, resources).Handle);
-			endpoints.MapGet("/get-viewer-metadata", new GetViewerMetadataEndpoint(db, viewerSessions).Handle);
-			endpoints.MapGet("/get-viewer-messages", new GetViewerMessagesEndpoint(db, viewerSessions).Handle);
 			endpoints.MapGet("/get-downloaded-file/{url}", new GetDownloadedFileEndpoint(db).Handle);
+			endpoints.MapGet("/get-tracking-script", new GetTrackingScriptEndpoint(parameters, resources).Handle);
+			endpoints.MapGet("/get-userscript/{**ignored}", new GetUserscriptEndpoint(resources).Handle);
+			endpoints.MapGet("/get-viewer-messages", new GetViewerMessagesEndpoint(db, viewerSessions).Handle);
+			endpoints.MapGet("/get-viewer-metadata", new GetViewerMetadataEndpoint(db, viewerSessions).Handle);
+			endpoints.MapGet("/viewer/{**path}", new ViewerEndpoint(resources).Handle);
+			
 			endpoints.MapPost("/track-channel", new TrackChannelEndpoint(db).Handle);
-			endpoints.MapPost("/track-users", new TrackUsersEndpoint(db).Handle);
 			endpoints.MapPost("/track-messages", new TrackMessagesEndpoint(db).Handle);
+			endpoints.MapPost("/track-users", new TrackUsersEndpoint(db).Handle);
 		});
 	}
 }

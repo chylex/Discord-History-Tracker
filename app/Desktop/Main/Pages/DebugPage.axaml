@@ -17,27 +17,26 @@
             <Setter Property="FontSize" Value="15" />
         </Style>
         <Style Selector="Label">
-            <Setter Property="Margin" Value="0 5" />
+            <Setter Property="Margin" Value="0" />
             <Setter Property="Padding" Value="0" />
         </Style>
         <Style Selector="WrapPanel > StackPanel">
             <Setter Property="Orientation" Value="Vertical" />
-            <Setter Property="Margin" Value="0 0 10 10" />
         </Style>
     </UserControl.Styles>
 
     <StackPanel Orientation="Vertical" Spacing="10">
         <Expander Header="Generate Random Data" IsExpanded="True">
-            <WrapPanel>
-                <StackPanel>
+            <WrapPanel ItemSpacing="10" LineSpacing="10">
+                <StackPanel Spacing="8">
                     <Label Target="Channels">Channels</Label>
                     <TextBox x:Name="Channels" Width="100" Text="{Binding GenerateChannels}" />
                 </StackPanel>
-                <StackPanel>
+                <StackPanel Spacing="8">
                     <Label Target="Users">Users</Label>
                     <TextBox x:Name="Users" Width="100" Text="{Binding GenerateUsers}" />
                 </StackPanel>
-                <StackPanel>
+                <StackPanel Spacing="8">
                     <Label Target="Messages">Messages</Label>
                     <TextBox x:Name="Messages" Width="100" Text="{Binding GenerateMessages}" />
                 </StackPanel>

@@ -12,30 +12,28 @@ namespace DHT.Server.Download;
 static class DownloadLinkExtractor {
 	private static readonly Log Log = Log.ForType(typeof(DownloadLinkExtractor));
 	
-	public static Data.Download FromUserAvatar(ulong userId, string avatarPath) {
-		string url = $"https://cdn.discordapp.com/avatars/{userId}/{avatarPath}.webp";
-		return new Data.Download(url, url, DownloadStatus.Pending, MediaTypeNames.Image.Webp, size: null);
+	public static FileUrl? ServerIcon(ServerType? type, ulong id, string iconHash) {
+		return type switch {
+			ServerType.Server => new FileUrl($"https://cdn.discordapp.com/icons/{id}/{iconHash}.webp", MediaTypeNames.Image.Webp),
+			ServerType.Group  => new FileUrl($"https://cdn.discordapp.com/channel-icons/{id}/{iconHash}.webp", MediaTypeNames.Image.Webp),
+			_                 => null,
+		};
 	}
 	
-	public static Data.Download FromEmoji(ulong emojiId, EmojiFlags flags) {
+	public static FileUrl UserAvatar(ulong id, string avatarHash) {
+		return new FileUrl($"https://cdn.discordapp.com/avatars/{id}/{avatarHash}.webp", MediaTypeNames.Image.Webp);
+	}
+	
+	public static FileUrl Emoji(ulong emojiId, EmojiFlags flags) {
 		bool isAnimated = flags.HasFlag(EmojiFlags.Animated);
 		
 		string ext = isAnimated ? "gif" : "webp";
 		string type = isAnimated ? MediaTypeNames.Image.Gif : MediaTypeNames.Image.Webp;
 		
-		string url = $"https://cdn.discordapp.com/emojis/{emojiId}.{ext}";
-		return new Data.Download(url, url, DownloadStatus.Pending, type, size: null);
+		return new FileUrl($"https://cdn.discordapp.com/emojis/{emojiId}.{ext}", type);
 	}
 	
-	public static Data.Download FromAttachment(Attachment attachment) {
-		return FromAttachment(attachment.NormalizedUrl, attachment.DownloadUrl, attachment.Type, attachment.Size);
-	}
-	
-	public static Data.Download FromAttachment(string normalizedUrl, string downloadUrl, string? type, ulong size) {
-		return new Data.Download(normalizedUrl, downloadUrl, DownloadStatus.Pending, type, size);
-	}
-	
-	public static async Task<Data.Download?> TryFromEmbedJson(Stream jsonStream) {
+	public static async Task<FileUrl?> TryFromEmbedJson(Stream jsonStream) {
 		try {
 			return FromEmbed(await JsonSerializer.DeserializeAsync(jsonStream, DiscordEmbedJsonContext.Default.DiscordEmbedJson));
 		} catch (Exception e) {
@@ -44,7 +42,7 @@ static class DownloadLinkExtractor {
 		}
 	}
 	
-	public static Data.Download? TryFromEmbedJson(string json) {
+	public static FileUrl? TryFromEmbedJson(string json) {
 		try {
 			return FromEmbed(JsonSerializer.Deserialize(json, DiscordEmbedJsonContext.Default.DiscordEmbedJson));
 		} catch (Exception e) {
@@ -53,21 +51,17 @@ static class DownloadLinkExtractor {
 		}
 	}
 	
-	private static Data.Download? FromEmbed(DiscordEmbedJson? embed) {
-		if (embed is { Type: "image", Image.Url: {} imageUrl }) {
-			return FromEmbedImage(imageUrl);
-		}
-		else if (embed is { Type: "video", Video.Url: {} videoUrl }) {
-			return FromEmbedVideo(videoUrl);
-		}
-		else {
-			return null;
-		}
+	private static FileUrl? FromEmbed(DiscordEmbedJson? embed) {
+		return embed switch {
+			{ Type: "image", Image.Url: {} imageUrl } => FromEmbedImage(imageUrl),
+			{ Type: "video", Video.Url: {} videoUrl } => FromEmbedVideo(videoUrl),
+			_                                         => null,
+		};
 	}
 	
-	private static Data.Download? FromEmbedImage(string url) {
+	private static FileUrl? FromEmbedImage(string url) {
 		if (DiscordCdn.NormalizeUrlAndReturnIfCdn(url, out string normalizedUrl)) {
-			return new Data.Download(normalizedUrl, url, DownloadStatus.Pending, GuessImageType(normalizedUrl), size: null);
+			return new FileUrl(normalizedUrl, url, GuessImageType(normalizedUrl));
 		}
 		else {
 			Log.Debug("Skipping non-CDN image url: " + url);
@@ -75,9 +69,9 @@ static class DownloadLinkExtractor {
 		}
 	}
 	
-	private static Data.Download? FromEmbedVideo(string url) {
+	private static FileUrl? FromEmbedVideo(string url) {
 		if (DiscordCdn.NormalizeUrlAndReturnIfCdn(url, out string normalizedUrl)) {
-			return new Data.Download(normalizedUrl, url, DownloadStatus.Pending, GuessVideoType(normalizedUrl), size: null);
+			return new FileUrl(normalizedUrl, url, GuessVideoType(normalizedUrl));
 		}
 		else {
 			Log.Debug("Skipping non-CDN video url: " + url);

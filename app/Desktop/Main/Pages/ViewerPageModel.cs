@@ -51,10 +51,9 @@ sealed partial class ViewerPageModel : IDisposable {
 	
 	public async void OnClickOpenViewer() {
 		try {
-			string serverUrl = "http://127.0.0.1:" + ServerConfiguration.Port;
 			string serverToken = ServerConfiguration.Token;
 			string sessionId = state.ViewerSessions.Register(new ViewerSession(FilterModel.CreateFilter())).ToString();
-			SystemUtils.OpenUrl(serverUrl + "/viewer/?token=" + HttpUtility.UrlEncode(serverToken) + "&session=" + HttpUtility.UrlEncode(sessionId));
+			SystemUtils.OpenUrl(ServerConfiguration.HttpHost + "/viewer/?token=" + HttpUtility.UrlEncode(serverToken) + "&session=" + HttpUtility.UrlEncode(sessionId));
 		} catch (Exception e) {
 			await Dialog.ShowOk(window, "Open Viewer", "Could not open viewer: " + e.Message);
 		}

@@ -142,11 +142,19 @@ const STATE = (function() {
 			if (DISCORD.CHANNEL_TYPE.isPrivate(channelInfo.type)) {
 				server.id = channelInfo.id;
 				server.name = channel.name = getPrivateChannelName(channelInfo);
+				
+				if (channelInfo.icon) {
+					server.icon = channelInfo.icon;
+				}
 			}
 			else if (serverInfo) {
 				server.id = serverInfo.id;
 				server.name = serverInfo.name;
 				channel.name = channelInfo.name;
+				
+				if (serverInfo.icon) {
+					server.icon = serverInfo.icon;
+				}
 			}
 			else {
 				return;

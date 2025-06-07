@@ -10,12 +10,12 @@ using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
-sealed class GetDownloadedFileEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
+sealed class GetDownloadedFileEndpoint(IDatabaseFile db) : BaseEndpoint {
 	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
 		string url = WebUtility.UrlDecode((string) request.RouteValues["url"]!);
 		string normalizedUrl = DiscordCdn.NormalizeUrl(url);
 		
-		if (!await Db.Downloads.GetSuccessfulDownloadWithData(normalizedUrl, WriteDataTo(response), cancellationToken)) {
+		if (!await db.Downloads.GetSuccessfulDownloadWithData(normalizedUrl, WriteDataTo(response), cancellationToken)) {
 			response.Redirect(url, permanent: false);
 		}
 	}

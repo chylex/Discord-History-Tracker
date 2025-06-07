@@ -3,12 +3,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:main="clr-namespace:DHT.Desktop.Main"
-        mc:Ignorable="d" d:DesignWidth="510" d:DesignHeight="375"
+        mc:Ignorable="d" d:DesignWidth="510" d:DesignHeight="425"
         x:Class="DHT.Desktop.Main.AboutWindow"
         x:DataType="main:AboutWindowModel"
         Title="About Discord History Tracker"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
-        Width="510" Height="375" CanResize="False"
+        Width="510" Height="425" CanResize="False"
         WindowStartupLocation="CenterOwner">
 
     <Design.DataContext>
@@ -21,7 +21,7 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="Grid > Button">
-            <Setter Property="Margin" Value="0 4" />
+            <Setter Property="Margin" Value="0 3" />
             <Setter Property="Padding" Value="8 4" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>
@@ -35,39 +35,49 @@
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Command="{Binding ShowOfficialWebsite}">Official Website</Button>
-            <Button Command="{Binding ShowIssueTracker}">Issue Tracker</Button>
-            <Button Command="{Binding ShowSourceCode}">Source Code</Button>
+            <Button Command="{Binding OpenOfficialWebsite}">Official Website</Button>
+            <Button Command="{Binding OpenIssueTracker}">Issue Tracker</Button>
+            <Button Command="{Binding OpenSourceCode}">Source Code</Button>
         </StackPanel>
 
-        <Grid RowDefinitions="Auto,5,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*,115,95" Margin="0 10 0 0">
+        <Grid RowDefinitions="Auto,5,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*,115,90" Margin="0 10 0 0">
             <TextBlock Grid.Row="0" Grid.Column="0" FontWeight="Bold">Third-Party Software</TextBlock>
             <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold">License</TextBlock>
             <TextBlock Grid.Row="0" Grid.Column="2" FontWeight="Bold">Link</TextBlock>
 
             <TextBlock Grid.Row="2" Grid.Column="0">.NET</TextBlock>
             <TextBlock Grid.Row="2" Grid.Column="1">MIT</TextBlock>
-            <Button Grid.Row="2" Grid.Column="2" Command="{Binding ShowLibraryNetCore}">GitHub</Button>
+            <Button Grid.Row="2" Grid.Column="2" Command="{Binding OpenThirdPartyNetCore}">GitHub</Button>
 
             <TextBlock Grid.Row="3" Grid.Column="0">Avalonia</TextBlock>
             <TextBlock Grid.Row="3" Grid.Column="1">MIT</TextBlock>
-            <Button Grid.Row="3" Grid.Column="2" Command="{Binding ShowLibraryAvalonia}">GitHub</Button>
+            <Button Grid.Row="3" Grid.Column="2" Command="{Binding OpenThirdPartyAvalonia}">GitHub</Button>
 
             <TextBlock Grid.Row="4" Grid.Column="0">Rx.NET</TextBlock>
             <TextBlock Grid.Row="4" Grid.Column="1">MIT</TextBlock>
-            <Button Grid.Row="4" Grid.Column="2" Command="{Binding ShowLibraryRxNet}">GitHub</Button>
+            <Button Grid.Row="4" Grid.Column="2" Command="{Binding OpenThirdPartyRxNet}">GitHub</Button>
 
             <TextBlock Grid.Row="5" Grid.Column="0">SQLite</TextBlock>
             <TextBlock Grid.Row="5" Grid.Column="1">Public Domain</TextBlock>
-            <Button Grid.Row="5" Grid.Column="2" Command="{Binding ShowLibrarySqlite}">Website</Button>
+            <Button Grid.Row="5" Grid.Column="2" Command="{Binding OpenThirdPartySqlite}">Website</Button>
 
             <TextBlock Grid.Row="6" Grid.Column="0">Microsoft.Data.Sqlite</TextBlock>
             <TextBlock Grid.Row="6" Grid.Column="1">Apache-2.0</TextBlock>
-            <Button Grid.Row="6" Grid.Column="2" Command="{Binding ShowLibrarySqliteAdoNet}">NuGet</Button>
+            <Button Grid.Row="6" Grid.Column="2" Command="{Binding OpenThirdPartyMicrosoftDataSqlite}">NuGet</Button>
 
             <TextBlock Grid.Row="7" Grid.Column="0">PropertyChanged.SourceGenerator</TextBlock>
             <TextBlock Grid.Row="7" Grid.Column="1">MIT</TextBlock>
-            <Button Grid.Row="7" Grid.Column="2" Command="{Binding ShowLibraryPropertyChangedSourceGenerator}">GitHub</Button>
+            <Button Grid.Row="7" Grid.Column="2" Command="{Binding OpenThirdPartyPropertyChangedSourceGenerator}">GitHub</Button>
+        </Grid>
+
+        <Grid RowDefinitions="Auto,5,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*,115,90" Margin="0 5 0 0">
+            <TextBlock Grid.Row="0" Grid.Column="0" FontWeight="Bold">Additional Thanks</TextBlock>
+            <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold">License</TextBlock>
+            <TextBlock Grid.Row="0" Grid.Column="2" FontWeight="Bold">Link</TextBlock>
+
+            <TextBlock Grid.Row="2" Grid.Column="0">BetterDiscord, for Webpack hooks</TextBlock>
+            <TextBlock Grid.Row="2" Grid.Column="1">Apache-2.0</TextBlock>
+            <Button Grid.Row="2" Grid.Column="2" Command="{Binding OpenThirdPartyBetterDiscord}">GitHub</Button>
         </Grid>
 
     </StackPanel>

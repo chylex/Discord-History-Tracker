@@ -1,4 +1,6 @@
+using System;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using DHT.Utils.Logging;
 using Microsoft.AspNetCore.Http;
@@ -6,30 +8,26 @@ using Microsoft.Extensions.Primitives;
 
 namespace DHT.Server.Service.Middlewares;
 
-sealed class ServerAuthorizationMiddleware {
+sealed class ServerAuthorizationMiddleware(RequestDelegate next, ServerParameters serverParameters) {
 	private static readonly Log Log = Log.ForType<ServerAuthorizationMiddleware>();
 	
-	private readonly RequestDelegate next;
-	private readonly ServerParameters serverParameters;
-	
-	public ServerAuthorizationMiddleware(RequestDelegate next, ServerParameters serverParameters) {
-		this.next = next;
-		this.serverParameters = serverParameters;
-	}
-	
 	public async Task InvokeAsync(HttpContext context) {
-		HttpRequest request = context.Request;
-		
-		bool success = HttpMethods.IsGet(request.Method)
-			               ? CheckToken(request.Query["token"])
-			               : CheckToken(request.Headers["X-DHT-Token"]);
-		
-		if (success) {
+		if (SkipAuthorization(context) || CheckToken(context.Request)) {
 			await next(context);
 		}
 		else {
 			context.Response.StatusCode = (int) HttpStatusCode.Forbidden;
 		}
+	}
+	
+	private static bool SkipAuthorization(HttpContext context) {
+		return context.GetEndpoint()?.RequestDelegate?.Target?.GetType().GetCustomAttribute<NoAuthorization>() != null;
+	}
+	
+	private bool CheckToken(HttpRequest request) {
+		return HttpMethods.IsGet(request.Method)
+			       ? CheckToken(request.Query["token"])
+			       : CheckToken(request.Headers["X-DHT-Token"]);
 	}
 	
 	private bool CheckToken(StringValues token) {
@@ -41,4 +39,7 @@ sealed class ServerAuthorizationMiddleware {
 			return false;
 		}
 	}
+	
+	[AttributeUsage(AttributeTargets.Class)]
+	public sealed class NoAuthorization : Attribute;
 }

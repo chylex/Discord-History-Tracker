@@ -5,22 +5,13 @@ using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Database.Repositories;
 using DHT.Server.Database.Sqlite.Utils;
-using DHT.Server.Download;
 using DHT.Utils.Logging;
 using Microsoft.Data.Sqlite;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
-sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
+sealed class SqliteUserRepository(SqliteConnectionPool pool, SqliteDownloadRepository downloads) : BaseSqliteRepository(Log), IUserRepository {
 	private static readonly Log Log = Log.ForType<SqliteUserRepository>();
-	
-	private readonly SqliteConnectionPool pool;
-	private readonly SqliteDownloadRepository downloads;
-	
-	public SqliteUserRepository(SqliteConnectionPool pool, SqliteDownloadRepository downloads) : base(Log) {
-		this.pool = pool;
-		this.downloads = downloads;
-	}
 	
 	public async Task Add(IReadOnlyList<User> users) {
 		await using (var conn = await pool.Take()) {
@@ -40,13 +31,10 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 				cmd.Set(":id", user.Id);
 				cmd.Set(":name", user.Name);
 				cmd.Set(":display_name", user.DisplayName);
-				cmd.Set(":avatar_url", user.AvatarUrl);
+				cmd.Set(":avatar_url", user.AvatarHash);
 				cmd.Set(":discriminator", user.Discriminator);
 				await cmd.ExecuteNonQueryAsync();
-				
-				if (user.AvatarUrl is {} avatarUrl) {
-					await downloadCollector.Add(DownloadLinkExtractor.FromUserAvatar(user.Id, avatarUrl));
-				}
+				await downloadCollector.AddIfNotNull(user.AvatarUrl?.ToPendingDownload());
 			}
 			
 			await conn.CommitTransactionAsync();
@@ -72,7 +60,7 @@ sealed class SqliteUserRepository : BaseSqliteRepository, IUserRepository {
 				Id = reader.GetUint64(0),
 				Name = reader.GetString(1),
 				DisplayName = reader.IsDBNull(2) ? null : reader.GetString(2),
-				AvatarUrl = reader.IsDBNull(3) ? null : reader.GetString(3),
+				AvatarHash = reader.IsDBNull(3) ? null : reader.GetString(3),
 				Discriminator = reader.IsDBNull(4) ? null : reader.GetString(4),
 			};
 		}

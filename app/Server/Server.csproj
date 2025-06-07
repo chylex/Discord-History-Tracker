@@ -29,6 +29,11 @@
       <Link>Resources/Tracker/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <Visible>false</Visible>
     </EmbeddedResource>
+    <EmbeddedResource Include="../Resources/Tracker/loader/**">
+      <LogicalName>Tracker\loader\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+      <Link>Resources/Tracker/loader/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
+    </EmbeddedResource>
     <EmbeddedResource Include="../Resources/Tracker/scripts/**">
       <LogicalName>Tracker\scripts\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
       <Link>Resources/Tracker/scripts/%(RecursiveDir)%(Filename)%(Extension)</Link>

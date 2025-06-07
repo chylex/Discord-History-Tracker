@@ -66,16 +66,16 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		downloads = new SqliteDownloadRepository(pool);
 		settings = new SqliteSettingsRepository(pool);
 		users = new SqliteUserRepository(pool, downloads);
-		servers = new SqliteServerRepository(pool);
+		servers = new SqliteServerRepository(pool, downloads);
 		channels = new SqliteChannelRepository(pool);
 		messages = new SqliteMessageRepository(pool, downloads);
 	}
 	
 	public async ValueTask DisposeAsync() {
-		users.Dispose();
-		servers.Dispose();
-		channels.Dispose();
 		messages.Dispose();
+		channels.Dispose();
+		servers.Dispose();
+		users.Dispose();
 		downloads.Dispose();
 		await pool.DisposeAsync();
 	}

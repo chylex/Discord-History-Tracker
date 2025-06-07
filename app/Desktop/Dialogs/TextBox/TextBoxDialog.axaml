@@ -34,7 +34,7 @@
             </StackPanel>
         </ScrollViewer>
         <Panel Classes="buttons">
-            <WrapPanel Classes="right">
+            <WrapPanel HorizontalAlignment="Right">
                 <Button Click="ClickOk" IsEnabled="{Binding !HasErrors}">OK</Button>
                 <Button Click="ClickCancel">Cancel</Button>
             </WrapPanel>

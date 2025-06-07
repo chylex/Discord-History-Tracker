@@ -90,7 +90,7 @@ static class ViewerJsonExport {
 			users[user.Id] = new ViewerJson.JsonUser {
 				Name = user.Name,
 				DisplayName = user.DisplayName,
-				Avatar = user.AvatarUrl,
+				Avatar = user.AvatarHash,
 			};
 		}
 		
@@ -108,6 +108,7 @@ static class ViewerJsonExport {
 			servers[server.Id] = new ViewerJson.JsonServer {
 				Name = server.Name,
 				Type = ServerTypes.ToJsonViewerString(server.Type),
+				IconUrl = server.IconUrl?.DownloadUrl,
 			};
 		}
 		

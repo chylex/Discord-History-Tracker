@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
-sealed class TrackMessagesEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
+sealed class TrackMessagesEndpoint(IDatabaseFile db) : BaseEndpoint {
 	private const string HasNewMessages = "1";
 	private const string NoNewMessages = "0";
 	
@@ -38,9 +38,9 @@ sealed class TrackMessagesEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
 		}
 		
 		var addedMessageFilter = new MessageFilter { MessageIds = addedMessageIds };
-		bool anyNewMessages = await Db.Messages.Count(addedMessageFilter, CancellationToken.None) < addedMessageIds.Count;
+		bool anyNewMessages = await db.Messages.Count(addedMessageFilter, CancellationToken.None) < addedMessageIds.Count;
 		
-		await Db.Messages.Add(messages);
+		await db.Messages.Add(messages);
 		
 		await response.WriteTextAsync(anyNewMessages ? HasNewMessages : NoNewMessages, cancellationToken);
 	}

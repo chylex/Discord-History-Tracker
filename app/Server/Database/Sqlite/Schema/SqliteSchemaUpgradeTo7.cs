@@ -124,7 +124,7 @@ sealed class SqliteSchemaUpgradeTo7 : ISchemaUpgrade {
 			await using var reader = await embedCmd.ExecuteReaderAsync();
 			
 			while (await reader.ReadAsync()) {
-				await InsertDownload(insertCmd, await DownloadLinkExtractor.TryFromEmbedJson(reader.GetStream(0)));
+				await InsertDownload(insertCmd, (await DownloadLinkExtractor.TryFromEmbedJson(reader.GetStream(0)))?.ToPendingDownload());
 			}
 		}
 		
@@ -134,7 +134,7 @@ sealed class SqliteSchemaUpgradeTo7 : ISchemaUpgrade {
 			await using var reader = await avatarCmd.ExecuteReaderAsync();
 			
 			while (await reader.ReadAsync()) {
-				await InsertDownload(insertCmd, DownloadLinkExtractor.FromUserAvatar(reader.GetUint64(0), reader.GetString(1)));
+				await InsertDownload(insertCmd, DownloadLinkExtractor.UserAvatar(reader.GetUint64(0), reader.GetString(1)).ToPendingDownload());
 			}
 		}
 		
@@ -144,7 +144,7 @@ sealed class SqliteSchemaUpgradeTo7 : ISchemaUpgrade {
 			await using var reader = await avatarCmd.ExecuteReaderAsync();
 			
 			while (await reader.ReadAsync()) {
-				await InsertDownload(insertCmd, DownloadLinkExtractor.FromEmoji(reader.GetUint64(0), (EmojiFlags) reader.GetInt16(1)));
+				await InsertDownload(insertCmd, DownloadLinkExtractor.Emoji(reader.GetUint64(0), (EmojiFlags) reader.GetInt16(1)).ToPendingDownload());
 			}
 		}
 		

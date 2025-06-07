@@ -180,8 +180,8 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 				HashSet<string> reachableNormalizedUrls = [];
 				HashSet<string> orphanedNormalizedUrls = [];
 				
-				await foreach (Download download in state.Db.Downloads.FindAllDownloadableUrls()) {
-					reachableNormalizedUrls.Add(download.NormalizedUrl);
+				await foreach (FileUrl fileUrl in state.Db.Downloads.FindReachableFiles()) {
+					reachableNormalizedUrls.Add(fileUrl.NormalizedUrl);
 				}
 				
 				await foreach (Download download in state.Db.Downloads.Get()) {
