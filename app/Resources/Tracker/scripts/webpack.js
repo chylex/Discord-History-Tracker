@@ -88,7 +88,7 @@ class WEBPACK {
 			return modules[0];
 		}
 		
-		console.error("[DHT] Cannot find module " + name + ", results found:", modules.length);
+		console.error("[DHT] Cannot find module " + name + ", results found:", modules.length, modules);
 		return null;
 	}
 	

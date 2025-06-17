@@ -67,7 +67,7 @@ class DISCORD {
 	/**
 	 * @type {function(String): MessageData}
 	 */
-	static #getMessages = WEBPACK.findFunction("getMessages");
+	static #getMessages = WEBPACK.findFunction("getMessages", [ "isLoadingMessages" ]);
 	
 	/**
 	 * @type {function(String): void}
