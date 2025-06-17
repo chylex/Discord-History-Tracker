@@ -92,7 +92,12 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 		await FilterModel.Initialize();
 		
 		if (await state.Db.Settings.Get(SettingsKey.DownloadsAutoStart, defaultValue: false)) {
-			await StartDownload();
+			try {
+				await StartDownload();
+			} catch (Exception e) {
+				Log.Error("Could not automatically start downloads.", e);
+				await Dialog.ShowOk(window, "Database Error", "Could not automatically start downloads: " + e.Message);
+			}
 		}
 	}
 	
@@ -111,23 +116,43 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 	
 	public async Task OnClickToggleDownload() {
 		IsToggleDownloadButtonEnabled = false;
-		
-		if (IsDownloading) {
-			await StopDownload();
+		try {
+			if (IsDownloading) {
+				await StopDownload();
+			}
+			else {
+				try {
+					await StartDownload();
+				} catch (Exception e) {
+					Log.Error("Could not start downloads.", e);
+					await Dialog.ShowOk(window, "Database Error", "Could not start downloads: " + e.Message);
+					return;
+				}
+			}
+			
+			try {
+				await state.Db.Settings.Set(SettingsKey.DownloadsAutoStart, IsDownloading);
+			} catch (Exception e) {
+				Log.Error("Could not update auto-start setting in database.", e);
+			}
+		} finally {
+			IsToggleDownloadButtonEnabled = true;
 		}
-		else {
-			await StartDownload();
-		}
-		
-		await state.Db.Settings.Set(SettingsKey.DownloadsAutoStart, IsDownloading);
-		IsToggleDownloadButtonEnabled = true;
 	}
 	
 	private async Task StartDownload() {
 		await state.Db.Downloads.MoveDownloadingItemsBackToQueue();
 		
-		IObservable<DownloadItem> finishedItems = await state.Downloader.Start(currentDownloadFilter = FilterModel.CreateFilter());
-		finishedItemsSubscription = finishedItems.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnItemFinished);
+		try {
+			currentDownloadFilter = FilterModel.CreateFilter();
+			IObservable<DownloadItem> finishedItems = await state.Downloader.Start(currentDownloadFilter);
+			finishedItemsSubscription = finishedItems.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnItemFinished);
+		} catch (Exception) {
+			finishedItemsSubscription?.Dispose();
+			finishedItemsSubscription = null;
+			currentDownloadFilter = null;
+			throw;
+		}
 		
 		OnDownloadStateChanged();
 	}
@@ -138,8 +163,8 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 		
 		finishedItemsSubscription?.Dispose();
 		finishedItemsSubscription = null;
-		
 		currentDownloadFilter = null;
+		
 		OnDownloadStateChanged();
 	}
 	
@@ -155,12 +180,12 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 	
 	public async Task OnClickRetryFailed() {
 		IsRetryingFailedDownloads = true;
-		
 		try {
 			await state.Db.Downloads.RetryFailed();
 			RecomputeDownloadStatistics();
 		} catch (Exception e) {
 			Log.Error("Could not retry failed downloads.", e);
+			await Dialog.ShowOk(window, "Retry Failed", "Could not retry failed downloads: " + e.Message);
 		} finally {
 			IsRetryingFailedDownloads = false;
 		}
