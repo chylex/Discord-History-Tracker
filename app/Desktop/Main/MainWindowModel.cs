@@ -89,7 +89,7 @@ sealed partial class MainWindowModel : IAsyncDisposable {
 		try {
 			await state.Server.Start(ServerConfiguration.Port, ServerConfiguration.Token);
 		} catch (Exception ex) {
-			Log.Error(ex);
+			Log.Error("Could not start internal server.", ex);
 			await Dialog.ShowOk(window, "Internal Server Error", ex.Message);
 		}
 		

@@ -84,7 +84,7 @@ sealed class DatabasePageModel {
 		try {
 			result = await ProgressDialog.Show(window, Title, async (dialog, callback) => await MergeWithDatabaseFromPaths(Db, paths, dialog, callback));
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not merge databases.", e);
 			await Dialog.ShowOk(window, Title, "Could not merge databases: " + e.Message);
 			return;
 		}
@@ -160,7 +160,7 @@ sealed class DatabasePageModel {
 		try {
 			result = await ProgressDialog.Show(window, Title, async (dialog, callback) => await ImportLegacyArchiveFromPaths(Db, paths, dialog, callback));
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not import legacy archives.", e);
 			await Dialog.ShowOk(window, Title, "Could not import legacy archives: " + e.Message);
 			return;
 		}
@@ -236,7 +236,7 @@ sealed class DatabasePageModel {
 					++successful;
 				}
 			} catch (Exception ex) {
-				Log.Error(ex);
+				Log.Error("Could not import file: " + path, ex);
 				await Dialog.ShowOk(dialog, dialogTitle, "File '" + Path.GetFileName(path) + "' could not be imported: " + ex.Message);
 			}
 		}
@@ -302,7 +302,7 @@ sealed class DatabasePageModel {
 		try {
 			await ProgressDialog.ShowIndeterminate(window, Title, "Vacuuming database...", _ => Db.Vacuum());
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not vacuum database.", e);
 			await Dialog.ShowOk(window, Title, "Could not vacuum database: " + e.Message);
 			return;
 		}

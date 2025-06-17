@@ -33,7 +33,7 @@ abstract class BaseEndpoint {
 				await response.WriteAsync(e.Message);
 			}
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not handle request.", e);
 			response.StatusCode = (int) HttpStatusCode.InternalServerError;
 		}
 	}

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -94,12 +95,10 @@ sealed class DownloaderTask : IAsyncDisposable {
 			} catch (TaskCanceledException e) when (e.InnerException is TimeoutException) {
 				await db.Downloads.AddDownload(item.ToFailure(), stream: null);
 				log.Error("Download timed out: " + item.DownloadUrl);
-			} catch (HttpRequestException e) {
-				await db.Downloads.AddDownload(item.ToFailure(e.StatusCode), stream: null);
-				log.Error(e);
 			} catch (Exception e) {
-				await db.Downloads.AddDownload(item.ToFailure(), stream: null);
-				log.Error(e);
+				HttpStatusCode? statusCode = e is HttpRequestException hre ? hre.StatusCode : null;
+				await db.Downloads.AddDownload(item.ToFailure(statusCode), stream: null);
+				log.Error("Could not download file: " + item.DownloadUrl, e);
 			} finally {
 				try {
 					finishedItemPublisher.OnNext(item);

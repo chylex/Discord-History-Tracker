@@ -69,7 +69,7 @@ sealed class Arguments {
 						Log.Warn("Invalid concurrent downloads count: " + value);
 					}
 					else if (concurrentDownloads > 10) {
-						Log.Warn("Limiting concurrent downloads to 10");
+						Log.Warn("Limiting concurrent downloads to 10.");
 						ConcurrentDownloads = 10;
 					}
 					else {

@@ -95,7 +95,7 @@ public sealed partial class DownloadExporter(IDatabaseFile db, string folderPath
 				} catch (FileAlreadyExistsException) {
 					success = false;
 				} catch (Exception e) {
-					Log.Error(e);
+					Log.Error("Could not export downloaded file: " + download.NormalizedUrl, e);
 					success = false;
 				}
 				

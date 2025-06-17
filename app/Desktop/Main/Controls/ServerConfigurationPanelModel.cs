@@ -62,7 +62,7 @@ sealed partial class ServerConfigurationPanelModel : IDisposable {
 		try {
 			await server.Start(ServerConfiguration.Port, ServerConfiguration.Token);
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not start internal server.", e);
 			await Dialog.ShowOk(window, "Internal Server Error", e.Message);
 		}
 		
@@ -76,7 +76,7 @@ sealed partial class ServerConfigurationPanelModel : IDisposable {
 		try {
 			await server.Stop();
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not stop internal server.", e);
 			await Dialog.ShowOk(window, "Internal Server Error", e.Message);
 		}
 		

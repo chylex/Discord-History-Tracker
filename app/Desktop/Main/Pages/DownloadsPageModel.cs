@@ -160,7 +160,7 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 			await state.Db.Downloads.RetryFailed();
 			RecomputeDownloadStatistics();
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not retry failed downloads.", e);
 		} finally {
 			IsRetryingFailedDownloads = false;
 		}
@@ -212,7 +212,7 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 				await state.Db.Vacuum();
 			});
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not delete orphaned downloads.", e);
 			await Dialog.ShowOk(window, Title, "Could not delete orphaned downloads: " + e.Message);
 		}
 	}
@@ -239,7 +239,7 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 				return await exporter.Export(new ExportProgressReporter(callback));
 			});
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not export downloaded files.", e);
 			await Dialog.ShowOk(window, Title, "Could not export downloaded files: " + e.Message);
 			return;
 		}
