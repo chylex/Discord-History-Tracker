@@ -80,6 +80,11 @@ public sealed class SqliteDatabaseFile : IDatabaseFile {
 		await pool.DisposeAsync();
 	}
 	
+	public async Task<string?> GetVersion() {
+		await using var conn = await pool.Take();
+		return await conn.ExecuteReaderAsync("SELECT sqlite_version()", static reader => reader?.GetString(0));
+	}
+	
 	public async Task Vacuum() {
 		await using var conn = await pool.Take();
 		

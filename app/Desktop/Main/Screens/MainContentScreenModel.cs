@@ -70,6 +70,10 @@ sealed class MainContentScreenModel : IAsyncDisposable {
 	
 	public async Task Initialize() {
 		await DownloadsPageModel.Initialize();
+		
+		#if DEBUG
+		await DebugPageModel.Initialize();
+		#endif
 	}
 	
 	public async ValueTask DisposeAsync() {
