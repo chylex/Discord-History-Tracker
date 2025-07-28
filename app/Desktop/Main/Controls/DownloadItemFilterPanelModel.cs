@@ -109,8 +109,7 @@ sealed partial class DownloadItemFilterPanelModel : IAsyncDisposable {
 				await setter.Set(SettingsKey.DownloadsMaximumSizeUnit, settings.MaximumSizeUnit.Name);
 			});
 		} catch (Exception e) {
-			Log.Error("Could not save download filter settings");
-			Log.Error(e);
+			Log.Error("Could not save download filter settings.", e);
 		}
 	}
 	

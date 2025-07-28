@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using PropertyChanged.SourceGenerator;
@@ -8,64 +9,65 @@ namespace DHT.Desktop.Dialogs.CheckBox;
 partial class CheckBoxDialogModel {
 	public string Title { get; init; } = "";
 	
-	private IReadOnlyList<CheckBoxItem> items = [];
+	private ImmutableArray<ICheckBoxItem> rootItems = [];
 	
-	public IReadOnlyList<CheckBoxItem> Items {
-		get => items;
+	public ImmutableArray<ICheckBoxItem> RootItems {
+		get => rootItems;
 		
 		protected set {
-			foreach (CheckBoxItem item in items) {
+			foreach (ICheckBoxItem item in ICheckBoxItem.GetAllRecursively(rootItems)) {
 				item.PropertyChanged -= OnItemPropertyChanged;
 			}
 			
-			items = value;
+			rootItems = value;
 			
-			foreach (CheckBoxItem item in items) {
+			foreach (ICheckBoxItem item in ICheckBoxItem.GetAllRecursively(rootItems)) {
 				item.PropertyChanged += OnItemPropertyChanged;
 			}
 		}
 	}
 	
-	private bool pauseCheckEvents = false;
+	protected IEnumerable<ICheckBoxItem> AllItems => ICheckBoxItem.GetAllRecursively(RootItems);
 	
-	[DependsOn(nameof(Items))]
-	public bool AreAllSelected => Items.All(static item => item.IsChecked);
+	[DependsOn(nameof(RootItems))]
+	public bool AreAllSelected => RootItems.All(static item => item.IsChecked == true);
 	
-	[DependsOn(nameof(Items))]
-	public bool AreNoneSelected => Items.All(static item => !item.IsChecked);
+	[DependsOn(nameof(RootItems))]
+	public bool AreNoneSelected => RootItems.All(static item => item.IsChecked == false);
+	
+	private bool pauseUpdatingBulkButtons = false;
 	
 	public void SelectAll() => SetAllChecked(true);
 	public void SelectNone() => SetAllChecked(false);
 	
 	private void SetAllChecked(bool isChecked) {
-		pauseCheckEvents = true;
+		pauseUpdatingBulkButtons = true;
 		
-		foreach (CheckBoxItem item in Items) {
+		foreach (ICheckBoxItem item in RootItems) {
 			item.IsChecked = isChecked;
 		}
 		
-		pauseCheckEvents = false;
+		pauseUpdatingBulkButtons = false;
 		UpdateBulkButtons();
 	}
 	
-	private void UpdateBulkButtons() {
-		OnPropertyChanged(new PropertyChangedEventArgs(nameof(Items)));
-	}
-	
 	private void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e) {
-		if (!pauseCheckEvents && e.PropertyName == nameof(CheckBoxItem.IsChecked)) {
+		if (e.PropertyName == nameof(ICheckBoxItem.IsChecked) && !pauseUpdatingBulkButtons) {
 			UpdateBulkButtons();
 		}
+	}
+	
+	private void UpdateBulkButtons() {
+		OnPropertyChanged(new PropertyChangedEventArgs(nameof(RootItems)));
 	}
 }
 
 sealed class CheckBoxDialogModel<T> : CheckBoxDialogModel {
-	private new IReadOnlyList<CheckBoxItem<T>> Items { get; }
+	public IEnumerable<T> SelectedValues => AllItems.OfType<ICheckBoxItem.Leaf<T>>()
+	                                                .Where(static item => item.IsChecked == true)
+	                                                .Select(static item => item.Value);
 	
-	public IEnumerable<CheckBoxItem<T>> SelectedItems => Items.Where(static item => item.IsChecked);
-	
-	public CheckBoxDialogModel(IEnumerable<CheckBoxItem<T>> items) {
-		this.Items = new List<CheckBoxItem<T>>(items);
-		base.Items = Items;
+	public CheckBoxDialogModel(ImmutableArray<ICheckBoxItem> items) {
+		this.RootItems = items;
 	}
 }

@@ -9,13 +9,17 @@ using DHT.Desktop.Dialogs.Progress;
 using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Service;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed class DebugPageModel {
+sealed partial class DebugPageModel {
 	public string GenerateChannels { get; set; } = "0";
 	public string GenerateUsers { get; set; } = "0";
 	public string GenerateMessages { get; set; } = "0";
+	
+	[Notify(Setter.Private)]
+	private string? sqliteVersion = string.Empty;
 	
 	private readonly Window window;
 	private readonly State state;
@@ -26,6 +30,10 @@ sealed class DebugPageModel {
 	public DebugPageModel(Window window, State state) {
 		this.window = window;
 		this.state = state;
+	}
+	
+	public async Task Initialize() {
+		SqliteVersion = await state.Db.GetVersion() ?? "<unknown>";
 	}
 	
 	public async void OnClickAddRandomDataToDatabase() {
@@ -169,6 +177,8 @@ sealed class DebugPageModel {
 	public string GenerateUsers { get; set; } = "0";
 	public string GenerateMessages { get; set; } = "0";
 
+	public string SqliteVersion => string.Empty;
+	
 	public void OnClickAddRandomDataToDatabase() {}
 }
 #endif

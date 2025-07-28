@@ -89,14 +89,21 @@ sealed partial class MainWindowModel : IAsyncDisposable {
 		try {
 			await state.Server.Start(ServerConfiguration.Port, ServerConfiguration.Token);
 		} catch (Exception ex) {
-			Log.Error(ex);
+			Log.Error("Could not start internal server.", ex);
 			await Dialog.ShowOk(window, "Internal Server Error", ex.Message);
 		}
 		
-		mainContentScreenModel = new MainContentScreenModel(window, state);
-		mainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
-		
-		await mainContentScreenModel.Initialize();
+		try {
+			mainContentScreenModel = new MainContentScreenModel(window, state);
+			mainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
+			await mainContentScreenModel.Initialize();
+		} catch (Exception ex) {
+			Log.Error("Could not initialize content screen.", ex);
+			await Dialog.ShowOk(window, "Initialization Error", ex.Message);
+			await DisposeContent();
+			await DisposeState();
+			return;
+		}
 		
 		Title = Path.GetFileName(state.Db.Path) + " - " + DefaultTitle;
 		CurrentScreen = new MainContentScreen { DataContext = mainContentScreenModel };

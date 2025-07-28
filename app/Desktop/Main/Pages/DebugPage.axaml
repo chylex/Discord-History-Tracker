@@ -45,5 +45,8 @@
                 </StackPanel>
             </WrapPanel>
         </Expander>
+        <Expander Header="About" IsExpanded="True">
+            <TextBlock Text="{Binding SqliteVersion, StringFormat=Sqlite Version: {0}}" />
+        </Expander>
     </StackPanel>
 </UserControl>

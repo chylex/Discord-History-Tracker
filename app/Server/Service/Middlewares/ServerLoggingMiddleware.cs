@@ -30,11 +30,11 @@ sealed class ServerLoggingMiddleware(RequestDelegate next) {
 		long elapsedMs = stopwatch.ElapsedMilliseconds;
 		
 		if (context.RequestAborted.IsCancellationRequested) {
-			Log.Debug("Request to " + request.GetEncodedPathAndQuery() + " (" + requestLength + " B) was cancelled after " + elapsedMs + " ms");
+			Log.Debug("Request to " + request.GetEncodedPathAndQuery() + " (" + requestLength + " B) was cancelled after " + elapsedMs + " ms.");
 		}
 		else {
 			int responseStatus = context.Response.StatusCode;
-			Log.Debug("Request to " + request.GetEncodedPathAndQuery() + " (" + requestLength + " B) returned " + responseStatus + ", took " + elapsedMs + " ms");
+			Log.Debug("Request to " + request.GetEncodedPathAndQuery() + " (" + requestLength + " B) returned " + responseStatus + ", took " + elapsedMs + " ms.");
 		}
 	}
 }

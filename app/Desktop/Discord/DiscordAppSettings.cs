@@ -42,8 +42,7 @@ static class DiscordAppSettings {
 			JsonObject settingsJson = await ReadSettingsJson();
 			return AreDevToolsEnabled(settingsJson);
 		} catch (Exception e) {
-			Log.Error("Cannot read settings file.");
-			Log.Error(e);
+			Log.Error("Could not read settings file.", e);
 			return null;
 		}
 	}
@@ -62,7 +61,7 @@ static class DiscordAppSettings {
 		} catch (JsonException) {
 			return SettingsJsonResult.InvalidJson;
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not read settings file.", e);
 			return SettingsJsonResult.ReadError;
 		}
 		
@@ -84,16 +83,14 @@ static class DiscordAppSettings {
 			
 			await WriteSettingsJson(json);
 		} catch (Exception e) {
-			Log.Error("An error occurred when writing settings file.");
-			Log.Error(e);
+			Log.Error("Could not write settings file.", e);
 			
 			if (File.Exists(JsonBackupFilePath)) {
 				try {
 					File.Move(JsonBackupFilePath, JsonFilePath, overwrite: true);
 					Log.Info("Restored settings file from backup.");
 				} catch (Exception e2) {
-					Log.Error("Cannot restore settings file from backup.");
-					Log.Error(e2);
+					Log.Error("Could not restore settings file from backup.", e2);
 				}
 			}
 			
@@ -103,8 +100,7 @@ static class DiscordAppSettings {
 		try {
 			File.Delete(JsonBackupFilePath);
 		} catch (Exception e) {
-			Log.Error("Cannot delete backup file.");
-			Log.Error(e);
+			Log.Error("Could not delete backup file.", e);
 		}
 		
 		return SettingsJsonResult.Success;

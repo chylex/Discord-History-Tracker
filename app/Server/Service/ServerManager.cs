@@ -88,7 +88,7 @@ public sealed class ServerManager {
 			throw;
 		}
 		
-		Log.Info("Server started");
+		Log.Info("Server started.");
 		
 		server = newServer;
 		
@@ -104,7 +104,7 @@ public sealed class ServerManager {
 		
 		Log.Info("Stopping server...");
 		await server.StopAsync();
-		Log.Info("Server stopped");
+		Log.Info("Server stopped.");
 		
 		server.Dispose();
 		server = null;

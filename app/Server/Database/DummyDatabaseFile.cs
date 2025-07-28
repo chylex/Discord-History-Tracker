@@ -19,6 +19,10 @@ sealed class DummyDatabaseFile : IDatabaseFile {
 	
 	private DummyDatabaseFile() {}
 	
+	public Task<string?> GetVersion() {
+		return Task.FromResult<string?>(null);
+	}
+	
 	public Task Vacuum() {
 		return Task.CompletedTask;
 	}

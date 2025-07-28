@@ -75,7 +75,7 @@ sealed partial class ViewerPageModel : IDisposable {
 				}
 			}
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not apply filters.", e);
 			await Dialog.ShowOk(window, "Apply Filters", "Could not apply filters: " + e.Message);
 		}
 	}

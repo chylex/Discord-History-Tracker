@@ -131,7 +131,7 @@ sealed partial class WelcomeScreenModel {
 			await Dialog.ShowOk(window, "Check Updates", "Request timed out.");
 			return;
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not check for updates.", e);
 			await Dialog.ShowOk(window, "Check Updates", "Error checking for updates: " + e.Message);
 			return;
 		}

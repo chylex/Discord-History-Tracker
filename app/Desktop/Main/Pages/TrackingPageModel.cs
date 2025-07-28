@@ -146,7 +146,7 @@ sealed partial class TrackingPageModel {
 			await clipboard.SetTextAsync(script);
 			return true;
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not copy to clipboard.", e);
 			await Dialog.ShowOk(window, errorDialogTitle, "An error occurred while copying to clipboard.");
 			return false;
 		}
