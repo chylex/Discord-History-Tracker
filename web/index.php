@@ -70,9 +70,9 @@ define('LATEST_VERSION', $version === false ? '_' : $version);
       
       <h2>External Links</h2>
       <p class="links">
-        <a href="https://github.com/chylex/Discord-History-Tracker/issues">Issues&nbsp;&amp;&nbsp;Suggestions</a>&nbsp;&nbsp;&mdash;&nbsp;
-        <a href="https://github.com/chylex/Discord-History-Tracker">Source&nbsp;Code</a>&nbsp;&nbsp;&mdash;&nbsp;
-        <a href="https://twitter.com/chylexmc">Follow&nbsp;Dev&nbsp;on&nbsp;Twitter</a>&nbsp;&nbsp;&mdash;&nbsp;
+        <a href="https://github.com/chylex/Discord-History-Tracker/issues">Issues&nbsp;&amp;&nbsp;Suggestions</a>&nbsp;&nbsp;&bullet;&nbsp;
+        <a href="https://github.com/chylex/Discord-History-Tracker">Source&nbsp;Code</a>&nbsp;&nbsp;&bullet;&nbsp;
+        <a href="https://chylex.com">Developer's&nbsp;Website</a>&nbsp;&nbsp;&bullet;&nbsp;
         <a href="https://ko-fi.com/chylex">Support&nbsp;via&nbsp;Ko-fi</a>
       </p>
       
