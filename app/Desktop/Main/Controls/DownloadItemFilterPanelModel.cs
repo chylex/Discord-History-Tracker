@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.ReactiveUI;
 using DHT.Desktop.Common;
 using DHT.Server;
 using DHT.Server.Data.Filters;
@@ -49,7 +47,7 @@ sealed partial class DownloadItemFilterPanelModel : IAsyncDisposable {
 	private readonly State state;
 	private readonly string verb;
 	
-	private readonly DelayedThrottledTask<FilterSettings> saveFilterSettingsTask;
+	private readonly ThrottledTask<FilterSettings> saveFilterSettingsTask;
 	private bool isLoadingFilterSettings;
 	
 	private readonly RestartableTask<long> downloadItemCountTask;
@@ -65,10 +63,10 @@ sealed partial class DownloadItemFilterPanelModel : IAsyncDisposable {
 		this.state = state;
 		this.verb = verb;
 		
-		this.saveFilterSettingsTask = new DelayedThrottledTask<FilterSettings>(Log, TimeSpan.FromSeconds(5), SaveFilterSettings);
+		this.saveFilterSettingsTask = new ThrottledTask<FilterSettings>(Log, SaveFilterSettings, TimeSpan.FromSeconds(5), TaskScheduler.Default);
 		
 		this.downloadItemCountTask = new RestartableTask<long>(SetMatchingCount, TaskScheduler.FromCurrentSynchronizationContext());
-		this.downloadItemCountSubscription = state.Db.Downloads.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnDownloadItemCountChanged);
+		this.downloadItemCountSubscription = state.Db.Downloads.TotalCount.SubscribeLastOnUI(OnDownloadItemCountChanged, TimeSpan.FromMilliseconds(15));
 		
 		UpdateFilterStatistics();
 		

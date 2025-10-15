@@ -4,13 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
 using DHT.Utils.Logging;
+using DHT.Utils.Observables;
 using DHT.Utils.Tasks;
 
 namespace DHT.Server.Download;
@@ -38,12 +38,11 @@ sealed class DownloaderTask : IAsyncDisposable {
 	
 	private readonly IDatabaseFile db;
 	private readonly DownloadItemFilter filter;
-	private readonly ISubject<DownloadItem> finishedItemPublisher = Subject.Synchronize(new Subject<DownloadItem>());
 	
 	private readonly Task queueWriterTask;
 	private readonly Task[] downloadTasks;
 	
-	public IObservable<DownloadItem> FinishedItems => finishedItemPublisher;
+	public ObservableValue<DownloadItem> LastFinishedItem { get; } = new (null);
 	
 	internal DownloaderTask(IDatabaseFile db, DownloadItemFilter filter, int? concurrentDownloads) {
 		this.db = db;
@@ -101,7 +100,7 @@ sealed class DownloaderTask : IAsyncDisposable {
 				log.Error("Could not download file: " + item.DownloadUrl, e);
 			} finally {
 				try {
-					finishedItemPublisher.OnNext(item);
+					LastFinishedItem.Set(item);
 				} catch (Exception e) {
 					log.Error("Caught exception in event handler: " + e);
 				}
@@ -145,7 +144,6 @@ sealed class DownloaderTask : IAsyncDisposable {
 			await Task.WhenAll(downloadTasks).WaitIgnoringCancellation();
 		} finally {
 			cancellationTokenSource.Dispose();
-			finishedItemPublisher.OnCompleted();
 		}
 	}
 }

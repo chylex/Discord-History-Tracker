@@ -306,12 +306,14 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 			
 			while (await reader.ReadAsync(cancellationToken)) {
-				found.Add(new DownloadItem {
-					NormalizedUrl = reader.GetString(0),
-					DownloadUrl = reader.GetString(1),
-					Type = reader.IsDBNull(2) ? null : reader.GetString(2),
-					Size = reader.IsDBNull(3) ? null : reader.GetUint64(3),
-				});
+				var item = new DownloadItem(
+					NormalizedUrl: reader.GetString(0),
+					DownloadUrl: reader.GetString(1),
+					Type: reader.IsDBNull(2) ? null : reader.GetString(2),
+					Size: reader.IsDBNull(3) ? null : reader.GetUint64(3)
+				);
+				
+				found.Add(item);
 			}
 		}
 		

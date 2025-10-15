@@ -1,7 +1,6 @@
 using System;
-using System.Reactive.Linq;
-using Avalonia.ReactiveUI;
 using Avalonia.Threading;
+using DHT.Desktop.Common;
 using DHT.Server;
 using DHT.Server.Service;
 using PropertyChanged.SourceGenerator;
@@ -41,9 +40,9 @@ sealed partial class StatusBarModel : IDisposable {
 	public StatusBarModel(State state) {
 		this.state = state;
 		
-		serverCountSubscription = state.Db.Servers.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(newServerCount => ServerCount = newServerCount);
-		channelCountSubscription = state.Db.Channels.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(newChannelCount => ChannelCount = newChannelCount);
-		messageCountSubscription = state.Db.Messages.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(newMessageCount => MessageCount = newMessageCount);
+		serverCountSubscription = state.Db.Servers.TotalCount.SubscribeLastOnUI(newServerCount => ServerCount = newServerCount, TimeSpan.FromMilliseconds(15));
+		channelCountSubscription = state.Db.Channels.TotalCount.SubscribeLastOnUI(newChannelCount => ChannelCount = newChannelCount, TimeSpan.FromMilliseconds(15));
+		messageCountSubscription = state.Db.Messages.TotalCount.SubscribeLastOnUI(newMessageCount => MessageCount = newMessageCount, TimeSpan.FromMilliseconds(15));
 		
 		state.Server.StatusChanged += OnStateServerStatusChanged;
 		serverStatus = state.Server.IsRunning ? ServerManager.Status.Started : ServerManager.Status.Stopped;

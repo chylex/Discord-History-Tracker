@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using Avalonia.ReactiveUI;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
@@ -19,6 +17,7 @@ using DHT.Server.Data.Filters;
 using DHT.Server.Data.Settings;
 using DHT.Server.Download;
 using DHT.Utils.Logging;
+using DHT.Utils.Observables;
 using DHT.Utils.Tasks;
 using PropertyChanged.SourceGenerator;
 
@@ -82,8 +81,8 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 			statisticsSkipped,
 		];
 		
-		downloadStatisticsTask = new ThrottledTask<DownloadStatusStatistics>(Log, UpdateStatistics, TaskScheduler.FromCurrentSynchronizationContext());
-		downloadItemCountSubscription = state.Db.Downloads.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnDownloadCountChanged);
+		downloadStatisticsTask = new ThrottledTask<DownloadStatusStatistics>(Log, UpdateStatistics, TimeSpan.FromMilliseconds(100), TaskScheduler.FromCurrentSynchronizationContext());
+		downloadItemCountSubscription = state.Db.Downloads.TotalCount.SubscribeLastOnUI(OnDownloadCountChanged, TimeSpan.FromMilliseconds(15));
 		
 		RecomputeDownloadStatistics();
 	}
@@ -145,8 +144,8 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 		
 		try {
 			currentDownloadFilter = FilterModel.CreateFilter();
-			IObservable<DownloadItem> finishedItems = await state.Downloader.Start(currentDownloadFilter);
-			finishedItemsSubscription = finishedItems.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnItemFinished);
+			ObservableValue<DownloadItem> finishedItems = await state.Downloader.Start(currentDownloadFilter);
+			finishedItemsSubscription = finishedItems.SubscribeLastOnUI(OnItemFinished, TimeSpan.FromMilliseconds(15));
 		} catch (Exception) {
 			finishedItemsSubscription?.Dispose();
 			finishedItemsSubscription = null;
@@ -285,7 +284,7 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 		}
 	}
 	
-	private void UpdateStatistics(DownloadStatusStatistics statusStatistics) {
+	private Task UpdateStatistics(DownloadStatusStatistics statusStatistics) {
 		statisticsPending.Items = statusStatistics.PendingCount;
 		statisticsPending.Size = statusStatistics.PendingTotalSize;
 		statisticsPending.HasFilesWithUnknownSize = statusStatistics.PendingWithUnknownSizeCount > 0;
@@ -304,6 +303,8 @@ sealed partial class DownloadsPageModel : IAsyncDisposable {
 		
 		HasSuccessfulDownloads = statusStatistics.SuccessfulCount > 0;
 		HasFailedDownloads = statusStatistics.FailedCount > 0;
+		
+		return Task.CompletedTask;
 	}
 	
 	public sealed partial class StatisticsRow(string state) {

@@ -1,14 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DHT.Utils.Observables;
 
 namespace DHT.Server.Database.Repositories;
 
 public interface IServerRepository {
-	IObservable<long> TotalCount { get; }
+	ObservableValue<long> TotalCount { get; }
 	
 	Task Add(IReadOnlyList<Data.Server> servers);
 	
@@ -19,7 +18,7 @@ public interface IServerRepository {
 	Task<int> RemoveUnreachable();
 	
 	internal sealed class Dummy : IServerRepository {
-		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
+		public ObservableValue<long> TotalCount { get; } = new (0L);
 		
 		public Task Add(IReadOnlyList<Data.Server> servers) {
 			return Task.CompletedTask;

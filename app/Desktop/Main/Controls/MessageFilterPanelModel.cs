@@ -4,10 +4,8 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using Avalonia.ReactiveUI;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.CheckBox;
 using DHT.Desktop.Dialogs.Message;
@@ -91,9 +89,9 @@ sealed partial class MessageFilterPanelModel : IDisposable {
 		
 		this.exportedMessageCountTask = new RestartableTask<long>(SetExportedMessageCount, TaskScheduler.FromCurrentSynchronizationContext());
 		
-		this.messageCountSubscription = state.Db.Messages.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnMessageCountChanged);
-		this.channelCountSubscription = state.Db.Channels.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnChannelCountChanged);
-		this.userCountSubscription = state.Db.Users.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnUserCountChanged);
+		this.messageCountSubscription = state.Db.Messages.TotalCount.SubscribeLastOnUI(OnMessageCountChanged, TimeSpan.FromMilliseconds(15));
+		this.channelCountSubscription = state.Db.Channels.TotalCount.SubscribeLastOnUI(OnChannelCountChanged, TimeSpan.FromMilliseconds(15));
+		this.userCountSubscription = state.Db.Users.TotalCount.SubscribeLastOnUI(OnUserCountChanged, TimeSpan.FromMilliseconds(15));
 		
 		UpdateFilterStatistics();
 		UpdateChannelFilterLabel();

@@ -2,18 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data;
 using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
 using DHT.Server.Download;
+using DHT.Utils.Observables;
 
 namespace DHT.Server.Database.Repositories;
 
 public interface IDownloadRepository {
-	IObservable<long> TotalCount { get; }
+	ObservableValue<long> TotalCount { get; }
 	
 	Task AddDownload(Data.Download item, Stream? stream);
 	
@@ -38,7 +38,7 @@ public interface IDownloadRepository {
 	IAsyncEnumerable<FileUrl> FindReachableFiles(CancellationToken cancellationToken = default);
 	
 	internal sealed class Dummy : IDownloadRepository {
-		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
+		public ObservableValue<long> TotalCount { get; } = new (0L);
 		
 		public Task AddDownload(Data.Download item, Stream? stream) {
 			return Task.CompletedTask;

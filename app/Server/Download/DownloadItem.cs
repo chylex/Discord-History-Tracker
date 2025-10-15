@@ -4,12 +4,7 @@ using DHT.Server.Data;
 
 namespace DHT.Server.Download;
 
-public readonly struct DownloadItem {
-	public string NormalizedUrl { get; init; }
-	public string DownloadUrl { get; init; }
-	public string? Type { get; init; }
-	public ulong? Size { get; init; }
-	
+public sealed record DownloadItem(string NormalizedUrl, string DownloadUrl, string? Type, ulong? Size) {
 	internal Data.Download ToSuccess(long size) {
 		return new Data.Download(NormalizedUrl, DownloadUrl, DownloadStatus.Success, Type, (ulong) Math.Max(size, val2: 0));
 	}
