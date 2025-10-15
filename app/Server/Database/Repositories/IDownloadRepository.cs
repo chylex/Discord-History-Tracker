@@ -17,7 +17,7 @@ public interface IDownloadRepository {
 	
 	Task AddDownload(Data.Download item, Stream? stream);
 	
-	Task<long> Count(DownloadItemFilter filter, CancellationToken cancellationToken = default);
+	Task<long> Count(DownloadItemFilter? filter = null, CancellationToken cancellationToken = default);
 	
 	Task<DownloadStatusStatistics> GetStatistics(DownloadItemFilter nonSkippedFilter, CancellationToken cancellationToken = default);
 	
@@ -44,7 +44,7 @@ public interface IDownloadRepository {
 			return Task.CompletedTask;
 		}
 		
-		public Task<long> Count(DownloadItemFilter filter, CancellationToken cancellationToken) {
+		public Task<long> Count(DownloadItemFilter? filter, CancellationToken cancellationToken) {
 			return Task.FromResult(0L);
 		}
 		

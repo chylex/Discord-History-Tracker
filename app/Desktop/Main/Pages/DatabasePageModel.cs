@@ -55,11 +55,11 @@ sealed class DatabasePageModel {
 				break;
 			
 			case PlatformID.Unix:
-				Process.Start("xdg-open", [ folder ]);
+				Process.Start("xdg-open", [folder]);
 				break;
 			
 			case PlatformID.MacOSX:
-				Process.Start("open", [ folder ]);
+				Process.Start("open", [folder]);
 				break;
 			
 			default:
@@ -80,22 +80,25 @@ sealed class DatabasePageModel {
 		
 		const string Title = "Database Merge";
 		
-		ImportResult? result;
+		var result = new TaskCompletionSource<ImportResult?>();
 		try {
-			result = await ProgressDialog.Show(window, Title, async (dialog, callback) => await MergeWithDatabaseFromPaths(Db, paths, dialog, callback));
+			var dialog = new ProgressDialog();
+			dialog.DataContext = new ProgressDialogModel(Title, async callbacks => result.SetResult(await MergeWithDatabaseFromPaths(Db, paths, dialog, callbacks)), progressItems: 2);
+			await dialog.ShowProgressDialog(window);
 		} catch (Exception e) {
 			Log.Error("Could not merge databases.", e);
 			await Dialog.ShowOk(window, Title, "Could not merge databases: " + e.Message);
 			return;
 		}
 		
-		await Dialog.ShowOk(window, Title, GetImportDialogMessage(result, "database file"));
+		await Dialog.ShowOk(window, Title, GetImportDialogMessage(result.Task.Result, "database file"));
 	}
 	
-	private static async Task<ImportResult?> MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
+	private static async Task<ImportResult?> MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IReadOnlyList<IProgressCallback> callbacks) {
 		var schemaUpgradeCallbacks = new SchemaUpgradeCallbacks(dialog, paths.Length);
+		var databaseMergeProgressCallback = new DatabaseMergeProgressCallback(callbacks[1]);
 		
-		return await PerformImport(target, paths, dialog, callback, "Database Merge", async path => {
+		return await PerformImport(target, paths, dialog, callbacks[0], "Database Merge", async path => {
 			IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, dialog, schemaUpgradeCallbacks);
 			
 			if (db == null) {
@@ -103,7 +106,7 @@ sealed class DatabasePageModel {
 			}
 			
 			try {
-				await target.AddFrom(db);
+				await target.Merge(db, databaseMergeProgressCallback);
 				return true;
 			} finally {
 				await db.DisposeAsync();
@@ -140,6 +143,20 @@ sealed class DatabasePageModel {
 			public Task SubWork(string message, int finishedItems, int totalItems) {
 				return Task.CompletedTask;
 			}
+		}
+	}
+	
+	private sealed class DatabaseMergeProgressCallback(IProgressCallback callback) : DatabaseMerging.IProgressCallback {
+		public void OnImportingMetadata() {
+			callback.UpdateIndeterminate("Importing metadata...");
+		}
+		
+		public void OnMessagesImported(long finished, long total) {
+			callback.Update("Importing messages...", finished, total);
+		}
+		
+		public void OnDownloadsImported(long finished, long total) {
+			callback.Update("Importing downloaded files...", finished, total);
 		}
 	}
 	
@@ -223,7 +240,7 @@ sealed class DatabasePageModel {
 		int finished = 0;
 		
 		foreach (string path in paths) {
-			await callback.Update(Path.GetFileName(path), finished, total);
+			await callback.Update("File: " + Path.GetFileName(path), finished, total);
 			++finished;
 			
 			if (!File.Exists(path)) {
