@@ -95,7 +95,7 @@ sealed class DatabasePageModel {
 	}
 	
 	private static async Task<ImportResult?> MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IReadOnlyList<IProgressCallback> callbacks) {
-		var schemaUpgradeCallbacks = new SchemaUpgradeCallbacks(dialog, paths.Length);
+		var schemaUpgradeCallbacks = new SchemaUpgradeCallbacks(dialog, callbacks[1], paths.Length);
 		var databaseMergeProgressCallback = new DatabaseMergeProgressCallback(callbacks[1]);
 		
 		return await PerformImport(target, paths, dialog, callbacks[0], "Database Merge", async path => {
@@ -114,7 +114,7 @@ sealed class DatabasePageModel {
 		});
 	}
 	
-	private sealed class SchemaUpgradeCallbacks(ProgressDialog dialog, int total) : ISchemaUpgradeCallbacks {
+	private sealed class SchemaUpgradeCallbacks(ProgressDialog dialog, IProgressCallback callback, int total) : ISchemaUpgradeCallbacks {
 		private bool? decision;
 		
 		public Task<InitialDatabaseSettings?> GetInitialDatabaseSettings() {
@@ -128,6 +128,7 @@ sealed class DatabasePageModel {
 		}
 		
 		public Task Start(int versionSteps, Func<ISchemaUpgradeCallbacks.IProgressReporter, Task> doUpgrade) {
+			callback.UpdateIndeterminate("Upgrading database...");
 			return doUpgrade(new NullReporter());
 		}
 		
