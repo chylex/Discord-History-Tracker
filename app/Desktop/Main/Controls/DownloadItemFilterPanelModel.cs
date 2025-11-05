@@ -2,20 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.ReactiveUI;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Server;
 using DHT.Server.Data.Filters;
 using DHT.Server.Data.Settings;
 using DHT.Utils.Logging;
 using DHT.Utils.Tasks;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisposable {
+sealed partial class DownloadItemFilterPanelModel : IAsyncDisposable {
 	private static readonly Log Log = Log.ForType<DownloadItemFilterPanelModel>();
 	
 	public sealed record Unit(string Name, uint Scale);
@@ -32,15 +30,16 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 		nameof(MaximumSizeUnit),
 	];
 	
-	public string FilterStatisticsText { get; private set; } = "";
+	[Notify(Setter.Private)]
+	private string filterStatisticsText = "";
 	
-	[ObservableProperty]
+	[Notify]
 	private bool limitSize = false;
 	
-	[ObservableProperty]
+	[Notify]
 	private ulong maximumSize = 0UL;
 	
-	[ObservableProperty]
+	[Notify]
 	private Unit maximumSizeUnit = AllUnits[0];
 	
 	public IEnumerable<Unit> Units => AllUnits;
@@ -48,7 +47,7 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 	private readonly State state;
 	private readonly string verb;
 	
-	private readonly DelayedThrottledTask<FilterSettings> saveFilterSettingsTask;
+	private readonly ThrottledTask<FilterSettings> saveFilterSettingsTask;
 	private bool isLoadingFilterSettings;
 	
 	private readonly RestartableTask<long> downloadItemCountTask;
@@ -64,10 +63,10 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 		this.state = state;
 		this.verb = verb;
 		
-		this.saveFilterSettingsTask = new DelayedThrottledTask<FilterSettings>(Log, TimeSpan.FromSeconds(5), SaveFilterSettings);
+		this.saveFilterSettingsTask = new ThrottledTask<FilterSettings>(Log, SaveFilterSettings, TimeSpan.FromSeconds(5), TaskScheduler.Default);
 		
 		this.downloadItemCountTask = new RestartableTask<long>(SetMatchingCount, TaskScheduler.FromCurrentSynchronizationContext());
-		this.downloadItemCountSubscription = state.Db.Downloads.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnDownloadItemCountChanged);
+		this.downloadItemCountSubscription = state.Db.Downloads.TotalCount.SubscribeLastOnUI(OnDownloadItemCountChanged, TimeSpan.FromMilliseconds(15));
 		
 		UpdateFilterStatistics();
 		
@@ -108,8 +107,7 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 				await setter.Set(SettingsKey.DownloadsMaximumSizeUnit, settings.MaximumSizeUnit.Name);
 			});
 		} catch (Exception e) {
-			Log.Error("Could not save download filter settings");
-			Log.Error(e);
+			Log.Error("Could not save download filter settings.", e);
 		}
 	}
 	
@@ -151,9 +149,7 @@ sealed partial class DownloadItemFilterPanelModel : ObservableObject, IAsyncDisp
 	private void UpdateFilterStatisticsText() {
 		string matchingItemCountStr = matchingItemCount?.Format() ?? "(...)";
 		string totalItemCountStr = totalItemCount?.Format() ?? "(...)";
-		
 		FilterStatisticsText = verb + " " + matchingItemCountStr + " out of " + totalItemCountStr + " file" + (totalItemCount is null or 1 ? "." : "s.");
-		OnPropertyChanged(nameof(FilterStatisticsText));
 	}
 	
 	public DownloadItemFilter CreateFilter() {

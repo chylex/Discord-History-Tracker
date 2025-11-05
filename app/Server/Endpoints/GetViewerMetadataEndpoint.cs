@@ -9,12 +9,12 @@ using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
-sealed class GetViewerMetadataEndpoint(IDatabaseFile db, ViewerSessions viewerSessions) : BaseEndpoint(db) {
+sealed class GetViewerMetadataEndpoint(IDatabaseFile db, ViewerSessions viewerSessions) : BaseEndpoint {
 	protected override Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
 		Guid sessionId = GetSessionId(request);
 		ViewerSession session = viewerSessions.Get(sessionId);
 		
 		response.ContentType = MediaTypeNames.Application.Json;
-		return ViewerJsonExport.GetMetadata(response.Body, Db, session.MessageFilter, cancellationToken);
+		return ViewerJsonExport.GetMetadata(response.Body, db, session.MessageFilter, cancellationToken);
 	}
 }

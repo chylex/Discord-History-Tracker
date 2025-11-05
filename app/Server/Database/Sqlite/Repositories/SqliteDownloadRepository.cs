@@ -18,6 +18,8 @@ namespace DHT.Server.Database.Sqlite.Repositories;
 sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRepository(Log), IDownloadRepository {
 	private static readonly Log Log = Log.ForType<SqliteDownloadRepository>();
 	
+	public const string Schema = "downloads";
+	
 	internal sealed class NewDownloadCollector : IAsyncDisposable {
 		private readonly SqliteDownloadRepository repository;
 		private bool hasChanged = false;
@@ -60,6 +62,15 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			hasChanged |= await metadataCmd.ExecuteNonQueryAsync() > 0;
 		}
 		
+		public Task AddIfNotNull(Data.Download? download) {
+			if (download != null) {
+				return Add(download);
+			}
+			else {
+				return Task.CompletedTask;
+			}
+		}
+		
 		public void OnCommitted() {
 			if (hasChanged) {
 				repository.UpdateTotalCount();
@@ -71,7 +82,25 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 		}
 	}
 	
+	private static SqliteBlob BlobReference(ISqliteConnection conn, long rowid, bool readOnly) {
+		string schema = conn.HasAttachedDatabase(Schema) ? Schema : "main";
+		return new SqliteBlob(conn.InnerConnection, databaseName: schema, tableName: "download_blobs", columnName: "blob", rowid, readOnly);
+	}
+	
 	public async Task AddDownload(Data.Download item, Stream? stream) {
+		ulong? actualSize;
+		
+		if (stream is not null) {
+			actualSize = (ulong) stream.Length;
+			
+			if (actualSize != item.Size) {
+				Log.Warn("Download size differs from its metadata - metadata size: " + item.Size + " B, actual size: " + actualSize + " B, url: " + item.NormalizedUrl);
+			}
+		}
+		else {
+			actualSize = item.Size;
+		}
+		
 		await using (var conn = await pool.Take()) {
 			await conn.BeginTransactionAsync();
 			
@@ -87,7 +116,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			metadataCmd.Set(":download_url", item.DownloadUrl);
 			metadataCmd.Set(":status", (int) item.Status);
 			metadataCmd.Set(":type", item.Type);
-			metadataCmd.Set(":size", item.Size);
+			metadataCmd.Set(":size", actualSize);
 			await metadataCmd.ExecuteNonQueryAsync();
 			
 			if (stream == null) {
@@ -107,10 +136,10 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 				);
 				
 				upsertBlobCmd.AddAndSet(":normalized_url", SqliteType.Text, item.NormalizedUrl);
-				upsertBlobCmd.AddAndSet(":blob_length", SqliteType.Integer, item.Size);
+				upsertBlobCmd.AddAndSet(":blob_length", SqliteType.Integer, actualSize);
 				long rowid = await upsertBlobCmd.ExecuteLongScalarAsync();
 				
-				await using var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid);
+				await using var blob = BlobReference(conn, rowid, readOnly: false);
 				await stream.CopyToAsync(blob);
 			}
 			
@@ -181,10 +210,10 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 		};
 	}
 	
-	public async IAsyncEnumerable<Data.Download> Get() {
+	public async IAsyncEnumerable<Data.Download> Get(DownloadItemFilter? filter) {
 		await using var conn = await pool.Take();
 		
-		await using var cmd = conn.Command("SELECT normalized_url, download_url, status, type, size FROM download_metadata");
+		await using var cmd = conn.Command("SELECT normalized_url, download_url, status, type, size FROM download_metadata" + filter.GenerateConditions().BuildWhereClause());
 		await using var reader = await cmd.ExecuteReaderAsync();
 		
 		while (await reader.ReadAsync()) {
@@ -214,7 +243,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			rowid = reader.GetInt64(0);
 		}
 		
-		await using (var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid, readOnly: true)) {
+		await using (var blob = BlobReference(conn, rowid, readOnly: true)) {
 			await dataProcessor(blob);
 		}
 		
@@ -249,7 +278,7 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			rowid = reader.GetInt64(2);
 		}
 		
-		await using (var blob = new SqliteBlob(conn.InnerConnection, "download_blobs", "blob", rowid, readOnly: true)) {
+		await using (var blob = BlobReference(conn, rowid, readOnly: true)) {
 			await dataProcessor(new Data.Download(normalizedUrl, downloadUrl, DownloadStatus.Success, type, (ulong) blob.Length), blob, cancellationToken);
 		}
 		
@@ -277,12 +306,14 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 			
 			while (await reader.ReadAsync(cancellationToken)) {
-				found.Add(new DownloadItem {
-					NormalizedUrl = reader.GetString(0),
-					DownloadUrl = reader.GetString(1),
-					Type = reader.IsDBNull(2) ? null : reader.GetString(2),
-					Size = reader.IsDBNull(3) ? null : reader.GetUint64(3),
-				});
+				var item = new DownloadItem(
+					NormalizedUrl: reader.GetString(0),
+					DownloadUrl: reader.GetString(1),
+					Type: reader.IsDBNull(2) ? null : reader.GetString(2),
+					Size: reader.IsDBNull(3) ? null : reader.GetUint64(3)
+				);
+				
+				found.Add(item);
 			}
 		}
 		
@@ -341,14 +372,17 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 		UpdateTotalCount();
 	}
 	
-	public async IAsyncEnumerable<Data.Download> FindAllDownloadableUrls([EnumeratorCancellation] CancellationToken cancellationToken = default) {
+	public async IAsyncEnumerable<FileUrl> FindReachableFiles([EnumeratorCancellation] CancellationToken cancellationToken) {
 		await using var conn = await pool.Take();
 		
-		await using (var cmd = conn.Command("SELECT normalized_url, download_url, type, size FROM attachments")) {
+		await using (var cmd = conn.Command("SELECT type, normalized_url, download_url FROM attachments")) {
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 			
 			while (await reader.ReadAsync(cancellationToken)) {
-				yield return DownloadLinkExtractor.FromAttachment(reader.GetString(0), reader.GetString(1), reader.IsDBNull(2) ? null : reader.GetString(2), reader.GetUint64(3));
+				string? type = reader.IsDBNull(0) ? null : reader.GetString(0);
+				string normalizedUrl = reader.GetString(1);
+				string downloadUrl = reader.GetString(2);
+				yield return new FileUrl(normalizedUrl, downloadUrl, type);
 			}
 		}
 		
@@ -356,8 +390,31 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 			
 			while (await reader.ReadAsync(cancellationToken)) {
-				var result = await DownloadLinkExtractor.TryFromEmbedJson(reader.GetStream(0));
-				if (result is not null) {
+				if (await DownloadLinkExtractor.TryFromEmbedJson(reader.GetStream(0)) is {} result) {
+					yield return result;
+				}
+			}
+		}
+		
+		await using (var cmd = conn.Command("SELECT DISTINCT emoji_id, emoji_flags FROM message_reactions WHERE emoji_id IS NOT NULL")) {
+			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+			
+			while (await reader.ReadAsync(cancellationToken)) {
+				ulong emojiId = reader.GetUint64(0);
+				EmojiFlags emojiFlags = (EmojiFlags) reader.GetInt16(1);
+				yield return DownloadLinkExtractor.Emoji(emojiId, emojiFlags);
+			}
+		}
+		
+		await using (var cmd = conn.Command("SELECT id, type, icon_hash FROM servers WHERE icon_hash IS NOT NULL")) {
+			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+			
+			while (await reader.ReadAsync(cancellationToken)) {
+				ulong id = reader.GetUint64(0);
+				ServerType? type = ServerTypes.FromString(reader.GetString(1));
+				string iconHash = reader.GetString(2);
+				
+				if (DownloadLinkExtractor.ServerIcon(type, id, iconHash) is {} result) {
 					yield return result;
 				}
 			}
@@ -367,15 +424,9 @@ sealed class SqliteDownloadRepository(SqliteConnectionPool pool) : BaseSqliteRep
 			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 			
 			while (await reader.ReadAsync(cancellationToken)) {
-				yield return DownloadLinkExtractor.FromUserAvatar(reader.GetUint64(0), reader.GetString(1));
-			}
-		}
-		
-		await using (var cmd = conn.Command("SELECT DISTINCT emoji_id, emoji_flags FROM message_reactions WHERE emoji_id IS NOT NULL")) {
-			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-			
-			while (await reader.ReadAsync(cancellationToken)) {
-				yield return DownloadLinkExtractor.FromEmoji(reader.GetUint64(0), (EmojiFlags) reader.GetInt16(1));
+				ulong id = reader.GetUint64(0);
+				string avatarHash = reader.GetString(1);
+				yield return DownloadLinkExtractor.UserAvatar(id, avatarHash);
 			}
 		}
 	}

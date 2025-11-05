@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Reflection;
 using Avalonia;
+using DHT.Desktop.Common;
 using DHT.Utils.Logging;
 using DHT.Utils.Resources;
 
@@ -57,6 +58,8 @@ static class Program {
 	}
 	
 	private static AppBuilder BuildAvaloniaApp() {
+		AvaloniaReflection.Check();
+		
 		return AppBuilder.Configure<App>()
 		                 .UsePlatformDetect()
 		                 .WithInterFont()

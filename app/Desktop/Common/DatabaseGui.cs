@@ -52,7 +52,7 @@ static class DatabaseGui {
 		} catch (DatabaseTooNewException ex) {
 			await Dialog.ShowOk(window, "Database Error", "Database '" + Path.GetFileName(path) + "' was opened in a newer version of DHT (database version " + ex.DatabaseVersion + ", app version " + ex.CurrentVersion + ").");
 		} catch (Exception ex) {
-			Log.Error(ex);
+			Log.Error("Could not open database file: " + path, ex);
 			await Dialog.ShowOk(window, "Database Error", "Database '" + Path.GetFileName(path) + "' could not be opened:" + ex.Message);
 		}
 		

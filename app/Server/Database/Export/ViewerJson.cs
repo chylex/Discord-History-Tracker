@@ -23,6 +23,9 @@ static class ViewerJson {
 	public sealed class JsonServer {
 		public required string Name { get; init; }
 		public required string Type { get; init; }
+		
+		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+		public string? IconUrl { get; init; }
 	}
 	
 	public sealed class JsonChannel {
@@ -30,7 +33,7 @@ static class ViewerJson {
 		public required string Name { get; init; }
 		
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-		public string? Parent { get; init; }
+		public Snowflake? Parent { get; init; }
 		
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 		public int? Position { get; init; }
@@ -55,7 +58,7 @@ static class ViewerJson {
 		public long? Te { get; init; }
 		
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-		public string? R { get; init; }
+		public Snowflake? R { get; init; }
 		
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 		public JsonMessageAttachment[]? A { get; init; }
@@ -80,7 +83,7 @@ static class ViewerJson {
 	
 	public sealed class JsonMessageReaction {
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-		public string? Id { get; init; }
+		public Snowflake? Id { get; init; }
 		
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 		public string? N { get; init; }

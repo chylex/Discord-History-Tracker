@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using DHT.Server.Database.Sqlite.Utils;
 
 namespace DHT.Server.Database.Sqlite.Schema;
 
 public interface ISchemaUpgradeCallbacks {
+	Task<InitialDatabaseSettings?> GetInitialDatabaseSettings();
 	Task<bool> CanUpgrade();
 	Task Start(int versionSteps, Func<IProgressReporter, Task> doUpgrade);
 	

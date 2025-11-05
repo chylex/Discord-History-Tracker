@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace DHT.Server.Endpoints;
 
-sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
+sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint {
 	protected override async Task Respond(HttpRequest request, HttpResponse response, CancellationToken cancellationToken) {
 		JsonElement root = await ReadJson(request);
 		
@@ -24,7 +24,7 @@ sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
 			users[i++] = ReadUser(user, "user");
 		}
 		
-		await Db.Users.Add(users);
+		await db.Users.Add(users);
 	}
 	
 	private static User ReadUser(JsonElement json, string path) {
@@ -32,7 +32,7 @@ sealed class TrackUsersEndpoint(IDatabaseFile db) : BaseEndpoint(db) {
 			Id = json.RequireSnowflake("id", path),
 			Name = json.RequireString("name", path),
 			DisplayName = json.HasKey("displayName") ? json.RequireString("displayName", path) : null,
-			AvatarUrl = json.HasKey("avatar") ? json.RequireString("avatar", path) : null,
+			AvatarHash = json.HasKey("avatar") ? json.RequireString("avatar", path) : null,
 			Discriminator = json.HasKey("discriminator") ? json.RequireString("discriminator", path) : null,
 		};
 	}

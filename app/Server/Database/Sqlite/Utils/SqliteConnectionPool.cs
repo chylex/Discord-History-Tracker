@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Utils.Collections;
@@ -9,16 +9,13 @@ using Microsoft.Data.Sqlite;
 namespace DHT.Server.Database.Sqlite.Utils;
 
 sealed class SqliteConnectionPool : IAsyncDisposable {
-	public static async Task<SqliteConnectionPool> Create(SqliteConnectionStringBuilder connectionStringBuilder, int poolSize) {
-		var pool = new SqliteConnectionPool(poolSize);
-		await pool.InitializePooledConnections(connectionStringBuilder);
+	public static async Task<SqliteConnectionPool> Create(SqliteConnectionStringFactory connectionStringFactory, int poolSize, ISqliteAttachedDatabaseCollector attachedDatabaseCollector) {
+		SqliteConnectionPool pool = new SqliteConnectionPool(poolSize, attachedDatabaseCollector);
+		await pool.InitializePooledConnections(connectionStringFactory);
 		return pool;
 	}
 	
-	private static string GetConnectionString(SqliteConnectionStringBuilder connectionStringBuilder) {
-		connectionStringBuilder.Pooling = false;
-		return connectionStringBuilder.ToString();
-	}
+	private readonly ISqliteAttachedDatabaseCollector attachedDatabaseCollector;
 	
 	private readonly int poolSize;
 	private readonly List<PooledConnection> all;
@@ -27,24 +24,35 @@ sealed class SqliteConnectionPool : IAsyncDisposable {
 	private readonly CancellationTokenSource disposalTokenSource = new ();
 	private readonly CancellationToken disposalToken;
 	
-	private SqliteConnectionPool(int poolSize) {
+	private SqliteConnectionPool(int poolSize, ISqliteAttachedDatabaseCollector attachedDatabaseCollector) {
+		this.attachedDatabaseCollector = attachedDatabaseCollector;
+		
 		this.poolSize = poolSize;
 		this.all = new List<PooledConnection>(poolSize);
 		this.free = new ConcurrentPool<PooledConnection>(poolSize);
+		
 		this.disposalToken = disposalTokenSource.Token;
 	}
 	
-	private async Task InitializePooledConnections(SqliteConnectionStringBuilder connectionStringBuilder) {
-		string connectionString = GetConnectionString(connectionStringBuilder);
+	private async Task InitializePooledConnections(SqliteConnectionStringFactory connectionStringFactory) {
+		string connectionString = connectionStringFactory.Create();
+		
+		List<AttachedDatabase> attachedDatabases = [];
 		
 		for (int i = 0; i < poolSize; i++) {
-			var conn = new SqliteConnection(connectionString);
-			conn.Open();
+			SqliteConnection innerConnection = new SqliteConnection(connectionString);
+			await innerConnection.OpenAsync(disposalToken);
 			
-			var pooledConnection = new PooledConnection(this, conn);
+			PooledConnection pooledConnection = new PooledConnection(this, connectionStringFactory, innerConnection);
+			await pooledConnection.Setup(disposalToken);
 			
-			await pooledConnection.ExecuteAsync("PRAGMA journal_mode=WAL", disposalToken);
-			await pooledConnection.ExecuteAsync("PRAGMA foreign_keys=ON", disposalToken);
+			if (i == 0) {
+				attachedDatabases = await attachedDatabaseCollector.GetAttachedDatabases(pooledConnection).ToListAsync(disposalToken);
+			}
+			
+			foreach (var attachedDatabase in attachedDatabases) {
+				await pooledConnection.AttachDatabase(attachedDatabase);
+			}
 			
 			all.Add(pooledConnection);
 			await free.Push(pooledConnection, disposalToken);
@@ -74,48 +82,8 @@ sealed class SqliteConnectionPool : IAsyncDisposable {
 		disposalTokenSource.Dispose();
 	}
 	
-	private sealed class PooledConnection(SqliteConnectionPool pool, SqliteConnection conn) : ISqliteConnection {
-		public SqliteConnection InnerConnection { get; } = conn;
-		
-		private DbTransaction? activeTransaction;
-		
-		public async Task BeginTransactionAsync() {
-			if (activeTransaction != null) {
-				throw new InvalidOperationException("A transaction is already active.");
-			}
-			
-			activeTransaction = await InnerConnection.BeginTransactionAsync();
-		}
-		
-		public async Task CommitTransactionAsync() {
-			if (activeTransaction == null) {
-				throw new InvalidOperationException("No active transaction to commit.");
-			}
-			
-			await activeTransaction.CommitAsync();
-			await activeTransaction.DisposeAsync();
-			activeTransaction = null;
-		}
-		
-		public async Task RollbackTransactionAsync() {
-			if (activeTransaction == null) {
-				throw new InvalidOperationException("No active transaction to rollback.");
-			}
-			
-			await activeTransaction.RollbackAsync();
-			await activeTransaction.DisposeAsync();
-			activeTransaction = null;
-		}
-		
-		public void AssignActiveTransaction(SqliteCommand command) {
-			command.Transaction = (SqliteTransaction?) activeTransaction;
-		}
-		
-		public async ValueTask DisposeAsync() {
-			if (activeTransaction != null) {
-				await RollbackTransactionAsync();
-			}
-			
+	private sealed class PooledConnection(SqliteConnectionPool pool, SqliteConnectionStringFactory connectionStringFactory, SqliteConnection innerConnection) : CustomSqliteConnection(connectionStringFactory, innerConnection) {
+		private protected override async ValueTask DisposeConnection() {
 			await pool.Return(this);
 		}
 	}

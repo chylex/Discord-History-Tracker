@@ -51,7 +51,54 @@
 
         <Style Selector="Expander">
             <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Padding" Value="12" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+
+        <Style Selector="TreeViewItem:not(:empty) /template/ Panel#PART_ExpandCollapseChevronContainer">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0 0 5 0" />
+        </Style>
+        <Style Selector="TreeViewItem:empty /template/ Panel#PART_ExpandCollapseChevronContainer">
+            <Setter Property="Margin" Value="10 0" />
+        </Style>
+        <Style Selector="TreeViewItem[Level=0]:empty /template/ Panel#PART_ExpandCollapseChevronContainer">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Width" Value="0" />
+        </Style>
+        <Style Selector="TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron">
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="32" />
+        </Style>
+        <Style Selector="TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron > Border">
+            <Setter Property="Padding" Value="2 10 3 10" />
+        </Style>
+
+        <Style Selector="TreeView.noSelection">
+            <Style Selector="^ TreeViewItem /template/ Border#PART_LayoutRoot">
+                <Setter Property="Background" Value="{DynamicResource TreeViewItemBackground}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TreeViewItemBorderBrush}" />
+            </Style>
+            <Style Selector="^ TreeViewItem /template/ Border#PART_LayoutRoot > ContentPresenter#PART_HeaderPresenter">
+                <Setter Property="Foreground" Value="{DynamicResource TreeViewItemForeground}" />
+            </Style>
+            <Style Selector="^ TreeViewItem:disabled /template/ Border#PART_LayoutRoot">
+                <Setter Property="Background" Value="{DynamicResource TreeViewItemBackgroundDisabled}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TreeViewItemBorderBrushDisabled}" />
+            </Style>
+            <Style Selector="^ TreeViewItem:disabled /template/ Border#PART_LayoutRoot > ContentPresenter#PART_HeaderPresenter">
+                <Setter Property="Foreground" Value="{DynamicResource TreeViewItemForegroundDisabled}" />
+            </Style>
+        </Style>
+
+        <Style Selector="Panel.buttons">
+            <Setter Property="Margin" Value="0 20 0 0" />
+        </Style>
+        <Style Selector="Panel.buttons > WrapPanel">
+            <Setter Property="ItemSpacing" Value="8" />
+        </Style>
+        <Style Selector="Panel.buttons Button">
+            <Setter Property="MinWidth" Value="80" />
         </Style>
 
     </Application.Styles>

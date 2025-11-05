@@ -15,19 +15,6 @@
         <namespace:TextBoxDialogModel />
     </Window.DataContext>
 
-    <Window.Styles>
-        <Style Selector="Panel.buttons">
-            <Setter Property="Margin" Value="0 20 0 0" />
-        </Style>
-        <Style Selector="Panel.buttons > WrapPanel.right">
-            <Setter Property="HorizontalAlignment" Value="Right" />
-        </Style>
-        <Style Selector="Panel.buttons Button">
-            <Setter Property="MinWidth" Value="80" />
-            <Setter Property="Margin" Value="8 0 0 0" />
-        </Style>
-    </Window.Styles>
-
     <StackPanel Margin="20">
         <ScrollViewer MaxHeight="400">
             <StackPanel Spacing="10">
@@ -47,7 +34,7 @@
             </StackPanel>
         </ScrollViewer>
         <Panel Classes="buttons">
-            <WrapPanel Classes="right">
+            <WrapPanel HorizontalAlignment="Right">
                 <Button Click="ClickOk" IsEnabled="{Binding !HasErrors}">OK</Button>
                 <Button Click="ClickCancel">Cancel</Button>
             </WrapPanel>

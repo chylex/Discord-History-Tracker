@@ -88,6 +88,11 @@ public sealed class Log {
 		LogLevel(ConsoleColor.Red, "ERROR", e.ToString());
 	}
 	
+	public void Error(string message, Exception e) {
+		Error(message);
+		Error(e);
+	}
+	
 	public Perf Start(string? context = null, [CallerMemberName] string callerMemberName = "") {
 		return Perf.Start(this, context, callerMemberName);
 	}

@@ -1,8 +1,8 @@
 /**
  * Parts copied from Better Discord, licensed under Apache License 2.0.
  *
- * https://github.com/BetterDiscord/BetterDiscord/blob/78edeb77c60542a57884686c4ba98f997c886fad/renderer/src/modules/webpackmodules.js
- * https://github.com/BetterDiscord/BetterDiscord/blob/78edeb77c60542a57884686c4ba98f997c886fad/LICENSE
+ * https://github.com/BetterDiscord/BetterDiscord/blob/2752daf64f98625fc67c569361bd56021307d058/renderer/src/modules/webpackmodules.js
+ * https://github.com/BetterDiscord/BetterDiscord/blob/2752daf64f98625fc67c569361bd56021307d058/LICENSE
  */
 class WEBPACK {
 	static get require() {
@@ -17,13 +17,15 @@ class WEBPACK {
 		 */
 		let hookedRequire;
 		
-		const id = "dht-webpackmodules-" + new Date().getTime();
+		const id = Symbol("dht-webpackmodules-" + new Date().getTime());
 		if (typeof (window["webpackChunkdiscord_app"]) !== "undefined") {
-			window["webpackChunkdiscord_app"].push([ [ id ], {}, internalRequire => hookedRequire = internalRequire ]);
+			window["webpackChunkdiscord_app"].push([ [ id ], {}, internalRequire => {
+				if ("b" in internalRequire) {
+					hookedRequire = internalRequire;
+				}
+			}]);
 		}
 		
-		delete hookedRequire.m[id];
-		delete hookedRequire.c[id];
 		return this._require = hookedRequire;
 	}
 	
@@ -86,7 +88,7 @@ class WEBPACK {
 			return modules[0];
 		}
 		
-		console.error("[DHT] Cannot find module " + name + ", results found:", modules.length);
+		console.error("[DHT] Cannot find module " + name + ", results found:", modules.length, modules);
 		return null;
 	}
 	

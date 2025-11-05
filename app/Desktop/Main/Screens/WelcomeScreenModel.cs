@@ -5,23 +5,24 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
-using DHT.Server.Data.Settings;
+using DHT.Desktop.Main.Dialogs;
 using DHT.Server.Database;
 using DHT.Server.Database.Sqlite.Schema;
+using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Screens;
 
-sealed partial class WelcomeScreenModel : ObservableObject {
+sealed partial class WelcomeScreenModel {
 	private static readonly Log Log = Log.ForType<WelcomeScreenModel>();
 	
 	public string Version => Program.Version;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private bool isOpenOrCreateDatabaseButtonEnabled = true;
 	
 	public event EventHandler<IDatabaseFile>? DatabaseSelected;
@@ -52,21 +53,22 @@ sealed partial class WelcomeScreenModel : ObservableObject {
 	public async Task OpenOrCreateDatabaseFromPath(string path) {
 		dbFilePath = path;
 		
-		bool isNew = !File.Exists(path);
-		
 		IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, window, new SchemaUpgradeCallbacks(window));
-		if (db == null) {
-			return;
+		if (db != null) {
+			DatabaseSelected?.Invoke(this, db);
 		}
-		
-		if (isNew && await Dialog.ShowYesNo(window, "Automatic Downloads", "Do you want to automatically download files hosted on Discord? You can change this later in the Downloads tab.") == DialogResult.YesNo.Yes) {
-			await db.Settings.Set(SettingsKey.DownloadsAutoStart, value: true);
-		}
-		
-		DatabaseSelected?.Invoke(this, db);
 	}
 	
 	private sealed class SchemaUpgradeCallbacks(Window window) : ISchemaUpgradeCallbacks {
+		public async Task<InitialDatabaseSettings?> GetInitialDatabaseSettings() {
+			var model = new NewDatabaseSettingsDialogModel();
+			
+			var dialog = new NewDatabaseSettingsDialog { DataContext = model };
+			await dialog.ShowDialog(window);
+			
+			return new InitialDatabaseSettings(model.SeparateFileForDownloads, model.DownloadsAutoStart);
+		}
+		
 		public async Task<bool> CanUpgrade() {
 			return DialogResult.YesNo.Yes == await DatabaseGui.ShowCanUpgradeDatabaseDialog(window);
 		}
@@ -110,38 +112,32 @@ sealed partial class WelcomeScreenModel : ObservableObject {
 	}
 	
 	public async Task CheckUpdates() {
-		var latestVersion = await ProgressDialog.ShowIndeterminate<Version?>(window, "Check Updates", "Checking for updates...", async _ => {
-			var client = new HttpClient(new SocketsHttpHandler {
-				AutomaticDecompression = DecompressionMethods.None,
-				AllowAutoRedirect = false,
-				UseCookies = false,
+		string response;
+		try {
+			response = await ProgressDialog.ShowIndeterminate<string>(window, "Check Updates", "Checking for updates...", static async _ => {
+				var client = new HttpClient(new SocketsHttpHandler {
+					AutomaticDecompression = DecompressionMethods.None,
+					AllowAutoRedirect = false,
+					UseCookies = false,
+				});
+				
+				client.Timeout = TimeSpan.FromSeconds(30);
+				client.MaxResponseContentBufferSize = 1024;
+				client.DefaultRequestHeaders.UserAgent.ParseAdd("DiscordHistoryTracker/" + Program.Version);
+				
+				return await client.GetStringAsync(Program.Website + "/version");
 			});
-			
-			client.Timeout = TimeSpan.FromSeconds(30);
-			client.MaxResponseContentBufferSize = 1024;
-			client.DefaultRequestHeaders.UserAgent.ParseAdd("DiscordHistoryTracker/" + Program.Version);
-			
-			string response;
-			try {
-				response = await client.GetStringAsync(Program.Website + "/version");
-			} catch (TaskCanceledException e) when (e.InnerException is TimeoutException) {
-				await Dialog.ShowOk(window, "Check Updates", "Request timed out.");
-				return null;
-			} catch (Exception e) {
-				Log.Error(e);
-				await Dialog.ShowOk(window, "Check Updates", "Error checking for updates: " + e.Message);
-				return null;
-			}
-			
-			if (!System.Version.TryParse(response, out Version? latestVersion)) {
-				await Dialog.ShowOk(window, "Check Updates", "Server returned an invalid response.");
-				return null;
-			}
-			
-			return latestVersion;
-		});
+		} catch (TaskCanceledException e) when (e.InnerException is TimeoutException) {
+			await Dialog.ShowOk(window, "Check Updates", "Request timed out.");
+			return;
+		} catch (Exception e) {
+			Log.Error("Could not check for updates.", e);
+			await Dialog.ShowOk(window, "Check Updates", "Error checking for updates: " + e.Message);
+			return;
+		}
 		
-		if (latestVersion == null) {
+		if (!System.Version.TryParse(response, out Version? latestVersion)) {
+			await Dialog.ShowOk(window, "Check Updates", "Server returned an invalid response.");
 			return;
 		}
 		

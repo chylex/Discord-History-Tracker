@@ -19,6 +19,7 @@ using DHT.Server.Data;
 using DHT.Server.Database;
 using DHT.Server.Database.Import;
 using DHT.Server.Database.Sqlite.Schema;
+using DHT.Server.Database.Sqlite.Utils;
 using DHT.Utils.Logging;
 
 namespace DHT.Desktop.Main.Pages;
@@ -54,11 +55,11 @@ sealed class DatabasePageModel {
 				break;
 			
 			case PlatformID.Unix:
-				Process.Start("xdg-open", new string[] { folder });
+				Process.Start("xdg-open", [folder]);
 				break;
 			
 			case PlatformID.MacOSX:
-				Process.Start("open", new string[] { folder });
+				Process.Start("open", [folder]);
 				break;
 			
 			default:
@@ -73,15 +74,31 @@ sealed class DatabasePageModel {
 	
 	public async Task MergeWithDatabase() {
 		string[] paths = await DatabaseGui.NewOpenDatabaseFilesDialog(window, Path.GetDirectoryName(Db.Path));
-		if (paths.Length > 0) {
-			await ProgressDialog.Show(window, "Database Merge", async (dialog, callback) => await MergeWithDatabaseFromPaths(Db, paths, dialog, callback));
+		if (paths.Length == 0) {
+			return;
 		}
+		
+		const string Title = "Database Merge";
+		
+		var result = new TaskCompletionSource<ImportResult?>();
+		try {
+			var dialog = new ProgressDialog();
+			dialog.DataContext = new ProgressDialogModel(Title, async callbacks => result.SetResult(await MergeWithDatabaseFromPaths(Db, paths, dialog, callbacks)), progressItems: 2);
+			await dialog.ShowProgressDialog(window);
+		} catch (Exception e) {
+			Log.Error("Could not merge databases.", e);
+			await Dialog.ShowOk(window, Title, "Could not merge databases: " + e.Message);
+			return;
+		}
+		
+		await Dialog.ShowOk(window, Title, GetImportDialogMessage(result.Task.Result, "database file"));
 	}
 	
-	private static async Task MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
-		var schemaUpgradeCallbacks = new SchemaUpgradeCallbacks(dialog, paths.Length);
+	private static async Task<ImportResult?> MergeWithDatabaseFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IReadOnlyList<IProgressCallback> callbacks) {
+		var schemaUpgradeCallbacks = new SchemaUpgradeCallbacks(dialog, callbacks[1], paths.Length);
+		var databaseMergeProgressCallback = new DatabaseMergeProgressCallback(callbacks[1]);
 		
-		await PerformImport(target, paths, dialog, callback, "Database Merge", "Database Error", "database file", async path => {
+		return await PerformImport(target, paths, dialog, callbacks[0], "Database Merge", async path => {
 			IDatabaseFile? db = await DatabaseGui.TryOpenOrCreateDatabaseFromPath(path, dialog, schemaUpgradeCallbacks);
 			
 			if (db == null) {
@@ -89,7 +106,7 @@ sealed class DatabasePageModel {
 			}
 			
 			try {
-				await target.AddFrom(db);
+				await target.Merge(db, databaseMergeProgressCallback);
 				return true;
 			} finally {
 				await db.DisposeAsync();
@@ -97,14 +114,11 @@ sealed class DatabasePageModel {
 		});
 	}
 	
-	private sealed class SchemaUpgradeCallbacks : ISchemaUpgradeCallbacks {
-		private readonly ProgressDialog dialog;
-		private readonly int total;
+	private sealed class SchemaUpgradeCallbacks(ProgressDialog dialog, IProgressCallback callback, int total) : ISchemaUpgradeCallbacks {
 		private bool? decision;
 		
-		public SchemaUpgradeCallbacks(ProgressDialog dialog, int total) {
-			this.total = total;
-			this.dialog = dialog;
+		public Task<InitialDatabaseSettings?> GetInitialDatabaseSettings() {
+			return Task.FromResult<InitialDatabaseSettings?>(null);
 		}
 		
 		public async Task<bool> CanUpgrade() {
@@ -114,6 +128,7 @@ sealed class DatabasePageModel {
 		}
 		
 		public Task Start(int versionSteps, Func<ISchemaUpgradeCallbacks.IProgressReporter, Task> doUpgrade) {
+			callback.UpdateIndeterminate("Upgrading database...");
 			return doUpgrade(new NullReporter());
 		}
 		
@@ -132,6 +147,20 @@ sealed class DatabasePageModel {
 		}
 	}
 	
+	private sealed class DatabaseMergeProgressCallback(IProgressCallback callback) : DatabaseMerging.IProgressCallback {
+		public void OnImportingMetadata() {
+			callback.UpdateIndeterminate("Importing metadata...");
+		}
+		
+		public void OnMessagesImported(long finished, long total) {
+			callback.Update("Importing messages...", finished, total);
+		}
+		
+		public void OnDownloadsImported(long finished, long total) {
+			callback.Update("Importing downloaded files...", finished, total);
+		}
+	}
+	
 	public async Task ImportLegacyArchive() {
 		string[] paths = await window.StorageProvider.OpenFiles(new FilePickerOpenOptions {
 			Title = "Open Legacy DHT Archive",
@@ -139,15 +168,28 @@ sealed class DatabasePageModel {
 			AllowMultiple = true,
 		});
 		
-		if (paths.Length > 0) {
-			await ProgressDialog.Show(window, "Legacy Archive Import", async (dialog, callback) => await ImportLegacyArchiveFromPaths(Db, paths, dialog, callback));
+		if (paths.Length == 0) {
+			return;
 		}
+		
+		const string Title = "Legacy Archive Import";
+		
+		ImportResult? result;
+		try {
+			result = await ProgressDialog.Show(window, Title, async (dialog, callback) => await ImportLegacyArchiveFromPaths(Db, paths, dialog, callback));
+		} catch (Exception e) {
+			Log.Error("Could not import legacy archives.", e);
+			await Dialog.ShowOk(window, Title, "Could not import legacy archives: " + e.Message);
+			return;
+		}
+		
+		await Dialog.ShowOk(window, Title, GetImportDialogMessage(result, "archive file"));
 	}
 	
-	private static async Task ImportLegacyArchiveFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
+	private static async Task<ImportResult?> ImportLegacyArchiveFromPaths(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback) {
 		var fakeSnowflake = new FakeSnowflake();
 		
-		await PerformImport(target, paths, dialog, callback, "Legacy Archive Import", "Legacy Archive Error", "archive file", async path => {
+		return await PerformImport(target, paths, dialog, callback, "Legacy Archive Import", async path => {
 			await using var jsonStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 			
 			return await LegacyArchiveImport.Read(jsonStream, target, fakeSnowflake, async servers => {
@@ -191,7 +233,7 @@ sealed class DatabasePageModel {
 		            .ToDictionary(static item => item.Item, static item => ulong.Parse(item.Value));
 	}
 	
-	private static async Task PerformImport(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback, string neutralDialogTitle, string errorDialogTitle, string itemName, Func<string, Task<bool>> performImport) {
+	private static async Task<ImportResult?> PerformImport(IDatabaseFile target, string[] paths, ProgressDialog dialog, IProgressCallback callback, string dialogTitle, Func<string, Task<bool>> performImport) {
 		int total = paths.Length;
 		DatabaseStatistics oldStatistics = await DatabaseStatistics.Take(target);
 		
@@ -199,11 +241,11 @@ sealed class DatabasePageModel {
 		int finished = 0;
 		
 		foreach (string path in paths) {
-			await callback.Update(Path.GetFileName(path), finished, total);
+			await callback.Update("File: " + Path.GetFileName(path), finished, total);
 			++finished;
 			
 			if (!File.Exists(path)) {
-				await Dialog.ShowOk(dialog, errorDialogTitle, "File '" + Path.GetFileName(path) + "' no longer exists.");
+				await Dialog.ShowOk(dialog, dialogTitle, "File '" + Path.GetFileName(path) + "' no longer exists.");
 				continue;
 			}
 			
@@ -212,20 +254,19 @@ sealed class DatabasePageModel {
 					++successful;
 				}
 			} catch (Exception ex) {
-				Log.Error(ex);
-				await Dialog.ShowOk(dialog, errorDialogTitle, "File '" + Path.GetFileName(path) + "' could not be imported: " + ex.Message);
+				Log.Error("Could not import file: " + path, ex);
+				await Dialog.ShowOk(dialog, dialogTitle, "File '" + Path.GetFileName(path) + "' could not be imported: " + ex.Message);
 			}
 		}
 		
 		await callback.Update("Done", finished, total);
 		
 		if (successful == 0) {
-			await Dialog.ShowOk(dialog, neutralDialogTitle, "Nothing was imported.");
-			return;
+			return null;
 		}
 		
 		DatabaseStatistics newStatistics = await DatabaseStatistics.Take(target);
-		await Dialog.ShowOk(dialog, neutralDialogTitle, GetImportDialogMessage(oldStatistics, newStatistics, successful, total, itemName));
+		return new ImportResult(oldStatistics, newStatistics, successful, total);
 	}
 	
 	private sealed record DatabaseStatistics(long ServerCount, long ChannelCount, long UserCount, long MessageCount) {
@@ -239,7 +280,16 @@ sealed class DatabasePageModel {
 		}
 	}
 	
-	private static string GetImportDialogMessage(DatabaseStatistics oldStatistics, DatabaseStatistics newStatistics, int successfulItems, int totalItems, string itemName) {
+	private sealed record ImportResult(DatabaseStatistics OldStatistics, DatabaseStatistics NewStatistics, int SuccessfulItems, int TotalItems);
+	
+	private static string GetImportDialogMessage(ImportResult? result, string itemName) {
+		if (result == null) {
+			return "Nothing was imported.";
+		}
+		
+		var oldStatistics = result.OldStatistics;
+		var newStatistics = result.NewStatistics;
+		
 		long newServers = newStatistics.ServerCount - oldStatistics.ServerCount;
 		long newChannels = newStatistics.ChannelCount - oldStatistics.ChannelCount;
 		long newUsers = newStatistics.UserCount - oldStatistics.UserCount;
@@ -248,11 +298,11 @@ sealed class DatabasePageModel {
 		var message = new StringBuilder();
 		message.Append("Processed ");
 		
-		if (successfulItems == totalItems) {
-			message.Append(successfulItems.Pluralize(itemName));
+		if (result.SuccessfulItems == result.TotalItems) {
+			message.Append(result.SuccessfulItems.Pluralize(itemName));
 		}
 		else {
-			message.Append(successfulItems.Format()).Append(" out of ").Append(totalItems.Pluralize(itemName));
+			message.Append(result.SuccessfulItems.Format()).Append(" out of ").Append(result.TotalItems.Pluralize(itemName));
 		}
 		
 		message.Append(" and added:\n\n  \u2022 ");
@@ -262,5 +312,19 @@ sealed class DatabasePageModel {
 		message.Append(newMessages.Pluralize("message"));
 		
 		return message.ToString();
+	}
+	
+	public async Task VacuumDatabase() {
+		const string Title = "Vacuum Database";
+		
+		try {
+			await ProgressDialog.ShowIndeterminate(window, Title, "Vacuuming database...", _ => Db.Vacuum());
+		} catch (Exception e) {
+			Log.Error("Could not vacuum database.", e);
+			await Dialog.ShowOk(window, Title, "Could not vacuum database: " + e.Message);
+			return;
+		}
+		
+		await Dialog.ShowOk(window, Title, "Done.");
 	}
 }

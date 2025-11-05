@@ -22,7 +22,6 @@ define('LATEST_VERSION', $version === false ? '_' : $version);
       <h1>Discord History Tracker&nbsp;<span class="bar">|</span>&nbsp;<span class="notes"><a href="https://github.com/chylex/Discord-History-Tracker/releases">Release&nbsp;Notes</a></span></h1>
       <p>Discord History Tracker lets you save chat history in your servers, groups, and private conversations, and view it offline.</p>
       <img src="img/tracker.png" width="851" class="dht bordered">
-      <p>This page explains how to use the desktop app. If you are looking for the older version of Discord History Tracker which only needs a browser or the Discord app, visit the page for the <a href="https://dht.chylex.com/browser-only">browser-only version</a>, however keep in mind that this version has <strong>significant limitations and fewer features</strong>.</p>
       
       <h2>How to Use</h2>
       <p>Download the latest version of the desktop app here, or visit <a href="https://github.com/chylex/Discord-History-Tracker/releases">All Releases</a> for older versions and release notes.</p>
@@ -71,9 +70,9 @@ define('LATEST_VERSION', $version === false ? '_' : $version);
       
       <h2>External Links</h2>
       <p class="links">
-        <a href="https://github.com/chylex/Discord-History-Tracker/issues">Issues&nbsp;&amp;&nbsp;Suggestions</a>&nbsp;&nbsp;&mdash;&nbsp;
-        <a href="https://github.com/chylex/Discord-History-Tracker">Source&nbsp;Code</a>&nbsp;&nbsp;&mdash;&nbsp;
-        <a href="https://twitter.com/chylexmc">Follow&nbsp;Dev&nbsp;on&nbsp;Twitter</a>&nbsp;&nbsp;&mdash;&nbsp;
+        <a href="https://github.com/chylex/Discord-History-Tracker/issues">Issues&nbsp;&amp;&nbsp;Suggestions</a>&nbsp;&nbsp;&bullet;&nbsp;
+        <a href="https://github.com/chylex/Discord-History-Tracker">Source&nbsp;Code</a>&nbsp;&nbsp;&bullet;&nbsp;
+        <a href="https://chylex.com">Developer's&nbsp;Website</a>&nbsp;&nbsp;&bullet;&nbsp;
         <a href="https://ko-fi.com/chylex">Support&nbsp;via&nbsp;Ko-fi</a>
       </p>
       

@@ -8,6 +8,10 @@ using Avalonia.Platform.Storage;
 namespace DHT.Desktop.Dialogs.File;
 
 static class FileDialogs {
+	public static async Task<string[]> OpenFolders(this IStorageProvider storageProvider, FolderPickerOpenOptions options) {
+		return (await storageProvider.OpenFolderPickerAsync(options)).ToLocalPaths();
+	}
+	
 	public static async Task<string[]> OpenFiles(this IStorageProvider storageProvider, FilePickerOpenOptions options) {
 		return (await storageProvider.OpenFilePickerAsync(options)).ToLocalPaths();
 	}
@@ -26,11 +30,11 @@ static class FileDialogs {
 		return suggestedDirectory == null ? Task.FromResult<IStorageFolder?>(null) : window.StorageProvider.TryGetFolderFromPathAsync(suggestedDirectory);
 	}
 	
-	private static string ToLocalPath(this IStorageFile file) {
-		return file.TryGetLocalPath() ?? throw new NotSupportedException("Local filesystem is not supported.");
+	private static string ToLocalPath(this IStorageItem itme) {
+		return itme.TryGetLocalPath() ?? throw new NotSupportedException("Local filesystem is not supported.");
 	}
 	
-	private static string[] ToLocalPaths(this IReadOnlyList<IStorageFile> files) {
-		return files.Select(ToLocalPath).ToArray();
+	private static string[] ToLocalPaths(this IReadOnlyList<IStorageItem> items) {
+		return items.Select(ToLocalPath).ToArray();
 	}
 }

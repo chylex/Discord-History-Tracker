@@ -14,5 +14,6 @@ public interface IDatabaseFile : IAsyncDisposable {
 	IMessageRepository Messages { get; }
 	IDownloadRepository Downloads { get; }
 	
+	Task<string?> GetVersion();
 	Task Vacuum();
 }

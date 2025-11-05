@@ -8,7 +8,8 @@
         x:DataType="namespace:CheckBoxDialogModel"
         Title="{Binding Title}"
         Icon="avares://DiscordHistoryTracker/Resources/icon.ico"
-        Width="500" SizeToContent="Height" CanResize="False"
+        MinWidth="425" MinHeight="200"
+        Width="500" Height="395" CanResize="True"
         WindowStartupLocation="CenterOwner">
 
     <Window.DataContext>
@@ -16,47 +17,35 @@
     </Window.DataContext>
 
     <Window.Styles>
-        <Style Selector="Panel.buttons">
-            <Setter Property="Margin" Value="0 20 0 0" />
-        </Style>
-        <Style Selector="Panel.buttons > WrapPanel.right">
-            <Setter Property="HorizontalAlignment" Value="Right" />
-        </Style>
-        <Style Selector="Panel.buttons Button">
-            <Setter Property="MinWidth" Value="80" />
-        </Style>
-        <Style Selector="Panel.buttons > WrapPanel.left Button">
-            <Setter Property="Margin" Value="0 0 8 0" />
-        </Style>
-        <Style Selector="Panel.buttons > WrapPanel.right Button">
-            <Setter Property="Margin" Value="8 0 0 0" />
+        <Style Selector="TreeViewItem">
+            <Setter Property="IsExpanded" Value="True" />
         </Style>
     </Window.Styles>
 
-    <StackPanel Margin="20">
-        <ScrollViewer MaxHeight="400">
-            <ItemsRepeater ItemsSource="{Binding Items}">
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate>
+    <DockPanel Margin="20 17 20 20">
+        <Panel Classes="buttons" DockPanel.Dock="Bottom">
+            <WrapPanel>
+                <Button Command="{Binding SelectAll}" IsEnabled="{Binding !AreAllSelected}">Select All</Button>
+                <Button Command="{Binding SelectNone}" IsEnabled="{Binding !AreNoneSelected}">Select None</Button>
+            </WrapPanel>
+            <WrapPanel HorizontalAlignment="Right">
+                <Button Click="ClickOk">OK</Button>
+                <Button Click="ClickCancel">Cancel</Button>
+            </WrapPanel>
+        </Panel>
+        <ScrollViewer DockPanel.Dock="Top">
+            <TreeView Name="TreeView" Classes="noSelection" ItemsSource="{Binding RootItems}" ContainerPrepared="TreeViewOnContainerPrepared">
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate ItemsSource="{Binding Children}">
                         <CheckBox IsChecked="{Binding IsChecked}">
                             <Label>
                                 <TextBlock Text="{Binding Title}" TextWrapping="Wrap" />
                             </Label>
                         </CheckBox>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
         </ScrollViewer>
-        <Panel Classes="buttons">
-            <WrapPanel Classes="left">
-                <Button Command="{Binding SelectAll}" IsEnabled="{Binding !AreAllSelected}">Select All</Button>
-                <Button Command="{Binding SelectNone}" IsEnabled="{Binding !AreNoneSelected}">Select None</Button>
-            </WrapPanel>
-            <WrapPanel Classes="right">
-                <Button Click="ClickOk">OK</Button>
-                <Button Click="ClickCancel">Cancel</Button>
-            </WrapPanel>
-        </Panel>
-    </StackPanel>
+    </DockPanel>
 
 </Window>

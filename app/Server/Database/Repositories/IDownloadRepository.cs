@@ -2,25 +2,26 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DHT.Server.Data;
 using DHT.Server.Data.Aggregations;
 using DHT.Server.Data.Filters;
 using DHT.Server.Download;
+using DHT.Utils.Observables;
 
 namespace DHT.Server.Database.Repositories;
 
 public interface IDownloadRepository {
-	IObservable<long> TotalCount { get; }
+	ObservableValue<long> TotalCount { get; }
 	
 	Task AddDownload(Data.Download item, Stream? stream);
 	
-	Task<long> Count(DownloadItemFilter filter, CancellationToken cancellationToken = default);
+	Task<long> Count(DownloadItemFilter? filter = null, CancellationToken cancellationToken = default);
 	
 	Task<DownloadStatusStatistics> GetStatistics(DownloadItemFilter nonSkippedFilter, CancellationToken cancellationToken = default);
 	
-	IAsyncEnumerable<Data.Download> Get();
+	IAsyncEnumerable<Data.Download> Get(DownloadItemFilter? filter = null);
 	
 	Task<bool> GetDownloadData(string normalizedUrl, Func<Stream, Task> dataProcessor);
 	
@@ -34,16 +35,16 @@ public interface IDownloadRepository {
 	
 	Task Remove(ICollection<string> normalizedUrls);
 	
-	IAsyncEnumerable<Data.Download> FindAllDownloadableUrls(CancellationToken cancellationToken = default);
+	IAsyncEnumerable<FileUrl> FindReachableFiles(CancellationToken cancellationToken = default);
 	
 	internal sealed class Dummy : IDownloadRepository {
-		public IObservable<long> TotalCount { get; } = Observable.Return(0L);
+		public ObservableValue<long> TotalCount { get; } = new (0L);
 		
 		public Task AddDownload(Data.Download item, Stream? stream) {
 			return Task.CompletedTask;
 		}
 		
-		public Task<long> Count(DownloadItemFilter filter, CancellationToken cancellationToken) {
+		public Task<long> Count(DownloadItemFilter? filter, CancellationToken cancellationToken) {
 			return Task.FromResult(0L);
 		}
 		
@@ -51,7 +52,7 @@ public interface IDownloadRepository {
 			return Task.FromResult(new DownloadStatusStatistics());
 		}
 		
-		public IAsyncEnumerable<Data.Download> Get() {
+		public IAsyncEnumerable<Data.Download> Get(DownloadItemFilter? filter) {
 			return AsyncEnumerable.Empty<Data.Download>();
 		}
 		
@@ -79,8 +80,8 @@ public interface IDownloadRepository {
 			return Task.CompletedTask;
 		}
 		
-		public IAsyncEnumerable<Data.Download> FindAllDownloadableUrls(CancellationToken cancellationToken) {
-			return AsyncEnumerable.Empty<Data.Download>();
+		public IAsyncEnumerable<FileUrl> FindReachableFiles(CancellationToken cancellationToken) {
+			return AsyncEnumerable.Empty<FileUrl>();
 		}
 	}
 }

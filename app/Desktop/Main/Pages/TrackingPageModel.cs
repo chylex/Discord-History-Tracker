@@ -1,31 +1,32 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
-using CommunityToolkit.Mvvm.ComponentModel;
+using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Discord;
 using DHT.Desktop.Server;
+using DHT.Utils.Logging;
+using PropertyChanged.SourceGenerator;
 using static DHT.Desktop.Program;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed partial class TrackingPageModel : ObservableObject {
-	[ObservableProperty(Setter = Access.Private)]
-	private bool isCopyTrackingScriptButtonEnabled = true;
+sealed partial class TrackingPageModel {
+	private static readonly Log Log = Log.ForType<TrackingPageModel>();
 	
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(ToggleAppDevToolsButtonText))]
+	[Notify(Setter.Private)]
 	private bool? areDevToolsEnabled = null;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(ToggleAppDevToolsButtonText))]
+	[Notify(Setter.Private)]
 	private bool isToggleAppDevToolsButtonEnabled = false;
 	
 	public string OpenDevToolsShortcutText { get; } = OperatingSystem.IsMacOS() ? "Cmd+Shift+I" : "Ctrl+Shift+I";
 	
+	[DependsOn(nameof(AreDevToolsEnabled), nameof(IsToggleAppDevToolsButtonEnabled))]
 	public string ToggleAppDevToolsButtonText {
 		get {
 			if (!AreDevToolsEnabled.HasValue) {
@@ -52,32 +53,9 @@ sealed partial class TrackingPageModel : ObservableObject {
 	}
 	
 	public async Task<bool> OnClickCopyTrackingScript() {
-		IsCopyTrackingScriptButtonEnabled = false;
-		
-		try {
-			return await CopyTrackingScript();
-		} finally {
-			IsCopyTrackingScriptButtonEnabled = true;
-		}
-	}
-	
-	private async Task<bool> CopyTrackingScript() {
-		string url = $"http://127.0.0.1:{ServerConfiguration.Port}/get-tracking-script?token={HttpUtility.UrlEncode(ServerConfiguration.Token)}";
+		string url = ServerConfiguration.HttpHost + $"/get-tracking-script?token={HttpUtility.UrlEncode(ServerConfiguration.Token)}";
 		string script = (await Resources.ReadTextAsync("tracker-loader.js")).Trim().Replace("{url}", url);
-		
-		IClipboard? clipboard = window.Clipboard;
-		if (clipboard == null) {
-			await Dialog.ShowOk(window, "Copy Tracking Script", "Clipboard is not available on this system.");
-			return false;
-		}
-		
-		try {
-			await clipboard.SetTextAsync(script);
-			return true;
-		} catch {
-			await Dialog.ShowOk(window, "Copy Tracking Script", "An error occurred while copying to clipboard.");
-			return false;
-		}
+		return await TryCopy(script, "Copy Tracking Script");
 	}
 	
 	private async Task InitializeDevToolsToggle() {
@@ -131,6 +109,46 @@ sealed partial class TrackingPageModel : ObservableObject {
 			
 			default:
 				throw new ArgumentOutOfRangeException();
+		}
+	}
+	
+	public async Task OnClickInstallOrUpdateUserscript() {
+		try {
+			SystemUtils.OpenUrl(ServerConfiguration.HttpHost + "/get-userscript/dht.user.js");
+		} catch (Exception e) {
+			await Dialog.ShowOk(window, "Install or Update Userscript", "Could not open the browser: " + e.Message);
+		}
+	}
+	
+	[GeneratedRegex("^[a-zA-Z0-9]{1,100}$")]
+	private static partial Regex ConnectionCodeTokenRegex();
+	
+	public async Task<bool> OnClickCopyConnectionCode() {
+		const string Title = "Copy Connection Code";
+		
+		if (ConnectionCodeTokenRegex().IsMatch(ServerConfiguration.Token)) {
+			return await TryCopy(ServerConfiguration.Port + ":" + ServerConfiguration.Token, Title);
+		}
+		else {
+			await Dialog.ShowOk(window, Title, "The internal server token cannot be used to create a connection code.\n\nCheck the 'Advanced' tab and ensure the token is 1-100 characters long, and only contains plain letters and numbers.");
+			return false;
+		}
+	}
+	
+	private async Task<bool> TryCopy(string script, string errorDialogTitle) {
+		IClipboard? clipboard = window.Clipboard;
+		if (clipboard == null) {
+			await Dialog.ShowOk(window, errorDialogTitle, "Clipboard is not available on this system.");
+			return false;
+		}
+		
+		try {
+			await clipboard.SetTextAsync(script);
+			return true;
+		} catch (Exception e) {
+			Log.Error("Could not copy to clipboard.", e);
+			await Dialog.ShowOk(window, errorDialogTitle, "An error occurred while copying to clipboard.");
+			return false;
 		}
 	}
 }

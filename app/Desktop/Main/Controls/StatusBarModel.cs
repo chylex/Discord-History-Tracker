@@ -1,28 +1,27 @@
 using System;
-using System.Reactive.Linq;
-using Avalonia.ReactiveUI;
 using Avalonia.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
+using DHT.Desktop.Common;
 using DHT.Server;
 using DHT.Server.Service;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed partial class StatusBarModel : ObservableObject, IDisposable {
-	[ObservableProperty(Setter = Access.Private)]
+sealed partial class StatusBarModel : IDisposable {
+	[Notify(Setter.Private)]
 	private long? serverCount;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private long? channelCount;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private long? messageCount;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(ServerStatusText))]
+	[Notify(Setter.Private)]
 	private ServerManager.Status serverStatus;
 	
-	public string ServerStatusText => serverStatus switch {
+	[DependsOn(nameof(ServerStatus))]
+	public string ServerStatusText => ServerStatus switch {
 		ServerManager.Status.Starting => "STARTING",
 		ServerManager.Status.Started  => "READY",
 		ServerManager.Status.Stopping => "STOPPING",
@@ -41,11 +40,11 @@ sealed partial class StatusBarModel : ObservableObject, IDisposable {
 	public StatusBarModel(State state) {
 		this.state = state;
 		
-		serverCountSubscription = state.Db.Servers.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(newServerCount => ServerCount = newServerCount);
-		channelCountSubscription = state.Db.Channels.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(newChannelCount => ChannelCount = newChannelCount);
-		messageCountSubscription = state.Db.Messages.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(newMessageCount => MessageCount = newMessageCount);
+		serverCountSubscription = state.Db.Servers.TotalCount.SubscribeLastOnUI(newServerCount => ServerCount = newServerCount, TimeSpan.FromMilliseconds(15));
+		channelCountSubscription = state.Db.Channels.TotalCount.SubscribeLastOnUI(newChannelCount => ChannelCount = newChannelCount, TimeSpan.FromMilliseconds(15));
+		messageCountSubscription = state.Db.Messages.TotalCount.SubscribeLastOnUI(newMessageCount => MessageCount = newMessageCount, TimeSpan.FromMilliseconds(15));
 		
-		state.Server.StatusChanged += OnServerStatusChanged;
+		state.Server.StatusChanged += OnStateServerStatusChanged;
 		serverStatus = state.Server.IsRunning ? ServerManager.Status.Started : ServerManager.Status.Stopped;
 	}
 	
@@ -54,10 +53,10 @@ sealed partial class StatusBarModel : ObservableObject, IDisposable {
 		channelCountSubscription.Dispose();
 		messageCountSubscription.Dispose();
 		
-		state.Server.StatusChanged -= OnServerStatusChanged;
+		state.Server.StatusChanged -= OnStateServerStatusChanged;
 	}
 	
-	private void OnServerStatusChanged(object? sender, ServerManager.Status e) {
+	private void OnStateServerStatusChanged(object? sender, ServerManager.Status e) {
 		Dispatcher.UIThread.InvokeAsync(() => ServerStatus = e);
 	}
 }

@@ -1,8 +1,8 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Server.Data.Filters;
 using DHT.Server.Database;
+using DHT.Utils.Observables;
 
 namespace DHT.Server.Download;
 
@@ -19,11 +19,11 @@ public sealed class Downloader {
 		this.concurrentDownloads = concurrentDownloads;
 	}
 	
-	public async Task<IObservable<DownloadItem>> Start(DownloadItemFilter filter) {
+	public async Task<ObservableValue<DownloadItem>> Start(DownloadItemFilter filter) {
 		await semaphore.WaitAsync();
 		try {
 			current ??= new DownloaderTask(db, filter, concurrentDownloads);
-			return current.FinishedItems;
+			return current.LastFinishedItem;
 		} finally {
 			semaphore.Release();
 		}

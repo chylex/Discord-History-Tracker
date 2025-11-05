@@ -22,16 +22,15 @@
         </Style>
         <Style Selector="WrapPanel > StackPanel">
             <Setter Property="Orientation" Value="Vertical" />
-            <Setter Property="Margin" Value="0 0 10 10" />
         </Style>
     </UserControl.Styles>
 
-    <StackPanel>
+    <StackPanel Spacing="10">
         <Button Command="{Binding OnClickToggleServerButton}" Content="{Binding ToggleServerButtonText}" IsEnabled="{Binding IsToggleServerButtonEnabled}" />
-        <TextBlock TextWrapping="Wrap" Margin="0 15">
-            The following settings determine how the tracking script communicates with this application. If you change them, you will have to copy/paste the tracking script again.
+        <TextBlock TextWrapping="Wrap" Margin="0 5">
+            The following settings determine how the tracking script communicates with this application. If you change them, you will have to copy/paste the tracking script or connection code again.
         </TextBlock>
-        <WrapPanel>
+        <WrapPanel ItemSpacing="10" LineSpacing="10">
             <StackPanel>
                 <Label Target="Port">Port</Label>
                 <TextBox x:Name="Port" Width="70" Text="{Binding InputPort}" />

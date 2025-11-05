@@ -2,6 +2,7 @@
  * @name DiscordGuild
  * @property {String} id
  * @property {String} name
+ * @property {String|null|undefined} [icon]
  */
 
 /**
@@ -14,6 +15,7 @@
  * @property {Number} [position]
  * @property {String} [topic]
  * @property {Boolean} [nsfw]
+ * @property {String|null|undefined} [icon]
  * @property {DiscordUser[]} [rawRecipients]
  */
 

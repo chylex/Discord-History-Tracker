@@ -1,21 +1,25 @@
 using System;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DHT.Utils.Logging;
+using DHT.Utils.Observables;
 using DHT.Utils.Tasks;
 
 namespace DHT.Server.Database.Sqlite.Repositories;
 
 abstract class BaseSqliteRepository : IDisposable {
-	private readonly ObservableThrottledTask<long> totalCountTask;
+	private readonly ThrottledTask<long> totalCountTask;
 	
-	public IObservable<long> TotalCount { get; }
+	public ObservableValue<long> TotalCount { get; } = new (0L);
 	
 	protected BaseSqliteRepository(Log log) {
-		totalCountTask = new ObservableThrottledTask<long>(log, TaskScheduler.Default);
-		TotalCount = totalCountTask.DistinctUntilChanged();
+		totalCountTask = new ThrottledTask<long>(log, SetTotalCount, TimeSpan.Zero, TaskScheduler.Default);
 		UpdateTotalCount();
+	}
+	
+	private Task SetTotalCount(long newCount) {
+		TotalCount.Set(newCount);
+		return Task.CompletedTask;
 	}
 	
 	public void Dispose() {

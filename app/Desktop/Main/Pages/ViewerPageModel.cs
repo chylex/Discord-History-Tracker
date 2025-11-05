@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Web;
 using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
@@ -13,16 +12,17 @@ using DHT.Server;
 using DHT.Server.Data.Filters;
 using DHT.Server.Service.Viewer;
 using DHT.Utils.Logging;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed partial class ViewerPageModel : ObservableObject, IDisposable {
+sealed partial class ViewerPageModel : IDisposable {
 	private static readonly Log Log = Log.ForType<ViewerPageModel>();
 	
 	public bool DatabaseToolFilterModeKeep { get; set; } = true;
 	public bool DatabaseToolFilterModeRemove { get; set; } = false;
 	
-	[ObservableProperty]
+	[Notify]
 	private bool hasFilters = false;
 	
 	public MessageFilterPanelModel FilterModel { get; }
@@ -51,28 +51,32 @@ sealed partial class ViewerPageModel : ObservableObject, IDisposable {
 	
 	public async void OnClickOpenViewer() {
 		try {
-			string serverUrl = "http://127.0.0.1:" + ServerConfiguration.Port;
 			string serverToken = ServerConfiguration.Token;
 			string sessionId = state.ViewerSessions.Register(new ViewerSession(FilterModel.CreateFilter())).ToString();
-			SystemUtils.OpenUrl(serverUrl + "/viewer/?token=" + HttpUtility.UrlEncode(serverToken) + "&session=" + HttpUtility.UrlEncode(sessionId));
+			SystemUtils.OpenUrl(ServerConfiguration.HttpHost + "/viewer/?token=" + HttpUtility.UrlEncode(serverToken) + "&session=" + HttpUtility.UrlEncode(sessionId));
 		} catch (Exception e) {
 			await Dialog.ShowOk(window, "Open Viewer", "Could not open viewer: " + e.Message);
 		}
 	}
 	
 	public async Task OnClickApplyFiltersToDatabase() {
-		MessageFilter filter = FilterModel.CreateFilter();
-		long messageCount = await ProgressDialog.ShowIndeterminate(window, "Apply Filters", "Counting matching messages...", _ => state.Db.Messages.Count(filter));
-		
-		if (DatabaseToolFilterModeKeep) {
-			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Keep Matching Messages in This Database", messageCount.Pluralize("message") + " will be kept, and the rest will be removed from this database. This action cannot be undone. Proceed?")) {
-				await ApplyFilterToDatabase(filter, FilterRemovalMode.KeepMatching);
+		try {
+			MessageFilter filter = FilterModel.CreateFilter();
+			long messageCount = await ProgressDialog.ShowIndeterminate(window, "Apply Filters", "Counting matching messages...", _ => state.Db.Messages.Count(filter));
+			
+			if (DatabaseToolFilterModeKeep) {
+				if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Keep Matching Messages in This Database", messageCount.Pluralize("message") + " will be kept, and the rest will be removed from this database. This action cannot be undone. Proceed?")) {
+					await ApplyFilterToDatabase(filter, FilterRemovalMode.KeepMatching);
+				}
 			}
-		}
-		else if (DatabaseToolFilterModeRemove) {
-			if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Remove Matching Messages in This Database", messageCount.Pluralize("message") + " will be removed from this database. This action cannot be undone. Proceed?")) {
-				await ApplyFilterToDatabase(filter, FilterRemovalMode.RemoveMatching);
+			else if (DatabaseToolFilterModeRemove) {
+				if (DialogResult.YesNo.Yes == await Dialog.ShowYesNo(window, "Remove Matching Messages in This Database", messageCount.Pluralize("message") + " will be removed from this database. This action cannot be undone. Proceed?")) {
+					await ApplyFilterToDatabase(filter, FilterRemovalMode.RemoveMatching);
+				}
 			}
+		} catch (Exception e) {
+			Log.Error("Could not apply filters.", e);
+			await Dialog.ShowOk(window, "Apply Filters", "Could not apply filters: " + e.Message);
 		}
 	}
 	

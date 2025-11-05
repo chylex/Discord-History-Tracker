@@ -3,25 +3,26 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Dialogs.Message;
+using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Main.Screens;
 using DHT.Desktop.Server;
 using DHT.Server;
 using DHT.Server.Database;
 using DHT.Utils.Logging;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main;
 
-sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
+sealed partial class MainWindowModel : IAsyncDisposable {
 	private const string DefaultTitle = "Discord History Tracker";
 	
 	private static readonly Log Log = Log.ForType<MainWindowModel>();
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private string title = DefaultTitle;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private UserControl currentScreen;
 	
 	private readonly WelcomeScreen welcomeScreen;
@@ -88,14 +89,21 @@ sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
 		try {
 			await state.Server.Start(ServerConfiguration.Port, ServerConfiguration.Token);
 		} catch (Exception ex) {
-			Log.Error(ex);
+			Log.Error("Could not start internal server.", ex);
 			await Dialog.ShowOk(window, "Internal Server Error", ex.Message);
 		}
 		
-		mainContentScreenModel = new MainContentScreenModel(window, state);
-		mainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
-		
-		await mainContentScreenModel.Initialize();
+		try {
+			mainContentScreenModel = new MainContentScreenModel(window, state);
+			mainContentScreenModel.DatabaseClosed += MainContentScreenModelOnDatabaseClosed;
+			await mainContentScreenModel.Initialize();
+		} catch (Exception ex) {
+			Log.Error("Could not initialize content screen.", ex);
+			await Dialog.ShowOk(window, "Initialization Error", ex.Message);
+			await DisposeContent();
+			await DisposeState();
+			return;
+		}
 		
 		Title = Path.GetFileName(state.Db.Path) + " - " + DefaultTitle;
 		CurrentScreen = new MainContentScreen { DataContext = mainContentScreenModel };
@@ -104,32 +112,33 @@ sealed partial class MainWindowModel : ObservableObject, IAsyncDisposable {
 	}
 	
 	private async void MainContentScreenModelOnDatabaseClosed(object? sender, EventArgs e) {
+		await DisposeContent();
+		
+		Title = DefaultTitle;
+		CurrentScreen = welcomeScreen;
+		
+		await DisposeState();
+		
+		welcomeScreenModel.DatabaseSelected += OnDatabaseSelected;
+	}
+	
+	private async Task DisposeContent() {
 		if (mainContentScreenModel != null) {
 			mainContentScreenModel.DatabaseClosed -= MainContentScreenModelOnDatabaseClosed;
 			await mainContentScreenModel.DisposeAsync();
 			mainContentScreenModel = null;
 		}
-		
-		await DisposeState();
-		
-		Title = DefaultTitle;
-		CurrentScreen = welcomeScreen;
-		
-		welcomeScreenModel.DatabaseSelected += OnDatabaseSelected;
 	}
 	
 	private async Task DisposeState() {
 		if (state != null) {
-			await state.DisposeAsync();
+			await DelayedProgressDialog.Await(() => state.DisposeAsync().AsTask(), TimeSpan.FromMilliseconds(200), window, "Close Database", "Please wait for the database to close...");
 			state = null;
 		}
 	}
 	
 	public async ValueTask DisposeAsync() {
-		if (mainContentScreenModel != null) {
-			await mainContentScreenModel.DisposeAsync();
-		}
-		
+		await DisposeContent();
 		await DisposeState();
 	}
 }

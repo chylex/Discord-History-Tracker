@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using Avalonia.ReactiveUI;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DHT.Desktop.Common;
 using DHT.Desktop.Dialogs.CheckBox;
 using DHT.Desktop.Dialogs.Message;
@@ -16,10 +14,11 @@ using DHT.Server;
 using DHT.Server.Data;
 using DHT.Server.Data.Filters;
 using DHT.Utils.Tasks;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Controls;
 
-sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
+sealed partial class MessageFilterPanelModel : IDisposable {
 	private static readonly HashSet<string> FilterProperties = [
 		nameof(FilterByDate),
 		nameof(StartDate),
@@ -30,37 +29,38 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 		nameof(IncludedUsers),
 	];
 	
-	public string FilterStatisticsText { get; private set; } = "";
-	
 	public event PropertyChangedEventHandler? FilterPropertyChanged;
 	
 	public bool HasAnyFilters => FilterByDate || FilterByChannel || FilterByUser;
 	
-	[ObservableProperty]
+	[Notify]
+	private string filterStatisticsText = "";
+	
+	[Notify]
 	private bool filterByDate = false;
 	
-	[ObservableProperty]
+	[Notify]
 	private DateTime? startDate = null;
 	
-	[ObservableProperty]
+	[Notify]
 	private DateTime? endDate = null;
 	
-	[ObservableProperty]
+	[Notify]
 	private bool filterByChannel = false;
 	
-	[ObservableProperty]
+	[Notify]
 	private HashSet<ulong>? includedChannels = null;
 	
-	[ObservableProperty]
+	[Notify]
 	private bool filterByUser = false;
 	
-	[ObservableProperty]
+	[Notify]
 	private HashSet<ulong>? includedUsers = null;
 	
-	[ObservableProperty]
+	[Notify]
 	private string channelFilterLabel = "";
 	
-	[ObservableProperty]
+	[Notify]
 	private string userFilterLabel = "";
 	
 	private readonly Window window;
@@ -89,9 +89,9 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 		
 		this.exportedMessageCountTask = new RestartableTask<long>(SetExportedMessageCount, TaskScheduler.FromCurrentSynchronizationContext());
 		
-		this.messageCountSubscription = state.Db.Messages.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnMessageCountChanged);
-		this.channelCountSubscription = state.Db.Channels.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnChannelCountChanged);
-		this.userCountSubscription = state.Db.Users.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnUserCountChanged);
+		this.messageCountSubscription = state.Db.Messages.TotalCount.SubscribeLastOnUI(OnMessageCountChanged, TimeSpan.FromMilliseconds(15));
+		this.channelCountSubscription = state.Db.Channels.TotalCount.SubscribeLastOnUI(OnChannelCountChanged, TimeSpan.FromMilliseconds(15));
+		this.userCountSubscription = state.Db.Users.TotalCount.SubscribeLastOnUI(OnUserCountChanged, TimeSpan.FromMilliseconds(15));
 		
 		UpdateFilterStatistics();
 		UpdateChannelFilterLabel();
@@ -181,56 +181,67 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 	private void UpdateFilterStatisticsText() {
 		string exportedMessageCountStr = exportedMessageCount?.Format() ?? "(...)";
 		string totalMessageCountStr = totalMessageCount?.Format() ?? "(...)";
-		
 		FilterStatisticsText = verb + " " + exportedMessageCountStr + " out of " + totalMessageCountStr + " message" + (totalMessageCount is null or 1 ? "." : "s.");
-		OnPropertyChanged(nameof(FilterStatisticsText));
+	}
+	
+	[SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Local")]
+	[SuppressMessage("ReSharper", "MemberCanBePrivate.Local")]
+	private readonly record struct ChannelFilterKey(byte Type, ulong? ServerId, string Title) : IComparable<ChannelFilterKey> {
+		public static ChannelFilterKey DirectMessages { get; } = new (Type: 1, ServerId: null, Title: "Direct Messages");
+		public static ChannelFilterKey GroupMessages { get; } = new (Type: 2, ServerId: null, Title: "Group Messages");
+		public static ChannelFilterKey Unknown { get; } = new (Type: 4, ServerId: null, Title: "Unknown");
+		
+		public static ChannelFilterKey For(DHT.Server.Data.Server server) {
+			return server.Type switch {
+				ServerType.Server        => new ChannelFilterKey(Type: 3, server.Id, "Server - " + server.Name),
+				ServerType.Group         => GroupMessages,
+				ServerType.DirectMessage => DirectMessages,
+				_                        => Unknown,
+			};
+		}
+		
+		public bool Equals(ChannelFilterKey other) {
+			return Type == other.Type && ServerId == other.ServerId;
+		}
+		
+		public override int GetHashCode() {
+			return HashCode.Combine(Type, ServerId);
+		}
+		
+		public int CompareTo(ChannelFilterKey other) {
+			int result = Type.CompareTo(other.Type);
+			if (result != 0) {
+				return result;
+			}
+			else {
+				return Title.CompareTo(other.Title);
+			}
+		}
 	}
 	
 	public async Task OpenChannelFilterDialog() {
-		async Task<List<CheckBoxItem<ulong>>> PrepareChannelItems(ProgressDialog dialog) {
-			var items = new List<CheckBoxItem<ulong>>();
+		async Task<ImmutableArray<ICheckBoxItem>> PrepareChannelItems(ProgressDialog dialog) {
+			CheckBoxItemList<ChannelFilterKey, ulong> items = new CheckBoxItemList<ChannelFilterKey, ulong>();
 			Dictionary<ulong, DHT.Server.Data.Server> servers = await state.Db.Servers.Get().ToDictionaryAsync(static server => server.Id);
 			
-			await foreach (Channel channel in state.Db.Channels.Get()) {
-				ulong channelId = channel.Id;
-				string channelName = channel.Name;
-				
-				string title;
-				if (servers.TryGetValue(channel.Server, out var server)) {
-					var titleBuilder = new StringBuilder();
-					ServerType? serverType = server.Type;
-					
-					titleBuilder.Append('[')
-					            .Append(ServerTypes.ToString(serverType))
-					            .Append("] ");
-					
-					if (serverType == ServerType.DirectMessage) {
-						titleBuilder.Append(channelName);
-					}
-					else {
-						titleBuilder.Append(server.Name)
-						            .Append(" - ")
-						            .Append(channelName);
-					}
-					
-					title = titleBuilder.ToString();
-				}
-				else {
-					title = channelName;
-				}
-				
-				items.Add(new CheckBoxItem<ulong>(channelId) {
-					Title = title,
-					IsChecked = IncludedChannels == null || IncludedChannels.Contains(channelId),
-				});
+			foreach (ChannelFilterKey channelFilterKey in servers.Values.Select(ChannelFilterKey.For).Order()) {
+				items.AddParent(channelFilterKey, channelFilterKey.Title);
 			}
 			
-			return items;
+			await foreach (Channel channel in state.Db.Channels.Get().OrderBy(static channel => channel.Position ?? int.MinValue).ThenBy(static channel => channel.Name)) {
+				ChannelFilterKey key = servers.TryGetValue(channel.Server, out var server)
+					                       ? ChannelFilterKey.For(server)
+					                       : ChannelFilterKey.Unknown;
+				
+				items.Add(key, channel.Id, channel.Name, isChecked: IncludedChannels == null || IncludedChannels.Contains(channel.Id));
+			}
+			
+			return items.ToCheckBoxItems();
 		}
 		
 		const string Title = "Included Channels";
 		
-		List<CheckBoxItem<ulong>> items;
+		ImmutableArray<ICheckBoxItem> items;
 		try {
 			items = await ProgressDialog.ShowIndeterminate(window, Title, "Loading channels...", PrepareChannelItems);
 		} catch (Exception e) {
@@ -245,22 +256,27 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 	}
 	
 	public async Task OpenUserFilterDialog() {
-		async Task<List<CheckBoxItem<ulong>>> PrepareUserItems(ProgressDialog dialog) {
-			var checkBoxItems = new List<CheckBoxItem<ulong>>();
+		async Task<ImmutableArray<ICheckBoxItem>> PrepareUserItems(ProgressDialog dialog) {
+			CheckBoxItemList<ulong, ulong> items = new CheckBoxItemList<ulong, ulong>();
 			
-			await foreach (User user in state.Db.Users.Get()) {
-				checkBoxItems.Add(new CheckBoxItem<ulong>(user.Id) {
-					Title = user.DisplayName == null ? user.Name : $"{user.DisplayName} ({user.Name})",
-					IsChecked = IncludedUsers == null || IncludedUsers.Contains(user.Id),
-				});
+			static string GetDisplayName(User user) {
+				return user.DisplayName == null ? user.Name : $"{user.DisplayName} ({user.Name})";
 			}
 			
-			return checkBoxItems;
+			await foreach ((ulong id, string name) in state.Db.Users.Get().Select(static user => (user.Id, GetDisplayName(user))).OrderBy(static pair => pair.Item2)) {
+				items.Add(
+					value: id,
+					title: name,
+					isChecked: IncludedUsers == null || IncludedUsers.Contains(id)
+				);
+			}
+			
+			return items.ToCheckBoxItems();
 		}
 		
 		const string Title = "Included Users";
 		
-		List<CheckBoxItem<ulong>> items;
+		ImmutableArray<ICheckBoxItem> items;
 		try {
 			items = await ProgressDialog.ShowIndeterminate(window, Title, "Loading users...", PrepareUserItems);
 		} catch (Exception e) {
@@ -274,9 +290,7 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 		}
 	}
 	
-	private async Task<HashSet<ulong>?> OpenIdFilterDialog(string title, List<CheckBoxItem<ulong>> items) {
-		items.Sort(static (item1, item2) => item1.Title.CompareTo(item2.Title));
-		
+	private async Task<HashSet<ulong>?> OpenIdFilterDialog(string title, ImmutableArray<ICheckBoxItem> items) {
 		var model = new CheckBoxDialogModel<ulong>(items) {
 			Title = title,
 		};
@@ -284,7 +298,7 @@ sealed partial class MessageFilterPanelModel : ObservableObject, IDisposable {
 		var dialog = new CheckBoxDialog { DataContext = model };
 		var result = await dialog.ShowDialog<DialogResult.OkCancel>(window);
 		
-		return result == DialogResult.OkCancel.Ok ? model.SelectedItems.Select(static item => item.Item).ToHashSet() : null;
+		return result == DialogResult.OkCancel.Ok ? model.SelectedValues.ToHashSet() : null;
 	}
 	
 	public MessageFilter CreateFilter() {

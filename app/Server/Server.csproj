@@ -11,7 +11,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.7" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.6" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
   
@@ -27,6 +27,11 @@
     <EmbeddedResource Include="../Resources/Tracker/bootstrap.js">
       <LogicalName>Tracker\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
       <Link>Resources/Tracker/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
+    </EmbeddedResource>
+    <EmbeddedResource Include="../Resources/Tracker/loader/**">
+      <LogicalName>Tracker\loader\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+      <Link>Resources/Tracker/loader/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <Visible>false</Visible>
     </EmbeddedResource>
     <EmbeddedResource Include="../Resources/Tracker/scripts/**">

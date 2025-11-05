@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -8,24 +9,36 @@ namespace DHT.Desktop.Main.Pages;
 
 [SuppressMessage("ReSharper", "MemberCanBeInternal")]
 public sealed partial class TrackingPage : UserControl {
-	private bool isCopyingScript;
+	private readonly HashSet<Button> copyingButtons = new (ReferenceEqualityComparer.Instance);
 	
 	public TrackingPage() {
 		InitializeComponent();
 	}
 	
 	public async void CopyTrackingScriptButton_OnClick(object? sender, RoutedEventArgs e) {
+		await HandleCopyButton(CopyTrackingScript, "Script Copied!", static model => model.OnClickCopyTrackingScript());
+	}
+	
+	public async void CopyConnectionScriptButton_OnClick(object? sender, RoutedEventArgs e) {
+		await HandleCopyButton(CopyConnectionCode, "Code Copied!", static model => model.OnClickCopyConnectionCode());
+	}
+	
+	private async Task HandleCopyButton(Button button, string copiedText, Func<TrackingPageModel, Task<bool>> onClick) {
 		if (DataContext is TrackingPageModel model) {
-			object? originalText = CopyTrackingScript.Content;
-			CopyTrackingScript.MinWidth = CopyTrackingScript.Bounds.Width;
+			object? originalText = button.Content;
+			button.MinWidth = button.Bounds.Width;
 			
-			if (await model.OnClickCopyTrackingScript() && !isCopyingScript) {
-				isCopyingScript = true;
-				CopyTrackingScript.Content = "Script Copied!";
+			if (await onClick(model) && copyingButtons.Add(button)) {
+				button.IsEnabled = false;
+				button.Content = copiedText;
 				
-				await Task.Delay(TimeSpan.FromSeconds(2));
-				CopyTrackingScript.Content = originalText;
-				isCopyingScript = false;
+				try {
+					await Task.Delay(TimeSpan.FromSeconds(2));
+				} finally {
+					copyingButtons.Remove(button);
+					button.IsEnabled = true;
+					button.Content = originalText;
+				}
 			}
 		}
 	}

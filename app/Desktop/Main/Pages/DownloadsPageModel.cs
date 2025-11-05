@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reactive.Linq;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using Avalonia.ReactiveUI;
-using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Platform.Storage;
 using DHT.Desktop.Common;
+using DHT.Desktop.Dialogs.File;
 using DHT.Desktop.Dialogs.Message;
 using DHT.Desktop.Dialogs.Progress;
 using DHT.Desktop.Main.Controls;
@@ -17,29 +17,34 @@ using DHT.Server.Data.Filters;
 using DHT.Server.Data.Settings;
 using DHT.Server.Download;
 using DHT.Utils.Logging;
+using DHT.Utils.Observables;
 using DHT.Utils.Tasks;
+using PropertyChanged.SourceGenerator;
 
 namespace DHT.Desktop.Main.Pages;
 
-sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
+sealed partial class DownloadsPageModel : IAsyncDisposable {
 	private static readonly Log Log = Log.ForType<DownloadsPageModel>();
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private bool isToggleDownloadButtonEnabled = true;
 	
+	[DependsOn(nameof(IsDownloading))]
 	public string ToggleDownloadButtonText => IsDownloading ? "Stop Downloading" : "Start Downloading";
 	
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
+	[Notify(Setter.Private)]
 	private bool isRetryingFailedDownloads = false;
 	
-	[ObservableProperty(Setter = Access.Private)]
-	[NotifyPropertyChangedFor(nameof(IsRetryFailedOnDownloadsButtonEnabled))]
+	[Notify(Setter.Private)]
+	private bool hasSuccessfulDownloads;
+	
+	[Notify(Setter.Private)]
 	private bool hasFailedDownloads;
 	
+	[DependsOn(nameof(IsRetryingFailedDownloads), nameof(HasFailedDownloads))]
 	public bool IsRetryFailedOnDownloadsButtonEnabled => !IsRetryingFailedDownloads && HasFailedDownloads;
 	
-	[ObservableProperty(Setter = Access.Private)]
+	[Notify(Setter.Private)]
 	private string downloadMessage = "";
 	
 	public DownloadItemFilterPanelModel FilterModel { get; }
@@ -76,8 +81,8 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 			statisticsSkipped,
 		];
 		
-		downloadStatisticsTask = new ThrottledTask<DownloadStatusStatistics>(Log, UpdateStatistics, TaskScheduler.FromCurrentSynchronizationContext());
-		downloadItemCountSubscription = state.Db.Downloads.TotalCount.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnDownloadCountChanged);
+		downloadStatisticsTask = new ThrottledTask<DownloadStatusStatistics>(Log, UpdateStatistics, TimeSpan.FromMilliseconds(100), TaskScheduler.FromCurrentSynchronizationContext());
+		downloadItemCountSubscription = state.Db.Downloads.TotalCount.SubscribeLastOnUI(OnDownloadCountChanged, TimeSpan.FromMilliseconds(15));
 		
 		RecomputeDownloadStatistics();
 	}
@@ -86,7 +91,12 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		await FilterModel.Initialize();
 		
 		if (await state.Db.Settings.Get(SettingsKey.DownloadsAutoStart, defaultValue: false)) {
-			await StartDownload();
+			try {
+				await StartDownload();
+			} catch (Exception e) {
+				Log.Error("Could not automatically start downloads.", e);
+				await Dialog.ShowOk(window, "Database Error", "Could not automatically start downloads: " + e.Message);
+			}
 		}
 	}
 	
@@ -105,23 +115,43 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 	
 	public async Task OnClickToggleDownload() {
 		IsToggleDownloadButtonEnabled = false;
-		
-		if (IsDownloading) {
-			await StopDownload();
+		try {
+			if (IsDownloading) {
+				await StopDownload();
+			}
+			else {
+				try {
+					await StartDownload();
+				} catch (Exception e) {
+					Log.Error("Could not start downloads.", e);
+					await Dialog.ShowOk(window, "Database Error", "Could not start downloads: " + e.Message);
+					return;
+				}
+			}
+			
+			try {
+				await state.Db.Settings.Set(SettingsKey.DownloadsAutoStart, IsDownloading);
+			} catch (Exception e) {
+				Log.Error("Could not update auto-start setting in database.", e);
+			}
+		} finally {
+			IsToggleDownloadButtonEnabled = true;
 		}
-		else {
-			await StartDownload();
-		}
-		
-		await state.Db.Settings.Set(SettingsKey.DownloadsAutoStart, IsDownloading);
-		IsToggleDownloadButtonEnabled = true;
 	}
 	
 	private async Task StartDownload() {
 		await state.Db.Downloads.MoveDownloadingItemsBackToQueue();
 		
-		IObservable<DownloadItem> finishedItems = await state.Downloader.Start(currentDownloadFilter = FilterModel.CreateFilter());
-		finishedItemsSubscription = finishedItems.ObserveOn(AvaloniaScheduler.Instance).Subscribe(OnItemFinished);
+		try {
+			currentDownloadFilter = FilterModel.CreateFilter();
+			ObservableValue<DownloadItem> finishedItems = await state.Downloader.Start(currentDownloadFilter);
+			finishedItemsSubscription = finishedItems.SubscribeLastOnUI(OnItemFinished, TimeSpan.FromMilliseconds(15));
+		} catch (Exception) {
+			finishedItemsSubscription?.Dispose();
+			finishedItemsSubscription = null;
+			currentDownloadFilter = null;
+			throw;
+		}
 		
 		OnDownloadStateChanged();
 	}
@@ -132,30 +162,29 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		
 		finishedItemsSubscription?.Dispose();
 		finishedItemsSubscription = null;
-		
 		currentDownloadFilter = null;
+		
 		OnDownloadStateChanged();
 	}
 	
 	private void OnDownloadStateChanged() {
 		RecomputeDownloadStatistics();
 		
-		OnPropertyChanged(nameof(ToggleDownloadButtonText));
-		OnPropertyChanged(nameof(IsDownloading));
+		OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsDownloading)));
 	}
 	
 	private void OnItemFinished(DownloadItem item) {
 		RecomputeDownloadStatistics();
 	}
 	
-	public async Task OnClickRetryFailedDownloads() {
+	public async Task OnClickRetryFailed() {
 		IsRetryingFailedDownloads = true;
-		
 		try {
 			await state.Db.Downloads.RetryFailed();
 			RecomputeDownloadStatistics();
 		} catch (Exception e) {
-			Log.Error(e);
+			Log.Error("Could not retry failed downloads.", e);
+			await Dialog.ShowOk(window, "Retry Failed", "Could not retry failed downloads: " + e.Message);
 		} finally {
 			IsRetryingFailedDownloads = false;
 		}
@@ -165,51 +194,97 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		downloadStatisticsTask.Post(cancellationToken => state.Db.Downloads.GetStatistics(currentDownloadFilter ?? new DownloadItemFilter(), cancellationToken));
 	}
 	
-	private const string DeleteOrphanedDownloadsTitle = "Delete Orphaned Downloads";
-	
-	public async Task OnClickDeleteOrphanedDownloads() {
-		await ProgressDialog.Show(window, DeleteOrphanedDownloadsTitle, DeleteOrphanedDownloads);
+	public async Task OnClickDeleteOrphaned() {
+		const string Title = "Delete Orphaned Downloads";
+		
+		try {
+			await ProgressDialog.Show(window, Title, async (_, callback) => {
+				await callback.UpdateIndeterminate("Searching for orphaned downloads...");
+				
+				HashSet<string> reachableNormalizedUrls = [];
+				HashSet<string> orphanedNormalizedUrls = [];
+				
+				await foreach (FileUrl fileUrl in state.Db.Downloads.FindReachableFiles()) {
+					reachableNormalizedUrls.Add(fileUrl.NormalizedUrl);
+				}
+				
+				await foreach (Download download in state.Db.Downloads.Get()) {
+					string normalizedUrl = download.NormalizedUrl;
+					if (!reachableNormalizedUrls.Contains(normalizedUrl)) {
+						orphanedNormalizedUrls.Add(normalizedUrl);
+					}
+				}
+				
+				if (orphanedNormalizedUrls.Count == 0) {
+					await Dialog.ShowOk(window, Title, "No orphaned downloads found.");
+					return;
+				}
+				
+				if (await Dialog.ShowYesNo(window, Title, orphanedNormalizedUrls.Count + " orphaned download(s) will be removed from this database. This action cannot be undone. Proceed?") != DialogResult.YesNo.Yes) {
+					return;
+				}
+				
+				await callback.UpdateIndeterminate("Deleting orphaned downloads...");
+				await state.Db.Downloads.Remove(orphanedNormalizedUrls);
+				RecomputeDownloadStatistics();
+				
+				if (await Dialog.ShowYesNo(window, Title, "Orphaned downloads deleted. Vacuum database now to reclaim space?") != DialogResult.YesNo.Yes) {
+					return;
+				}
+				
+				await callback.UpdateIndeterminate("Vacuuming database...");
+				await state.Db.Vacuum();
+			});
+		} catch (Exception e) {
+			Log.Error("Could not delete orphaned downloads.", e);
+			await Dialog.ShowOk(window, Title, "Could not delete orphaned downloads: " + e.Message);
+		}
 	}
 	
-	private async Task DeleteOrphanedDownloads(ProgressDialog dialog, IProgressCallback callback) {
-		await callback.UpdateIndeterminate("Searching for orphaned downloads...");
+	public async Task OnClickExportAll() {
+		const string Title = "Export Downloaded Files";
 		
-		HashSet<string> reachableNormalizedUrls = [];
-		HashSet<string> orphanedNormalizedUrls = [];
+		string[] folders = await window.StorageProvider.OpenFolders(new FolderPickerOpenOptions {
+			Title = Title,
+			AllowMultiple = false,
+		});
 		
-		await foreach (Download download in state.Db.Downloads.FindAllDownloadableUrls()) {
-			reachableNormalizedUrls.Add(download.NormalizedUrl);
-		}
-		
-		await foreach (Download download in state.Db.Downloads.Get()) {
-			string normalizedUrl = download.NormalizedUrl;
-			if (!reachableNormalizedUrls.Contains(normalizedUrl)) {
-				orphanedNormalizedUrls.Add(normalizedUrl);
-			}
-		}
-		
-		if (orphanedNormalizedUrls.Count == 0) {
-			await Dialog.ShowOk(window, DeleteOrphanedDownloadsTitle, "No orphaned downloads found.");
+		if (folders.Length != 1) {
 			return;
 		}
 		
-		if (await Dialog.ShowYesNo(window, DeleteOrphanedDownloadsTitle, orphanedNormalizedUrls.Count + " orphaned download(s) will be removed from this database. This action cannot be undone. Proceed?") != DialogResult.YesNo.Yes) {
+		string folderPath = folders[0];
+		
+		DownloadExporter exporter = new DownloadExporter(state.Db, folderPath);
+		DownloadExporter.Result result;
+		try {
+			result = await ProgressDialog.Show(window, Title, async (_, callback) => {
+				await callback.UpdateIndeterminate("Exporting downloaded files...");
+				return await exporter.Export(new ExportProgressReporter(callback));
+			});
+		} catch (Exception e) {
+			Log.Error("Could not export downloaded files.", e);
+			await Dialog.ShowOk(window, Title, "Could not export downloaded files: " + e.Message);
 			return;
 		}
 		
-		await callback.UpdateIndeterminate("Deleting orphaned downloads...");
-		await state.Db.Downloads.Remove(orphanedNormalizedUrls);
-		RecomputeDownloadStatistics();
+		string messageStart = "Exported " + result.SuccessfulCount.Pluralize("file");
 		
-		if (await Dialog.ShowYesNo(window, DeleteOrphanedDownloadsTitle, "Orphaned downloads deleted. Vacuum database now to reclaim space?") != DialogResult.YesNo.Yes) {
-			return;
+		if (result.FailedCount > 0L) {
+			await Dialog.ShowOk(window, Title, messageStart + " (" + result.FailedCount.Format() + " failed).");
 		}
-		
-		await callback.UpdateIndeterminate("Vacuuming database...");
-		await state.Db.Vacuum();
+		else {
+			await Dialog.ShowOk(window, Title, messageStart + ".");
+		}
 	}
 	
-	private void UpdateStatistics(DownloadStatusStatistics statusStatistics) {
+	private sealed class ExportProgressReporter(IProgressCallback callback) : DownloadExporter.IProgressReporter {
+		public Task ReportProgress(long processedCount, long totalCount) {
+			return callback.Update("Exporting downloaded files...", processedCount, totalCount);
+		}
+	}
+	
+	private Task UpdateStatistics(DownloadStatusStatistics statusStatistics) {
 		statisticsPending.Items = statusStatistics.PendingCount;
 		statisticsPending.Size = statusStatistics.PendingTotalSize;
 		statisticsPending.HasFilesWithUnknownSize = statusStatistics.PendingWithUnknownSizeCount > 0;
@@ -226,24 +301,25 @@ sealed partial class DownloadsPageModel : ObservableObject, IAsyncDisposable {
 		statisticsSkipped.Size = statusStatistics.SkippedTotalSize;
 		statisticsSkipped.HasFilesWithUnknownSize = statusStatistics.SkippedWithUnknownSizeCount > 0;
 		
+		HasSuccessfulDownloads = statusStatistics.SuccessfulCount > 0;
 		HasFailedDownloads = statusStatistics.FailedCount > 0;
+		
+		return Task.CompletedTask;
 	}
 	
-	[ObservableObject]
 	public sealed partial class StatisticsRow(string state) {
 		public string State { get; } = state;
 		
-		[ObservableProperty]
+		[Notify]
 		private int items;
 		
-		[ObservableProperty]
-		[NotifyPropertyChangedFor(nameof(SizeText))]
+		[Notify]
 		private ulong? size;
 		
-		[ObservableProperty]
-		[NotifyPropertyChangedFor(nameof(SizeText))]
+		[Notify]
 		private bool hasFilesWithUnknownSize;
 		
+		[DependsOn(nameof(Size), nameof(HasFilesWithUnknownSize))]
 		public string SizeText {
 			get {
 				if (size == null) {

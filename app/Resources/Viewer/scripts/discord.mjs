@@ -107,7 +107,7 @@ export default (function() {
 	const isImageUrl = function(url) {
 		const dot = url.pathname.lastIndexOf(".");
 		const ext = dot === -1 ? "" : url.pathname.substring(dot).toLowerCase();
-		return ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg";
+		return ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg" || ext === ".webp" || ext === ".avif";
 	};
 	
 	return {

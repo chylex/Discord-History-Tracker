@@ -11,22 +11,22 @@
         <pages:DatabasePageModel />
     </Design.DataContext>
 
-    <UserControl.Styles>
-        <Style Selector="WrapPanel > Button">
-            <Setter Property="Margin" Value="0 0 10 10" />
-        </Style>
-    </UserControl.Styles>
-
     <StackPanel Spacing="10">
         <DockPanel>
             <Button Command="{Binding CloseDatabase}" DockPanel.Dock="Right">Close Database</Button>
             <TextBox Text="{Binding Db.Path}" Width="NaN" Margin="0 0 10 0" IsReadOnly="True" />
         </DockPanel>
-        <WrapPanel>
+        <WrapPanel ItemSpacing="10" LineSpacing="10">
             <Button Command="{Binding OpenDatabaseFolder}">Open Database Folder</Button>
             <Button Command="{Binding MergeWithDatabase}">Merge with Database(s)...</Button>
             <Button Command="{Binding ImportLegacyArchive}">Import Legacy Archive(s)...</Button>
         </WrapPanel>
+        <Expander Header="Advanced Tools" Margin="0 25 0 0">
+            <StackPanel Orientation="Vertical" Spacing="10">
+                <TextBlock TextWrapping="Wrap">Recreate the database to free up space after deleting data.</TextBlock>
+                <Button Command="{Binding VacuumDatabase}">Vacuum Database</Button>
+            </StackPanel>
+        </Expander>
     </StackPanel>
 
 </UserControl>

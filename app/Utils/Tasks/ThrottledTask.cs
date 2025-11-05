@@ -14,11 +14,13 @@ public abstract class ThrottledTaskBase<T> : IDisposable {
 		FullMode = BoundedChannelFullMode.DropOldest,
 	});
 	
-	private readonly CancellationTokenSource cancellationTokenSource = new ();
 	private readonly Log log;
+	private readonly TimeSpan delayBetweenRuns;
+	private readonly CancellationTokenSource cancellationTokenSource = new ();
 	
-	internal ThrottledTaskBase(Log log) {
+	internal ThrottledTaskBase(Log log, TimeSpan delayBetweenRuns) {
 		this.log = log;
+		this.delayBetweenRuns = delayBetweenRuns;
 	}
 	
 	protected async Task ReaderTask() {
@@ -33,9 +35,9 @@ public abstract class ThrottledTaskBase<T> : IDisposable {
 				} catch (Exception e) {
 					log.Error("Caught exception in task: " + e);
 				}
+				
+				await Task.Delay(delayBetweenRuns, cancellationToken);
 			}
-		} catch (OperationCanceledException) {
-			// Ignore.
 		} finally {
 			cancellationTokenSource.Dispose();
 		}
@@ -48,20 +50,20 @@ public abstract class ThrottledTaskBase<T> : IDisposable {
 	}
 	
 	public void Dispose() {
-		taskChannel.Writer.Complete();
 		cancellationTokenSource.Cancel();
+		taskChannel.Writer.Complete();
 	}
 }
 
 public sealed class ThrottledTask : ThrottledTaskBase<Task> {
-	private readonly Action resultProcessor;
+	private readonly Func<Task> resultProcessor;
 	private readonly TaskScheduler resultScheduler;
 	
-	public ThrottledTask(Log log, Action resultProcessor, TaskScheduler resultScheduler) : base(log) {
+	public ThrottledTask(Log log, Func<Task> resultProcessor, TimeSpan delayBetweenRuns, TaskScheduler resultScheduler) : base(log, delayBetweenRuns) {
 		this.resultProcessor = resultProcessor;
 		this.resultScheduler = resultScheduler;
 		
-		Task.Run(ReaderTask);
+		_ = ReaderTask();
 	}
 	
 	protected override async Task Run(Func<CancellationToken, Task> func, CancellationToken cancellationToken) {
@@ -71,18 +73,22 @@ public sealed class ThrottledTask : ThrottledTaskBase<Task> {
 }
 
 public sealed class ThrottledTask<T> : ThrottledTaskBase<Task<T>> {
-	private readonly Action<T> resultProcessor;
+	private readonly Func<T, Task> resultProcessor;
 	private readonly TaskScheduler resultScheduler;
 	
-	public ThrottledTask(Log log, Action<T> resultProcessor, TaskScheduler resultScheduler) : base(log) {
+	public ThrottledTask(Log log, Func<T, Task> resultProcessor, TimeSpan delayBetweenRuns, TaskScheduler resultScheduler) : base(log, delayBetweenRuns) {
 		this.resultProcessor = resultProcessor;
 		this.resultScheduler = resultScheduler;
 		
-		Task.Run(ReaderTask);
+		_ = ReaderTask();
 	}
 	
 	protected override async Task Run(Func<CancellationToken, Task<T>> func, CancellationToken cancellationToken) {
 		T result = await func(cancellationToken);
 		await Task.Factory.StartNew(() => resultProcessor(result), cancellationToken, TaskCreationOptions.None, resultScheduler);
+	}
+	
+	public void Post(T result) {
+		base.Post(_ => Task.FromResult(result));
 	}
 }
