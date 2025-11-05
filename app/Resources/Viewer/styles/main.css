@@ -1,6 +1,6 @@
 body {
   font-family: Whitney, "Helvetica Neue", Helvetica, Verdana, "Lucida Grande", sans-serif;
-  line-height: 1;
+    line-height: 1;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -15,6 +15,10 @@ body {
 .loading {
   position: relative;
   --loading-backdrop: rgba(0, 0, 0, 0);
+}
+
+.loading:hover {
+  background-color: rgba(0, 0, 0, 0) !important;
 }
 
 .loading::after {

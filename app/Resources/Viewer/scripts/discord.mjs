@@ -113,16 +113,17 @@ export default (function() {
 	return {
 		setup() {
 			templateChannelServer = new template([
-				"<div class='channel' data-channel='{id}'>",
+				"<div class='channel ServerChannel' data-channel='{id}' server-id='{serverId}' server-name='{server.name}' server-type='{server.type}'>",
 				"<div class='info' title='{topic}'><strong class='name'>#{name}</strong>{nsfw}<span class='tag'>{msgcount}</span></div>",
-				"<span class='server'>{server.name} ({server.type})</span>",
+				"<!--<span class='server'>{server.name} ({server.type})</span>-->",
 				"</div>"
 			].join(""));
 			
 			templateChannelPrivate = new template([
-				"<div class='channel' data-channel='{id}'>",
+				"<div class='channel UserChannel' data-channel='{id}' server-id='0' server-name='{server.name}' server-type='{server.type}'>",
+				"<div class='avatar'>{icon}</div>",
 				"<div class='info'><strong class='name'>{name}</strong><span class='tag'>{msgcount}</span></div>",
-				"<span class='server'>({server.type})</span>",
+				"<!--<span class='server'>{server.name} ({server.type})</span>-->",
 				"</div>"
 			].join(""));
 			
@@ -156,32 +157,32 @@ export default (function() {
 			
 			// noinspection HtmlUnknownTarget
 			templateAttachmentDownload = new template([
-				"<a href='{url}' class='embed download'>Download {name}</a>"
+				"<a href='{url}'  class='embed download'>Download {name}</a>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
 			templateEmbedImage = new template([
-				"<a href='{url}' class='embed thumbnail loading'><img src='{src}' alt='' onload='window.DISCORD.handleImageLoad(this)' onerror='window.DISCORD.handleImageLoadError(this)'></a><br>"
+				"<a href='{url}'  class='embed thumbnail loading'><img src='{src}' alt='' onload='window.DISCORD.handleImageLoad(this)' onerror='window.DISCORD.handleImageLoadError(this)'></a><br>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
 			templateEmbedImageWithSize = new template([
-				"<a href='{url}' class='embed thumbnail loading'><img src='{src}' width='{width}' height='{height}' alt='' onload='window.DISCORD.handleImageLoad(this)' onerror='window.DISCORD.handleImageLoadError(this)'></a><br>"
+				"<a href='{url}'  class='embed thumbnail loading'><img src='{src}' width='{width}' alt='' onload='window.DISCORD.handleImageLoad(this)' onerror='window.DISCORD.handleImageLoadError(this)'></a><br>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
 			templateEmbedRich = new template([
-				"<div class='embed download'><a href='{url}' class='title'>{title}</a><p class='desc'>{description}</p></div>"
+				"<div class='embed download'><a href='{url}'  class='title'>{title}</a><p class='desc'>{description}</p></div>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
 			templateEmbedRichNoDescription = new template([
-				"<div class='embed download'><a href='{url}' class='title'>{title}</a></div>"
+				"<div class='embed download'><a href='{url}'  class='title'>{title}</a></div>"
 			].join(""));
 			
 			// noinspection HtmlUnknownTarget
 			templateEmbedUrl = new template([
-				"<a href='{url}' class='embed download'>{url}</a>"
+				"<a href='{url}'  class='embed download'>{url}</a>"
 			].join(""));
 			
 			templateEmbedUnsupported = new template([
