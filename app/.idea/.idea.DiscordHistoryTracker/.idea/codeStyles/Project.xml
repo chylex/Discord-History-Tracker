@@ -33,6 +33,7 @@
       <option name="USE_GENERIC_STYLE" value="true" />
     </HSQLCodeStyleSettings>
     <HTMLCodeStyleSettings>
+      <option name="HTML_UNIFORM_INDENT" value="true" />
       <option name="HTML_ALIGN_TEXT" value="true" />
       <option name="HTML_SPACE_INSIDE_EMPTY_TAG" value="true" />
       <option name="HTML_ELEMENTS_TO_REMOVE_NEW_LINE_BEFORE" value="" />
@@ -53,6 +54,7 @@
       <option name="ARRAY_WRAPPING" value="5" />
     </JSON>
     <JavaCodeStyleSettings>
+      <option name="GENERATE_USE_TYPE_ANNOTATION_BEFORE_TYPE" value="false" />
       <option name="INSERT_INNER_CLASS_IMPORTS" value="true" />
       <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
       <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
@@ -61,6 +63,7 @@
       </option>
       <option name="IMPORT_LAYOUT_TABLE">
         <value>
+          <package name="" withSubpackages="true" static="false" module="true" />
           <package name="" withSubpackages="true" static="false" />
           <package name="javax" withSubpackages="true" static="false" />
           <package name="java" withSubpackages="true" static="false" />
@@ -77,7 +80,6 @@
       <option name="ALIGN_IN_COLUMNS_CASE_BRANCH" value="true" />
       <option name="NAME_COUNT_TO_USE_STAR_IMPORT" value="2147483647" />
       <option name="NAME_COUNT_TO_USE_STAR_IMPORT_FOR_MEMBERS" value="2147483647" />
-      <option name="IMPORT_NESTED_CLASSES" value="true" />
       <option name="WRAP_ELVIS_EXPRESSIONS" value="0" />
       <option name="ALLOW_TRAILING_COMMA" value="true" />
       <option name="CODE_STYLE_DEFAULTS" value="KOTLIN_OFFICIAL" />
@@ -103,6 +105,7 @@
     </OracleCodeStyleSettings>
     <PHPCodeStyleSettings>
       <option name="ALIGN_KEY_VALUE_PAIRS" value="true" />
+      <option name="ALIGN_MATCH_ARM_BODIES" value="true" />
       <option name="CONCAT_SPACES" value="false" />
       <option name="COMMA_AFTER_LAST_ARRAY_ELEMENT" value="true" />
       <option name="PHPDOC_BLANK_LINE_BEFORE_TAGS" value="true" />
@@ -110,11 +113,16 @@
       <option name="LOWER_CASE_NULL_CONST" value="true" />
       <option name="ELSE_IF_STYLE" value="COMBINE" />
       <option name="VARIABLE_NAMING_STYLE" value="SNAKE_CASE" />
+      <option name="KEEP_RPAREN_AND_LBRACE_ON_ONE_LINE" value="true" />
+      <option name="ALIGN_ENUM_CASES" value="true" />
+      <option name="BLANK_LINES_AFTER_FUNCTION" value="0" />
       <option name="KEEP_BLANK_LINES_AFTER_LBRACE" value="0" />
       <option name="SPACE_BEFORE_CLOSURE_LEFT_PARENTHESIS" value="false" />
       <option name="FORCE_SHORT_DECLARATION_ARRAY_STYLE" value="true" />
       <option name="NEW_LINE_AFTER_PHP_OPENING_TAG" value="true" />
       <option name="SPACE_AROUND_ASSIGNMENT_IN_DECLARE" value="true" />
+      <option name="FORCE_EMPTY_METHODS_IN_ONE_LINE" value="true" />
+      <option name="FORCE_EMPTY_CLASSES_IN_ONE_LINE" value="true" />
     </PHPCodeStyleSettings>
     <PostgresCodeStyleSettings version="7">
       <option name="USE_GENERIC_STYLE" value="true" />
@@ -156,8 +164,9 @@
       <option name="KEYWORD_CASE" value="2" />
       <option name="TYPE_CASE" value="2" />
       <option name="CUSTOM_TYPE_CASE" value="2" />
-      <option name="SUBQUERY_CONTENT" value="1" />
-      <option name="SUBQUERY_CLOSING" value="1" />
+      <option name="SUBQUERY_CONTENT" value="2" />
+      <option name="SUBQUERY_CLOSING" value="2" />
+      <option name="SUBQUERY_PAR_SPACE_BEFORE" value="1" />
       <option name="INSERT_TABLE_EL_LINE" value="0" />
       <option name="INSERT_EL_WRAP" value="2" />
       <option name="SET_EL_WRAP" value="2" />
@@ -237,12 +246,13 @@
     </codeStyleSettings>
     <codeStyleSettings language="JAVA">
       <option name="RIGHT_MARGIN" value="999" />
-      <option name="BLANK_LINES_AFTER_PACKAGE" value="0" />
-      <option name="BLANK_LINES_BEFORE_IMPORTS" value="0" />
+      <option name="KEEP_BLANK_LINES_IN_DECLARATIONS" value="1" />
+      <option name="KEEP_BLANK_LINES_IN_CODE" value="1" />
+      <option name="KEEP_BLANK_LINES_BETWEEN_PACKAGE_DECLARATION_AND_HEADER" value="1" />
+      <option name="KEEP_BLANK_LINES_BEFORE_RBRACE" value="0" />
       <option name="ELSE_ON_NEW_LINE" value="true" />
       <option name="SPACE_WITHIN_ARRAY_INITIALIZER_BRACES" value="true" />
-      <option name="SPACE_AFTER_TYPE_CAST" value="false" />
-      <option name="SPACE_BEFORE_SYNCHRONIZED_PARENTHESES" value="false" />
+      <option name="SPACE_BEFORE_ARRAY_INITIALIZER_LBRACE" value="true" />
       <option name="KEEP_SIMPLE_METHODS_IN_ONE_LINE" value="true" />
       <option name="KEEP_SIMPLE_LAMBDAS_IN_ONE_LINE" value="true" />
       <option name="KEEP_SIMPLE_CLASSES_IN_ONE_LINE" value="true" />
@@ -327,17 +337,20 @@
       <option name="ELSE_ON_NEW_LINE" value="true" />
       <option name="SPECIAL_ELSE_IF_TREATMENT" value="true" />
       <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="true" />
-      <option name="ALIGN_MULTILINE_PARAMETERS_IN_CALLS" value="true" />
-      <option name="ALIGN_MULTILINE_ARRAY_INITIALIZER_EXPRESSION" value="true" />
+      <option name="ALIGN_MULTILINE_PARAMETERS" value="false" />
+      <option name="ALIGN_MULTILINE_TERNARY_OPERATION" value="true" />
+      <option name="SPACE_AFTER_TYPE_CAST" value="true" />
       <option name="SPACE_BEFORE_ARRAY_INITIALIZER_LBRACE" value="true" />
-      <option name="KEEP_SIMPLE_METHODS_IN_ONE_LINE" value="true" />
-      <option name="KEEP_SIMPLE_CLASSES_IN_ONE_LINE" value="true" />
+      <option name="METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE" value="true" />
+      <option name="METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE" value="true" />
+      <option name="TERNARY_OPERATION_SIGNS_ON_NEXT_LINE" value="true" />
       <option name="IF_BRACE_FORCE" value="3" />
       <option name="DOWHILE_BRACE_FORCE" value="3" />
       <option name="WHILE_BRACE_FORCE" value="3" />
       <option name="FOR_BRACE_FORCE" value="3" />
       <indentOptions>
         <option name="INDENT_SIZE" value="2" />
+        <option name="CONTINUATION_INDENT_SIZE" value="2" />
         <option name="TAB_SIZE" value="2" />
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
       </indentOptions>
@@ -423,6 +436,9 @@
       <option name="LINE_COMMENT_AT_FIRST_COLUMN" value="false" />
       <option name="BLOCK_COMMENT_AT_FIRST_COLUMN" value="false" />
       <option name="LINE_COMMENT_ADD_SPACE" value="true" />
+      <option name="KEEP_BLANK_LINES_IN_DECLARATIONS" value="1" />
+      <option name="KEEP_BLANK_LINES_IN_CODE" value="1" />
+      <option name="KEEP_BLANK_LINES_BEFORE_RBRACE" value="1" />
       <option name="ELSE_ON_NEW_LINE" value="true" />
       <option name="METHOD_ANNOTATION_WRAP" value="0" />
       <option name="CLASS_ANNOTATION_WRAP" value="0" />
