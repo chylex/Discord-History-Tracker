@@ -4,10 +4,15 @@
   background-color: #36393e;
 }
 
-#messages > div {
-  margin: 0 24px;
-  padding: 4px 0 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+#messages>div {
+  padding: 0 4px 0 24px;
+
+  margin-bottom: 17px;
+}
+
+
+#messages>div:hover {
+  background-color: oklab(0.0846607 0.00000385568 0.00000169128 / 0.06);
 }
 
 #messages h2 {
@@ -23,7 +28,9 @@
   align-content: flex-start;
 }
 
-#messages .avatar-wrapper > div {
+
+
+#messages .avatar-wrapper>div {
   flex: 1 1 auto;
 }
 
@@ -50,14 +57,9 @@
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0;
+  margin-left: 5px;
 }
 
-#messages .info::before {
-  content: "\2022";
-  text-align: center;
-  display: inline-block;
-  width: 14px;
-}
 
 #messages .jump {
   cursor: pointer;
@@ -66,20 +68,22 @@
 }
 
 .message {
-  margin-top: 6px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 15px;
+  margin-top: 2px;
+  color: oklab(0.89908 -0.00192907 -0.0048306);
+  font-size: 16px;
   line-height: 1.1em;
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
-.message .link, .reply-message .link {
+.message .link,
+.reply-message .link {
   color: #7289da;
   background-color: rgba(115, 139, 215, 0.1);
 }
 
-.message a, .reply-message a {
+.message a,
+.reply-message a {
   color: #0096cf;
   text-decoration: none;
 }
@@ -126,7 +130,8 @@
   border-radius: 3px;
 }
 
-.message .embed:first-child, .message .download + .download {
+.message .embed:first-child,
+.message .download+.download {
   margin-top: 0;
 }
 
