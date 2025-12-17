@@ -16,7 +16,8 @@ class DOM {
 	 * @returns {HTMLElement}
 	 */
 	static queryReactClass(cls, parent) {
-		return (parent || document).querySelector(`[class*="${cls}_"]`);
+		parent = parent || document;
+		return parent.querySelector(`[class*="-${cls}"]`) || parent.querySelector(`[class*="${cls}_"]`);
 	}
 	
 	/**

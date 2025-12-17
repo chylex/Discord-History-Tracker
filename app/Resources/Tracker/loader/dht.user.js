@@ -68,7 +68,7 @@ function installConnectDialogButton() {
 }
 
 function getHelpIcon() {
-	return document.querySelector("div[class*='bar_'] a[href$='://support.discord.com'] > div[class*='clickable'] > svg");
+	return document.querySelector("div[class*='bar'] a[href$='://support.discord.com'] > div[class*='clickable'] > svg");
 }
 
 function showConnectDialog() {
