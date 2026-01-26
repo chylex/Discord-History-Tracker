@@ -3,7 +3,12 @@
  *
  * https://github.com/BetterDiscord/BetterDiscord/blob/2752daf64f98625fc67c569361bd56021307d058/renderer/src/modules/webpackmodules.js
  * https://github.com/BetterDiscord/BetterDiscord/blob/2752daf64f98625fc67c569361bd56021307d058/LICENSE
+ * 
+ * https://github.com/BetterDiscord/BetterDiscord/blob/1b859560148a908f077278fba9625ea82e670222/src/betterdiscord/webpack/shared.ts
+ * https://github.com/BetterDiscord/BetterDiscord/blob/1b859560148a908f077278fba9625ea82e670222/LICENSE
  */
+
+// noinspection RedundantIfStatementJS
 class WEBPACK {
 	static get require() {
 		if (this._require) {
@@ -33,6 +38,31 @@ class WEBPACK {
 		return this.require.c;
 	}
 	
+	static shouldSkipModule(exports) {
+		if (!(typeof exports === "object" || typeof exports === "function")) {
+			return true;
+		}
+		if (!exports) {
+			return true;
+		}
+		if (exports === window) {
+			return true;
+		}
+		if (exports === document.documentElement) {
+			return true;
+		}
+		if (exports[Symbol.toStringTag] === "DOMTokenList") {
+			return true;
+		}
+		if (exports === Symbol) {
+			return true;
+		}
+		if (exports instanceof Window) {
+			return true;
+		}
+		return false;
+	}
+	
 	static filterByProps(...props) {
 		return module => props.every(prop => prop in module);
 	}
@@ -42,41 +72,40 @@ class WEBPACK {
 	}
 	
 	static findModules(filter) {
-		const defaultExport = true;
 		const moduleFilter = module => (typeof module === "object" || typeof module === "function") && filter(module);
 		
 		const results = [];
 		
 		for (const module of Object.values(this.getAllModules())) {
 			/**
-			 * @type {Object}
-			 * @property [Z]
-			 * @property [ZP]
-			 * @property [__esModule]
+			 * @type {Object} Exports
+			 * @property [A]
+			 * @property [Ay]
 			 * @property [default]
 			 */
 			const exports = module.exports;
-			if (!exports || exports === window || exports === document.documentElement || exports[Symbol.toStringTag] === "DOMTokenList") {
+			if (this.shouldSkipModule(exports)) {
 				continue;
 			}
 			
-			let foundModule = null;
-			if (exports.Z && moduleFilter(exports.Z)) {
-				foundModule = defaultExport ? exports.Z : exports;
+			let foundModule;
+			if (exports.A && moduleFilter(exports.A)) {
+				foundModule = exports.A;
 			}
-			if (exports.ZP && moduleFilter(exports.ZP)) {
-				foundModule = defaultExport ? exports.ZP : exports;
+			else if (exports.Ay && moduleFilter(exports.Ay)) {
+				foundModule = exports.Ay;
 			}
-			if (exports.__esModule && exports.default && moduleFilter(exports.default)) {
-				foundModule = defaultExport ? exports.default : exports;
+			else if (exports.default && moduleFilter(exports.default)) {
+				foundModule = exports.default;
 			}
-			if (moduleFilter(exports)) {
+			else if (moduleFilter(exports)) {
 				foundModule = exports;
 			}
-			
-			if (foundModule) {
-				results.push(foundModule);
+			else {
+				continue;
 			}
+			
+			results.push(foundModule);
 		}
 		
 		return results;
